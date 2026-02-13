@@ -1,0 +1,43 @@
+{
+  "NAV": {
+    "TITLE": "Sistema de Gestión de Débito y Crédito",
+    "NOTIFICATIONS": "Notificaciones",
+    "SEE_ALL": "Ver todas las notificaciones",
+    "PROFILE": "Mi Perfil",
+    "SETTINGS": "Configuración",
+    "LOGOUT": "Cerrar Sesión",
+    "ADMIN": "Administrador"
+  },
+  "SIDEBAR": {
+    "HOME": "Inicio",
+    "REQUESTS": "Solicitudes",
+    "NEW_REQUEST": "Nueva Solicitud",
+    "DRAFTS": "Borradores",
+    "BULK_UPLOAD": "Carga Masiva",
+    "PENDING": "Pendientes",
+    "HISTORY": "Historial",
+    "NOTIFICATIONS": "Notificaciones",
+    "SETTINGS": "Configuración",
+    "USER_MANAGEMENT": "Gestión de Usuarios",
+    "CLIENT_MANAGEMENT": "Gestión de Clientes",
+    "ROLES": "Roles y Tipos de Solicitud",
+    "SYS_CONFIG": "Configuración del Sistema",
+    "SEC_MANAGE": "Gestión de la Seguridad"
+  },
+  "REQUEST_TYPES": {
+    "CREDIT": "Crédito",
+    "DEBIT": "Débito",
+    "AUDITOR_CREDIT": "Auditor Credit",
+    "AUDITOR_DEBIT": "Auditor Debit",
+    "RE_INVOICING": "Re Facturación",
+    "MATERIAL_RETURN": "Devolución de Material"
+  },
+  "DASHBOARD": {
+    "TITLE": "Resúmen de la Actividad",
+    "REQ_FILTER": "Tipo de Solicitud:",
+    "SEL_DATE": "Seleccionar Fecha:",
+    "DATE_OPTION1": "30 días",
+    "DATE_OPTION2": "60 días",
+    "DATE_OPTION3": "Personalizado"
+  }
+}

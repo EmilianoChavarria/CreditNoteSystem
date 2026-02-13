@@ -1,0 +1,15 @@
+<div class="popover-container">
+  <!-- Trigger slot -->
+  <div class="popover-trigger" (click)="toggle()">
+    <ng-content select="[trigger]"></ng-content>
+  </div>
+
+  <!-- Popover content -->
+  <div 
+    *ngIf="isOpen" 
+    class="popover-content"
+    [ngClass]="'popover-' + position()"
+    [style.width]="width()">
+    <ng-content select="[content]"></ng-content>
+  </div>
+</div>

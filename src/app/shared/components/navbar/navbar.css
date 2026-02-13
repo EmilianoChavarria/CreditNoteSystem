@@ -1,0 +1,23 @@
+nav {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Evita que los elementos se muevan */
+nav span {
+  transition: none;
+}
+
+/* Estabiliza el ancho mínimo de textos variables */
+.min-w-24 {
+  min-width: 6rem;
+}
+
+.min-w-32 {
+  min-width: 8rem;
+}
+
+/* Evita que los textos afecten el layout */
+nav .whitespace-nowrap {
+  display: flex;
+  align-items: center;
+}

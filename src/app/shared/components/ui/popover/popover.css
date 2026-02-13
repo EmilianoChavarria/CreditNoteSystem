@@ -1,0 +1,87 @@
+.popover-container {
+  position: relative;
+  display: inline-block;
+}
+
+.popover-trigger {
+  cursor: pointer;
+}
+
+.popover-content {
+  position: absolute;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  z-index: 1000;
+  max-height: 400px;
+  overflow-y: auto;
+  animation: popoverFadeIn 0.2s ease-in-out;
+}
+
+@keyframes popoverFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes popoverFadeInBottomCenter {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes popoverFadeInTopCenter {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.popover-bottom-right {
+  top: calc(100% + 8px);
+  right: 0;
+}
+
+.popover-bottom-left {
+  top: calc(100% + 8px);
+  left: 0;
+}
+
+.popover-top-right {
+  bottom: calc(100% + 8px);
+  right: 0;
+}
+
+.popover-top-left {
+  bottom: calc(100% + 8px);
+  left: 0;
+}
+
+.popover-bottom-center {
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  animation: popoverFadeInBottomCenter 0.2s ease-in-out;
+}
+
+.popover-top-center {
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  animation: popoverFadeInTopCenter 0.2s ease-in-out;
+}

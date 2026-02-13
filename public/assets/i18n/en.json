@@ -1,0 +1,43 @@
+{
+  "NAV": {
+    "TITLE": "Debit & Credit Management System",
+    "NOTIFICATIONS": "Notifications",
+    "SEE_ALL": "View all notifications",
+    "PROFILE": "My Profile",
+    "SETTINGS": "Settings",
+    "LOGOUT": "Logout",
+    "ADMIN": "Administrator"
+  },
+  "SIDEBAR": {
+    "HOME": "Home",
+    "REQUESTS": "Requests",
+    "NEW_REQUEST": "New Request",
+    "DRAFTS": "Drafts",
+    "BULK_UPLOAD": "Bulk Upload",
+    "PENDING": "Pending",
+    "HISTORY": "History",
+    "NOTIFICATIONS": "Notifications",
+    "SETTINGS": "Settings",
+    "USER_MANAGEMENT": "User Management",
+    "CLIENT_MANAGEMENT": "Client Management",
+    "ROLES": "Roles & Request Types",
+    "SYS_CONFIG": "System Configuration",
+    "SEC_MANAGE": "Security Management"
+  },
+  "REQUEST_TYPES": {
+    "CREDIT": "Credit",
+    "DEBIT": "Débito",
+    "AUDITOR_CREDIT": "Auditor Credit",
+    "AUDITOR_DEBIT": "Auditor Debit",
+    "RE_INVOICING": "Re Invoincing",
+    "MATERIAL_RETURN": "Material Return"
+  },
+  "DASHBOARD": {
+    "TITLE": "Activity Summary",
+    "REQ_FILTER": "Available Request:",
+    "SEL_DATE": "Select Date:",
+    "DATE_OPTION1": "30 days",
+    "DATE_OPTION2": "60 days",
+    "DATE_OPTION3": "Custom"
+  }
+}

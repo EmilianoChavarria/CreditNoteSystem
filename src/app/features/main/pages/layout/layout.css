@@ -1,0 +1,14 @@
+/* Asegura que el contenedor principal tenga el espacio mínimo */
+main {
+  height: 100vh;
+}
+
+/* El contenedor de contenido se adapta suavemente */
+.flex-col {
+  transition: all 300ms ease-in-out;
+}
+
+/* Evita que el contenido se desborde horizontalmente */
+section {
+  max-width: 100%;
+}

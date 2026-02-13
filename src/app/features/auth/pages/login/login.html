@@ -1,0 +1,36 @@
+<main class="h-screen w-full flex flex-col gap-y-10 items-center justify-center">
+    <img src="assets/svg/LTM.svg" alt="Logo Timken" class="h-20" style="fill: white !important;">
+    <form class="shadow-2xl w-1/4 flex flex-col p-8 gap-y-8 rounded-lg" [formGroup]="form" (ngSubmit)="onSubmit()">
+        <span class="text-center w-full text-[#ff8200] font-semibold text-2xl">
+            Inicio de sesión
+        </span>
+        <div>
+            <label for="email">Email</label>
+            <input type="email" id="email"
+                class="mt-2 w-full border border-gray-300 rounded-md p-2 h-11 focus:outline-2 focus:outline-offset focus:outline-[#ff8200] disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
+                placeholder="example@mail.com" formControlName="email">
+        </div>
+        <div class="w-full">
+            <label class="block text-foreground">Password</label>
+            <div class="relative mt-2">
+                <input [type]="showPassword ? 'text' : 'password'"
+                    class="p-2 h-11 w-full border border-gray-300 rounded-lg disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400" 
+                    placeholder="Enter password"
+                    value="12345qwerty" formControlName="password">
+                <button (click)="togglePassword()" type="button"
+                    class="absolute inset-y-0 end-0 flex items-center z-20 px-3 rounded-e-md focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-50"
+                    [disabled]="isLoading">
+                    <lucide-icon name="eye" [size]="24" color="#302F2F" [strokeWidth]="1.5"></lucide-icon>
+                </button>
+            </div>
+        </div>
+        <button class="bg-[#ff8200] text-white py-2 rounded-md hover:bg-[#e67300] transition-colors "
+            [disabled]="isLoading">
+            @if (isLoading) {
+            <app-spinner size="small" class="text-white"></app-spinner>
+            } @else {
+            <span>Log in</span>
+            }
+        </button>
+    </form>
+</main>

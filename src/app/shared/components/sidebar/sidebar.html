@@ -1,0 +1,41 @@
+<section
+    [class]="(isOpen ? 'w-64 shadow-2xl' : 'w-20 shadow-none') + ' transition-all duration-300 ease-in-out bg-white h-full border-r-2 border-orange-500 p-4 flex flex-col '">
+
+    <button (click)="onToggleSidebar()" class="mb-2 mx-auto hover:cursor-pointer">
+        <lucide-icon [name]="isOpen ? 'panel-left-close' : 'panel-left-open'" size="42" strokeWidth="1.5" color="#326295" class="shrink-0"></lucide-icon>
+    </button>
+
+    <img [src]="isOpen ? 'assets/svg/LTM.svg' : 'assets/svg/t.svg' " alt="Logo" class="h-10 my-6">
+
+    <ul class="flex flex-col gap-y-2 w-full overflow-hidden relative">
+        @for(option of sidebarOptions; track option.optionName; let i = $index){
+        <li class="flex flex-col w-full">
+            <div (click)="onToggleOption(i, option.url, !!option.children)"
+                [class]="'flex items-center gap-x-4 p-3 rounded-lg cursor-pointer transition-colors ' + (option.active ? 'bg-orange-500 text-white' : 'text-[#326295] hover:bg-orange-500 hover:text-white')"
+                [title]="option.optionName">
+
+                <lucide-icon [name]="option.iconName" class="shrink-0"></lucide-icon>
+
+                <span *ngIf="isOpen" class="font-semibold flex-1 whitespace-nowrap">
+                    {{option.optionName | translate }}
+                </span>
+
+                <lucide-icon *ngIf="option.children && isOpen" name="chevron-down"
+                    [class]="'transition-transform ' + (openedOptionIndex === i ? 'rotate-180' : '')">
+                </lucide-icon>
+            </div>
+
+            <ul *ngIf="isOpen && option.children"
+                [class]="(openedOptionIndex === i ? 'max-h-60 opacity-100' : 'max-h-0 opacity-0') + ' overflow-hidden transition-all duration-300 pl-10 bg-orange-50 rounded-b-lg'">
+                @for(suboption of option.children; track suboption.optionName){
+                <li (click)="navigate(suboption.url)"
+                    [class]="'flex items-center gap-x-3 py-2 cursor-pointer transition-colors rounded-md px-2 ' + (suboption.active ? 'text-orange-500 font-semibold' : 'hover:text-orange-600')">
+                    <lucide-icon [name]="suboption.iconName" size="16"></lucide-icon>
+                    <span class="text-sm font-medium">{{suboption.optionName | translate}}</span>
+                </li>
+                }
+            </ul>
+        </li>
+        }
+    </ul>
+</section>

@@ -1,0 +1,82 @@
+<main class="flex flex-col">
+    <!-- Encabezado principal -->
+    <header class="w-full flex justify-between items-center">
+        <span class="text-4xl text-orange-500 font-semibold">{{'DASHBOARD.TITLE'| translate}}</span>
+        <div class="flex flex-row gap-x-2">
+            <div class="flex flex-col items-start justify-center">
+                <label for="days" class="font-semibold text-orange-500">{{'DASHBOARD.REQ_FILTER'| translate}}</label>
+                <div class="flex flex-row items-center">
+                    <select name="request_type" id="request_type" class="h-11 border border-gray-300 rounded-lg w-64 pl-2 pr-4">
+                        <option value="1">{{'REQUEST_TYPES.CREDIT'| translate}}</option>
+                        <option value="2">{{'REQUEST_TYPES.DEBIT'| translate}}</option>
+                        <option value="3">{{'REQUEST_TYPES.AUDITOR_CREDIT'| translate}}</option>
+                        <option value="4">{{'REQUEST_TYPES.AUDITOR_DEBIT'| translate}}</option>
+                        <option value="5">{{'REQUEST_TYPES.RE_INVOICING'| translate}}</option>
+                        <option value="6">{{'REQUEST_TYPES.MATERIAL_RETURN'| translate}}</option>
+
+                    </select>
+                </div>
+            </div>
+            <div class="flex flex-col items-start justify-center">
+                <label for="days" class="font-semibold text-orange-500">{{'DASHBOARD.SEL_DATE'| translate}}</label>
+                <div class="flex flex-row items-center">
+
+                    <select name="days" id="days" class="h-11 border border-gray-300 rounded-lg w-64 pl-2 pr-4">
+                        <option value="1">{{'DASHBOARD.DATE_OPTION1'| translate}}</option>
+                        <option value="2">{{'DASHBOARD.DATE_OPTION2'| translate}}</option>
+                        <option value="3">{{'DASHBOARD.DATE_OPTION3'| translate}}</option>
+                    </select>
+
+                    <lucide-icon name="calendar-clock" class="shrink-0" color="#ff8200" size="30"></lucide-icon>
+                </div>
+            </div>
+        </div>
+
+    </header>
+    <section class="grid grid-cols-4 gap-4 mt-4">
+        <app-stat-card></app-stat-card>
+        <app-stat-card></app-stat-card>
+        <app-stat-card></app-stat-card>
+        <app-stat-card></app-stat-card>
+    </section>
+    <section class="bg-white border border-gray-300 shadow-sm rounded-md mt-4 p-4 flex flex-col w-full">
+        <span class="text-center text-3xl text-gray-700 font-light">
+            Orders by Month
+        </span>
+        <div class="w-full h-125 flex items-center justify-center mx-auto">
+            <canvas baseChart [data]="lineChartData" [options]="lineChartOptions" [type]="'line'"
+                style="max-width: 1580px;">
+            </canvas>
+        </div>
+
+    </section>
+    <section class="w-full grid grid-cols-2 gap-4 mt-4">
+        @for(section of recentRequests; track section.title + $index) {
+        <div class="h-fit shadow-sm border border-gray-300 rounded-md px-10 py-6">
+            <span class="text-2xl text-gray-700 font-normal">{{ section.title }}</span>
+            <div class="w-full flex flex-col gap-y-3 mt-4">
+                @for(request of section.requests; track request.id) {
+                <div class="flex flex-col py-2 px-4 border border-gray-200 rounded-md hover:shadow-md">
+                    <div class="w-full flex flex-col">
+                        <div class="w-full flex items-center justify-between">
+                            <span class="text-gray-700">
+                                {{ request.title }}
+                            </span>
+                            <span class="mr-1">
+                                {{ request.amount }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="w-full flex items-center justify-between mt-1">
+                        <span class="text-gray-400">
+                            {{ request.client }} @if(request.additionalInfo) { | {{ request.additionalInfo }} }
+                        </span>
+                        <app-badge [color]="request.badgeColor" [text]="request.badgeText" />
+                    </div>
+                </div>
+                }
+            </div>
+        </div>
+        }
+    </section>
+</main>

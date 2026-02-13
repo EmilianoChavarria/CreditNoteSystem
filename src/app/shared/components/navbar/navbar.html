@@ -1,0 +1,80 @@
+<nav
+  class="transition-all duration-300 ease-in-out w-full h-16 border-b border-orange-500 text-black flex items-center justify-between px-4">
+
+  <div class="text-lg font-bold text-gray-600">
+    {{ 'NAV.TITLE' | translate }}
+  </div>
+
+  <div class="flex flex-row gap-x-10 items-center justify-center">
+
+    <div (click)="switchLang(translate.currentLang === 'en' ? 'es' : 'en')" class="flex flex-row border border-orange-500 rounded-md gap-x-0.5 py-1 px-3">
+      <button [class]="`${translate.currentLang === 'es' ? 'bg-orange-500 text-white rounded-md':''} px-1 transition-colors hover:cursor-pointer`">ES</button>
+      <button [class]="`${translate.currentLang === 'en' ? 'bg-orange-500 text-white rounded-md':''} px-1 transition-colors hover:cursor-pointer`">EN</button>
+    </div>
+
+    <app-popover position="bottom-center" width="350px">
+      <div trigger
+        class="transition-colors flex flex-row gap-x-2 items-center justify-center hover:bg-gray-200 px-4 py-2 hover:cursor-pointer rounded-lg whitespace-nowrap">
+        <span class="min-w-24">{{ 'NAV.NOTIFICATIONS' | translate }}</span>
+        <div class="relative flex">
+          <lucide-icon name="bell" size="24" strokeWidth="1.8" class="mr-1 mt-0.5"></lucide-icon>
+          <span
+            class="absolute inset-y-0 end-0 h-4 w-4 bg-orange-500 rounded-full flex items-center justify-center text-white text-[10px]">
+            2
+          </span>
+        </div>
+      </div>
+
+      <div content class="p-4">
+        <h3 class="font-semibold text-lg mb-3 border-b pb-2">{{ 'NAV.NOTIFICATIONS' | translate }}</h3>
+        <div class="space-y-3">
+          <div class="hover:bg-gray-50 p-3 rounded-lg cursor-pointer border-l-4 border-orange-500">
+            <p class="font-medium text-sm">Nueva solicitud pendiente</p>
+            <p class="text-xs text-gray-500 mt-1">Hace 5 minutos</p>
+          </div>
+        </div>
+        <button class="w-full mt-3 text-center text-sm text-orange-600 hover:text-orange-700 font-medium py-2">
+          {{ 'NAV.SEE_ALL' | translate }}
+        </button>
+      </div>
+    </app-popover>
+
+    <app-popover position="bottom-right" width="240px">
+      <div trigger class="flex flex-row gap-x-2 items-center justify-center cursor-pointer whitespace-nowrap">
+        <div class="h-11 w-11 bg-blue-600 flex items-center justify-center rounded-full flex-shrink-0">
+          <span class="text-white font-semibold text-xl">AC</span>
+        </div>
+        <div class="flex flex-col min-w-32">
+          <span class="font-light truncate">Aldrick Chavarría</span>
+          <span class="font-semibold text-xs uppercase">{{ 'NAV.ADMIN' | translate }}</span>
+        </div>
+        <div class="transition-colors flex my-auto p-2 hover:bg-gray-200 rounded-lg flex-shrink-0">
+          <lucide-icon name="chevron-down" size="24" strokeWidth="1.8"></lucide-icon>
+        </div>
+      </div>
+
+      <div content class="py-2">
+        <a href="#" class="block px-4 py-2.5 text-sm hover:bg-gray-100 transition-colors">
+          <div class="flex items-center gap-2">
+            <lucide-icon name="user" size="18"></lucide-icon>
+            <span>{{ 'NAV.PROFILE' | translate }}</span>
+          </div>
+        </a>
+        <a href="#" class="block px-4 py-2.5 text-sm hover:bg-gray-100 transition-colors">
+          <div class="flex items-center gap-2">
+            <lucide-icon name="settings" size="18"></lucide-icon>
+            <span>{{ 'NAV.SETTINGS' | translate }}</span>
+          </div>
+        </a>
+        <div class="border-t my-2"></div>
+        <a (click)="logout()"
+          class="block px-4 py-2.5 text-sm hover:bg-gray-100 text-red-600 cursor-pointer transition-colors">
+          <div class="flex items-center gap-2">
+            <lucide-icon name="log-out" size="18"></lucide-icon>
+            <span>{{ 'NAV.LOGOUT' | translate }}</span>
+          </div>
+        </a>
+      </div>
+    </app-popover>
+  </div>
+</nav>
