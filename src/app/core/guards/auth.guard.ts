@@ -12,18 +12,12 @@ export class AuthGuard implements CanActivate {
   constructor(
     private authService: AuthService,
     private router: Router,
-    @Inject(PLATFORM_ID) private platformId: object
   ) {}
 
   canActivate(
     route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
   ): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
-    
-    // Evita redirecciones durante SSR; verifica solo en navegador
-    if (!isPlatformBrowser(this.platformId)) {
-      return true;
-    }
 
     // Verifica la sesión con el backend
     return this.authService.checkSession().pipe(
