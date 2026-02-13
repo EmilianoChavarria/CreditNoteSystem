@@ -30,7 +30,8 @@
     "AUDITOR_CREDIT": "Auditor Credit",
     "AUDITOR_DEBIT": "Auditor Debit",
     "RE_INVOICING": "Re Invoincing",
-    "MATERIAL_RETURN": "Material Return"
+    "MATERIAL_RETURN": "Material Return",
+    "ALL_TYPES": "All types"
   },
   "DASHBOARD": {
     "TITLE": "Activity Summary",
@@ -39,5 +40,6 @@
     "DATE_OPTION1": "30 days",
     "DATE_OPTION2": "60 days",
     "DATE_OPTION3": "Custom"
+    
   }
 }

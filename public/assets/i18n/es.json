@@ -30,7 +30,8 @@
     "AUDITOR_CREDIT": "Auditor Credit",
     "AUDITOR_DEBIT": "Auditor Debit",
     "RE_INVOICING": "Re Facturación",
-    "MATERIAL_RETURN": "Devolución de Material"
+    "MATERIAL_RETURN": "Devolución de Material",
+    "ALL_TYPES": "Todas las opciones"
   },
   "DASHBOARD": {
     "TITLE": "Resúmen de la Actividad",
