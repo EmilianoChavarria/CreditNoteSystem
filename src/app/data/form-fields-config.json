@@ -1,0 +1,1405 @@
+{
+  "credits": {
+    "tabs": [
+      {
+        "id": 1,
+        "title": "Request & Customer",
+        "fields": [
+          {
+            "formControlName": "requestNumber",
+            "label": "Request Number",
+            "type": "text",
+            "placeholder": "Auto-generated",
+            "validators": [],
+            "disabled": true,
+            "description": "Se genera en automático"
+          },
+          {
+            "formControlName": "requestDate",
+            "label": "Request Date",
+            "type": "date",
+            "placeholder": "",
+            "validators": ["required"],
+            "defaultValue": "today",
+            "description": "Default: Fecha de hoy"
+          },
+          {
+            "formControlName": "customerNumber",
+            "label": "Customer Number",
+            "type": "autocomplete",
+            "placeholder": "Buscar cliente",
+            "validators": ["required"],
+            "dataSource": "customers",
+            "description": "Listado de clientes"
+          },
+          {
+            "formControlName": "area",
+            "label": "Area",
+            "type": "select",
+            "placeholder": "Seleccione área",
+            "validators": ["required"],
+            "options": [
+              { "value": "original-equipment", "label": "Original Equipment" },
+              { "value": "market", "label": "Market" }
+            ]
+          },
+          {
+            "formControlName": "reasonWhy",
+            "label": "Reason Why",
+            "type": "select",
+            "placeholder": "Seleccione razón",
+            "validators": ["required"],
+            "options": [
+              { "value": "original-equipment", "label": "Original Equipment" },
+              { "value": "market", "label": "Market" }
+            ],
+            "dataSource": "reasons",
+            "description": "Opciones de motivo de solicitud"
+          },
+          {
+            "formControlName": "classification",
+            "label": "Classification",
+            "type": "select",
+            "placeholder": "Seleccione clasificación",
+            "validators": ["required"],
+            "options": [
+              { "value": "original-equipment", "label": "Original Equipment" },
+              { "value": "market", "label": "Market" }
+            ],
+            "dataSource": "classifications",
+            "description": "Clasificación de la nota"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Reference & Logistics",
+        "fields": [
+          {
+            "formControlName": "orderNumber",
+            "label": "Order Number",
+            "type": "text",
+            "placeholder": "Ingrese número de orden",
+            "validators": [],
+            "description": "Llenado manual post-nota"
+          },
+          {
+            "formControlName": "deliveryNote",
+            "label": "Delivery Note",
+            "type": "text",
+            "placeholder": "Referencia de entrega",
+            "validators": []
+          },
+          {
+            "formControlName": "invoiceNumber",
+            "label": "Invoice Number",
+            "type": "text",
+            "placeholder": "Número de factura original",
+            "validators": ["required"]
+          },
+          {
+            "formControlName": "invoiceDate",
+            "label": "Invoice Date",
+            "type": "date",
+            "placeholder": "",
+            "validators": ["required"],
+            "description": "Fecha de factura original"
+          },
+          {
+            "formControlName": "sapScreen",
+            "label": "SAP Screen",
+            "type": "file",
+            "placeholder": "Seleccione captura de pantalla",
+            "validators": [],
+            "accept": "image/*",
+            "description": "Captura de pantalla SAP (Evidencia)"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Financial Data",
+        "fields": [
+          {
+            "formControlName": "currency",
+            "label": "Currency",
+            "type": "select",
+            "placeholder": "Seleccione moneda",
+            "validators": ["required"],
+            "options": [
+              { "value": "USD", "label": "USD" },
+              { "value": "MXN", "label": "MXN" }
+            ]
+          },
+          {
+            "formControlName": "exchangeRate",
+            "label": "Exchange Rate",
+            "type": "number",
+            "placeholder": "Tipo de cambio",
+            "validators": ["required", "min:0"],
+            "step": 0.0001,
+            "description": "1 si es MXN, valor actual si es USD"
+          },
+          {
+            "formControlName": "amount",
+            "label": "Amount",
+            "type": "number",
+            "placeholder": "0.00",
+            "validators": ["required", "min:0"],
+            "step": 0.01,
+            "description": "Monto principal"
+          },
+          {
+            "formControlName": "iva",
+            "label": "IVA",
+            "type": "checkbox",
+            "placeholder": "",
+            "validators": [],
+            "description": "Cálculo del 16% sobre Amount"
+          },
+          {
+            "formControlName": "total",
+            "label": "Total",
+            "type": "computed",
+            "placeholder": "",
+            "validators": [],
+            "disabled": true,
+            "description": "Monto + IVA (Label dinámico)",
+            "computeFrom": ["amount", "iva"],
+            "formula": "iva ? amount * 1.16 : amount"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Review & Finalize",
+        "fields": [
+          {
+            "formControlName": "attachSupports",
+            "label": "Attach Supports",
+            "type": "file",
+            "placeholder": "Adjuntar soportes",
+            "validators": [],
+            "accept": ".pdf,.jpg,.png,.xlsx",
+            "description": "Incluye memoria de cálculo"
+          },
+          {
+            "formControlName": "comments",
+            "label": "Comments",
+            "type": "textarea",
+            "placeholder": "Comentarios tipo SAT",
+            "validators": [],
+            "rows": 4
+          },
+          {
+            "formControlName": "reviewComments",
+            "label": "Review Comments",
+            "type": "textarea",
+            "placeholder": "Comentarios de auditoría",
+            "validators": [],
+            "rows": 3,
+            "readonly": true,
+            "description": "Comentarios de auditoría (Solo lectura/Admin)"
+          },
+          {
+            "formControlName": "status",
+            "label": "Status de la nota",
+            "type": "badge",
+            "placeholder": "",
+            "validators": [],
+            "disabled": true,
+            "description": "Estatus actual del proceso"
+          },
+          {
+            "formControlName": "creditNumber",
+            "label": "Credit Number",
+            "type": "text",
+            "placeholder": "Folio de crédito",
+            "validators": [],
+            "description": "Folio de crédito final"
+          }
+        ]
+      }
+    ]
+  },
+  "debits": {
+    "tabs": [
+      {
+        "id": 1,
+        "title": "Request & Customer",
+        "fields": [
+          {
+            "formControlName": "requestNumber",
+            "label": "Request Number",
+            "type": "text",
+            "placeholder": "Auto-generated",
+            "validators": [],
+            "disabled": true,
+            "description": "Se genera en automático"
+          },
+          {
+            "formControlName": "requestDate",
+            "label": "Request Date",
+            "type": "date",
+            "placeholder": "",
+            "validators": ["required"],
+            "defaultValue": "today",
+            "description": "Default: Fecha de hoy"
+          },
+          {
+            "formControlName": "customerNumber",
+            "label": "Customer Number",
+            "type": "autocomplete",
+            "placeholder": "Buscar cliente",
+            "validators": ["required"],
+            "dataSource": "customers",
+            "description": "Listado de clientes"
+          },
+          {
+            "formControlName": "area",
+            "label": "Area",
+            "type": "select",
+            "placeholder": "Seleccione área",
+            "validators": ["required"],
+            "options": [
+              { "value": "original-equipment", "label": "Original Equipment" },
+              { "value": "market", "label": "Market" }
+            ]
+          },
+          {
+            "formControlName": "reasonWhy",
+            "label": "Reason Why",
+            "type": "select",
+            "placeholder": "Seleccione razón",
+            "validators": ["required"],
+            "options": [],
+            "dataSource": "reasons",
+            "description": "Opciones de motivo de solicitud"
+          },
+          {
+            "formControlName": "classification",
+            "label": "Classification",
+            "type": "select",
+            "placeholder": "Seleccione clasificación",
+            "validators": ["required"],
+            "options": [],
+            "dataSource": "classifications",
+            "description": "Clasificación de la nota"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Reference & Logistics",
+        "fields": [
+          {
+            "formControlName": "orderNumber",
+            "label": "Order Number",
+            "type": "text",
+            "placeholder": "Ingrese número de orden",
+            "validators": ["required"],
+            "description": "Llenado manual post-nota"
+          },
+          {
+            "formControlName": "deliveryNote",
+            "label": "Delivery Note",
+            "type": "text",
+            "placeholder": "Referencia de entrega",
+            "validators": []
+          },
+          {
+            "formControlName": "invoiceNumber",
+            "label": "Invoice Number",
+            "type": "text",
+            "placeholder": "Número de factura original",
+            "validators": ["required"]
+          },
+          {
+            "formControlName": "invoiceDate",
+            "label": "Invoice Date",
+            "type": "date",
+            "placeholder": "",
+            "validators": ["required"],
+            "description": "Fecha de factura original"
+          },
+          {
+            "formControlName": "sapScreen",
+            "label": "SAP Screen",
+            "type": "file",
+            "placeholder": "Seleccione captura de pantalla",
+            "validators": ["required"],
+            "accept": "image/*",
+            "description": "Captura de pantalla SAP (Evidencia)"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Financial Data",
+        "fields": [
+          {
+            "formControlName": "currency",
+            "label": "Currency",
+            "type": "select",
+            "placeholder": "Seleccione moneda",
+            "validators": ["required"],
+            "options": [
+              { "value": "USD", "label": "USD" },
+              { "value": "MXN", "label": "MXN" }
+            ]
+          },
+          {
+            "formControlName": "exchangeRate",
+            "label": "Exchange Rate",
+            "type": "number",
+            "placeholder": "Tipo de cambio",
+            "validators": ["required", "min:0"],
+            "step": 0.0001,
+            "description": "1 si es MXN, valor actual si es USD"
+          },
+          {
+            "formControlName": "amount",
+            "label": "Amount",
+            "type": "number",
+            "placeholder": "0.00",
+            "validators": ["required", "min:0"],
+            "step": 0.01,
+            "description": "Monto principal"
+          },
+          {
+            "formControlName": "iva",
+            "label": "IVA",
+            "type": "checkbox",
+            "placeholder": "",
+            "validators": [],
+            "description": "Cálculo del 16% sobre Amount"
+          },
+          {
+            "formControlName": "total",
+            "label": "Total",
+            "type": "computed",
+            "placeholder": "",
+            "validators": [],
+            "disabled": true,
+            "description": "Monto + IVA (Label dinámico)",
+            "computeFrom": ["amount", "iva"],
+            "formula": "iva ? amount * 1.16 : amount"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Review & Finalize",
+        "fields": [
+          {
+            "formControlName": "attachSupports",
+            "label": "Attach Supports",
+            "type": "file",
+            "placeholder": "Adjuntar soportes",
+            "validators": ["required"],
+            "accept": ".pdf,.jpg,.png,.xlsx",
+            "description": "Incluye memoria de cálculo"
+          },
+          {
+            "formControlName": "comments",
+            "label": "Comments",
+            "type": "textarea",
+            "placeholder": "Comentarios tipo SAT",
+            "validators": [],
+            "rows": 4
+          },
+          {
+            "formControlName": "reviewComments",
+            "label": "Review Comments",
+            "type": "textarea",
+            "placeholder": "Comentarios de auditoría",
+            "validators": [],
+            "rows": 3,
+            "readonly": true,
+            "description": "Comentarios de auditoría (Solo lectura/Admin)"
+          },
+          {
+            "formControlName": "status",
+            "label": "Status de la nota",
+            "type": "badge",
+            "placeholder": "",
+            "validators": [],
+            "disabled": true,
+            "description": "Estatus actual del proceso"
+          },
+          {
+            "formControlName": "creditNumber",
+            "label": "Credit Number",
+            "type": "text",
+            "placeholder": "Folio de crédito",
+            "validators": [],
+            "description": "Folio de crédito final"
+          }
+        ]
+      }
+    ]
+  },
+  "auditor-credits": {
+    "tabs": [
+      {
+        "id": 1,
+        "title": "Request & Customer",
+        "fields": [
+          {
+            "formControlName": "requestNumber",
+            "label": "Request Number",
+            "type": "text",
+            "placeholder": "Auto-generated",
+            "validators": [],
+            "disabled": true,
+            "description": "Se genera en automático"
+          },
+          {
+            "formControlName": "requestDate",
+            "label": "Request Date",
+            "type": "date",
+            "placeholder": "",
+            "validators": ["required"],
+            "defaultValue": "today",
+            "description": "Default: Fecha de hoy"
+          },
+          {
+            "formControlName": "customerNumber",
+            "label": "Customer Number",
+            "type": "autocomplete",
+            "placeholder": "Buscar cliente",
+            "validators": ["required"],
+            "dataSource": "customers",
+            "description": "Listado de clientes"
+          },
+          {
+            "formControlName": "area",
+            "label": "Area",
+            "type": "select",
+            "placeholder": "Seleccione área",
+            "validators": ["required"],
+            "options": [
+              { "value": "original-equipment", "label": "Original Equipment" },
+              { "value": "market", "label": "Market" }
+            ]
+          },
+          {
+            "formControlName": "reasonWhy",
+            "label": "Reason Why",
+            "type": "select",
+            "placeholder": "Seleccione razón",
+            "validators": ["required"],
+            "options": [],
+            "dataSource": "reasons",
+            "description": "Opciones de motivo de solicitud"
+          },
+          {
+            "formControlName": "classification",
+            "label": "Classification",
+            "type": "select",
+            "placeholder": "Seleccione clasificación",
+            "validators": ["required"],
+            "options": [],
+            "dataSource": "classifications",
+            "description": "Clasificación de la nota"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Reference & Logistics",
+        "fields": [
+          {
+            "formControlName": "orderNumber",
+            "label": "Order Number",
+            "type": "text",
+            "placeholder": "Ingrese número de orden",
+            "validators": ["required"],
+            "description": "Llenado manual post-nota"
+          },
+          {
+            "formControlName": "deliveryNote",
+            "label": "Delivery Note",
+            "type": "text",
+            "placeholder": "Referencia de entrega",
+            "validators": []
+          },
+          {
+            "formControlName": "invoiceNumber",
+            "label": "Invoice Number",
+            "type": "text",
+            "placeholder": "Número de factura original",
+            "validators": ["required"]
+          },
+          {
+            "formControlName": "invoiceDate",
+            "label": "Invoice Date",
+            "type": "date",
+            "placeholder": "",
+            "validators": ["required"],
+            "description": "Fecha de factura original"
+          },
+          {
+            "formControlName": "sapScreen",
+            "label": "SAP Screen",
+            "type": "file",
+            "placeholder": "Seleccione captura de pantalla",
+            "validators": ["required"],
+            "accept": "image/*",
+            "description": "Captura de pantalla SAP (Evidencia)"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Financial Data",
+        "fields": [
+          {
+            "formControlName": "currency",
+            "label": "Currency",
+            "type": "select",
+            "placeholder": "Seleccione moneda",
+            "validators": ["required"],
+            "options": [
+              { "value": "USD", "label": "USD" },
+              { "value": "MXN", "label": "MXN" }
+            ]
+          },
+          {
+            "formControlName": "exchangeRate",
+            "label": "Exchange Rate",
+            "type": "number",
+            "placeholder": "Tipo de cambio",
+            "validators": ["required", "min:0"],
+            "step": 0.0001,
+            "description": "1 si es MXN, valor actual si es USD"
+          },
+          {
+            "formControlName": "amount",
+            "label": "Amount",
+            "type": "number",
+            "placeholder": "0.00",
+            "validators": ["required", "min:0"],
+            "step": 0.01,
+            "description": "Monto principal"
+          },
+          {
+            "formControlName": "iva",
+            "label": "IVA",
+            "type": "checkbox",
+            "placeholder": "",
+            "validators": [],
+            "description": "Cálculo del 16% sobre Amount"
+          },
+          {
+            "formControlName": "total",
+            "label": "Total",
+            "type": "computed",
+            "placeholder": "",
+            "validators": [],
+            "disabled": true,
+            "description": "Monto + IVA (Label dinámico)",
+            "computeFrom": ["amount", "iva"],
+            "formula": "iva ? amount * 1.16 : amount"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Review & Finalize",
+        "fields": [
+          {
+            "formControlName": "attachSupports",
+            "label": "Attach Supports",
+            "type": "file",
+            "placeholder": "Adjuntar soportes",
+            "validators": ["required"],
+            "accept": ".pdf,.jpg,.png,.xlsx",
+            "description": "Incluye memoria de cálculo"
+          },
+          {
+            "formControlName": "comments",
+            "label": "Comments",
+            "type": "textarea",
+            "placeholder": "Comentarios tipo SAT",
+            "validators": [],
+            "rows": 4
+          },
+          {
+            "formControlName": "reviewComments",
+            "label": "Review Comments",
+            "type": "textarea",
+            "placeholder": "Comentarios de auditoría",
+            "validators": [],
+            "rows": 3,
+            "readonly": true,
+            "description": "Comentarios de auditoría (Solo lectura/Admin)"
+          },
+          {
+            "formControlName": "status",
+            "label": "Status de la nota",
+            "type": "badge",
+            "placeholder": "",
+            "validators": [],
+            "disabled": true,
+            "description": "Estatus actual del proceso"
+          },
+          {
+            "formControlName": "creditNumber",
+            "label": "Credit Number",
+            "type": "text",
+            "placeholder": "Folio de crédito",
+            "validators": [],
+            "description": "Folio de crédito final"
+          }
+        ]
+      }
+    ]
+  },
+  "auditor-debits": {
+    "tabs": [
+      {
+        "id": 1,
+        "title": "Request & Customer",
+        "fields": [
+          {
+            "formControlName": "requestNumber",
+            "label": "Request Number",
+            "type": "text",
+            "placeholder": "Auto-generated",
+            "validators": [],
+            "disabled": true,
+            "description": "Se genera en automático"
+          },
+          {
+            "formControlName": "requestDate",
+            "label": "Request Date",
+            "type": "date",
+            "placeholder": "",
+            "validators": ["required"],
+            "defaultValue": "today",
+            "description": "Default: Fecha de hoy"
+          },
+          {
+            "formControlName": "customerNumber",
+            "label": "Customer Number",
+            "type": "autocomplete",
+            "placeholder": "Buscar cliente",
+            "validators": ["required"],
+            "dataSource": "customers",
+            "description": "Listado de clientes"
+          },
+          {
+            "formControlName": "area",
+            "label": "Area",
+            "type": "select",
+            "placeholder": "Seleccione área",
+            "validators": ["required"],
+            "options": [
+              { "value": "original-equipment", "label": "Original Equipment" },
+              { "value": "market", "label": "Market" }
+            ]
+          },
+          {
+            "formControlName": "reasonWhy",
+            "label": "Reason Why",
+            "type": "select",
+            "placeholder": "Seleccione razón",
+            "validators": ["required"],
+            "options": [],
+            "dataSource": "reasons",
+            "description": "Opciones de motivo de solicitud"
+          },
+          {
+            "formControlName": "classification",
+            "label": "Classification",
+            "type": "select",
+            "placeholder": "Seleccione clasificación",
+            "validators": ["required"],
+            "options": [],
+            "dataSource": "classifications",
+            "description": "Clasificación de la nota"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Reference & Logistics",
+        "fields": [
+          {
+            "formControlName": "orderNumber",
+            "label": "Order Number",
+            "type": "text",
+            "placeholder": "Ingrese número de orden",
+            "validators": ["required"],
+            "description": "Llenado manual post-nota"
+          },
+          {
+            "formControlName": "deliveryNote",
+            "label": "Delivery Note",
+            "type": "text",
+            "placeholder": "Referencia de entrega",
+            "validators": []
+          },
+          {
+            "formControlName": "invoiceNumber",
+            "label": "Invoice Number",
+            "type": "text",
+            "placeholder": "Número de factura original",
+            "validators": ["required"]
+          },
+          {
+            "formControlName": "invoiceDate",
+            "label": "Invoice Date",
+            "type": "date",
+            "placeholder": "",
+            "validators": ["required"],
+            "description": "Fecha de factura original"
+          },
+          {
+            "formControlName": "sapScreen",
+            "label": "SAP Screen",
+            "type": "file",
+            "placeholder": "Seleccione captura de pantalla",
+            "validators": ["required"],
+            "accept": "image/*",
+            "description": "Captura de pantalla SAP (Evidencia)"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Financial Data",
+        "fields": [
+          {
+            "formControlName": "currency",
+            "label": "Currency",
+            "type": "select",
+            "placeholder": "Seleccione moneda",
+            "validators": ["required"],
+            "options": [
+              { "value": "USD", "label": "USD" },
+              { "value": "MXN", "label": "MXN" }
+            ]
+          },
+          {
+            "formControlName": "exchangeRate",
+            "label": "Exchange Rate",
+            "type": "number",
+            "placeholder": "Tipo de cambio",
+            "validators": ["required", "min:0"],
+            "step": 0.0001,
+            "description": "1 si es MXN, valor actual si es USD"
+          },
+          {
+            "formControlName": "amount",
+            "label": "Amount",
+            "type": "number",
+            "placeholder": "0.00",
+            "validators": ["required", "min:0"],
+            "step": 0.01,
+            "description": "Monto principal"
+          },
+          {
+            "formControlName": "iva",
+            "label": "IVA",
+            "type": "checkbox",
+            "placeholder": "",
+            "validators": [],
+            "description": "Cálculo del 16% sobre Amount"
+          },
+          {
+            "formControlName": "total",
+            "label": "Total",
+            "type": "computed",
+            "placeholder": "",
+            "validators": [],
+            "disabled": true,
+            "description": "Monto + IVA (Label dinámico)",
+            "computeFrom": ["amount", "iva"],
+            "formula": "iva ? amount * 1.16 : amount"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Review & Finalize",
+        "fields": [
+          {
+            "formControlName": "attachSupports",
+            "label": "Attach Supports",
+            "type": "file",
+            "placeholder": "Adjuntar soportes",
+            "validators": ["required"],
+            "accept": ".pdf,.jpg,.png,.xlsx",
+            "description": "Incluye memoria de cálculo"
+          },
+          {
+            "formControlName": "comments",
+            "label": "Comments",
+            "type": "textarea",
+            "placeholder": "Comentarios tipo SAT",
+            "validators": [],
+            "rows": 4
+          },
+          {
+            "formControlName": "reviewComments",
+            "label": "Review Comments",
+            "type": "textarea",
+            "placeholder": "Comentarios de auditoría",
+            "validators": [],
+            "rows": 3,
+            "readonly": true,
+            "description": "Comentarios de auditoría (Solo lectura/Admin)"
+          },
+          {
+            "formControlName": "status",
+            "label": "Status de la nota",
+            "type": "badge",
+            "placeholder": "",
+            "validators": [],
+            "disabled": true,
+            "description": "Estatus actual del proceso"
+          },
+          {
+            "formControlName": "creditNumber",
+            "label": "Credit Number",
+            "type": "text",
+            "placeholder": "Folio de crédito",
+            "validators": [],
+            "description": "Folio de crédito final"
+          }
+        ]
+      }
+    ]
+  },
+  "re-billing": {
+    "tabs": [
+      {
+        "id": 1,
+        "title": "Request & Customer",
+        "fields": [
+          {
+            "formControlName": "requestNumber",
+            "label": "Request Number",
+            "type": "text",
+            "placeholder": "Auto-generated",
+            "validators": [],
+            "disabled": true,
+            "description": "Se genera en automático"
+          },
+          {
+            "formControlName": "requestDate",
+            "label": "Request Date",
+            "type": "date",
+            "placeholder": "",
+            "validators": ["required"],
+            "defaultValue": "today",
+            "description": "Default: Fecha de hoy"
+          },
+          {
+            "formControlName": "customerNumber",
+            "label": "Customer Number",
+            "type": "autocomplete",
+            "placeholder": "Buscar cliente",
+            "validators": ["required"],
+            "dataSource": "customers",
+            "description": "Listado de clientes"
+          },
+          {
+            "formControlName": "area",
+            "label": "Area",
+            "type": "select",
+            "placeholder": "Seleccione área",
+            "validators": ["required"],
+            "options": [
+              { "value": "original-equipment", "label": "Original Equipment" },
+              { "value": "market", "label": "Market" }
+            ]
+          },
+          {
+            "formControlName": "reasonWhy",
+            "label": "Reason Why",
+            "type": "select",
+            "placeholder": "Seleccione razón",
+            "validators": ["required"],
+            "options": [],
+            "dataSource": "reasons",
+            "description": "Opciones de motivo de solicitud"
+          },
+          {
+            "formControlName": "classification",
+            "label": "Classification",
+            "type": "select",
+            "placeholder": "Seleccione clasificación",
+            "validators": ["required"],
+            "options": [],
+            "dataSource": "classifications",
+            "description": "Clasificación de la nota"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Reference & Logistics",
+        "fields": [
+          {
+            "formControlName": "orderNumber",
+            "label": "Order Number",
+            "type": "text",
+            "placeholder": "Ingrese número de orden",
+            "validators": ["required"],
+            "description": "Llenado manual post-nota"
+          },
+          {
+            "formControlName": "deliveryNote",
+            "label": "Delivery Note",
+            "type": "text",
+            "placeholder": "Referencia de entrega",
+            "validators": []
+          },
+          {
+            "formControlName": "invoiceNumber",
+            "label": "Invoice Number",
+            "type": "text",
+            "placeholder": "Número de factura original",
+            "validators": ["required"]
+          },
+          {
+            "formControlName": "invoiceDate",
+            "label": "Invoice Date",
+            "type": "date",
+            "placeholder": "",
+            "validators": ["required"],
+            "description": "Fecha de factura original"
+          },
+          {
+            "formControlName": "sapScreen",
+            "label": "SAP Screen",
+            "type": "file",
+            "placeholder": "Seleccione captura de pantalla",
+            "validators": ["required"],
+            "accept": "image/*",
+            "description": "Captura de pantalla SAP (Evidencia)"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Financial Data",
+        "fields": [
+          {
+            "formControlName": "currency",
+            "label": "Currency",
+            "type": "select",
+            "placeholder": "Seleccione moneda",
+            "validators": ["required"],
+            "options": [
+              { "value": "USD", "label": "USD" },
+              { "value": "MXN", "label": "MXN" }
+            ]
+          },
+          {
+            "formControlName": "exchangeRate",
+            "label": "Exchange Rate",
+            "type": "number",
+            "placeholder": "Tipo de cambio",
+            "validators": ["required", "min:0"],
+            "step": 0.0001,
+            "description": "1 si es MXN, valor actual si es USD"
+          },
+          {
+            "formControlName": "amount",
+            "label": "Amount",
+            "type": "number",
+            "placeholder": "0.00",
+            "validators": ["required", "min:0"],
+            "step": 0.01,
+            "description": "Monto principal"
+          },
+          {
+            "formControlName": "iva",
+            "label": "IVA",
+            "type": "checkbox",
+            "placeholder": "",
+            "validators": [],
+            "description": "Cálculo del 16% sobre Amount"
+          },
+          {
+            "formControlName": "total",
+            "label": "Total",
+            "type": "computed",
+            "placeholder": "",
+            "validators": [],
+            "disabled": true,
+            "description": "Monto + IVA (Label dinámico)",
+            "computeFrom": ["amount", "iva"],
+            "formula": "iva ? amount * 1.16 : amount"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Module Specific",
+        "fields": [
+          {
+            "formControlName": "creditDebitId",
+            "label": "Credit/Debit ID",
+            "type": "text",
+            "placeholder": "ID del crédito o débito",
+            "validators": ["required"],
+            "description": "ID del crédito o débito previo"
+          },
+          {
+            "formControlName": "newInvoice",
+            "label": "New Invoice",
+            "type": "text",
+            "placeholder": "Nueva factura",
+            "validators": ["required"],
+            "description": "Número de la nueva factura"
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Review & Finalize",
+        "fields": [
+          {
+            "formControlName": "attachSupports",
+            "label": "Attach Supports",
+            "type": "file",
+            "placeholder": "Adjuntar soportes",
+            "validators": ["required"],
+            "accept": ".pdf,.jpg,.png,.xlsx",
+            "description": "Incluye memoria de cálculo"
+          },
+          {
+            "formControlName": "comments",
+            "label": "Comments",
+            "type": "textarea",
+            "placeholder": "Comentarios tipo SAT",
+            "validators": [],
+            "rows": 4
+          },
+          {
+            "formControlName": "reviewComments",
+            "label": "Review Comments",
+            "type": "textarea",
+            "placeholder": "Comentarios de auditoría",
+            "validators": [],
+            "rows": 3,
+            "readonly": true,
+            "description": "Comentarios de auditoría (Solo lectura/Admin)"
+          },
+          {
+            "formControlName": "status",
+            "label": "Status de la nota",
+            "type": "badge",
+            "placeholder": "",
+            "validators": [],
+            "disabled": true,
+            "description": "Estatus actual del proceso"
+          },
+          {
+            "formControlName": "creditNumber",
+            "label": "Credit Number",
+            "type": "text",
+            "placeholder": "Folio de crédito",
+            "validators": [],
+            "description": "Folio de crédito final"
+          }
+        ]
+      }
+    ]
+  },
+  "material-return": {
+    "tabs": [
+      {
+        "id": 1,
+        "title": "Request & Customer",
+        "fields": [
+          {
+            "formControlName": "requestNumber",
+            "label": "Request Number",
+            "type": "text",
+            "placeholder": "Auto-generated",
+            "validators": [],
+            "disabled": true,
+            "description": "Se genera en automático"
+          },
+          {
+            "formControlName": "requestDate",
+            "label": "Request Date",
+            "type": "date",
+            "placeholder": "",
+            "validators": ["required"],
+            "defaultValue": "today",
+            "description": "Default: Fecha de hoy"
+          },
+          {
+            "formControlName": "customerNumber",
+            "label": "Customer Number",
+            "type": "autocomplete",
+            "placeholder": "Buscar cliente",
+            "validators": ["required"],
+            "dataSource": "customers",
+            "description": "Listado de clientes"
+          },
+          {
+            "formControlName": "area",
+            "label": "Area",
+            "type": "select",
+            "placeholder": "Seleccione área",
+            "validators": ["required"],
+            "options": [
+              { "value": "original-equipment", "label": "Original Equipment" },
+              { "value": "market", "label": "Market" }
+            ]
+          },
+          {
+            "formControlName": "reasonWhy",
+            "label": "Reason Why",
+            "type": "select",
+            "placeholder": "Seleccione razón",
+            "validators": ["required"],
+            "options": [
+              { "value": "original-equipment", "label": "Original Equipment" },
+              { "value": "market", "label": "Market" }
+            ],
+            "dataSource": "reasons",
+            "description": "Opciones de motivo de solicitud"
+          },
+          {
+            "formControlName": "classification",
+            "label": "Classification",
+            "type": "select",
+            "placeholder": "Seleccione clasificación",
+            "validators": ["required"],
+            "options": [
+              { "value": "original-equipment", "label": "Original Equipment" },
+              { "value": "market", "label": "Market" }
+            ],
+            "dataSource": "classifications",
+            "description": "Clasificación de la nota"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Reference & Logistics",
+        "fields": [
+          {
+            "formControlName": "orderNumber",
+            "label": "Order Number",
+            "type": "text",
+            "placeholder": "Ingrese número de orden",
+            "validators": ["required"],
+            "description": "Llenado manual post-nota"
+          },
+          {
+            "formControlName": "deliveryNote",
+            "label": "Delivery Note",
+            "type": "text",
+            "placeholder": "Referencia de entrega",
+            "validators": []
+          },
+          {
+            "formControlName": "invoiceNumber",
+            "label": "Invoice Number",
+            "type": "text",
+            "placeholder": "Número de factura original",
+            "validators": ["required"]
+          },
+          {
+            "formControlName": "invoiceDate",
+            "label": "Invoice Date",
+            "type": "date",
+            "placeholder": "",
+            "validators": ["required"],
+            "description": "Fecha de factura original"
+          },
+          {
+            "formControlName": "sapScreen",
+            "label": "SAP Screen",
+            "type": "file",
+            "placeholder": "Seleccione captura de pantalla",
+            "validators": ["required"],
+            "accept": "image/*",
+            "description": "Captura de pantalla SAP (Evidencia)"
+          },
+          {
+            "formControlName": "warehouseCode",
+            "label": "Warehouse Code",
+            "type": "text",
+            "placeholder": "Código del almacén",
+            "validators": ["required"],
+            "description": "Código del almacén (Solo Material Return)"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Financial Data",
+        "fields": [
+          {
+            "formControlName": "currency",
+            "label": "Currency",
+            "type": "select",
+            "placeholder": "Seleccione moneda",
+            "validators": ["required"],
+            "options": [
+              { "value": "USD", "label": "USD" },
+              { "value": "MXN", "label": "MXN" }
+            ]
+          },
+          {
+            "formControlName": "exchangeRate",
+            "label": "Exchange Rate",
+            "type": "number",
+            "placeholder": "Tipo de cambio",
+            "validators": ["required", "min:0"],
+            "step": 0.0001,
+            "description": "1 si es MXN, valor actual si es USD"
+          },
+          {
+            "formControlName": "replenishmentAmount",
+            "label": "Replenishment Amount",
+            "type": "number",
+            "placeholder": "0.00",
+            "validators": ["required", "min:0"],
+            "step": 0.01,
+            "description": "Monto de reposición"
+          },
+          {
+            "formControlName": "replenishmentIva",
+            "label": "Replenishment IVA",
+            "type": "checkbox",
+            "placeholder": "",
+            "validators": [],
+            "description": "16% sobre replenishment"
+          },
+          {
+            "formControlName": "replenishmentTotal",
+            "label": "Replenishment Total",
+            "type": "computed",
+            "placeholder": "",
+            "validators": [],
+            "disabled": true,
+            "description": "Total de reposición",
+            "computeFrom": ["replenishmentAmount", "replenishmentIva"],
+            "formula": "replenishmentIva ? replenishmentAmount * 1.16 : replenishmentAmount"
+          },
+          {
+            "formControlName": "warehouseAmount",
+            "label": "Warehouse Amount",
+            "type": "number",
+            "placeholder": "0.00",
+            "validators": ["required", "min:0"],
+            "step": 0.01,
+            "description": "Monto de almacén"
+          },
+          {
+            "formControlName": "warehouseIva",
+            "label": "Warehouse IVA",
+            "type": "checkbox",
+            "placeholder": "",
+            "validators": [],
+            "description": "16% sobre warehouse"
+          },
+          {
+            "formControlName": "warehouseTotal",
+            "label": "Warehouse Total",
+            "type": "computed",
+            "placeholder": "",
+            "validators": [],
+            "disabled": true,
+            "description": "Total de almacén",
+            "computeFrom": ["warehouseAmount", "warehouseIva"],
+            "formula": "warehouseIva ? warehouseAmount * 1.16 : warehouseAmount"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Module Specific",
+        "fields": [
+          {
+            "formControlName": "sapReturnOrder",
+            "label": "SAP Return Order",
+            "type": "text",
+            "placeholder": "Orden de retorno",
+            "validators": ["required"],
+            "description": "Orden de retorno en SAP"
+          },
+          {
+            "formControlName": "rga",
+            "label": "RGA",
+            "type": "checkbox",
+            "placeholder": "",
+            "validators": [],
+            "description": "Template de RGA"
+          },
+          {
+            "formControlName": "materialList",
+            "label": "Material List",
+            "type": "file",
+            "placeholder": "Subir archivo XML",
+            "validators": ["required"],
+            "accept": ".xml",
+            "description": "Subida de archivo XML"
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Review & Finalize",
+        "fields": [
+          {
+            "formControlName": "attachSupportsNoCalc",
+            "label": "Attach Supports",
+            "type": "file",
+            "placeholder": "Adjuntar soportes",
+            "validators": [],
+            "accept": ".pdf,.jpg,.png",
+            "description": "Sin memoria de cálculo"
+          },
+          {
+            "formControlName": "comments",
+            "label": "Comments",
+            "type": "textarea",
+            "placeholder": "Comentarios tipo SAT",
+            "validators": [],
+            "rows": 4
+          },
+          {
+            "formControlName": "reviewComments",
+            "label": "Review Comments",
+            "type": "textarea",
+            "placeholder": "Comentarios de auditoría",
+            "validators": [],
+            "rows": 3,
+            "readonly": true,
+            "description": "Comentarios de auditoría (Solo lectura/Admin)"
+          },
+          {
+            "formControlName": "status",
+            "label": "Status de la nota",
+            "type": "badge",
+            "placeholder": "",
+            "validators": [],
+            "disabled": true,
+            "description": "Estatus actual del proceso"
+          },
+          {
+            "formControlName": "creditNumber",
+            "label": "Credit Number",
+            "type": "text",
+            "placeholder": "Folio de crédito",
+            "validators": [],
+            "description": "Folio de crédito final"
+          }
+        ]
+      }
+    ]
+  }
+}
