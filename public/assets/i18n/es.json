@@ -25,6 +25,7 @@
     "SEC_MANAGE": "Gestión de la Seguridad"
   },
   "REQUEST_TYPES": {
+    "DEFAULT": "Selecciona una opción",
     "CREDIT": "Crédito",
     "DEBIT": "Débito",
     "AUDITOR_CREDIT": "Auditor Credit",

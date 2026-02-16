@@ -25,6 +25,7 @@
     "SEC_MANAGE": "Security Management"
   },
   "REQUEST_TYPES": {
+    "DEFAULT": "Select an option",
     "CREDIT": "Credit",
     "DEBIT": "Débito",
     "AUDITOR_CREDIT": "Auditor Credit",
@@ -35,7 +36,7 @@
   },
   "DASHBOARD": {
     "TITLE": "Activity Summary",
-    "REQ_FILTER": "Available Request:",
+    "REQ_FILTER": "Type of Request:",
     "SEL_DATE": "Select Date:",
     "DATE_OPTION1": "30 days",
     "DATE_OPTION2": "60 days",
