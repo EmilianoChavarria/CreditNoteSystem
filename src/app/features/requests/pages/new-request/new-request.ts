@@ -1,10 +1,179 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { TabsContainer } from "../../../../shared/components/ui/tab/tab-container/tab-container";
+import { Tab } from "../../../../shared/components/ui/tab/tab";
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { TranslatePipe } from '@ngx-translate/core';
+import { CommonModule, JsonPipe } from '@angular/common';
+import formFieldsConfig from '../../../../data/form-fields-config.json';
 
 @Component({
     selector: 'app-new-request',
     templateUrl: './new-request.html',
     styleUrl: './new-request.css',
+    imports: [TabsContainer, Tab, ReactiveFormsModule, TranslatePipe, CommonModule],
 })
-export class NewRequest {
+export class NewRequest implements OnInit {
+    profileForm: FormGroup;
+    formConfig: any = formFieldsConfig;
+    selectedRequestType: string = '';
+    currentTabs: any[] = [];
+    submitted: boolean = false; // Flag para marcar si se intentó guardar
 
+    constructor(private fb: FormBuilder) {
+        this.profileForm = this.fb.group({});
+    }
+
+    ngOnInit() {
+        // Inicializar con un tipo por defecto o vacío
+    }
+
+    onRequestTypeChange(event: any) {
+        const value = event.target.value;
+        this.selectedRequestType = value;
+
+        // Mapear el valor del select al key del JSON
+        const moduleMap: { [key: string]: string } = {
+            '1': 'credits',
+            '2': 'debits',
+            '3': 'auditor-credits',
+            '4': 'auditor-debits',
+            '5': 're-billing',
+            '6': 'material-return'
+        };
+
+        const moduleKey = moduleMap[value];
+
+        if (moduleKey && this.formConfig[moduleKey]) {
+            this.currentTabs = this.formConfig[moduleKey].tabs;
+            console.log("🚀 ~ NewRequest ~ onRequestTypeChange ~ this.currentTabs:", this.currentTabs)
+            this.buildForm(moduleKey);
+        } else {
+            this.currentTabs = [];
+            this.profileForm = this.fb.group({});
+        }
+    }
+
+    buildForm(moduleKey: string) {
+        const formControls: any = {};
+        const tabs = this.formConfig[moduleKey].tabs;
+
+        tabs.forEach((tab: any) => {
+            tab.fields.forEach((field: any) => {
+                const validators = this.getValidators(field.validators || []);
+                const defaultValue = this.getDefaultValue(field);
+                formControls[field.formControlName] = [defaultValue, validators];
+            });
+        });
+
+        this.profileForm = this.fb.group(formControls);
+    }
+
+    getValidators(validatorArray: string[]) {
+        const validators: any[] = [];
+
+        validatorArray.forEach((validator: string) => {
+            if (validator === 'required') {
+                validators.push(Validators.required);
+            } else if (validator.startsWith('min:')) {
+                const minValue = parseFloat(validator.split(':')[1]);
+                validators.push(Validators.min(minValue));
+            } else if (validator === 'email') {
+                validators.push(Validators.email);
+            }
+        });
+
+        return validators;
+    }
+
+    getDefaultValue(field: any) {
+        if (field.type === 'checkbox') return false;
+        if (field.type === 'number') return 0;
+        if (field.defaultValue === 'today') return new Date().toISOString().split('T')[0];
+        if (field.defaultValue) return field.defaultValue;
+        return '';
+    }
+
+    getComputedValue(field: any): any {
+        if (field.computeFrom && field.formula) {
+            const values: any = {};
+            field.computeFrom.forEach((controlName: string) => {
+                values[controlName] = this.profileForm.get(controlName)?.value || 0;
+            });
+
+            // Evaluar la fórmula de forma segura
+            try {
+                // Para el caso de IVA
+                if (field.formula.includes('iva') && field.formula.includes('amount')) {
+                    const iva = values.iva || values.replenishmentIva || values.warehouseIva;
+                    const amount = values.amount || values.replenishmentAmount || values.warehouseAmount;
+                    return iva ? amount * 1.16 : amount;
+                }
+            } catch (e) {
+                return 0;
+            }
+        }
+        return 0;
+    }
+
+    campoVacio(campo: string): boolean {
+        const control = this.profileForm.get(campo);
+        // Mostrar error si el campo está inválido y (fue tocado o se intentó guardar)
+        if (control?.invalid && (control?.touched || this.submitted)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    getFieldError(campo: string): string {
+        const control = this.profileForm.get(campo);
+        if (!control || !this.campoVacio(campo)) {
+            return '';
+        }
+
+        const errors = control.errors;
+        if (!errors) return '';
+
+        if (errors['required']) {
+            return 'Este campo es obligatorio';
+        }
+        if (errors['email']) {
+            return 'Please enter a valid email';
+        }
+        if (errors['min']) {
+            return `El valor mínimo es ${errors['min'].min}`;
+        }
+        if (errors['max']) {
+            return `El valor máximo es ${errors['max'].max}`;
+        }
+        if (errors['minlength']) {
+            return `Mínimo ${errors['minlength'].requiredLength} caracteres`;
+        }
+        if (errors['maxlength']) {
+            return `Máximo ${errors['maxlength'].requiredLength} caracteres`;
+        }
+        if (errors['pattern']) {
+            return 'El formato no es válido';
+        }
+
+        return 'Error en el campo';
+    }
+
+    handleSave() {
+        this.submitted = true;
+
+        // Marcar todos los campos como touched para mostrar errores
+        Object.keys(this.profileForm.controls).forEach(key => {
+            this.profileForm.get(key)?.markAsTouched();
+        });
+
+        if (this.profileForm.valid) {
+            console.log('FormData capturado:', this.profileForm.value);
+            console.log('Tipo de request:', this.selectedRequestType);
+            alert('Datos impresos en consola');
+            this.submitted = false; // Resetear después de guardar exitosamente
+        } else {
+            alert('Por favor, rellena los campos obligatorios');
+        }
+    }
 }
