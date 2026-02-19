@@ -6,7 +6,7 @@ export interface User {
   supervisorId: any
   preferredLanguage: string
   isActive: boolean
-  deletedAt: any
+  deletedAt: string
   createdAt: string
   updatedAt: string
   role?: Role
