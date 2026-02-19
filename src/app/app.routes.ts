@@ -13,6 +13,8 @@ import { Roles } from './features/settings/pages/roles/roles';
 import { SysConfig } from './features/settings/pages/sys-config/sys-config';
 import { SecurityManage } from './features/settings/pages/security-manage/security-manage';
 import { Users } from './features/settings/pages/users/users';
+import { NewUser } from './features/settings/pages/users/new-user/new-user';
+import { NewCustomer } from './features/settings/pages/customers/new-customer/new-customer';
 
 export const routes: Routes = [
   { 
@@ -36,6 +38,8 @@ export const routes: Routes = [
       { path: 'history', component: History },
       { path: 'notifications', component: Notifications },
       { path: 'settings/users', component: Users},
+      { path: 'settings/newUser', component: NewUser},
+      { path: 'settings/newCustomer', component: NewCustomer},
       { path: 'settings/customers', component: Customers },
       { path: 'settings/roles', component: Roles },
       { path: 'settings/system-configuration', component: SysConfig },
