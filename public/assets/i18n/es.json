@@ -32,7 +32,8 @@
     "AUDITOR_DEBIT": "Auditor Debit",
     "RE_INVOICING": "Re Facturación",
     "MATERIAL_RETURN": "Devolución de Material",
-    "ALL_TYPES": "Todas las opciones"
+    "ALL_TYPES": "Todas las opciones",
+    "DEFAULT_TEXT": "Por favor, seleccione un tipo de solicitud para comenzar"
   },
   "DASHBOARD": {
     "TITLE": "Resúmen de la Actividad",
@@ -41,5 +42,17 @@
     "DATE_OPTION1": "30 días",
     "DATE_OPTION2": "60 días",
     "DATE_OPTION3": "Personalizado"
+  },
+  "USER_FORM": {
+    "FULLNAME": "Nombre Completo",
+    "EMAIL": "Correo Electrónico",
+    "PASSWORD": "Contraseña",
+    "ROLE": "Rol",
+    "SUPERVISOR": "Supervisor",
+    "PREF_LANGUAGE": "Idioma Preferido",
+    "ROLE_SELECT": "Selecciona un Rol",
+    "SELECT_LANGUAGE": "Selecciona un idioma",
+    "SPANISH": "Español",
+    "ENGLISH": "Inglés"
   }
 }
