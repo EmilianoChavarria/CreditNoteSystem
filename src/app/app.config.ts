@@ -4,7 +4,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpClient } from '@angular/common/http';
 import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
-import { LucideAngularModule, Eye, User, Settings, CalendarClock, PanelLeftClose, PanelLeftOpen, LayoutDashboard, CreditCard, ChevronDown, Plus, Eraser, FolderUp, ClipboardCheck, ClipboardList, Bell, Users, Building2, Grid3x2, MonitorCog, ShieldCheck, LogOut } from 'lucide-angular';
+import { LucideAngularModule, Eye, User, Settings, CalendarClock, PanelLeftClose, PanelLeftOpen, LayoutDashboard, CreditCard, ChevronDown, Plus, Eraser, FolderUp, ClipboardCheck, ClipboardList, Bell, Users, Building2, Grid3x2, MonitorCog, ShieldCheck, LogOut, Trash, Search, Filter, ArrowUp, Pencil, FolderArchive, Sheet, FileUp, UserCheck, MoreVertical, Key, RotateCcw, ArrowDown, ChevronRight, ChevronLeft } from 'lucide-angular';
 import { routes } from './app.routes';
 import { Observable } from 'rxjs';
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
@@ -29,7 +29,7 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(),
     // Solución para Lucide en versiones anteriores/estables
     importProvidersFrom(
-      LucideAngularModule.pick({ Eye, User, Settings, CalendarClock, PanelLeftClose, PanelLeftOpen, LayoutDashboard, CreditCard, ChevronDown, Plus, Eraser, FolderUp, ClipboardCheck, ClipboardList, Bell, Users, Building2,Grid3x2, MonitorCog, ShieldCheck, LogOut }),
+      LucideAngularModule.pick({ Eye, User, Settings, CalendarClock, PanelLeftClose, PanelLeftOpen, LayoutDashboard, CreditCard, ChevronDown, Plus, Eraser, FolderUp, ClipboardCheck, ClipboardList, Bell, Users, Building2, Grid3x2, MonitorCog, ShieldCheck, LogOut, Trash, Search, Filter, ArrowUp, Pencil, FolderArchive, FileUp, Sheet, Key, UserCheck, MoreVertical, RotateCcw, ArrowDown, ChevronRight, ChevronLeft }),
       // Solución para Translate: lo envolvemos en importProvidersFrom
       TranslateModule.forRoot({
         loader: {
