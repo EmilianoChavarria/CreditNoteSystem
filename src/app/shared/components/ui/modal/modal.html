@@ -1,0 +1,46 @@
+@if (open()) {
+  <div
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+    role="dialog"
+    aria-modal="true"
+    (click)="onBackdropClick($event)"
+  >
+    <section
+      class="w-full overflow-hidden rounded-lg bg-white shadow-xl"
+      [class]="sizeClasses()"
+    >
+      <header class="border-b border-slate-200 px-5 py-4">
+        <h2 [id]="titleId" class="text-lg font-semibold text-slate-900">{{ titleM() }}</h2>
+        <ng-content select="[modal-title]"></ng-content>
+      </header>
+
+      <div class="max-h-[65vh] overflow-auto px-5 py-4">
+        <ng-content></ng-content>
+      </div>
+
+      <footer class="flex flex-wrap items-center justify-end gap-2 border-t border-slate-200 px-5 py-3">
+        <ng-content select="[modal-actions]"></ng-content>
+
+        @if (showCloseButton()) {
+          <button
+            type="button"
+            class="rounded-md border border-slate-300 bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-200"
+            (click)="onCloseClick()"
+          >
+            {{ closeText() }}
+          </button>
+        }
+
+        @if (showPrimaryButton()) {
+          <button
+            type="button"
+            class="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
+            (click)="onPrimaryClick()"
+          >
+            {{ primaryText() }}
+          </button>
+        }
+      </footer>
+    </section>
+  </div>
+}
