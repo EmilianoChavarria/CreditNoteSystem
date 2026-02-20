@@ -28,4 +28,29 @@ export class CustomerService {
     );
   }
 
+  saveCustomer(customer: Customer) {
+    return this._httpService.post('/customers', customer).pipe(
+      tap((response) => {
+
+      }),
+      catchError((error) => {
+        console.log(error);
+        return throwError(() => error);
+      })
+    )
+  }
+
+  getCustomerById(id: number) {
+    return this._httpService.get(`/customers/${id}`).pipe(
+      tap((response) => {
+
+      }),
+      catchError((error) => {
+        console.log(error);
+        return throwError(() => error)
+      })
+    )
+
+  }
+
 }
