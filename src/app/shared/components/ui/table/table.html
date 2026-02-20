@@ -37,17 +37,17 @@
             <button
                 class="rounded-md bg-[#328e9f] px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center">
                 <lucide-icon name="folder-archive" size="18"></lucide-icon>
-                Export to ZIP
+                {{'TABLE.ZIP_BUTTON' | translate}}
             </button>
             <button
                 class="rounded-md bg-[#21760e] px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center">
                 <lucide-icon name="sheet" size="18"></lucide-icon>
-                Export to Excel
+                {{'TABLE.EXCEL_BUTTON' | translate}}
             </button>
             <button
                 class="rounded-md bg-orange-500 px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center">
                 <lucide-icon name="file-up" size="18"></lucide-icon>
-                Bulk Upload
+                {{'TABLE.BULK_BUTTON' | translate}}
             </button>
             <a
                 *ngIf="addRoute"
@@ -55,7 +55,7 @@
                 class="rounded-md bg-[#3c6194] px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center"
             >
                 <lucide-icon name="plus" size="18"></lucide-icon>
-                Add {{ addLabel }}
+                {{'TABLE.ADD_BUTTON' | translate}} {{ addLabel }}
             </a>
         </div>
 
@@ -155,7 +155,7 @@
     <!-- PAGINACIÓN -->
     <div class="flex justify-end items-center mt-4">
         <div class="flex items-center gap-3 text-sm text-gray-500">
-            <label for="page-size" class="whitespace-nowrap">Registros por página</label>
+            <label for="page-size" class="whitespace-nowrap">{{'TABLE.REG_PER_PAGE' | translate}}</label>
             <div class="relative">
                 <select
                     id="page-size"
@@ -171,7 +171,7 @@
                     <lucide-icon name="chevron-down" size="16"></lucide-icon>
                 </div>
             </div>
-            <span>Pagina {{ paginaActual() }} de {{ totalPaginas() }}</span>
+            <span>{{'TABLE.PAGE' | translate}} {{ paginaActual() }} {{'TABLE.OF' | translate}} {{ totalPaginas() }}</span>
             <div class="flex flex-row gap-1">
                 <button (click)="cambiarPagina(paginaActual() - 1)" [disabled]="paginaActual() === 1"
                     class="px-1 py-1.5 text-sm rounded-md hover:cursor-pointer hover:bg-gray-100">

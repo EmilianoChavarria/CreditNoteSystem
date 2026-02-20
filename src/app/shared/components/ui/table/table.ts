@@ -4,6 +4,7 @@ import { LucideAngularModule } from 'lucide-angular';
 import { Spinner } from "../spinner/spinner";
 import { Popover } from "../popover/popover";
 import { RouterLink } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
 
 export interface Column<T> {
   key: keyof T;
@@ -26,7 +27,7 @@ export interface AccionPersonalizada<T> {
 @Component({
   selector: 'app-tabla-dinamica',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, Spinner, Popover, RouterLink],
+  imports: [CommonModule, LucideAngularModule, Spinner, Popover, RouterLink, TranslatePipe],
   templateUrl: './table.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
