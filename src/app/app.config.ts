@@ -8,6 +8,8 @@ import { LucideAngularModule, Eye, User, Settings, CalendarClock, PanelLeftClose
 import { routes } from './app.routes';
 import { Observable } from 'rxjs';
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
+import { provideToastr } from 'ngx-toastr';
+
 
 export class CustomTranslateLoader implements TranslateLoader {
   constructor(private http: HttpClient) { }
@@ -40,5 +42,6 @@ export const appConfig: ApplicationConfig = {
       })
     ),
     provideCharts(withDefaultRegisterables()),
+    provideToastr()
   ]
 };
