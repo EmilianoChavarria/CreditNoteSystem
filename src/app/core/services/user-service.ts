@@ -30,9 +30,48 @@ export class UserService {
     );
   }
 
+  getUserById(userId: number): Observable<User> {
+    return this._httpService.get<User>(`/users/${userId}`).pipe(
+      tap((response: ApiResponse<User>) => {
+        if (response.success) {
+          // console.log(response);
+        }
+      }),
+      map((response: ApiResponse<User>) => response.data as User),
+      catchError(error => {
+        console.log(error);
+        throw error;
+      })
+    );
+  }
+
   saveUser(user: Partial<User>){
     return this._httpService.post('/users', user).pipe(
       tap(() => {
+        
+      }),
+      catchError((error) => {
+        console.log(error);
+        throw error;
+      })
+    )
+  }
+
+  updateUser(userId: number, user: Partial<User>) {
+    return this._httpService.put(`/users/${userId}`, user).pipe(
+      tap((response) => {
+
+      }),
+      catchError((error) => {
+        console.log(error);
+        throw error;
+      })
+    )
+  }
+
+  deleteUser(userId:number){
+    return this._httpService.delete(`/users/${userId}`).pipe(
+      tap((response) => {
         
       }),
       catchError((error) => {
