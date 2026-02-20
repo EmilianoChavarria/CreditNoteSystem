@@ -46,7 +46,7 @@ export class UserService {
   }
 
   saveUser(user: Partial<User>){
-    return this._httpService.post('/users', user).pipe(
+    return this._httpService.post('/auth/register', user).pipe(
       tap(() => {
         
       }),
