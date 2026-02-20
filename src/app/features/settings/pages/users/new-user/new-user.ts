@@ -7,7 +7,7 @@ import { RoleService } from '../../../../../core/services/role-service';
 import { UserService } from '../../../../../core/services/user-service';
 import { SecurityService } from '../../../../../core/services/security-service';
 import { map, catchError, of, debounceTime, distinctUntilChanged, switchMap, forkJoin, Observable, finalize } from 'rxjs';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { Spinner } from '../../../../../shared/components/ui/spinner/spinner';
 
@@ -20,7 +20,7 @@ interface UserData {
 
 @Component({
   selector: 'app-new-user',
-  imports: [LucideAngularModule, TranslatePipe, ɵInternalFormsSharedModule, ReactiveFormsModule, Spinner],
+  imports: [LucideAngularModule, TranslatePipe, ɵInternalFormsSharedModule, ReactiveFormsModule, Spinner, RouterLink],
   templateUrl: './new-user.html',
   styleUrl: './new-user.css',
 })
