@@ -43,6 +43,19 @@
     "DATE_OPTION2": "60 days",
     "DATE_OPTION3": "Custom"
   },
+  "TABLE" : {
+    "REG_PER_PAGE": "Registers per page",
+    "PAGE": "Page",
+    "OF": "of",
+    "ZIP_BUTTON": "Export to ZIP",
+    "EXCEL_BUTTON": "Export to Excel",
+    "BULK_BUTTON": "Bulk Upload",
+    "ADD_BUTTON": "Add"
+  },
+  "USER_MANAGE": {
+    "TITLE": "User Management",
+    "DESCRIPTION": "Create, Edit and Manage User Accounts"
+  },
   "USER_FORM": {
     "FULLNAME": "Full Name",
     "EMAIL": "Email",

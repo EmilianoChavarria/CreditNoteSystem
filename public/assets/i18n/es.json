@@ -35,6 +35,15 @@
     "ALL_TYPES": "Todas las opciones",
     "DEFAULT_TEXT": "Por favor, seleccione un tipo de solicitud para comenzar"
   },
+  "TABLE" : {
+    "REG_PER_PAGE": "Registros por página",
+    "PAGE": "Página",
+    "OF": "de",
+    "ZIP_BUTTON": "Extraer a ZIP",
+    "EXCEL_BUTTON": "Extraer a Excel",
+    "BULK_BUTTON": "Carga Masiva",
+    "ADD_BUTTON": "Agregar"
+  },
   "DASHBOARD": {
     "TITLE": "Resúmen de la Actividad",
     "REQ_FILTER": "Tipo de Solicitud:",
@@ -42,6 +51,10 @@
     "DATE_OPTION1": "30 días",
     "DATE_OPTION2": "60 días",
     "DATE_OPTION3": "Personalizado"
+  },
+  "USER_MANAGE": {
+    "TITLE": "Gestión de Usuarios",
+    "DESCRIPTION": "Crea, Edita y Gestiona las Cuentas de Usuarios"
   },
   "USER_FORM": {
     "FULLNAME": "Nombre Completo",
