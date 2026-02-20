@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges, computed, signal, ChangeDetectionStrategy, effect } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges, computed, signal, ChangeDetectionStrategy, effect, TemplateRef, ContentChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
 import { Spinner } from "../spinner/spinner";
@@ -11,6 +11,7 @@ export interface Column<T> {
   sortable?: boolean;
   className?: string;
   render?: (value: any, item: T) => any;
+  customTemplate?: boolean; // Indica si esta columna usa un template personalizado
 }
 
 export interface AccionPersonalizada<T> {
@@ -56,9 +57,8 @@ export class Table<T extends Record<string, any>>
   @Input() addLabel = 'User';
   @Input() addRoute?: string;
 
-  // ================== OUTPUTS ==================
-  @Output() editar = new EventEmitter<T>();
-  @Output() eliminar = new EventEmitter<T>();
+  // Template personalizado para celdas
+  @ContentChild('cellTemplate', { static: false }) cellTemplate?: TemplateRef<any>;
 
   // ================== STATE ==================
   datosInterno = signal<T[]>([]);
