@@ -56,6 +56,10 @@
     "TITLE": "Gestión de Usuarios",
     "DESCRIPTION": "Crea, Edita y Gestiona las Cuentas de Usuarios"
   },
+  "PENDING": {
+    "TITLE": "Solicitudes Pendientes",
+    "DESCRIPTION": "Continua Con Tu Proceso de Solicitud"
+  },
   "USER_FORM": {
     "FULLNAME": "Nombre Completo",
     "EMAIL": "Correo Electrónico",
