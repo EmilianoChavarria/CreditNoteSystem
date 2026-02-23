@@ -24,7 +24,7 @@ export class NewRequest implements OnInit {
     }
 
     ngOnInit() {
-        // Inicializar con un tipo por defecto o vacío
+        
     }
 
     onRequestTypeChange(event: any) {
@@ -37,7 +37,7 @@ export class NewRequest implements OnInit {
             '2': 'debits',
             '3': 'auditor-credits',
             '4': 'auditor-debits',
-            '5': 're-billing',
+            '5': 're-invoicing',
             '6': 'material-return'
         };
 
