@@ -67,7 +67,7 @@ export class Table<T extends Record<string, any>>
   columnasInterno = signal<Column<T>[]>([]);
 
   busqueda = signal('');
-  ordenarPor = signal<keyof T | null>(null);
+  ordenarPor = signal<string | null>(null);
   ordenAscendente = signal(true);
   paginaActual = signal(1);
   filterValue = signal<any>('all');
@@ -85,6 +85,10 @@ export class Table<T extends Record<string, any>>
    */
   private getNestedValue(obj: any, path: string): any {
     return path.split('.').reduce((current, prop) => current?.[prop], obj);
+  }
+
+  getColumnValue(item: T, key: string): any {
+    return this.getNestedValue(item, key);
   }
 
   get tieneAcciones(): boolean {
@@ -139,14 +143,19 @@ export class Table<T extends Record<string, any>>
     // ORDENAMIENTO
     if (this.ordenarPor()) {
       resultado.sort((a, b) => {
-        const valA = a[this.ordenarPor()!];
-        const valB = b[this.ordenarPor()!];
+        const sortKey = this.ordenarPor()!;
+        const valA = this.getNestedValue(a, sortKey);
+        const valB = this.getNestedValue(b, sortKey);
 
         if (typeof valA === 'string' && typeof valB === 'string') {
           return this.ordenAscendente()
             ? valA.localeCompare(valB)
             : valB.localeCompare(valA);
         }
+
+        if (valA == null && valB == null) return 0;
+        if (valA == null) return this.ordenAscendente() ? -1 : 1;
+        if (valB == null) return this.ordenAscendente() ? 1 : -1;
 
         return this.ordenAscendente()
           ? Number(valA) - Number(valB)
@@ -171,7 +180,7 @@ export class Table<T extends Record<string, any>>
 
   // ================== MÉTODOS ==================
 
-  manejarOrdenamiento(columna: keyof T) {
+  manejarOrdenamiento(columna: string) {
     if (this.ordenarPor() === columna) {
       this.ordenAscendente.set(!this.ordenAscendente());
     } else {
