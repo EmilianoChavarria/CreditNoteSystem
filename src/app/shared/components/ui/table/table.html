@@ -46,7 +46,7 @@
             </button>
             @if (canAdd) {
             <button
-                class="rounded-md bg-orange-500 px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center">
+                class="rounded-md bg-[#ff8200] px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center">
                 <lucide-icon name="file-up" size="18"></lucide-icon>
                 {{'TABLE.BULK_BUTTON' | translate}}
             </button>
@@ -92,9 +92,9 @@
                         <ng-container
                             *ngTemplateOutlet="cellTemplate; context: { $implicit: item, column: col }"></ng-container>
                         } @else if (col.render) {
-                        {{ col.render(item[col.key], item) }}
+                        {{ col.render(getColumnValue(item, col.key), item) }}
                         } @else {
-                        {{ item[col.key] }}
+                        {{ getColumnValue(item, col.key) }}
                         }
                     </td>
 
