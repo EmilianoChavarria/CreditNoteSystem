@@ -1,3 +1,4 @@
+import { User } from './User';
 export interface Request {
     id?: number;
     requestNumber: string;
@@ -33,16 +34,31 @@ export interface Request {
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
+    request_type: RequestType;
+    user: User;
+    customer: Customer
+    reason: Reason
+    classification: Classification;
+}
+
+export interface RequestType {
+    id: number;
+    name: string;
 }
 
 export interface Reason {
     id: number;
     name: string;
-    createdAt: string;
-    updatedAt: string;
+}
+
+export interface Customer {
+    id: 1;
+    customerNumber: number;
+    customerName: string;
 }
 
 export interface Classification {
     id: number;
+    code: string;
     name: string;
 }
