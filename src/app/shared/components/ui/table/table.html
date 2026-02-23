@@ -44,19 +44,18 @@
                 <lucide-icon name="sheet" size="18"></lucide-icon>
                 {{'TABLE.EXCEL_BUTTON' | translate}}
             </button>
+            @if (canAdd) {
             <button
                 class="rounded-md bg-orange-500 px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center">
                 <lucide-icon name="file-up" size="18"></lucide-icon>
                 {{'TABLE.BULK_BUTTON' | translate}}
             </button>
-            <a
-                *ngIf="addRoute"
-                [routerLink]="addRoute"
-                class="rounded-md bg-[#3c6194] px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center"
-            >
+            <a *ngIf="addRoute" [routerLink]="addRoute"
+                class="rounded-md bg-[#3c6194] px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center">
                 <lucide-icon name="plus" size="18"></lucide-icon>
                 {{'TABLE.ADD_BUTTON' | translate}} {{ addLabel }}
             </a>
+            }
         </div>
 
 
@@ -90,7 +89,8 @@
                 <tr *ngFor="let item of datosPaginados()" class="hover:bg-blue-50 transition">
                     <td *ngFor="let col of columnasInterno()" class="px-6 py-3 text-sm text-gray-700">
                         @if (col.customTemplate && cellTemplate) {
-                        <ng-container *ngTemplateOutlet="cellTemplate; context: { $implicit: item, column: col }"></ng-container>
+                        <ng-container
+                            *ngTemplateOutlet="cellTemplate; context: { $implicit: item, column: col }"></ng-container>
                         } @else if (col.render) {
                         {{ col.render(item[col.key], item) }}
                         } @else {
@@ -157,12 +157,10 @@
         <div class="flex items-center gap-3 text-sm text-gray-500">
             <label for="page-size" class="whitespace-nowrap">{{'TABLE.REG_PER_PAGE' | translate}}</label>
             <div class="relative">
-                <select
-                    id="page-size"
+                <select id="page-size"
                     class="appearance-none bg-white text-sm pl-3 pr-8 py-1.5 border border-gray-300 rounded-lg"
                     [value]="registrosPorPaginaInterno()"
-                    (change)="cambiarRegistrosPorPagina($any($event.target).value)"
-                >
+                    (change)="cambiarRegistrosPorPagina($any($event.target).value)">
                     <option *ngFor="let opt of pageSizeOptions" [value]="opt">
                         {{ opt }}
                     </option>
@@ -171,13 +169,14 @@
                     <lucide-icon name="chevron-down" size="16"></lucide-icon>
                 </div>
             </div>
-            <span>{{'TABLE.PAGE' | translate}} {{ paginaActual() }} {{'TABLE.OF' | translate}} {{ totalPaginas() }}</span>
+            <span>{{'TABLE.PAGE' | translate}} {{ paginaActual() }} {{'TABLE.OF' | translate}} {{ totalPaginas()
+                }}</span>
             <div class="flex flex-row gap-1">
                 <button (click)="cambiarPagina(paginaActual() - 1)" [disabled]="paginaActual() === 1"
                     class="px-1 py-1.5 text-sm rounded-md hover:cursor-pointer hover:bg-gray-100">
                     <lucide-icon name="chevron-left"></lucide-icon>
                 </button>
-    
+
                 <button (click)="cambiarPagina(paginaActual() + 1)" [disabled]="paginaActual() === totalPaginas()"
                     class="px-1 py-1.5 text-sm rounded-md hover:cursor-pointer hover:bg-gray-100">
                     <lucide-icon name="chevron-right"></lucide-icon>

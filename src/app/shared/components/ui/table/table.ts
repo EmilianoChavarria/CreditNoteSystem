@@ -7,7 +7,7 @@ import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 
 export interface Column<T> {
-  key: keyof T;
+  key: string;
   label: string;
   sortable?: boolean;
   className?: string;
@@ -47,14 +47,15 @@ export class Table<T extends Record<string, any>>
     this.paginaActual.set(1);
   }
 
-  @Input() enableFilter = false;
+  @Input() enableFilter: boolean = false;
   @Input() filterField?: string; // Permite propiedades anidadas como "role.roleName"
   @Input() filterOptions?: { label: string; value: any }[];
   @Input() filterDefault: any = 'all';
 
-  @Input() sinAcciones = false;
+  @Input() sinAcciones: boolean = false;
   @Input() actionMode: 'inline' | 'menu' = 'inline';
   @Input() accionesPersonalizadas?: AccionPersonalizada<T>[];
+  @Input() canAdd: boolean = true;
   @Input() addLabel = 'User';
   @Input() addRoute?: string;
 
