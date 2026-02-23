@@ -27,7 +27,8 @@ export class Pending {
         {
             key: 'request_type.name',
             label: 'Request Type',
-            sortable: true
+            sortable: true,
+            render: (value) => value.toUpperCase()
         },
         {
             key: 'area',
@@ -38,6 +39,12 @@ export class Pending {
             key: 'classification.name',
             label: 'Classification',
             sortable: true,
+        },
+        {
+            key: 'status',
+            label: 'Status',
+            sortable: true,
+            render: (value) => value.toUpperCase()
         },
         {
             key: 'createdAt',
@@ -92,7 +99,7 @@ export class Pending {
         if (value === 'DE') {
             this.isLoading.set(false);
             this.requests.set([]);
-        }else {
+        } else {
             this._requestsService.getRequestsByType(value).subscribe({
                 next: (response) => {
                     this.requests.set(response);
