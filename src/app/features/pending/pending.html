@@ -1,1 +1,46 @@
-<p>pending works!</p>
+<div class="p-8 flex flex-col">
+    <header class="w-full flex items-center justify-between">
+
+        <div class="flex items-center justify-start mb-10 gap-x-4">
+            <label for="days" class="font-semibold text-[#3c6194] text-2xl">{{'DASHBOARD.REQ_FILTER'|
+                translate}}</label>
+            <div class="flex flex-row items-center">
+                <select name="request_type" id="request_type" (change)="onRequestTypeChange($event)"
+                    class="h-11 border border-gray-300 rounded-lg w-64 pl-2 pr-4">
+                    <option value="DE">{{'REQUEST_TYPES.DEFAULT'| translate}}</option>
+                    <option value="1">{{'REQUEST_TYPES.CREDIT'| translate}}</option>
+                    <option value="2">{{'REQUEST_TYPES.DEBIT'| translate}}</option>
+                    <option value="3">{{'REQUEST_TYPES.AUDITOR_CREDIT'| translate}}</option>
+                    <option value="4">{{'REQUEST_TYPES.AUDITOR_DEBIT'| translate}}</option>
+                    <option value="5">{{'REQUEST_TYPES.RE_INVOICING'| translate}}</option>
+                    <option value="6">{{'REQUEST_TYPES.MATERIAL_RETURN'| translate}}</option>
+                </select>
+            </div>
+        </div>
+        <div class="flex flex-col">
+            <span class="text-4xl tracking-wider text-orange-500 font-semibold">{{'PENDING.TITLE' |
+                translate}}</span>
+            <span class="text-orange-400">{{'PENDING.DESCRIPTION' | translate}}</span>
+        </div>
+    </header>
+    @if (isLoading()) {
+    <div class="py-20 flex justify-center">
+        <app-spinner></app-spinner>
+    </div>
+    } @else if (requests().length > 0) {
+    <app-tabla-dinamica [datos]="requests()" [columnas]="columns" [accionesPersonalizadas]="acciones" actionMode="menu"
+        [enableFilter]="true" filterField="area" addLabel="Request" addRoute="/app/settings/newUser" [canAdd]="false">
+
+        <!-- <ng-template #cellTemplate let-item let-column="column">
+                @if (column.key === 'isActive') {
+                <app-badge [color]="item.isActive ? 'green' : 'red'" [text]="item.isActive ? 'Activo' : 'Inactivo'" />
+                }
+            </ng-template> -->
+    </app-tabla-dinamica>
+    } @else {
+    <div class="text-center py-20 text-gray-500">
+        <img src="assets/png/TIMKEN-DISABLE-esp.png" alt="" class="h-92 mx-auto">
+        <p class="text-2xl text-[#3c6194] font-semibold">{{'REQUEST_TYPES.DEFAULT_TEXT'| translate}}</p>
+    </div>
+    }
+</div>
