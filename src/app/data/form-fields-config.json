@@ -15,6 +15,22 @@
             "description": "Se genera en automático"
           },
           {
+            "formControlName": "orderNumber",
+            "label": "Order Number",
+            "type": "text",
+            "placeholder": "Ingrese número de orden",
+            "validators": [],
+            "description": "Llenado manual post-nota"
+          },
+          {
+            "formControlName": "creditNumber",
+            "label": "Credit Number",
+            "type": "text",
+            "placeholder": "Folio de crédito",
+            "validators": [],
+            "description": "Folio de crédito final"
+          },
+          {
             "formControlName": "requestDate",
             "label": "Request Date",
             "type": "date",
@@ -75,14 +91,6 @@
         "id": 2,
         "title": "Reference & Logistics",
         "fields": [
-          {
-            "formControlName": "orderNumber",
-            "label": "Order Number",
-            "type": "text",
-            "placeholder": "Ingrese número de orden",
-            "validators": [],
-            "description": "Llenado manual post-nota"
-          },
           {
             "formControlName": "deliveryNote",
             "label": "Delivery Note",
@@ -209,14 +217,6 @@
             "validators": [],
             "disabled": true,
             "description": "Estatus actual del proceso"
-          },
-          {
-            "formControlName": "creditNumber",
-            "label": "Credit Number",
-            "type": "text",
-            "placeholder": "Folio de crédito",
-            "validators": [],
-            "description": "Folio de crédito final"
           }
         ]
       }
@@ -236,6 +236,14 @@
             "validators": [],
             "disabled": true,
             "description": "Se genera en automático"
+          },
+          {
+            "formControlName": "orderNumber",
+            "label": "Order Number",
+            "type": "text",
+            "placeholder": "Ingrese número de orden",
+            "validators": [],
+            "description": "Llenado manual post-nota"
           },
           {
             "formControlName": "requestDate",
@@ -292,14 +300,6 @@
         "id": 2,
         "title": "Reference & Logistics",
         "fields": [
-          {
-            "formControlName": "orderNumber",
-            "label": "Order Number",
-            "type": "text",
-            "placeholder": "Ingrese número de orden",
-            "validators": ["required"],
-            "description": "Llenado manual post-nota"
-          },
           {
             "formControlName": "deliveryNote",
             "label": "Delivery Note",
@@ -455,6 +455,14 @@
             "description": "Se genera en automático"
           },
           {
+            "formControlName": "orderNumber",
+            "label": "Order Number",
+            "type": "text",
+            "placeholder": "Ingrese número de orden",
+            "validators": [],
+            "description": "Llenado manual post-nota"
+          },
+          {
             "formControlName": "requestDate",
             "label": "Request Date",
             "type": "date",
@@ -509,14 +517,6 @@
         "id": 2,
         "title": "Reference & Logistics",
         "fields": [
-          {
-            "formControlName": "orderNumber",
-            "label": "Order Number",
-            "type": "text",
-            "placeholder": "Ingrese número de orden",
-            "validators": ["required"],
-            "description": "Llenado manual post-nota"
-          },
           {
             "formControlName": "deliveryNote",
             "label": "Delivery Note",
@@ -672,6 +672,14 @@
             "description": "Se genera en automático"
           },
           {
+            "formControlName": "orderNumber",
+            "label": "Order Number",
+            "type": "text",
+            "placeholder": "Ingrese número de orden",
+            "validators": [],
+            "description": "Llenado manual post-nota"
+          },
+          {
             "formControlName": "requestDate",
             "label": "Request Date",
             "type": "date",
@@ -726,14 +734,6 @@
         "id": 2,
         "title": "Reference & Logistics",
         "fields": [
-          {
-            "formControlName": "orderNumber",
-            "label": "Order Number",
-            "type": "text",
-            "placeholder": "Ingrese número de orden",
-            "validators": ["required"],
-            "description": "Llenado manual post-nota"
-          },
           {
             "formControlName": "deliveryNote",
             "label": "Delivery Note",
@@ -889,6 +889,14 @@
             "description": "Se genera en automático"
           },
           {
+            "formControlName": "orderNumber",
+            "label": "Order Number",
+            "type": "text",
+            "placeholder": "Ingrese número de orden",
+            "validators": [],
+            "description": "Llenado manual post-nota"
+          },
+          {
             "formControlName": "requestDate",
             "label": "Request Date",
             "type": "date",
@@ -943,14 +951,6 @@
         "id": 2,
         "title": "Reference & Logistics",
         "fields": [
-          {
-            "formControlName": "orderNumber",
-            "label": "Order Number",
-            "type": "text",
-            "placeholder": "Ingrese número de orden",
-            "validators": ["required"],
-            "description": "Llenado manual post-nota"
-          },
           {
             "formControlName": "deliveryNote",
             "label": "Delivery Note",
@@ -1128,6 +1128,14 @@
             "description": "Se genera en automático"
           },
           {
+            "formControlName": "orderNumber",
+            "label": "Order Number",
+            "type": "text",
+            "placeholder": "Ingrese número de orden",
+            "validators": [],
+            "description": "Llenado manual post-nota"
+          },
+          {
             "formControlName": "requestDate",
             "label": "Request Date",
             "type": "date",
@@ -1188,14 +1196,6 @@
         "id": 2,
         "title": "Reference & Logistics",
         "fields": [
-          {
-            "formControlName": "orderNumber",
-            "label": "Order Number",
-            "type": "text",
-            "placeholder": "Ingrese número de orden",
-            "validators": ["required"],
-            "description": "Llenado manual post-nota"
-          },
           {
             "formControlName": "deliveryNote",
             "label": "Delivery Note",
