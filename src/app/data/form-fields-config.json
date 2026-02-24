@@ -40,7 +40,7 @@
             "description": "Default: Fecha de hoy"
           },
           {
-            "formControlName": "customerNumber",
+            "formControlName": "customerId",
             "label": "Customer Number",
             "type": "autocomplete",
             "placeholder": "Buscar cliente",
@@ -60,7 +60,7 @@
             ]
           },
           {
-            "formControlName": "reasonWhy",
+            "formControlName": "reasonId",
             "label": "Reason Why",
             "type": "select",
             "placeholder": "Seleccione razón",
@@ -73,7 +73,7 @@
             "description": "Opciones de motivo de solicitud"
           },
           {
-            "formControlName": "classification",
+            "formControlName": "classificationId",
             "label": "Classification",
             "type": "select",
             "placeholder": "Seleccione clasificación",
@@ -158,7 +158,7 @@
             "description": "Monto principal"
           },
           {
-            "formControlName": "iva",
+            "formControlName": "hasIva",
             "label": "IVA",
             "type": "checkbox",
             "placeholder": "",
@@ -166,15 +166,15 @@
             "description": "Cálculo del 16% sobre Amount"
           },
           {
-            "formControlName": "total",
+            "formControlName": "totalAmount",
             "label": "Total",
             "type": "computed",
             "placeholder": "",
             "validators": [],
             "disabled": true,
             "description": "Monto + IVA (Label dinámico)",
-            "computeFrom": ["amount", "iva"],
-            "formula": "iva ? amount * 1.16 : amount"
+            "computeFrom": ["amount", "hasIva"],
+            "formula": "hasIva ? amount * 1.16 : amount"
           }
         ]
       },
@@ -255,7 +255,7 @@
             "description": "Default: Fecha de hoy"
           },
           {
-            "formControlName": "customerNumber",
+            "formControlName": "customerId",
             "label": "Customer Number",
             "type": "autocomplete",
             "placeholder": "Buscar cliente",
@@ -275,7 +275,7 @@
             ]
           },
           {
-            "formControlName": "reasonWhy",
+            "formControlName": "reasonId",
             "label": "Reason Why",
             "type": "select",
             "placeholder": "Seleccione razón",
@@ -285,7 +285,7 @@
             "description": "Opciones de motivo de solicitud"
           },
           {
-            "formControlName": "classification",
+            "formControlName": "classificationId",
             "label": "Classification",
             "type": "select",
             "placeholder": "Seleccione clasificación",
@@ -367,7 +367,7 @@
             "description": "Monto principal"
           },
           {
-            "formControlName": "iva",
+            "formControlName": "hasIva",
             "label": "IVA",
             "type": "checkbox",
             "placeholder": "",
@@ -375,15 +375,15 @@
             "description": "Cálculo del 16% sobre Amount"
           },
           {
-            "formControlName": "total",
+            "formControlName": "totalAmount",
             "label": "Total",
             "type": "computed",
             "placeholder": "",
             "validators": [],
             "disabled": true,
             "description": "Monto + IVA (Label dinámico)",
-            "computeFrom": ["amount", "iva"],
-            "formula": "iva ? amount * 1.16 : amount"
+            "computeFrom": ["amount", "hasIva"],
+            "formula": "hasIva ? amount * 1.16 : amount"
           }
         ]
       },
@@ -472,7 +472,7 @@
             "description": "Default: Fecha de hoy"
           },
           {
-            "formControlName": "customerNumber",
+            "formControlName": "customerId",
             "label": "Customer Number",
             "type": "autocomplete",
             "placeholder": "Buscar cliente",
@@ -492,7 +492,7 @@
             ]
           },
           {
-            "formControlName": "reasonWhy",
+            "formControlName": "reasonId",
             "label": "Reason Why",
             "type": "select",
             "placeholder": "Seleccione razón",
@@ -502,7 +502,7 @@
             "description": "Opciones de motivo de solicitud"
           },
           {
-            "formControlName": "classification",
+            "formControlName": "classificationId",
             "label": "Classification",
             "type": "select",
             "placeholder": "Seleccione clasificación",
@@ -584,7 +584,7 @@
             "description": "Monto principal"
           },
           {
-            "formControlName": "iva",
+            "formControlName": "hasIva",
             "label": "IVA",
             "type": "checkbox",
             "placeholder": "",
@@ -592,15 +592,15 @@
             "description": "Cálculo del 16% sobre Amount"
           },
           {
-            "formControlName": "total",
+            "formControlName": "totalAmount",
             "label": "Total",
             "type": "computed",
             "placeholder": "",
             "validators": [],
             "disabled": true,
             "description": "Monto + IVA (Label dinámico)",
-            "computeFrom": ["amount", "iva"],
-            "formula": "iva ? amount * 1.16 : amount"
+            "computeFrom": ["amount", "hasIva"],
+            "formula": "hasIva ? amount * 1.16 : amount"
           }
         ]
       },
@@ -689,7 +689,7 @@
             "description": "Default: Fecha de hoy"
           },
           {
-            "formControlName": "customerNumber",
+            "formControlName": "customerId",
             "label": "Customer Number",
             "type": "autocomplete",
             "placeholder": "Buscar cliente",
@@ -709,7 +709,7 @@
             ]
           },
           {
-            "formControlName": "reasonWhy",
+            "formControlName": "reasonId",
             "label": "Reason Why",
             "type": "select",
             "placeholder": "Seleccione razón",
@@ -719,7 +719,7 @@
             "description": "Opciones de motivo de solicitud"
           },
           {
-            "formControlName": "classification",
+            "formControlName": "classificationId",
             "label": "Classification",
             "type": "select",
             "placeholder": "Seleccione clasificación",
@@ -801,7 +801,7 @@
             "description": "Monto principal"
           },
           {
-            "formControlName": "iva",
+            "formControlName": "hasIva",
             "label": "IVA",
             "type": "checkbox",
             "placeholder": "",
@@ -809,15 +809,15 @@
             "description": "Cálculo del 16% sobre Amount"
           },
           {
-            "formControlName": "total",
+            "formControlName": "totalAmount",
             "label": "Total",
             "type": "computed",
             "placeholder": "",
             "validators": [],
             "disabled": true,
             "description": "Monto + IVA (Label dinámico)",
-            "computeFrom": ["amount", "iva"],
-            "formula": "iva ? amount * 1.16 : amount"
+            "computeFrom": ["amount", "hasIva"],
+            "formula": "hasIva ? amount * 1.16 : amount"
           }
         ]
       },
@@ -906,7 +906,7 @@
             "description": "Default: Fecha de hoy"
           },
           {
-            "formControlName": "customerNumber",
+            "formControlName": "customerId",
             "label": "Customer Number",
             "type": "autocomplete",
             "placeholder": "Buscar cliente",
@@ -926,7 +926,7 @@
             ]
           },
           {
-            "formControlName": "reasonWhy",
+            "formControlName": "reasonId",
             "label": "Reason Why",
             "type": "select",
             "placeholder": "Seleccione razón",
@@ -936,7 +936,7 @@
             "description": "Opciones de motivo de solicitud"
           },
           {
-            "formControlName": "classification",
+            "formControlName": "classificationId",
             "label": "Classification",
             "type": "select",
             "placeholder": "Seleccione clasificación",
@@ -1018,7 +1018,7 @@
             "description": "Monto principal"
           },
           {
-            "formControlName": "iva",
+            "formControlName": "hasIva",
             "label": "IVA",
             "type": "checkbox",
             "placeholder": "",
@@ -1026,15 +1026,15 @@
             "description": "Cálculo del 16% sobre Amount"
           },
           {
-            "formControlName": "total",
+            "formControlName": "totalAmount",
             "label": "Total",
             "type": "computed",
             "placeholder": "",
             "validators": [],
             "disabled": true,
             "description": "Monto + IVA (Label dinámico)",
-            "computeFrom": ["amount", "iva"],
-            "formula": "iva ? amount * 1.16 : amount"
+            "computeFrom": ["amount", "hasIva"],
+            "formula": "hasIva ? amount * 1.16 : amount"
           }
         ]
       },
@@ -1145,7 +1145,7 @@
             "description": "Default: Fecha de hoy"
           },
           {
-            "formControlName": "customerNumber",
+            "formControlName": "customerId",
             "label": "Customer Number",
             "type": "autocomplete",
             "placeholder": "Buscar cliente",
@@ -1165,7 +1165,7 @@
             ]
           },
           {
-            "formControlName": "reasonWhy",
+            "formControlName": "reasonId",
             "label": "Reason Why",
             "type": "select",
             "placeholder": "Seleccione razón",
@@ -1178,7 +1178,7 @@
             "description": "Opciones de motivo de solicitud"
           },
           {
-            "formControlName": "classification",
+            "formControlName": "classificationId",
             "label": "Classification",
             "type": "select",
             "placeholder": "Seleccione clasificación",
