@@ -83,4 +83,18 @@ export class RequestService {
     )
   }
 
+  saveRequest(object: any) {
+    return this._httpService.post('/requests/newRequest', object).pipe(
+      tap((response) => {
+        if(response.success){
+          console.log(response);
+        }
+      }),
+      catchError((error) => {
+        console.log(error);
+        throw error;
+      })
+    )
+  }
+
 }
