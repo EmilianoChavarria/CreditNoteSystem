@@ -53,4 +53,19 @@ export class CustomerService {
 
   }
 
+  getCustomersByName(customerName: string): Observable<Customer[]> {
+    return this._httpService.get<Customer[]>(`/customers/search?search=${customerName}`).pipe(
+      tap((response: ApiResponse<Customer[]>) => {
+        if (response.success) {
+          // console.log(response);
+        }
+      }),
+      map((response: ApiResponse<Customer[]>) => response.data ?? []),
+      catchError(error => {
+        console.log(error);
+        return throwError(() => error);
+      })
+    );
+  }
+
 }
