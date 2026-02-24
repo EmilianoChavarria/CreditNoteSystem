@@ -130,52 +130,164 @@ export class Pending {
     // =============================
 
     generatePdf(request: Request) {
-
+        console.log(request);
         const docDefinition: any = {
             content: [
                 { text: 'TIMKEN', style: 'header' },
+
+                // Primera Tabla: Encabezado
                 {
                     table: {
                         widths: ['*', '*', '*', '*'],
                         body: [
                             [
-                                { text: 'Solicitud de crédito auditor /\nAuditor Credit request', style: 'tableHeader' },
-                                { text: 'Fecha de solicitud /\nRequest date', style: 'tableHeader' },
-                                { text: 'Moneda emitida /\nCurrency', style: 'tableHeader' },
-                                { text: 'Cargo misceláneo /\nMiscellaneous charge', style: 'tableHeader' }
+                                { text: 'Solicitud de crédito auditor /\nAuditor Credit request'},
+                                { text: 'Fecha de solicitud /\nRequest date'},
+                                { text: 'Moneda emitida /\nCurrency'},
+                                { text: 'Cargo misceláneo /\nMiscellaneous charge'}
                             ],
                             [
-                                { text: request.requestNumber || 'N/A', style: 'tableData' }, // Usando datos reales
-                                { text: moment(request.createdAt).format('DD/MM/YYYY'), style: 'tableData' },
-                                { text: 'MXN', style: 'tableData' },
-                                { text: 'SALES FORECAST - ZSEN', style: 'tableData' }
+                                { text: request.requestNumber || ''},
+                                { text: request.requestDate ? moment(request.requestDate).format('DD/MM/YYYY') : ''},
+                                { text: request.currency || ''},
+                                { text: request.classification ? `${request.classification.name} - ${request.classification.code}` : ''}
                             ]
                         ]
+                    },
+                    layout: {
+                        hLineWidth: () => 0.5,
+                        vLineWidth: () => 0.5
                     }
                 },
-                { text: ' ', margin: [0, 10] },
+                { text: ' ', margin: [0, 5] },
+
+                // Segunda Tabla: Datos del Cliente
                 {
                     table: {
-                        widths: ['40%', '60%'],
+                        widths: ['30%', '70%'],
                         body: [
-                            ['Nombre del cliente / Customer name', request.area || 'N/A'], // Mapea tus campos aquí
-                            ['Núm. Cliente / Customer No. (Sold to)', '182075'],
-                            ['Área / Area', 'AFTERMARKET'],
-                            ['Vendedor / Sales Engineer', 'FERNANDO CAYEROS']
+                            ['Nombre del cliente / Customer name', { text: request.customer?.customerName || ''}],
+                            ['Núm. Cliente / Customer No. (Sold to)', { text: request.customer?.customerNumber?.toString() || ''}],
+                            ['Núm. Cliente / Customer No. (Ship to)', ''],
+                            ['Área / Area', { text: request.area || ''}],
+                            ['Vendedor / Sales Engineer', { text: request.user?.fullName.toUpperCase() || ''}],
+                            ['Núm. de Factura / Invoice Number', { text: request.invoiceNumber?.toUpperCase() || ''}],
+                            ['Fecha de factura / Invoice Date', { text: request.invoiceDate ? moment(request.invoiceDate).format('DD/MM/YYYY') : ''}],
+                            ['Número de remisión / Delivery Note', { text: request.deliveryNote || ''}],
+                            ['Solicitado por / Requested by', { text: request.user?.fullName.toUpperCase() || ''}],
+                            ['Motivo por el que se solicita / Reason why you are applying', { text: request.reason?.name || ''}],
+                            ['Auditado por / Audited by', ''],
+                            ['Gerentes que autorizan / Manager Approval', '']
                         ]
+                    },
+                    layout: {
+                        hLineWidth: () => 0.5,
+                        vLineWidth: () => 0.5
                     }
+                },
+                { text: ' ', margin: [0, 5] },
+
+                // Sección de Comentarios
+                {
+                    table: {
+                        widths: ['100%'],
+                        body: [
+                            [
+                                {
+                                    stack: [
+                                        { text: 'Comentarios / Comments', fontSize: 9, margin: [0, 0, 0, 5] },
+                                        { text: request.comments || 'No hay comentarios', fontSize: 9, bold: false }
+                                    ],
+                                    minHeight: 50,
+                                    margin: [5, 5, 5, 5]
+                                }
+                            ]
+                        ]
+                    },
+                    layout: {
+                        hLineWidth: () => 0.5,
+                        vLineWidth: () => 0.5
+                    }
+                },
+                { text: ' ', margin: [0, 5] },
+
+                // Tabla de Notas e Información de Flete
+                {
+                    table: {
+                        widths: ['60%', '40%'],
+                        body: [
+                            [
+                                {
+                                    text: [
+                                        { text: 'Nota importante: '},
+                                        {
+                                            text: '1. No se aceptará material oxidado o que tenga las cajas rayadas con pluma o plumón. 2. Etiquetar la caja(s) con el número de RGA. 3. El material se recibirá dentro de los 30 días a partir de la fecha de la solicitud, después de esta fecha será cancelada.',
+                                            italics: true
+                                        }
+                                    ],
+                                    fontSize: 8.5,
+                                    margin: [5, 5, 5, 5]
+                                },
+                                {
+                                    text: 'El costo del flete deberá ser pagado por el cliente',
+                                    bold: true,
+                                    fontSize: 9,
+                                    alignment: 'center',
+                                    margin: [5, 20, 5, 5] // Ajuste para centrar verticalmente con la nota
+                                }
+                            ]
+                        ]
+                    },
+                    layout: {
+                        hLineWidth: () => 0.5,
+                        vLineWidth: () => 0.5
+                    }
+                },
+                { text: ' ', margin: [0, 5] },
+
+                // Tablas Inferiores (SAP y Refacturación)
+                {
+                    columns: [
+                        {
+                            width: '50%',
+                            table: {
+                                widths: ['60%', '40%'],
+                                body: [
+                                    ['Número de Orden SAP / SAP Order', { text: request.orderNumber || ''}],
+                                    ['Importe / Amount', { text: request.amount || ''}],
+                                    ['I.V.A. 16% / Input Tax', { text: (request.totalAmount - request.amount).toFixed(2) || ''}],
+                                    ['Total ' + (request.currency || ''), { text: request.totalAmount || ''}],
+                                    ['Tipo de cambio / Exchange rate', { text: request.exchangeRate || ''}]
+                                ]
+                            },
+                            layout: { hLineWidth: () => 0.5, vLineWidth: () => 0.5 }
+                        },
+                        {
+                            width: '50%',
+                            table: {
+                                widths: ['60%', '40%'],
+                                body: [
+                                    ['Orden SAP Refacturación / SAP Order Re-invoice', { text: request.orderNumber || ''}],
+                                    ['Número de remisión / Delivery note', { text: request.deliveryNote || ''}],
+                                    ['Crédito - Débito / Credit - Debit', { text: request.creditNumber || ''}],
+                                    ['Factura nueva / New invoice', { text: request.newInvoice || ''}],
+                                    ['Aprobado por Finanzas / Finance Approval', '']
+                                ]
+                            },
+                            layout: { hLineWidth: () => 0.5, vLineWidth: () => 0.5 }
+                        }
+                    ],
+                    columnGap: 10
                 }
             ],
             styles: {
-                header: { fontSize: 22, bold: true, margin: [0, 0, 0, 10] },
-                tableHeader: { fontSize: 8, fillColor: '#eeeeee', bold: true },
-                tableData: { fontSize: 10, bold: true, margin: [0, 5, 0, 5] }
-            }
-        }
+                header: { fontSize: 18, bold: true, margin: [0, 0, 0, 10] },
+                tableHeader: { fontSize: 8, fillColor: '#eeeeee', bold: true, alignment: 'center' },
+                tableData: { fontSize: 9, bold: true, alignment: 'center', margin: [0, 3, 0, 3] }
+            },
+            defaultStyle: { fontSize: 9 }
+        };
 
-        pdf.createPdf(docDefinition).open();    
-        // También puedes usar:
-        // .download(`Request_${request.requestNumber}.pdf`);
-        // .print();
+        pdf.createPdf(docDefinition).open();
     }
 }
