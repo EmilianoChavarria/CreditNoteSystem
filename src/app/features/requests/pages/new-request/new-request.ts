@@ -1,30 +1,57 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { TabsContainer } from "../../../../shared/components/ui/tab/tab-container/tab-container";
 import { Tab } from "../../../../shared/components/ui/tab/tab";
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { CommonModule, JsonPipe } from '@angular/common';
 import formFieldsConfig from '../../../../data/form-fields-config.json';
+import { RequestService } from '../../../../core/services/request-service';
+import { Spinner } from "../../../../shared/components/ui/spinner/spinner";
 
 @Component({
     selector: 'app-new-request',
     templateUrl: './new-request.html',
     styleUrl: './new-request.css',
-    imports: [TabsContainer, Tab, ReactiveFormsModule, TranslatePipe, CommonModule],
+    imports: [TabsContainer, Tab, ReactiveFormsModule, TranslatePipe, CommonModule, Spinner],
 })
 export class NewRequest implements OnInit {
-    profileForm: FormGroup;
-    formConfig: any = formFieldsConfig;
-    selectedRequestType: string = '';
-    currentTabs: any[] = [];
-    submitted: boolean = false; // Flag para marcar si se intentó guardar
+    public profileForm: FormGroup;
+    public formConfig: any = formFieldsConfig;
+    public selectedRequestType: string = '';
+    public currentTabs: any[] = [];
+    public submitted: boolean = false;
+    public isLoadingForm = signal<boolean>(false);
+    private requestNumber = signal<string>('');
 
-    constructor(private fb: FormBuilder) {
+    constructor(
+        private fb: FormBuilder,
+        private _requestService: RequestService
+
+    ) {
         this.profileForm = this.fb.group({});
     }
 
     ngOnInit() {
-        
+
+    }
+
+    getNextRequestNumber(requestTypeId: number) {
+        this.isLoadingForm.set(true);
+        this._requestService.getNextRequestNumber(requestTypeId).subscribe({
+            next: (response) => {
+                this.isLoadingForm.set(false);
+                this.requestNumber.set(response.requestNumber);
+                const requestNumberControl = this.profileForm.get('requestNumber');
+                if (requestNumberControl) {
+                    requestNumberControl.setValue(response.requestNumber);
+                    requestNumberControl.disable({ emitEvent: false });
+                }
+            },
+            error: (error) => {
+                this.isLoadingForm.set(false);
+            }
+        })
+
     }
 
     onRequestTypeChange(event: any) {
@@ -42,10 +69,10 @@ export class NewRequest implements OnInit {
         };
 
         const moduleKey = moduleMap[value];
-
+        console.log(moduleKey);
         if (moduleKey && this.formConfig[moduleKey]) {
+            this.getNextRequestNumber(Number(this.selectedRequestType));
             this.currentTabs = this.formConfig[moduleKey].tabs;
-            console.log("🚀 ~ NewRequest ~ onRequestTypeChange ~ this.currentTabs:", this.currentTabs)
             this.buildForm(moduleKey);
         } else {
             this.currentTabs = [];
@@ -60,8 +87,14 @@ export class NewRequest implements OnInit {
         tabs.forEach((tab: any) => {
             tab.fields.forEach((field: any) => {
                 const validators = this.getValidators(field.validators || []);
-                const defaultValue = this.getDefaultValue(field);
-                formControls[field.formControlName] = [defaultValue, validators];
+                const isRequestNumber = field.formControlName === 'requestNumber';
+                const defaultValue = isRequestNumber ? this.requestNumber() : this.getDefaultValue(field);
+                const isDisabled = Boolean(field.disabled) || isRequestNumber;
+
+                formControls[field.formControlName] = [{
+                    value: defaultValue,
+                    disabled: isDisabled
+                }, validators];
             });
         });
 

@@ -16,21 +16,24 @@
         </div>
     </div>
 
+    @if(isLoadingForm()){
+    <app-spinner></app-spinner>
+    } @else {
     <form [formGroup]="profileForm" *ngIf="currentTabs.length > 0">
-
         <app-tabs-container (onSave)="handleSave()">
 
             <app-tab *ngFor="let tab of currentTabs" [title]="tab.title">
                 <div class="grid grid-cols-4 gap-4">
                     <div *ngFor="let field of tab.fields" [ngClass]="{
-                        'col-span-4': field.type === 'textarea' || field.type === 'badge',
-                        'col-span-2': field.type === 'file',
-                        'col-span-1': field.type !== 'textarea' && field.type !== 'file' && field.type !== 'badge'
-                    }">
+                            'col-span-4': field.type === 'textarea' || field.type === 'badge',
+                            'col-span-2': field.type === 'file',
+                            'col-span-1': field.type !== 'textarea' && field.type !== 'file' && field.type !== 'badge'
+                        }">
                         <!-- Input Text / Email / Number -->
                         <div *ngIf="field.type === 'text' || field.type === 'number' || field.type === 'email'">
                             <label class="block text-sm font-medium text-gray-700">{{ field.label }}
-                                <span class="text-red-500 text-lg">{{field.validators[0] === "required" ? '*' : ''}}</span>
+                                <span class="text-red-500 text-lg">{{field.validators[0] === "required" ? '*' :
+                                    ''}}</span>
                             </label>
                             <input [type]="field.type === 'number' ? 'number' : 'text'"
                                 [formControlName]="field.formControlName" [placeholder]="field.placeholder"
@@ -39,7 +42,8 @@
                             <small *ngIf="campoVacio(field.formControlName)" class="text-red-500 text-xs block mt-1">
                                 {{ getFieldError(field.formControlName) }}
                             </small>
-                            <small *ngIf="field.description && !campoVacio(field.formControlName)" class="text-gray-500 text-xs">
+                            <small *ngIf="field.description && !campoVacio(field.formControlName)"
+                                class="text-gray-500 text-xs">
                                 {{ field.description}}
                             </small>
                         </div>
@@ -47,20 +51,23 @@
                         <!-- Date -->
                         <div *ngIf="field.type === 'date'">
                             <label class="block text-sm font-medium text-gray-700">{{ field.label }}
-                                <span class="text-red-500 text-lg">{{field.validators[0] === "required" ? '*' : ''}}</span>
+                                <span class="text-red-500 text-lg">{{field.validators[0] === "required" ? '*' :
+                                    ''}}</span>
                             </label>
                             <input type="date" [formControlName]="field.formControlName"
                                 [class]="campoVacio(field.formControlName) ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-blue-500' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500'">
                             <small *ngIf="campoVacio(field.formControlName)" class="text-red-500 text-xs block mt-1">
                                 {{ getFieldError(field.formControlName) }}
                             </small>
-                            <small *ngIf="field.description && !campoVacio(field.formControlName)" class="text-gray-500 text-xs">{{ field.description }}</small>
+                            <small *ngIf="field.description && !campoVacio(field.formControlName)"
+                                class="text-gray-500 text-xs">{{ field.description }}</small>
                         </div>
 
                         <!-- Select -->
                         <div *ngIf="field.type === 'select'">
                             <label class="block text-sm font-medium text-gray-700">{{ field.label }}
-                                <span class="text-red-500 text-lg">{{field.validators[0] === "required" ? '*' : ''}}</span></label>
+                                <span class="text-red-500 text-lg">{{field.validators[0] === "required" ? '*' :
+                                    ''}}</span></label>
                             <select [formControlName]="field.formControlName"
                                 [class]="campoVacio(field.formControlName) ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-blue-500' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500'">
                                 <option value="">{{ field.placeholder }}</option>
@@ -70,7 +77,8 @@
                             <small *ngIf="campoVacio(field.formControlName)" class="text-red-500 text-xs block mt-1">
                                 {{ getFieldError(field.formControlName) }}
                             </small>
-                            <small *ngIf="field.description && !campoVacio(field.formControlName)" class="text-gray-500 text-xs">{{ field.description
+                            <small *ngIf="field.description && !campoVacio(field.formControlName)"
+                                class="text-gray-500 text-xs">{{ field.description
                                 }}</small>
                         </div>
 
@@ -79,7 +87,8 @@
                             <input type="checkbox" [formControlName]="field.formControlName"
                                 [id]="field.formControlName" class="h-4 w-4 text-blue-600">
                             <label [for]="field.formControlName" class="text-sm text-gray-700">{{ field.label }}
-                                <span class="text-red-500 text-lg">{{field.validators[0] === "required" ? '*' : ''}}</span></label>
+                                <span class="text-red-500 text-lg">{{field.validators[0] === "required" ? '*' :
+                                    ''}}</span></label>
                             <small *ngIf="field.description" class="text-gray-500 text-xs ml-2">({{ field.description
                                 }})</small>
                             <small *ngIf="campoVacio(field.formControlName)" class="text-red-500 text-xs block w-full">
@@ -90,41 +99,47 @@
                         <!-- Textarea -->
                         <div *ngIf="field.type === 'textarea'">
                             <label class="block text-sm font-medium text-gray-700">{{ field.label }}
-                                <span class="text-red-500 text-lg">{{field.validators[0] === "required" ? '*' : ''}}</span></label>
+                                <span class="text-red-500 text-lg">{{field.validators[0] === "required" ? '*' :
+                                    ''}}</span></label>
                             <textarea [formControlName]="field.formControlName" [placeholder]="field.placeholder"
                                 [rows]="field.rows || 3" [readonly]="field.readonly"
                                 [class]="campoVacio(field.formControlName) ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-blue-500' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500'"></textarea>
                             <small *ngIf="campoVacio(field.formControlName)" class="text-red-500 text-xs block mt-1">
                                 {{ getFieldError(field.formControlName) }}
                             </small>
-                            <small *ngIf="field.description && !campoVacio(field.formControlName)" class="text-gray-500 text-xs">{{ field.description
+                            <small *ngIf="field.description && !campoVacio(field.formControlName)"
+                                class="text-gray-500 text-xs">{{ field.description
                                 }}</small>
                         </div>
 
                         <!-- File -->
                         <div *ngIf="field.type === 'file'">
                             <label class="block text-sm font-medium text-gray-700">{{ field.label }}
-                                <span class="text-red-500 text-lg">{{field.validators[0] === "required" ? '*' : ''}}</span></label>
+                                <span class="text-red-500 text-lg">{{field.validators[0] === "required" ? '*' :
+                                    ''}}</span></label>
                             <input type="file" [accept]="field.accept"
                                 [class]="campoVacio(field.formControlName) ? 'border-red-500 mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100' : 'mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100'">
                             <small *ngIf="campoVacio(field.formControlName)" class="text-red-500 text-xs block mt-1">
                                 {{ getFieldError(field.formControlName) }}
                             </small>
-                            <small *ngIf="field.description && !campoVacio(field.formControlName)" class="text-gray-500 text-xs">{{ field.description
+                            <small *ngIf="field.description && !campoVacio(field.formControlName)"
+                                class="text-gray-500 text-xs">{{ field.description
                                 }}</small>
                         </div>
 
                         <!-- Autocomplete (por ahora como input text) -->
                         <div *ngIf="field.type === 'autocomplete'">
                             <label class="block text-sm font-medium text-gray-700">{{ field.label }}
-                                <span class="text-red-500 text-lg">{{field.validators[0] === "required" ? '*' : ''}}</span></label>
+                                <span class="text-red-500 text-lg">{{field.validators[0] === "required" ? '*' :
+                                    ''}}</span></label>
                             <input type="text" [formControlName]="field.formControlName"
                                 [placeholder]="field.placeholder"
                                 [class]="campoVacio(field.formControlName) ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-blue-500' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500'">
                             <small *ngIf="campoVacio(field.formControlName)" class="text-red-500 text-xs block mt-1">
                                 {{ getFieldError(field.formControlName) }}
                             </small>
-                            <small *ngIf="field.description && !campoVacio(field.formControlName)" class="text-gray-500 text-xs">{{ field.description
+                            <small *ngIf="field.description && !campoVacio(field.formControlName)"
+                                class="text-gray-500 text-xs">{{ field.description
                                 }}</small>
                         </div>
 
@@ -142,21 +157,24 @@
                         <!-- Computed (readonly number display) -->
                         <div *ngIf="field.type === 'computed'">
                             <label class="block text-sm font-medium text-gray-700">{{ field.label }}
-                                <span class="text-red-500 text-lg">{{field.validators[0] === "required" ? '*' : ''}}</span></label>
+                                <span class="text-red-500 text-lg">{{field.validators[0] === "required" ? '*' :
+                                    ''}}</span></label>
                             <input type="text" [value]="getComputedValue(field) | number:'1.2-2'" disabled
                                 [class]="campoVacio(field.formControlName) ? 'border-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm bg-gray-100 text-gray-700 font-semibold' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm bg-gray-100 text-gray-700 font-semibold'">
                             <small *ngIf="campoVacio(field.formControlName)" class="text-red-500 text-xs block mt-1">
                                 {{ getFieldError(field.formControlName) }}
                             </small>
-                            <small *ngIf="field.description && !campoVacio(field.formControlName)" class="text-gray-500 text-xs">{{ field.description }}</small>
+                            <small *ngIf="field.description && !campoVacio(field.formControlName)"
+                                class="text-gray-500 text-xs">{{ field.description }}</small>
                         </div>
                     </div>
                 </div>
             </app-tab>
 
         </app-tabs-container>
-
     </form>
+    }
+
 
     <div *ngIf="currentTabs.length === 0" class="text-center py-20 text-gray-500">
         <img src="assets/png/TIMKEN-DISABLE-esp.png" alt="" class="h-92 mx-auto">
