@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpService } from './http-service';
 import { catchError, map, Observable, tap } from 'rxjs';
-import { Request } from '../../data/interfaces/Request';
+import { Reason, Request } from '../../data/interfaces/Request';
 import { ApiResponse } from '../../data/interfaces/ApiResponse-interface';
 
 export interface RequestNumber {
@@ -18,6 +18,21 @@ export class RequestService {
   constructor(
     private _httpService: HttpService
   ) { }
+
+  getReasons(): Observable<Reason[]> {
+    return this._httpService.get<Reason[]>('/requests/reasons').pipe(
+      tap((response: ApiResponse<Reason[]>) => {
+        if (response.success) {
+
+        }
+      }),
+      map((response: ApiResponse<Reason[]>) => response.data ?? []),
+      catchError((error) => {
+        console.log(error);
+        throw error;
+      })
+    )
+  }
 
   getRequestsByType(id: number): Observable<Request[]> {
     return this._httpService.get<Request[]>(`/requests/${id}`).pipe(
