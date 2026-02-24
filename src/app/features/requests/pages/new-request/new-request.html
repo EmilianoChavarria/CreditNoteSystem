@@ -71,8 +71,20 @@
                             <select [formControlName]="field.formControlName"
                                 [class]="campoVacio(field.formControlName) ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-blue-500' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500'">
                                 <option value="">{{ field.placeholder }}</option>
-                                <option *ngFor="let option of field.options" [value]="option.value">{{ option.label }}
-                                </option>
+                                <!-- Dynamic options from dataSource -->
+                                <ng-container *ngIf="field.dataSource === 'reasons'">
+                                    <option *ngFor="let option of reasons()" [value]="option.id">{{ option.name }}
+                                    </option>
+                                </ng-container>
+                                <ng-container *ngIf="field.dataSource === 'classifications'">
+                                    <option *ngFor="let option of classifications()" [value]="option.id">{{ option.name
+                                        }} {{ option.code ? `- ${option.code}` : '' }}</option>
+                                </ng-container>
+                                <!-- Static options -->
+                                <ng-container *ngIf="!field.dataSource">
+                                    <option *ngFor="let option of field.options" [value]="option.value">{{ option.label
+                                        }}</option>
+                                </ng-container>
                             </select>
                             <small *ngIf="campoVacio(field.formControlName)" class="text-red-500 text-xs block mt-1">
                                 {{ getFieldError(field.formControlName) }}
@@ -127,20 +139,17 @@
                                 }}</small>
                         </div>
 
-                        <!-- Autocomplete (por ahora como input text) -->
+                        <!-- Autocomplete con búsqueda y debounce -->
                         <div *ngIf="field.type === 'autocomplete'">
-                            <label class="block text-sm font-medium text-gray-700">{{ field.label }}
-                                <span class="text-red-500 text-lg">{{field.validators[0] === "required" ? '*' :
-                                    ''}}</span></label>
-                            <input type="text" [formControlName]="field.formControlName"
-                                [placeholder]="field.placeholder"
-                                [class]="campoVacio(field.formControlName) ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-blue-500' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500'">
+                            <app-autocomplete *ngIf="field.formControlName === 'customerId'"
+                                [control]="$any(profileForm.get(field.formControlName))" [label]="field.label"
+                                [placeholder]="field.placeholder" [isRequired]="field.validators?.includes('required')"
+                                [description]="field.description" [searchFn]="searchCustomers.bind(this)"
+                                [displayFn]="displayCustomer.bind(this)" [debounceMs]="500" [minCharacters]="1"
+                                [hasError]="campoVacio(field.formControlName)"></app-autocomplete>
                             <small *ngIf="campoVacio(field.formControlName)" class="text-red-500 text-xs block mt-1">
                                 {{ getFieldError(field.formControlName) }}
                             </small>
-                            <small *ngIf="field.description && !campoVacio(field.formControlName)"
-                                class="text-gray-500 text-xs">{{ field.description
-                                }}</small>
                         </div>
 
                         <!-- Badge (readonly display) -->
@@ -176,7 +185,7 @@
     }
 
 
-    <div *ngIf="currentTabs.length === 0" class="text-center py-20 text-gray-500">
+    <div *ngIf="this.selectedRequestType ===''" class="text-center py-20 text-gray-500">
         <img src="assets/png/TIMKEN-DISABLE-esp.png" alt="" class="h-92 mx-auto">
         <p class="text-2xl text-[#3c6194] font-semibold">{{'REQUEST_TYPES.DEFAULT_TEXT'| translate}}</p>
     </div>

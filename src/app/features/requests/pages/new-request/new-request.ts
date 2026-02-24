@@ -1,18 +1,23 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { TabsContainer } from "../../../../shared/components/ui/tab/tab-container/tab-container";
 import { Tab } from "../../../../shared/components/ui/tab/tab";
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { CommonModule, JsonPipe } from '@angular/common';
 import formFieldsConfig from '../../../../data/form-fields-config.json';
 import { RequestService } from '../../../../core/services/request-service';
+import { CustomerService } from '../../../../core/services/customer-service';
 import { Spinner } from "../../../../shared/components/ui/spinner/spinner";
+import { Autocomplete, AutocompleteOption } from '../../../../shared/components/ui/autocomplete/autocomplete';
+import { Observable, of, forkJoin, combineLatest, Subscription } from 'rxjs';
+import { map, catchError, startWith } from 'rxjs/operators';
+import { Classification, Reason, RequestType } from '../../../../data/interfaces/Request';
 
 @Component({
     selector: 'app-new-request',
     templateUrl: './new-request.html',
     styleUrl: './new-request.css',
-    imports: [TabsContainer, Tab, ReactiveFormsModule, TranslatePipe, CommonModule, Spinner],
+    imports: [TabsContainer, Tab, ReactiveFormsModule, TranslatePipe, CommonModule, Spinner, Autocomplete],
 })
 export class NewRequest implements OnInit {
     public profileForm: FormGroup;
@@ -22,10 +27,14 @@ export class NewRequest implements OnInit {
     public submitted: boolean = false;
     public isLoadingForm = signal<boolean>(false);
     private requestNumber = signal<string>('');
+    public reasons = signal<Reason[]>([]);
+    public classifications = signal<Classification[]>([]);
+    private computedSubscriptions: Subscription[] = [];
 
     constructor(
         private fb: FormBuilder,
-        private _requestService: RequestService
+        private _requestService: RequestService,
+        private _customerService: CustomerService
 
     ) {
         this.profileForm = this.fb.group({});
@@ -54,9 +63,32 @@ export class NewRequest implements OnInit {
 
     }
 
+    getReasons() {
+        this._requestService.getReasons().subscribe({
+            next: (response) => {
+                this.reasons.set(response);
+            },
+            error: (error) => {
+                console.log(error);
+            }
+        })
+    }
+
+    getClassifications(requestTypeId: number) {
+        this._requestService.getClassificationsByType(requestTypeId).subscribe({
+            next: (response) => {
+                this.classifications.set(response);
+            },
+            error: (error) => {
+                console.log(error);
+            }
+        })
+    }
+
     onRequestTypeChange(event: any) {
         const value = event.target.value;
         this.selectedRequestType = value;
+        this.isLoadingForm.set(true);
 
         // Mapear el valor del select al key del JSON
         const moduleMap: { [key: string]: string } = {
@@ -69,14 +101,44 @@ export class NewRequest implements OnInit {
         };
 
         const moduleKey = moduleMap[value];
-        console.log(moduleKey);
+        // console.log(moduleKey);
         if (moduleKey && this.formConfig[moduleKey]) {
-            this.getNextRequestNumber(Number(this.selectedRequestType));
-            this.currentTabs = this.formConfig[moduleKey].tabs;
-            this.buildForm(moduleKey);
+            const requestTypeId = Number(this.selectedRequestType);
+
+            // Combinar los 3 observables
+            forkJoin({
+                requestNumber: this._requestService.getNextRequestNumber(requestTypeId),
+                reasons: this._requestService.getReasons(),
+                classifications: this._requestService.getClassificationsByType(requestTypeId)
+            }).subscribe({
+                next: (results) => {
+                    // Actualizar los signals con los datos
+                    this.requestNumber.set(results.requestNumber.requestNumber);
+                    this.reasons.set(results.reasons);
+                    this.classifications.set(results.classifications);
+
+                    // Actualizar tabs y form
+                    this.currentTabs = this.formConfig[moduleKey].tabs;
+                    this.buildForm(moduleKey);
+
+                    // Establecer el request number en el form
+                    const requestNumberControl = this.profileForm.get('requestNumber');
+                    if (requestNumberControl) {
+                        requestNumberControl.setValue(results.requestNumber.requestNumber);
+                        requestNumberControl.disable({ emitEvent: false });
+                    }
+
+                    this.isLoadingForm.set(false);
+                },
+                error: (error) => {
+                    console.error('Error cargando datos del form:', error);
+                    this.isLoadingForm.set(false);
+                }
+            });
         } else {
             this.currentTabs = [];
             this.profileForm = this.fb.group({});
+            this.isLoadingForm.set(false);
         }
     }
 
@@ -99,6 +161,44 @@ export class NewRequest implements OnInit {
         });
 
         this.profileForm = this.fb.group(formControls);
+        this.setupComputedFields(tabs);
+    }
+
+    private setupComputedFields(tabs: any[]) {
+        this.computedSubscriptions.forEach((sub) => sub.unsubscribe());
+        this.computedSubscriptions = [];
+
+        tabs.forEach((tab: any) => {
+            tab.fields.forEach((field: any) => {
+                if (field.type !== 'computed' || !Array.isArray(field.computeFrom)) {
+                    return;
+                }
+
+                const targetControl = this.profileForm.get(field.formControlName) as FormControl | null;
+                if (!targetControl) {
+                    return;
+                }
+
+                const dependencyControls = field.computeFrom
+                    .map((controlName: string) => this.profileForm.get(controlName) as FormControl | null)
+                    .filter((control: FormControl | null) => Boolean(control)) as FormControl[];
+
+                if (dependencyControls.length === 0) {
+                    return;
+                }
+
+                const sources = dependencyControls.map((control) =>
+                    control.valueChanges.pipe(startWith(control.value))
+                );
+
+                const sub = combineLatest(sources).subscribe(() => {
+                    const computedValue = this.getComputedValue(field);
+                    targetControl.setValue(computedValue, { emitEvent: false });
+                });
+
+                this.computedSubscriptions.push(sub);
+            });
+        });
     }
 
     getValidators(validatorArray: string[]) {
@@ -136,8 +236,8 @@ export class NewRequest implements OnInit {
             // Evaluar la fórmula de forma segura
             try {
                 // Para el caso de IVA
-                if (field.formula.includes('iva') && field.formula.includes('amount')) {
-                    const iva = values.iva || values.replenishmentIva || values.warehouseIva;
+                if (field.formula.includes('hasIva') && field.formula.includes('amount')) {
+                    const iva = values.hasIva || values.replenishmentIva || values.warehouseIva;
                     const amount = values.amount || values.replenishmentAmount || values.warehouseAmount;
                     return iva ? amount * 1.16 : amount;
                 }
@@ -201,12 +301,53 @@ export class NewRequest implements OnInit {
         });
 
         if (this.profileForm.valid) {
-            console.log('FormData capturado:', this.profileForm.value);
+            const formValue = this.profileForm.getRawValue();
+            console.log('FormData capturado con profileForm:', formValue);
             console.log('Tipo de request:', this.selectedRequestType);
+            delete formValue.sapScreen;
+            delete formValue.attachSupports;
+            delete formValue.reviewComments;
+            delete formValue.creditNumber;
+            delete formValue.orderNumber;
+            const newObject = {
+                requestTypeId: this.selectedRequestType,
+                ...formValue,
+                customerId: formValue.customerId.id,
+                totalAmount: formValue.totalAmount.toFixed(2),
+                status: 'created'
+            }
+            console.log("Form parseado", newObject);
             alert('Datos impresos en consola');
             this.submitted = false; // Resetear después de guardar exitosamente
         } else {
             alert('Por favor, rellena los campos obligatorios');
         }
+    }
+
+    searchCustomers(term: string): Observable<AutocompleteOption[]> {
+        if (!term || term.trim().length === 0) {
+            return of([]);
+        }
+        return this._customerService.getCustomersByName(term).pipe(
+            map(customers => {
+                // Validar que customers sea un array
+                if (!Array.isArray(customers)) {
+                    console.warn('Expected array but got:', customers);
+                    return [];
+                }
+                return customers.map(customer => ({
+                    ...customer,
+                    label: customer.customerName
+                } as AutocompleteOption));
+            }),
+            catchError(error => {
+                console.error('Error searching customers:', error);
+                return of([]);
+            })
+        );
+    }
+
+    displayCustomer(customer: any) {
+        return customer?.customerName || '';
     }
 }
