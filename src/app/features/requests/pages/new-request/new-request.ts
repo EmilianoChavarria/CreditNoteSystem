@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { TabsContainer } from "../../../../shared/components/ui/tab/tab-container/tab-container";
 import { Tab } from "../../../../shared/components/ui/tab/tab";
 import { FormBuilder, FormGroup, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
@@ -12,6 +12,7 @@ import { Autocomplete, AutocompleteOption } from '../../../../shared/components/
 import { Observable, of, forkJoin, combineLatest, Subscription } from 'rxjs';
 import { map, catchError, startWith } from 'rxjs/operators';
 import { Classification, Reason, RequestType } from '../../../../data/interfaces/Request';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
     selector: 'app-new-request',
@@ -30,7 +31,7 @@ export class NewRequest implements OnInit {
     public reasons = signal<Reason[]>([]);
     public classifications = signal<Classification[]>([]);
     private computedSubscriptions: Subscription[] = [];
-
+    private toastr = inject(ToastrService);
     constructor(
         private fb: FormBuilder,
         private _requestService: RequestService,
@@ -292,6 +293,17 @@ export class NewRequest implements OnInit {
         return 'Error en el campo';
     }
 
+    saveRequest(object: any) {
+        this._requestService.saveRequest(object).subscribe({
+            next: (response) => {
+                this.toastr.success(response.message, 'Sucess');
+            },
+            error: (error) => {
+
+            }
+        })
+    }
+
     handleSave() {
         this.submitted = true;
 
@@ -317,10 +329,11 @@ export class NewRequest implements OnInit {
                 status: 'created'
             }
             console.log("Form parseado", newObject);
-            alert('Datos impresos en consola');
+            // alert('Datos impresos en consola');
+            this.saveRequest(newObject);
             this.submitted = false; // Resetear después de guardar exitosamente
         } else {
-            alert('Por favor, rellena los campos obligatorios');
+            this.toastr.error('Por favor, rellena los campos obligatorios', 'Error');
         }
     }
 
