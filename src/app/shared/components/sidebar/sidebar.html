@@ -12,7 +12,7 @@
         <li class="flex flex-col w-full">
             <div (click)="onToggleOption(i, option.url, !!option.children)"
                 [class]="'flex items-center gap-x-4 p-3 rounded-lg cursor-pointer transition-colors ' + (option.active ? 'bg-[#ff8200] text-white' : 'text-[#326295] hover:bg-[#ff8200] hover:text-white')"
-                [title]="option.optionName">
+                [title]="option.optionName | translate ">
 
                 <lucide-icon [name]="option.iconName" class="shrink-0"></lucide-icon>
 
