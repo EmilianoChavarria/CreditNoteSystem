@@ -20,6 +20,7 @@ export interface Request {
     amount: number;
     hasIva: boolean;
     totalAmount: number;
+    comments: string;
     creditDebitRefId?: number | null;
     newInvoice?: boolean;
     sapReturnOrder?: string | null;
