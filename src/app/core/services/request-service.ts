@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpService } from './http-service';
 import { catchError, map, Observable, tap } from 'rxjs';
-import { Reason, Request } from '../../data/interfaces/Request';
+import { Classification, Reason, Request } from '../../data/interfaces/Request';
 import { ApiResponse } from '../../data/interfaces/ApiResponse-interface';
 
 export interface RequestNumber {
@@ -28,6 +28,21 @@ export class RequestService {
       }),
       map((response: ApiResponse<Reason[]>) => response.data ?? []),
       catchError((error) => {
+        console.log(error);
+        throw error;
+      })
+    )
+  }
+
+  getClassificationsByType(id: number): Observable<Classification[]> {
+    return this._httpService.get<Classification[]>(`classifications/requestType/${id}`).pipe(
+      tap((response: ApiResponse<Classification[]>) => {
+        if (response.success) {
+          // console.log(response);
+        }
+      }),
+      map((response: ApiResponse<Classification[]>) => response.data ?? []),
+      catchError(error => {
         console.log(error);
         throw error;
       })
