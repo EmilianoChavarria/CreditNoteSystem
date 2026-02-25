@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpService } from './http-service';
-import { catchError, map, Observable, tap } from 'rxjs';
-import { Classification, Reason, Request } from '../../data/interfaces/Request';
+import { catchError, map, Observable, tap, throwError } from 'rxjs';
+import { Classification, Reason, Request, RequestType } from '../../data/interfaces/Request';
 import { ApiResponse } from '../../data/interfaces/ApiResponse-interface';
 
 export interface RequestNumber {
@@ -86,7 +86,7 @@ export class RequestService {
   saveRequest(object: any) {
     return this._httpService.post('/requests/newRequest', object).pipe(
       tap((response) => {
-        if(response.success){
+        if (response.success) {
           console.log(response);
         }
       }),
@@ -95,6 +95,21 @@ export class RequestService {
         throw error;
       })
     )
+  }
+
+  getRequestTypes(): Observable<RequestType[]> {
+    return this._httpService.get<RequestType[]>('/requestType').pipe(
+      tap((response: ApiResponse<RequestType[]>) => {
+        if (response.success) {
+        }
+      }),
+      map((response: ApiResponse<RequestType[]>) => response.data ?? []),
+      catchError((error) => {
+        console.log(error);
+        throw error;
+      })
+    )
+
   }
 
 }
