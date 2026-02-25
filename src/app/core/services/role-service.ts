@@ -54,8 +54,11 @@ export class RoleService {
     )
   }
 
-  assignPermission(data: { roleId: number, requestTypeId: number, hasAccess: boolean }) {
-    return this._httpSevice.post('/rolesPermission/assign', data).pipe(
+  assignPermission(data: { roleId: number, requestTypeId: number, hasAccess: boolean }[]) {
+    let formatedData = {
+      permissions: data
+    }
+    return this._httpSevice.post('/rolesPermission/assign', formatedData).pipe(
       tap((response) => {
         if (response.success) {
 
