@@ -42,11 +42,11 @@
     <app-popover position="bottom-right" width="240px">
       <div trigger class="flex flex-row gap-x-2 items-center justify-center cursor-pointer whitespace-nowrap">
         <div class="h-11 w-11 bg-blue-600 flex items-center justify-center rounded-full shrink-0">
-          <span class="text-white font-semibold text-xl">AC</span>
+          <span class="text-white font-semibold text-xl">{{ (userInitials$ | async) || 'NA' }}</span>
         </div>
         <div class="flex flex-col min-w-32">
-          <span class="font-light truncate">Aldrick Chavarría</span>
-          <span class="font-semibold text-xs uppercase">{{ 'NAV.ADMIN' | translate }}</span>
+          <span class="font-light truncate">{{ (user$ | async)?.fullName || 'Usuario' }}</span>
+          <span class="font-semibold text-xs uppercase">{{ (user$ | async)?.roleName || ('NAV.ADMIN' | translate) }}</span>
         </div>
         <div class="transition-colors flex my-auto p-2 hover:bg-gray-200 rounded-lg shrink-0">
           <lucide-icon name="chevron-down" size="24" strokeWidth="1.8"></lucide-icon>
