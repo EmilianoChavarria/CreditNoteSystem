@@ -31,11 +31,11 @@ export class Sidebar {
 
   constructor(
     private router: Router,
-    private authService: AuthService,
+    private _authService: AuthService,
   ) {
-    this.applyRolePermissions(this.authService.getCurrentUser());
+    this.applyRolePermissions(this._authService.getCurrentUser());
 
-    this.authService.user$
+    this._authService.user$
       .pipe(takeUntilDestroyed())
       .subscribe(user => {
         this.applyRolePermissions(user);
