@@ -32,6 +32,11 @@ export class Users implements OnInit {
             sortable: true
         },
         {
+            key: 'preferredLanguage',
+            label: 'Preferred Language',
+            sortable: true
+        },
+        {
             key: 'role',
             label: 'Rol',
             sortable: false,
