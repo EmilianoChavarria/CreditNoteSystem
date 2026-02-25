@@ -23,6 +23,7 @@ export class Roles {
     public isLoading = signal<boolean>(true);
     public isSaving = signal<boolean>(false);
     public showPermissionModal = signal<boolean>(false);
+    public showPermissionManyModal = signal<boolean>(false);
     public permissionsMatrix = signal<Record<number, Record<number, boolean>>>({});
     public permissionPayload = signal<AssignPermission>({
         requestType: { id: 0, name: '' },
@@ -40,6 +41,7 @@ export class Roles {
     }
 
     getData() {
+        this.isLoading.set(true);
         forkJoin({
             roles: this._roleService.getRoles(),
             requestTypes: this._requestService.getRequestTypes(),
@@ -84,6 +86,51 @@ export class Roles {
         return this.permissionsMatrix()[roleId]?.[requestTypeId] ?? false;
     }
 
+    isRoleChecked(roleId: number): boolean {
+        const types = this.requestTypes();
+        if (!types.length) {
+            return false;
+        }
+
+        return types.every(requestType => this.hasPermission(roleId, requestType.id));
+    }
+
+    public rowArray = signal<any[]>([]);
+    onRoleRowToggle(role: Role, event: Event): void {
+        const input = event.target as HTMLInputElement;
+        const checked = input.checked;
+        const rowPayload = this.requestTypes().map(requestType => ({
+            role: role,
+            requestType: requestType,
+            hasAccess: checked,
+        }));
+
+        this.permissionsMatrix.update(current => {
+            const updatedRow: Record<number, boolean> = { ...(current[role.id] ?? {}) };
+
+            for (const requestType of this.requestTypes()) {
+                updatedRow[requestType.id] = checked;
+            }
+
+            return {
+                ...current,
+                [role.id]: updatedRow,
+            };
+        });
+
+        this.rowArray.set(rowPayload);
+        console.log(rowPayload);
+        this.onPermissionManyModalChange(true);
+    }
+
+    transformData(payload: any[]) {
+        return payload.map(item => ({
+            roleId: item.role.id,
+            requestTypeId: item.requestType.id,
+            hasAccess: item.hasAccess,
+        }));
+    }
+
     onPermissionChange(role: Role, requestType: RequestType, event: Event): void {
         event.preventDefault();
         const currentAccess = this.hasPermission(role.id, requestType.id);
@@ -95,26 +142,34 @@ export class Roles {
         this.showPermissionModal.set(isOpen);
     }
 
-    confirmPermission(): void {
-        const payload = {
-            roleId: this.permissionPayload().role.id,
-            requestTypeId: this.permissionPayload().requestType.id,
-            hasAccess: this.permissionPayload().hasAccess,
+    onPermissionManyModalChange(isOpen: boolean): void {
+        this.showPermissionManyModal.set(isOpen);
+    }
 
-        };
+    confirmPermission(): void {
+        const sourcePayload = this.showPermissionManyModal()
+            ? this.rowArray()
+            : [this.permissionPayload()];
+
+        const formattedPayload = this.transformData(sourcePayload);
+        if (!formattedPayload.length) {
+            return;
+        }
 
         this.isSaving.set(true);
 
-        this._roleService.assignPermission(payload).subscribe({
+        this._roleService.assignPermission(formattedPayload).subscribe({
             next: (response) => {
                 this.toastr.success(response.message ?? 'Permiso actualizado', 'Éxito');
                 this.onPermissionModalChange(false);
+                this.onPermissionManyModalChange(false);
                 this.isSaving.set(false);
                 this.getData();
             },
             error: (error) => {
                 this.toastr.error(error?.message ?? 'No se pudo actualizar el permiso', 'Error');
                 this.onPermissionModalChange(false);
+                this.onPermissionManyModalChange(false);
                 this.isSaving.set(false);
             }
         });
