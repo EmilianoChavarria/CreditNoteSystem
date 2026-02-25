@@ -21,6 +21,7 @@
     "USER_MANAGEMENT": "User Management",
     "CLIENT_MANAGEMENT": "Client Management",
     "ROLES": "Roles & Request Types",
+    "WORKFLOWS": "Approval Flow",
     "SYS_CONFIG": "System Configuration",
     "SEC_MANAGE": "Security Management"
   },
