@@ -56,6 +56,10 @@
     "TITLE": "User Management",
     "DESCRIPTION": "Create, Edit and Manage User Accounts"
   },
+  "ROLE_MANAGE": {
+    "TITLE": "Roles & Request Types Permission",
+    "DESCRIPTION": "Configure Role Permissions For Request Types"
+  },
   "PENDING": {
     "TITLE": "Pending Requests",
     "DESCRIPTION": "Continue With Your Request Process"

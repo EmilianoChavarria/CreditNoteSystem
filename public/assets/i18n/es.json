@@ -56,6 +56,10 @@
     "TITLE": "Gestión de Usuarios",
     "DESCRIPTION": "Crea, Edita y Gestiona las Cuentas de Usuarios"
   },
+  "ROLE_MANAGE": {
+    "TITLE": "Roles y Permisos por Tipos de Solicitud",
+    "DESCRIPTION": "Configurar Permisos de Roles Para Tipos de Solicitud"
+  },
   "PENDING": {
     "TITLE": "Solicitudes Pendientes",
     "DESCRIPTION": "Continua Con Tu Proceso de Solicitud"
