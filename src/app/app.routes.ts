@@ -17,6 +17,7 @@ import { Users } from './features/settings/pages/users/users';
 import { NewUser } from './features/settings/pages/users/new-user/new-user';
 import { NewCustomer } from './features/settings/pages/customers/new-customer/new-customer';
 import { NotFound } from './features/not-found/not-found';
+import { Workflows } from './features/workflows/workflows';
 
 export const routes: Routes = [
   { 
@@ -46,6 +47,7 @@ export const routes: Routes = [
       { path: 'settings/roles', component: Roles },
       { path: 'settings/system-configuration', component: SysConfig },
       { path: 'settings/security-management', component: SecurityManage },
+      { path: 'settings/workflows', component: Workflows },
       { path: '404', component: NotFound },
       { path: '**', component: NotFound },
     ]
