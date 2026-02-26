@@ -44,7 +44,7 @@
     "DATE_OPTION2": "60 days",
     "DATE_OPTION3": "Custom"
   },
-  "TABLE" : {
+  "TABLE": {
     "REG_PER_PAGE": "Registers per page",
     "PAGE": "Page",
     "OF": "of",
@@ -60,6 +60,10 @@
   "ROLE_MANAGE": {
     "TITLE": "Roles & Request Types Permission",
     "DESCRIPTION": "Configure Role Permissions For Request Types"
+  },
+  "WORKFLOWS_MANAGE": {
+    "TITLE": "Approval Flows",
+    "DESCRIPTION": "Each type of note follows a sequential approval workflow. The note moves from one role to the next until it is released."
   },
   "PENDING": {
     "TITLE": "Pending Requests",

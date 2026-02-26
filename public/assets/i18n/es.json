@@ -61,6 +61,10 @@
     "TITLE": "Roles y Permisos por Tipos de Solicitud",
     "DESCRIPTION": "Configurar Permisos de Roles Para Tipos de Solicitud"
   },
+  "WORKFLOWS_MANAGE": {
+    "TITLE": "Flujos de Aprobación",
+    "DESCRIPTION": "Cada tipo de nota sigue un flujo secuencial de aprobación. La nota avanza de un rol al siguiente hasta ser liberada."
+  },
   "PENDING": {
     "TITLE": "Solicitudes Pendientes",
     "DESCRIPTION": "Continua Con Tu Proceso de Solicitud"
