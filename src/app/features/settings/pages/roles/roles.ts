@@ -30,6 +30,7 @@ export class Roles {
         role: { id: 0, roleName: '' },
         hasAccess: false,
     })
+    public rowArray = signal<any[]>([]);
     public toastr = inject(ToastrService);
 
 
@@ -95,7 +96,7 @@ export class Roles {
         return types.every(requestType => this.hasPermission(roleId, requestType.id));
     }
 
-    public rowArray = signal<any[]>([]);
+    
     onRoleRowToggle(role: Role, event: Event): void {
         const input = event.target as HTMLInputElement;
         const checked = input.checked;
