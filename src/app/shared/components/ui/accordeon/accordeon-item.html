@@ -1,0 +1,43 @@
+<article class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+  <button
+    [id]="buttonId"
+    type="button"
+    class="flex w-full items-center justify-between gap-4 px-4 py-3 text-left transition hover:bg-gray-50"
+    [attr.aria-expanded]="isOpen()"
+    [attr.aria-controls]="panelId"
+    (click)="toggle()"
+  >
+    <span class="min-w-0">
+      <span class="block text-sm font-semibold text-gray-900">{{ title() }}</span>
+      @if (description()) {
+        <span class="block text-xs text-gray-600">{{ description() }}</span>
+      }
+    </span>
+
+    <span class="flex items-center gap-2 text-xs font-medium text-gray-700">
+      {{ actionLabel() }}
+      <svg
+        class="h-4 w-4 transition-transform duration-200"
+        [class.rotate-180]="isOpen()"
+        viewBox="0 0 20 20"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        aria-hidden="true"
+      >
+        <path d="M5 8l5 5 5-5" stroke-linecap="round" stroke-linejoin="round"></path>
+      </svg>
+    </span>
+  </button>
+
+  @if (isOpen()) {
+    <section
+      [id]="panelId"
+      class="border-t border-gray-200 px-4 py-3"
+      role="region"
+      [attr.aria-labelledby]="buttonId"
+    >
+      <ng-content></ng-content>
+    </section>
+  }
+</article>
