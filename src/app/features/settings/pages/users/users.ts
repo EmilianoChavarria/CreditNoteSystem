@@ -44,7 +44,7 @@ export class Users implements OnInit {
         },
         {
             key: 'isActive',
-            label: 'Activo',
+            label: 'Status',
             sortable: true,
             customTemplate: true
         },
