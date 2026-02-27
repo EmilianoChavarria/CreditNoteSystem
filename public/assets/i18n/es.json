@@ -69,6 +69,14 @@
     "TITLE": "Solicitudes Pendientes",
     "DESCRIPTION": "Continua Con Tu Proceso de Solicitud"
   },
+  "HISTORY": {
+    "TITLE": "Historial",
+    "DESCRIPTION": "Ver tus solicitudes"
+  },
+  "DRAFTS": {
+    "TITLE": "Borradores",
+    "DESCRIPTION": "Visualiza tus borradores y sigue editando"
+  },
   "USER_FORM": {
     "FULLNAME": "Nombre Completo",
     "EMAIL": "Correo Electrónico",
@@ -80,5 +88,13 @@
     "SELECT_LANGUAGE": "Selecciona un idioma",
     "SPANISH": "Español",
     "ENGLISH": "Inglés"
+  },
+  "REJECTION": {
+    "REASON": "Razón"
+  },
+  "ROLE_FORM": {
+    "ROLENAME": "Nombre del Rol",
+    "SELECT_COLOR": "Selecciona un Color",
+    "PREVIEW": "Vista Previa"
   }
 }

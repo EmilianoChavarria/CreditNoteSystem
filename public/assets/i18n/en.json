@@ -69,6 +69,14 @@
     "TITLE": "Pending Requests",
     "DESCRIPTION": "Continue With Your Request Process"
   },
+  "HISTORY": {
+    "TITLE": "History",
+    "DESCRIPTION": "See your requests"
+  },
+  "DRAFTS": {
+    "TITLE": "Drafts",
+    "DESCRIPTION": "See your drafts and continue editing"
+  },
   "USER_FORM": {
     "FULLNAME": "Full Name",
     "EMAIL": "Email",
@@ -80,5 +88,13 @@
     "SELECT_LANGUAGE": "Select a Language",
     "SPANISH": "Spanish",
     "ENGLISH": "English"
+  },
+  "REJECTION": {
+    "REASON": "Reason"
+  },
+  "ROLE_FORM": {
+    "ROLENAME": "Role Name",
+    "SELECT_COLOR": "Select a Color",
+    "PREVIEW": "Preview"
   }
 }
