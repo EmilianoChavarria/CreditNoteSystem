@@ -1,4 +1,4 @@
-import { Component, ContentChildren, QueryList, AfterContentInit, EventEmitter, Output, OnDestroy } from '@angular/core';
+import { Component, ContentChildren, QueryList, AfterContentInit, EventEmitter, Output, OnDestroy, Input } from '@angular/core';
 import { Tab } from '../tab';
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
@@ -25,38 +25,41 @@ import { Subscription } from 'rxjs';
         <ng-content></ng-content>
       </div>
 
-      <div class="flex justify-between items-center p-4 ">
-        
-        <button (click)="prev()" 
-                *ngIf="selectedIndex > 0"
-                class="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition">
-          Anterior
-        </button>
-        <div *ngIf="selectedIndex === 0"></div> <button (click)="next()" 
-                *ngIf="selectedIndex < tabs.length - 1"
-                class="px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 transition">
-          Siguiente
-        </button>
-
-        <button (click)="save()" 
-                *ngIf="selectedIndex === tabs.length - 1"
-                class="px-4 py-2 text-sm font-semibold text-white bg-green-600 rounded-md hover:bg-green-700 transition">
-          Guardar cambios
-        </button>
-      </div>
+      @if (showBottomButtons) {
+        <div class="flex justify-between items-center p-4 ">
+          
+          <button (click)="prev()" 
+                  *ngIf="selectedIndex > 0"
+                  class="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition">
+            Anterior
+          </button>
+          <div *ngIf="selectedIndex === 0"></div> <button (click)="next()" 
+                  *ngIf="selectedIndex < tabs.length - 1"
+                  class="px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 transition">
+            Siguiente
+          </button>
+  
+          <button (click)="save()" 
+                  *ngIf="selectedIndex === tabs.length - 1"
+                  class="px-4 py-2 text-sm font-semibold text-white bg-green-600 rounded-md hover:bg-green-700 transition">
+            Guardar cambios
+          </button>
+        </div>
+      }
     </div>
   `
 })
 export class TabsContainer implements AfterContentInit, OnDestroy {
   @ContentChildren(Tab) tabs!: QueryList<Tab>;
   @Output() onSave = new EventEmitter<void>();
+  @Input() showBottomButtons: boolean = true;
   selectedIndex: number = 0;
   private tabsSubscription?: Subscription;
 
   ngAfterContentInit() {
     // Inicializar tabs
     this.initializeTabs();
-    
+
     // Suscribirse a los cambios en los tabs
     this.tabsSubscription = this.tabs.changes.subscribe(() => {
       this.initializeTabs();
