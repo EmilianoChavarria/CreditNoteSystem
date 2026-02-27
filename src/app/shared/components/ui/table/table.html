@@ -105,7 +105,7 @@
 
                             <!-- ACCIONES PERSONALIZADAS -->
                             <button *ngFor="let accion of accionesPersonalizadas" (click)="ejecutarAccion(accion, item)"
-                                class="p-1.5 rounded-md text-gray-500 hover:bg-gray-100 transition"
+                                class="p-1.5 rounded-md text-[#ff8200] hover:bg-[#ff82001A] transition hover:cursor-pointer"
                                 [ngClass]="accion.className">
                                 <lucide-icon *ngIf="accion.icon" [name]="accion.icon"></lucide-icon>
                             </button>
