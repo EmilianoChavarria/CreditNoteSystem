@@ -21,24 +21,79 @@
             <div class="flex flex-col items-start justify-center">
                 <label for="days" class="font-semibold text-[#ff8200]">{{'DASHBOARD.SEL_DATE'| translate}}</label>
                 <div class="flex flex-row items-center">
+                    <div class="flex flex-row items-center">
+                        <select name="days" id="days" class="h-11 border border-gray-300 rounded-lg w-64 pl-2 pr-4"
+                            [value]="selectedDateOption()" (change)="onDateOptionChange($event)">
+                            <option value="1">{{'DASHBOARD.DATE_OPTION1'| translate}}</option>
+                            <option value="2">{{'DASHBOARD.DATE_OPTION2'| translate}}</option>
+                            <option value="custom">{{'DASHBOARD.DATE_OPTION3'| translate}}</option>
+                        </select>
 
-                    <select name="days" id="days" class="h-11 border border-gray-300 rounded-lg w-64 pl-2 pr-4">
-                        <option value="1">{{'DASHBOARD.DATE_OPTION1'| translate}}</option>
-                        <option value="2">{{'DASHBOARD.DATE_OPTION2'| translate}}</option>
-                        <option value="3">{{'DASHBOARD.DATE_OPTION3'| translate}}</option>
-                    </select>
-
-                    <lucide-icon name="calendar-clock" class="shrink-0" color="#ff8200" size="30"></lucide-icon>
+                        <lucide-icon name="calendar-clock" class="shrink-0" color="#ff8200" size="30"></lucide-icon>
+                    </div>
+                    @if (selectedDateOption() === 'custom') {
+                    <div class="flex flex-row items-start gap-x-2 -mt-4 ml-2">
+                        <div class="flex flex-col">
+                            <label class="font-semibold text-[#ff8200]">{{'DASHBOARD.START_DATE'| translate}}</label>
+                            <input type="date" [value]="startDate()" (change)="onStartDateChange($event)"
+                                class="h-11 border border-gray-300 rounded-lg w-64 pl-2 pr-4">
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="font-semibold text-[#ff8200]">{{'DASHBOARD.END_DATE'| translate}}</label>
+                            <input type="date" [value]="endDate()" (change)="onEndDateChange($event)"
+                                class="h-11 border border-gray-300 rounded-lg w-64 pl-2 pr-4">
+                        </div>
+                    </div>
+                    }
                 </div>
+
+
             </div>
         </div>
 
     </header>
     <section class="grid grid-cols-4 gap-4 mt-4">
+        <!-- TODO: Descomentar esto y hacerlo dinámico -->
+        <!-- <app-stat-card></app-stat-card>
         <app-stat-card></app-stat-card>
         <app-stat-card></app-stat-card>
-        <app-stat-card></app-stat-card>
-        <app-stat-card></app-stat-card>
+        <app-stat-card></app-stat-card> -->
+        <div class="w-full border border-gray-200 shadow-sm rounded-md flex flex-col py-4 px-8">
+            <span class="text-2xl text-gray-500">
+                Created
+            </span>
+            <div class="flex w-full justify-between items-center">
+                <span class="text-5xl font-bold text-gray-800">07</span>
+                <lucide-icon name="calendar-clock" class="shrink-0" color="#ff8200" size="50"></lucide-icon>
+            </div>
+        </div>
+        <div class="w-full border border-gray-200 shadow-sm rounded-md flex flex-col py-4 px-8">
+            <span class="text-2xl text-gray-500">
+                In Process
+            </span>
+            <div class="flex w-full justify-between items-center">
+                <span class="text-5xl font-bold text-gray-800">07</span>
+                <lucide-icon name="calendar-clock" class="shrink-0" color="#ff8200" size="50"></lucide-icon>
+            </div>
+        </div>
+        <div class="w-full border border-gray-200 shadow-sm rounded-md flex flex-col py-4 px-8">
+            <span class="text-2xl text-gray-500">
+                Approved
+            </span>
+            <div class="flex w-full justify-between items-center">
+                <span class="text-5xl font-bold text-gray-800">07</span>
+                <lucide-icon name="calendar-clock" class="shrink-0" color="#ff8200" size="50"></lucide-icon>
+            </div>
+        </div>
+        <div class="w-full border border-gray-200 shadow-sm rounded-md flex flex-col py-4 px-8">
+            <span class="text-2xl text-gray-500">
+                Released
+            </span>
+            <div class="flex w-full justify-between items-center">
+                <span class="text-5xl font-bold text-gray-800">07</span>
+                <lucide-icon name="calendar-clock" class="shrink-0" color="#ff8200" size="50"></lucide-icon>
+            </div>
+        </div>
     </section>
     <section class="bg-white border border-gray-300 shadow-sm rounded-md mt-4 p-4 flex flex-col w-full">
         <span class="text-center text-3xl text-gray-700 font-light">

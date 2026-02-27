@@ -1,5 +1,5 @@
 import { isPlatformBrowser } from '@angular/common';
-import { Component, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, Inject, PLATFORM_ID, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { ChartConfiguration, ChartData, ChartOptions, ChartType } from 'chart.js';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -38,6 +38,10 @@ interface DashboardSection {
     ],
 })
 export class Dashboard {
+
+  public selectedDateOption = signal('1');
+  public startDate = signal('');
+  public endDate = signal('');
 
   public lineChartType: ChartType = 'line';
 
@@ -102,4 +106,24 @@ export class Dashboard {
       ]
     }
   ];
+
+  public onDateOptionChange(event: Event): void {
+    const target = event.target as HTMLSelectElement;
+    this.selectedDateOption.set(target.value);
+
+    if (target.value !== 'custom') {
+      this.startDate.set('');
+      this.endDate.set('');
+    }
+  }
+
+  public onStartDateChange(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    this.startDate.set(target.value);
+  }
+
+  public onEndDateChange(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    this.endDate.set(target.value);
+  }
 }
