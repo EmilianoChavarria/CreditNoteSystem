@@ -3,6 +3,7 @@ import { HttpService } from './http-service';
 import { catchError, map, Observable, tap, throwError } from 'rxjs';
 import { Classification, Reason, Request, RequestType } from '../../data/interfaces/Request';
 import { ApiResponse } from '../../data/interfaces/ApiResponse-interface';
+import { CursorPagination } from './user-service';
 
 export interface RequestNumber {
   requestTypeId: number;
@@ -62,6 +63,33 @@ export class RequestService {
         throw error;
       })
     )
+  }
+
+  getRequestByTypePaginated(id: number, perPage = 10, cursor?: string | null): Observable<CursorPagination<Request>> {
+    const params: { perPage: number; cursor?: string } = { perPage };
+
+    if (cursor) {
+      params.cursor = cursor;
+    }
+
+    return this._httpService.get<CursorPagination<Request>>(`/requests/${id}`, { params }).pipe(
+      map((response: ApiResponse<CursorPagination<Request>>) => {
+        const payload = response.data;
+
+        return {
+          data: payload?.data ?? [],
+          per_page: payload?.per_page,
+          next_cursor: payload?.next_cursor ?? null,
+          next_page_url: payload?.next_page_url ?? null,
+          prev_cursor: payload?.prev_cursor ?? null,
+          prev_page_url: payload?.prev_page_url ?? null,
+        };
+      }),
+      catchError(error => {
+        console.log(error);
+        throw error;
+      })
+    );
   }
 
   getNextRequestNumber(requestTypeId: number): Observable<RequestNumber> {
