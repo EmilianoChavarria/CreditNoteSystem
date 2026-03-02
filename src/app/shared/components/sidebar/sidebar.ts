@@ -89,7 +89,7 @@ export class Sidebar {
         ]
       },
       { iconName: 'clipboard-check', optionName: 'SIDEBAR.PENDING', url: '/app/pending' },
-      { iconName: 'clipboard-list', optionName: 'SIDEBAR.HISTORY', url: '/app/history' },
+      // { iconName: 'clipboard-list', optionName: 'SIDEBAR.HISTORY', url: '/app/history' },
       { iconName: 'bell', optionName: 'SIDEBAR.NOTIFICATIONS', url: '/app/notifications' },
       {
         iconName: 'settings', optionName: 'SIDEBAR.SETTINGS', url: '/app/settings', children: [
@@ -97,8 +97,8 @@ export class Sidebar {
           { iconName: 'building-2', optionName: 'SIDEBAR.CLIENT_MANAGEMENT', url: '/app/settings/customers' },
           { iconName: 'grid-3x2', optionName: 'SIDEBAR.ROLES', url: '/app/settings/roles' },
           { iconName: 'network', optionName: 'SIDEBAR.WORKFLOWS', url: '/app/settings/workflows' },
-          { iconName: 'monitor-cog', optionName: 'SIDEBAR.SYS_CONFIG', url: '/app/settings/system-configuration' },
-          { iconName: 'shield-check', optionName: 'SIDEBAR.SEC_MANAGE', url: '/app/settings/security-management' },
+          // { iconName: 'monitor-cog', optionName: 'SIDEBAR.SYS_CONFIG', url: '/app/settings/system-configuration' },
+          // { iconName: 'shield-check', optionName: 'SIDEBAR.SEC_MANAGE', url: '/app/settings/security-management' },
         ]
       },
     ];
