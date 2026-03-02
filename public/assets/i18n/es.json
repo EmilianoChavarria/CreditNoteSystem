@@ -53,7 +53,8 @@
     "DATE_OPTION2": "60 días",
     "DATE_OPTION3": "Personalizado",
     "START_DATE": "Fecha inicial",
-    "END_DATE": "Fecha final"
+    "END_DATE": "Fecha final",
+    "LABEL": "Solicitudes creadas"
   },
   "USER_MANAGE": {
     "TITLE": "Gestión de Usuarios",

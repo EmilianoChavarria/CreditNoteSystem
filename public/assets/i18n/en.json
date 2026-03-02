@@ -44,7 +44,8 @@
     "DATE_OPTION2": "60 days",
     "DATE_OPTION3": "Custom",
     "START_DATE": "Start date",
-    "END_DATE": "End date"
+    "END_DATE": "End date",
+    "LABEL": "Created requests"
   },
   "TABLE": {
     "REG_PER_PAGE": "Registers per page",
