@@ -29,18 +29,42 @@
     </div>
     } @else if (requests().length > 0) {
     <app-tabla-dinamica [datos]="requests()" [columnas]="columns" [accionesPersonalizadas]="acciones" actionMode="menu"
-        [enableFilter]="true" filterField="area" addLabel="Request" addRoute="/app/settings/newUser" [canAdd]="false">
+        [enableFilter]="true" filterField="status" addLabel="Request" addRoute="/app/settings/newUser" [canAdd]="false"
+        [registrosPorPagina]="pageSize()" [serverPagination]="true" [paginaActualExterna]="currentPage()"
+        [hasNextPage]="hasNextPage()" [hasPrevPage]="hasPrevPage()" [loading]="isLoadingTable()"
+        (paginaSiguiente)="onNextPage()" (paginaAnterior)="onPrevPage()"
+        (registrosPorPaginaChange)="onPageSizeChange($event)">
 
-        <!-- <ng-template #cellTemplate let-item let-column="column">
-                @if (column.key === 'isActive') {
-                <app-badge [color]="item.isActive ? 'green' : 'red'" [text]="item.isActive ? 'Activo' : 'Inactivo'" />
-                }
-            </ng-template> -->
+        <ng-template #cellTemplate let-item let-column="column">
+            @if (column.key === 'request_type.name') {
+            <app-badge color="blue" [text]="item.request_type.name | uppercase" />
+            } @else if (column.key === 'status') {
+            <app-badge color="green" [text]="item.status | uppercase" />
+            }
+        </ng-template>
     </app-tabla-dinamica>
+    <app-workflow-history-drawer [open]="showHistoryDrawer()" [detail]="workflowDetail"
+        (closed)="closeHistoryDrawer()"></app-workflow-history-drawer>
     } @else {
     <div class="text-center py-20 text-gray-500">
         <img src="assets/png/TIMKEN-DISABLE-esp.png" alt="" class="h-92 mx-auto">
         <p class="text-2xl text-[#3c6194] font-semibold">{{'REQUEST_TYPES.DEFAULT_TEXT'| translate}}</p>
     </div>
     }
+
+    <app-modal size="md" titleM="Reason for Rejection" [open]="showDeclineModal()" closeText="Cancelar"
+        primaryText="Reject" (openChange)="onDeclineModalChange($event)" (primaryAction)="onDeclineModalChange()">
+        <div>
+            <label class="block font-medium text-[#395f93] text-lg">{{'REJECTION.REASON' | translate}}
+                <span class="text-red-500 text-lg">*</span>
+            </label>
+            <textarea placeholder="Reason..." formControlName="reason"
+                [class]="campoVacio('reason') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'"></textarea>
+            @if (campoVacio('reason')) {
+            <span class="text-sm text-red-500">{{ getErrorMessage('reason') }}</span>
+            }
+
+        </div>
+
+    </app-modal>
 </div>
