@@ -6,7 +6,11 @@
         </div>
     </header>
     <app-tabla-dinamica [datos]="users()" [columnas]="columns" [accionesPersonalizadas]="acciones" actionMode="menu"
-        [enableFilter]="true" filterField="role.roleName" addLabel="User" addRoute="/app/settings/newUser">
+        [enableFilter]="true" filterField="role.roleName" addLabel="User" addRoute="/app/settings/newUser"
+        [registrosPorPagina]="pageSize()" [serverPagination]="true" [paginaActualExterna]="currentPage()"
+        [hasNextPage]="hasNextPage()" [hasPrevPage]="hasPrevPage()" [loading]="isLoadingTable()"
+        (paginaSiguiente)="onNextPage()" (paginaAnterior)="onPrevPage()"
+        (registrosPorPaginaChange)="onPageSizeChange($event)">
         
         <ng-template #cellTemplate let-item let-column="column">
             @if (column.key === 'isActive') {

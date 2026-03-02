@@ -8,6 +8,7 @@ import { ToastrService } from 'ngx-toastr';
 import { Badge } from '../../../../shared/components/ui/badge/badge';
 import moment from 'moment';
 import { TranslatePipe } from '@ngx-translate/core';
+import { finalize } from 'rxjs';
 @Component({
     selector: 'app-users',
     templateUrl: './users.html',
@@ -17,6 +18,13 @@ import { TranslatePipe } from '@ngx-translate/core';
 export class Users implements OnInit {
     toastr = inject(ToastrService);
     public users = signal<User[]>([]);
+    public pageSize = signal<number>(10);
+    public currentPage = signal<number>(1);
+    public hasNextPage = signal<boolean>(false);
+    public hasPrevPage = signal<boolean>(false);
+    public isLoadingTable = signal<boolean>(true);
+    private nextCursor = signal<string | null>(null);
+    private prevCursor = signal<string | null>(null);
     public showDeleteModal = signal<boolean>(false);
     public selectedUserToDelete = signal<User | null>(null);
 
@@ -139,15 +147,53 @@ export class Users implements OnInit {
         this.getUsers();
     }
 
-    getUsers(): void {
-        this._userService.getUsers().subscribe({
+    getUsers(cursor?: string | null): void {
+        this.isLoadingTable.set(true);
+
+        this._userService.getUsersPaginated(this.pageSize(), cursor).pipe(
+            finalize(() => this.isLoadingTable.set(false))
+        ).subscribe({
             next: (response) => {
-                this.users.set(response);
+                this.users.set(response.data);
+                this.nextCursor.set(response.next_cursor ?? null);
+                this.prevCursor.set(response.prev_cursor ?? null);
+                this.hasNextPage.set(!!response.next_cursor || !!response.next_page_url);
+                this.hasPrevPage.set(!!response.prev_cursor || !!response.prev_page_url);
                 console.log('✅ Usuarios cargados:', response);
             },
             error: (error) => {
                 console.error('❌ Error al cargar usuarios:', error);
             }
         });
+    }
+
+    onNextPage(): void {
+        const cursor = this.nextCursor();
+        if (!cursor) {
+            return;
+        }
+
+        this.currentPage.update((value) => value + 1);
+        this.getUsers(cursor);
+    }
+
+    onPrevPage(): void {
+        const cursor = this.prevCursor();
+        if (!cursor) {
+            return;
+        }
+
+        this.currentPage.update((value) => Math.max(1, value - 1));
+        this.getUsers(cursor);
+    }
+
+    onPageSizeChange(size: number): void {
+        this.pageSize.set(size);
+        this.currentPage.set(1);
+        this.nextCursor.set(null);
+        this.prevCursor.set(null);
+        this.hasNextPage.set(false);
+        this.hasPrevPage.set(false);
+        this.getUsers();
     }
 }
