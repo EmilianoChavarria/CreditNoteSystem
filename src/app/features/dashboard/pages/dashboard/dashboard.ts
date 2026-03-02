@@ -1,12 +1,12 @@
 import { isPlatformBrowser } from '@angular/common';
-import { Component, Inject, PLATFORM_ID, signal } from '@angular/core';
+import { Component, Inject, PLATFORM_ID, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { ChartConfiguration, ChartData, ChartOptions, ChartType } from 'chart.js';
 import { ReactiveFormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
 import { BaseChartDirective } from 'ng2-charts';
 import { Badge } from '../../../../shared/components/ui/badge/badge';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { DashboardService } from '../../../../core/services/dashboard-service';
 import { Spinner } from "../../../../shared/components/ui/spinner/spinner";
 
@@ -41,9 +41,11 @@ export interface ChartDataS {
     Badge,
     TranslatePipe,
     Spinner
-],
+  ],
 })
 export class Dashboard {
+
+  private _translate = inject(TranslateService);
 
   public selectedDateOption = signal('1');
   public startDate = signal('');
@@ -58,7 +60,7 @@ export class Dashboard {
     datasets: [
       {
         data: [],
-        label: 'Número de peticiones',
+        label: this._translate.instant('DASHBOARD.LABEL'),
         fill: false,
         tension: 0.4
       }
@@ -127,7 +129,6 @@ export class Dashboard {
   getDays(): void {
     this._dashboardService.getDaysChart().subscribe({
       next: (response) => {
-        console.log(response);
         this.chartData = response;
         const days: string[] = [];
         const count: number[] = [];
@@ -140,6 +141,7 @@ export class Dashboard {
           datasets: [
             {
               ...this.lineChartData().datasets[0],
+              label: this._translate.instant('DASHBOARD.LABEL'),
               data: count,
             },
           ],
