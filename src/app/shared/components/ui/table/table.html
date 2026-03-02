@@ -86,6 +86,12 @@
             </thead>
 
             <tbody class="divide-y divide-gray-200">
+                @if(loading){
+                <td [attr.colspan]="columnasInterno().length + (sinAcciones ? 0 : 1)"
+                    class="px-6 py-8 text-center text-gray-500 italic">
+                    <app-spinner></app-spinner>
+                </td>
+                } @else {
                 <tr *ngFor="let item of datosPaginados()" class="hover:bg-blue-50 transition">
                     <td *ngFor="let col of columnasInterno()" class="px-6 py-3 text-sm text-gray-700">
                         @if (col.customTemplate && cellTemplate) {
@@ -141,11 +147,12 @@
                     </td>
 
                 </tr>
+                }
 
-                <tr *ngIf="datosPaginados().length === 0">
+                <tr *ngIf="!loading && datosPaginados().length === 0">
                     <td [attr.colspan]="columnasInterno().length + (sinAcciones ? 0 : 1)"
                         class="px-6 py-8 text-center text-gray-500 italic">
-                        <app-spinner></app-spinner>
+                        Sin registros
                     </td>
                 </tr>
             </tbody>
@@ -159,7 +166,7 @@
             <div class="relative">
                 <select id="page-size"
                     class="appearance-none bg-white text-sm pl-3 pr-8 py-1.5 border border-gray-300 rounded-lg"
-                    [value]="registrosPorPaginaInterno()"
+                    [value]="registrosPorPaginaInterno()" [disabled]="loading"
                     (change)="cambiarRegistrosPorPagina($any($event.target).value)">
                     <option *ngFor="let opt of pageSizeOptions" [value]="opt">
                         {{ opt }}
@@ -169,15 +176,18 @@
                     <lucide-icon name="chevron-down" size="16"></lucide-icon>
                 </div>
             </div>
-            <span>{{'TABLE.PAGE' | translate}} {{ paginaActual() }} {{'TABLE.OF' | translate}} {{ totalPaginas()
-                }}</span>
+            <span>{{'TABLE.PAGE' | translate}} {{ serverPagination ? paginaActualExterna : paginaActual() }}
+                {{'TABLE.OF' | translate}} {{
+                serverPagination ? (totalPaginasExterno ?? '...') : totalPaginas() }}</span>
             <div class="flex flex-row gap-1">
-                <button (click)="cambiarPagina(paginaActual() - 1)" [disabled]="paginaActual() === 1"
+                <button (click)="irPaginaAnterior()"
+                    [disabled]="loading || (serverPagination ? !hasPrevPage : paginaActual() === 1)"
                     class="px-1 py-1.5 text-sm rounded-md hover:cursor-pointer hover:bg-gray-100">
                     <lucide-icon name="chevron-left"></lucide-icon>
                 </button>
 
-                <button (click)="cambiarPagina(paginaActual() + 1)" [disabled]="paginaActual() === totalPaginas()"
+                <button (click)="irPaginaSiguiente()"
+                    [disabled]="loading || (serverPagination ? !hasNextPage : paginaActual() === totalPaginas())"
                     class="px-1 py-1.5 text-sm rounded-md hover:cursor-pointer hover:bg-gray-100">
                     <lucide-icon name="chevron-right"></lucide-icon>
                 </button>

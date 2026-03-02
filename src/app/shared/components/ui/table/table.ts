@@ -46,6 +46,12 @@ export class Table<T extends Record<string, any>>
     this.registrosPorPaginaInterno.set(safeValue);
     this.paginaActual.set(1);
   }
+  @Input() serverPagination = false;
+  @Input() paginaActualExterna = 1;
+  @Input() totalPaginasExterno: number | null = null;
+  @Input() hasNextPage = false;
+  @Input() hasPrevPage = false;
+  @Input() loading = false;
 
   @Input() enableFilter: boolean = false;
   @Input() filterField?: string; // Permite propiedades anidadas como "role.roleName"
@@ -58,6 +64,10 @@ export class Table<T extends Record<string, any>>
   @Input() canAdd: boolean = true;
   @Input() addLabel = 'User';
   @Input() addRoute?: string;
+
+  @Output() paginaSiguiente = new EventEmitter<void>();
+  @Output() paginaAnterior = new EventEmitter<void>();
+  @Output() registrosPorPaginaChange = new EventEmitter<number>();
 
   // Template personalizado para celdas
   @ContentChild('cellTemplate', { static: false }) cellTemplate?: TemplateRef<any>;
@@ -171,6 +181,10 @@ export class Table<T extends Record<string, any>>
   );
 
   datosPaginados = computed(() => {
+    if (this.serverPagination) {
+      return this.datosProcesados();
+    }
+
     const inicio = (this.paginaActual() - 1) * this.registrosPorPaginaInterno();
     return this.datosProcesados().slice(
       inicio,
@@ -199,7 +213,35 @@ export class Table<T extends Record<string, any>>
     const parsed = Number(value);
     const safeValue = this.pageSizeOptions.includes(parsed) ? parsed : 10;
     this.registrosPorPaginaInterno.set(safeValue);
+
+    if (this.serverPagination) {
+      this.registrosPorPaginaChange.emit(safeValue);
+      return;
+    }
+
     this.paginaActual.set(1);
+  }
+
+  irPaginaAnterior() {
+    if (this.serverPagination) {
+      if (this.hasPrevPage) {
+        this.paginaAnterior.emit();
+      }
+      return;
+    }
+
+    this.cambiarPagina(this.paginaActual() - 1);
+  }
+
+  irPaginaSiguiente() {
+    if (this.serverPagination) {
+      if (this.hasNextPage) {
+        this.paginaSiguiente.emit();
+      }
+      return;
+    }
+
+    this.cambiarPagina(this.paginaActual() + 1);
   }
 
   ejecutarAccion(accion: AccionPersonalizada<T>, item: T) {
