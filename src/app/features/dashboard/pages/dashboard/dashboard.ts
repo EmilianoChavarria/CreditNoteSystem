@@ -4,10 +4,11 @@ import { Router } from '@angular/router';
 import { ChartConfiguration, ChartData, ChartOptions, ChartType } from 'chart.js';
 import { ReactiveFormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
-import { StatCard } from '../../components/stat-card/stat-card';
 import { BaseChartDirective } from 'ng2-charts';
 import { Badge } from '../../../../shared/components/ui/badge/badge';
 import { TranslatePipe } from '@ngx-translate/core';
+import { DashboardService } from '../../../../core/services/dashboard-service';
+import { Spinner } from "../../../../shared/components/ui/spinner/spinner";
 
 interface RequestItem {
   id: string;
@@ -24,18 +25,23 @@ interface DashboardSection {
   requests: RequestItem[];
 }
 
+export interface ChartDataS {
+  dia: string;
+  cantidad: number;
+}
+
 @Component({
-    selector: 'app-dashboard',
-    templateUrl: './dashboard.html',
-    styleUrl: './dashboard.css',
-    imports: [
-        ReactiveFormsModule,
-        LucideAngularModule,
-        StatCard,
-        BaseChartDirective,
-        Badge,
-        TranslatePipe,
-    ],
+  selector: 'app-dashboard',
+  templateUrl: './dashboard.html',
+  styleUrl: './dashboard.css',
+  imports: [
+    ReactiveFormsModule,
+    LucideAngularModule,
+    BaseChartDirective,
+    Badge,
+    TranslatePipe,
+    Spinner
+],
 })
 export class Dashboard {
 
@@ -45,19 +51,19 @@ export class Dashboard {
 
   public lineChartType: ChartType = 'line';
 
-  public lineChartData: ChartConfiguration<'line'>['data'] = {
-    labels: ['Día 1', 'Día 2', 'Día 3', 'Día 4', 'Día 5', 'Día 6', 'Día 7', 'Día 8', 'Día 9', 'Día 10', 
-             'Día 11', 'Día 12', 'Día 13', 'Día 14', 'Día 15', 'Día 16', 'Día 17', 'Día 18', 'Día 19', 'Día 20',
-             'Día 21', 'Día 22', 'Día 23', 'Día 24', 'Día 25', 'Día 26', 'Día 27', 'Día 28', 'Día 29', 'Día 30'],
+  public chartData: ChartDataS[] = [];
+
+  public lineChartData = signal<ChartConfiguration<'line'>['data']>({
+    labels: [],
     datasets: [
       {
-        data: [10, 25, 18, 30, 22, 35, 28, 42, 38, 45, 40, 50, 48, 55, 52, 60, 58, 65, 62, 70, 68, 75, 72, 80, 78, 85, 82, 90, 88, 95],
+        data: [],
         label: 'Número de peticiones',
         fill: false,
         tension: 0.4
       }
     ]
-  };
+  });
 
   public lineChartOptions: ChartConfiguration<'line'>['options'] = {
     responsive: true,
@@ -106,6 +112,45 @@ export class Dashboard {
       ]
     }
   ];
+
+  public isLoadingChart = signal<boolean>(true)
+
+  public title = signal<string>('')
+
+
+  constructor(
+    private _dashboardService: DashboardService
+  ) {
+    this.getDays();
+  }
+
+  getDays(): void {
+    this._dashboardService.getDaysChart().subscribe({
+      next: (response) => {
+        console.log(response);
+        this.chartData = response;
+        const days: string[] = [];
+        const count: number[] = [];
+        this.chartData.map((day) => {
+          days.push(day.dia);
+          count.push(day.cantidad);
+        });
+        this.lineChartData.set({
+          labels: days,
+          datasets: [
+            {
+              ...this.lineChartData().datasets[0],
+              data: count,
+            },
+          ],
+        });
+        this.isLoadingChart.set(false);
+      },
+      error: (error) => {
+        console.log(error);
+      }
+    })
+  }
 
   public onDateOptionChange(event: Event): void {
     const target = event.target as HTMLSelectElement;
