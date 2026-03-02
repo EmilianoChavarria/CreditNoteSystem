@@ -1,9 +1,11 @@
 import { Component, Inject, PLATFORM_ID } from '@angular/core'; // Añade Inject y PLATFORM_ID
-import { isPlatformBrowser } from '@angular/common'; // Añade isPlatformBrowser
+import { isPlatformBrowser, AsyncPipe } from '@angular/common'; // Añade isPlatformBrowser
 import { AuthService } from '../../../core/services/auth-service';
 import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 import { Popover } from '../ui/popover/popover';
 import { LucideAngularModule } from 'lucide-angular';
+import { map, Observable } from 'rxjs';
+import { AuthUser } from '../../../core/services/auth-service';
 
 @Component({
     selector: 'app-navbar',
@@ -13,33 +15,40 @@ import { LucideAngularModule } from 'lucide-angular';
         Popover,
         LucideAngularModule,
         TranslatePipe,
+        AsyncPipe,
     ],
 })
 export class Navbar {
+  private readonly isBrowser: boolean;
+  public user$: Observable<AuthUser | null>;
+  public userInitials$: Observable<string>;
 
   constructor(
+    @Inject(PLATFORM_ID) private platformId: Object,
     public translate: TranslateService,
     private _authService: AuthService,
-    @Inject(PLATFORM_ID) private platformId: Object // Inyectamos la plataforma
   ) {
+    this.user$ = this._authService.user$;
+    this.userInitials$ = this.user$.pipe(map(user => this.getInitials(user?.fullName)));
+    this.isBrowser = isPlatformBrowser(this.platformId);
+
     this.translate.addLangs(['es', 'en']);
     this.translate.setDefaultLang('es');
 
-    // Verificamos si estamos en el navegador antes de tocar localStorage
-    if (isPlatformBrowser(this.platformId)) {
+    if (this.isBrowser) {
       const browserLang = this.translate.getBrowserLang();
       const savedLang = localStorage.getItem('lang');
-      this.translate.use(savedLang || (browserLang?.match(/en|es/) ? browserLang : 'es'));
+      const userLang = this._authService.getCurrentUser()?.preferredLanguage;
+      const language = savedLang || (userLang === 'en' || userLang === 'es' ? userLang : null) || (browserLang?.match(/en|es/) ? browserLang : 'es');
+      this.translate.use(language);
     } else {
-      // Si estamos en el servidor, usamos el default
       this.translate.use('es');
     }
   }
 
   switchLang(lang: string) {
     this.translate.use(lang);
-    // Verificamos de nuevo para guardar
-    if (isPlatformBrowser(this.platformId)) {
+    if (this.isBrowser) {
       localStorage.setItem('lang', lang);
     }
   }
@@ -49,5 +58,17 @@ export class Navbar {
       next: (response: any) => console.log(response),
       error: (error: any) => console.log(error)
     });
+  }
+
+  private getInitials(fullName?: string): string {
+    if (!fullName?.trim()) {
+      return 'NA';
+    }
+
+    const names = fullName.trim().split(/\s+/);
+    const first = names[0]?.[0] ?? '';
+    const second = names[1]?.[0] ?? '';
+
+    return `${first}${second}`.toUpperCase();
   }
 }

@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
 import { Spinner } from '../../../../shared/components/ui/spinner/spinner';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
     selector: 'app-login',
@@ -27,7 +28,8 @@ export class Login {
 
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private translate: TranslateService,
   ) {
 
   }
@@ -57,6 +59,14 @@ export class Login {
     this.authService.login(object).subscribe({
       next: (response) => {
         if (response.success) {
+          const preferredLanguage = response.data?.user?.preferredLanguage;
+          if (preferredLanguage === 'es' || preferredLanguage === 'en') {
+            this.translate.use(preferredLanguage);
+            if (typeof localStorage !== 'undefined') {
+              localStorage.setItem('lang', preferredLanguage);
+            }
+          }
+
           console.log("Fué exitoso el login")
           // La cookie ya fue guardada automáticamente
           this.router.navigate(['/app/dashboard']);

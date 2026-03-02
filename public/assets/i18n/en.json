@@ -21,23 +21,83 @@
     "USER_MANAGEMENT": "User Management",
     "CLIENT_MANAGEMENT": "Client Management",
     "ROLES": "Roles & Request Types",
+    "WORKFLOWS": "Approval Flow",
     "SYS_CONFIG": "System Configuration",
     "SEC_MANAGE": "Security Management"
   },
   "REQUEST_TYPES": {
+    "DEFAULT": "Select an option",
     "CREDIT": "Credit",
     "DEBIT": "Débito",
     "AUDITOR_CREDIT": "Auditor Credit",
     "AUDITOR_DEBIT": "Auditor Debit",
     "RE_INVOICING": "Re Invoincing",
-    "MATERIAL_RETURN": "Material Return"
+    "MATERIAL_RETURN": "Material Return",
+    "ALL_TYPES": "All types",
+    "DEFAULT_TEXT": "Please, select a request type to start"
   },
   "DASHBOARD": {
     "TITLE": "Activity Summary",
-    "REQ_FILTER": "Available Request:",
+    "REQ_FILTER": "Type of Request:",
     "SEL_DATE": "Select Date:",
     "DATE_OPTION1": "30 days",
     "DATE_OPTION2": "60 days",
-    "DATE_OPTION3": "Custom"
+    "DATE_OPTION3": "Custom",
+    "START_DATE": "Start date",
+    "END_DATE": "End date",
+    "LABEL": "Created requests"
+  },
+  "TABLE": {
+    "REG_PER_PAGE": "Registers per page",
+    "PAGE": "Page",
+    "OF": "of",
+    "ZIP_BUTTON": "Export to ZIP",
+    "EXCEL_BUTTON": "Export to Excel",
+    "BULK_BUTTON": "Bulk Upload",
+    "ADD_BUTTON": "Add"
+  },
+  "USER_MANAGE": {
+    "TITLE": "User Management",
+    "DESCRIPTION": "Create, Edit and Manage User Accounts"
+  },
+  "ROLE_MANAGE": {
+    "TITLE": "Roles & Request Types Permission",
+    "DESCRIPTION": "Configure Role Permissions For Request Types"
+  },
+  "WORKFLOWS_MANAGE": {
+    "TITLE": "Approval Flows",
+    "DESCRIPTION": "Each type of note follows a sequential approval workflow. The note moves from one role to the next until it is released."
+  },
+  "PENDING": {
+    "TITLE": "Pending Requests",
+    "DESCRIPTION": "Continue With Your Request Process"
+  },
+  "HISTORY": {
+    "TITLE": "History",
+    "DESCRIPTION": "See your requests"
+  },
+  "DRAFTS": {
+    "TITLE": "Drafts",
+    "DESCRIPTION": "See your drafts and continue editing"
+  },
+  "USER_FORM": {
+    "FULLNAME": "Full Name",
+    "EMAIL": "Email",
+    "PASSWORD": "Password",
+    "ROLE": "Role",
+    "SUPERVISOR": "Supervisor",
+    "PREF_LANGUAGE": "Preferred Language",
+    "ROLE_SELECT": "Select a Role",
+    "SELECT_LANGUAGE": "Select a Language",
+    "SPANISH": "Spanish",
+    "ENGLISH": "English"
+  },
+  "REJECTION": {
+    "REASON": "Reason"
+  },
+  "ROLE_FORM": {
+    "ROLENAME": "Role Name",
+    "SELECT_COLOR": "Select a Color",
+    "PREVIEW": "Preview"
   }
 }

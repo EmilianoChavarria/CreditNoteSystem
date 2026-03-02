@@ -21,16 +21,29 @@
     "USER_MANAGEMENT": "Gestión de Usuarios",
     "CLIENT_MANAGEMENT": "Gestión de Clientes",
     "ROLES": "Roles y Tipos de Solicitud",
+    "WORKFLOWS": "Flujos de Aprobación",
     "SYS_CONFIG": "Configuración del Sistema",
     "SEC_MANAGE": "Gestión de la Seguridad"
   },
   "REQUEST_TYPES": {
+    "DEFAULT": "Selecciona una opción",
     "CREDIT": "Crédito",
     "DEBIT": "Débito",
     "AUDITOR_CREDIT": "Auditor Credit",
     "AUDITOR_DEBIT": "Auditor Debit",
     "RE_INVOICING": "Re Facturación",
-    "MATERIAL_RETURN": "Devolución de Material"
+    "MATERIAL_RETURN": "Devolución de Material",
+    "ALL_TYPES": "Todas las opciones",
+    "DEFAULT_TEXT": "Por favor, seleccione un tipo de solicitud para comenzar"
+  },
+  "TABLE" : {
+    "REG_PER_PAGE": "Registros por página",
+    "PAGE": "Página",
+    "OF": "de",
+    "ZIP_BUTTON": "Extraer a ZIP",
+    "EXCEL_BUTTON": "Extraer a Excel",
+    "BULK_BUTTON": "Carga Masiva",
+    "ADD_BUTTON": "Agregar"
   },
   "DASHBOARD": {
     "TITLE": "Resúmen de la Actividad",
@@ -38,6 +51,53 @@
     "SEL_DATE": "Seleccionar Fecha:",
     "DATE_OPTION1": "30 días",
     "DATE_OPTION2": "60 días",
-    "DATE_OPTION3": "Personalizado"
+    "DATE_OPTION3": "Personalizado",
+    "START_DATE": "Fecha inicial",
+    "END_DATE": "Fecha final",
+    "LABEL": "Solicitudes creadas"
+  },
+  "USER_MANAGE": {
+    "TITLE": "Gestión de Usuarios",
+    "DESCRIPTION": "Crea, Edita y Gestiona las Cuentas de Usuarios"
+  },
+  "ROLE_MANAGE": {
+    "TITLE": "Roles y Permisos por Tipos de Solicitud",
+    "DESCRIPTION": "Configurar Permisos de Roles Para Tipos de Solicitud"
+  },
+  "WORKFLOWS_MANAGE": {
+    "TITLE": "Flujos de Aprobación",
+    "DESCRIPTION": "Cada tipo de nota sigue un flujo secuencial de aprobación. La nota avanza de un rol al siguiente hasta ser liberada."
+  },
+  "PENDING": {
+    "TITLE": "Solicitudes Pendientes",
+    "DESCRIPTION": "Continua Con Tu Proceso de Solicitud"
+  },
+  "HISTORY": {
+    "TITLE": "Historial",
+    "DESCRIPTION": "Ver tus solicitudes"
+  },
+  "DRAFTS": {
+    "TITLE": "Borradores",
+    "DESCRIPTION": "Visualiza tus borradores y sigue editando"
+  },
+  "USER_FORM": {
+    "FULLNAME": "Nombre Completo",
+    "EMAIL": "Correo Electrónico",
+    "PASSWORD": "Contraseña",
+    "ROLE": "Rol",
+    "SUPERVISOR": "Supervisor",
+    "PREF_LANGUAGE": "Idioma Preferido",
+    "ROLE_SELECT": "Selecciona un Rol",
+    "SELECT_LANGUAGE": "Selecciona un idioma",
+    "SPANISH": "Español",
+    "ENGLISH": "Inglés"
+  },
+  "REJECTION": {
+    "REASON": "Razón"
+  },
+  "ROLE_FORM": {
+    "ROLENAME": "Nombre del Rol",
+    "SELECT_COLOR": "Selecciona un Color",
+    "PREVIEW": "Vista Previa"
   }
 }

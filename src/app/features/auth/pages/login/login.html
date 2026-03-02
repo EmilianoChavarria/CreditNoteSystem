@@ -1,9 +1,17 @@
 <main class="h-screen w-full flex flex-col gap-y-10 items-center justify-center">
     <img src="assets/svg/LTM.svg" alt="Logo Timken" class="h-20" style="fill: white !important;">
-    <form class="shadow-2xl w-1/4 flex flex-col p-8 gap-y-8 rounded-lg" [formGroup]="form" (ngSubmit)="onSubmit()">
+    <form class="shadow-2xl w-1/4 flex flex-col p-8 gap-y-6 rounded-lg" [formGroup]="form" (ngSubmit)="onSubmit()">
         <span class="text-center w-full text-[#ff8200] font-semibold text-2xl">
-            Inicio de sesión
+            Sign In
         </span>
+
+        @if (errorMessage !== '') {
+        <div class="w-full rounded-md bg-red-200 h-fit flex items-center justify-start p-4 text-red-800 gap-x-4">
+            <lucide-icon name="circle-x"></lucide-icon>
+            <span class="">{{errorMessage}}</span>
+        </div>
+        }
+
         <div>
             <label for="email">Email</label>
             <input type="email" id="email"
@@ -14,9 +22,8 @@
             <label class="block text-foreground">Password</label>
             <div class="relative mt-2">
                 <input [type]="showPassword ? 'text' : 'password'"
-                    class="p-2 h-11 w-full border border-gray-300 rounded-lg disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400" 
-                    placeholder="Enter password"
-                    value="12345qwerty" formControlName="password">
+                    class="p-2 h-11 w-full border border-gray-300 rounded-lg disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
+                    placeholder="Enter password" value="12345qwerty" formControlName="password">
                 <button (click)="togglePassword()" type="button"
                     class="absolute inset-y-0 end-0 flex items-center z-20 px-3 rounded-e-md focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-50"
                     [disabled]="isLoading">
@@ -24,7 +31,7 @@
                 </button>
             </div>
         </div>
-        <button class="bg-[#ff8200] text-white py-2 rounded-md hover:bg-[#e67300] transition-colors "
+        <button class="bg-[#ff8200] text-white py-2 rounded-md hover:bg-[#e67300] transition-colors hover:cursor-pointer"
             [disabled]="isLoading">
             @if (isLoading) {
             <app-spinner size="small" class="text-white"></app-spinner>

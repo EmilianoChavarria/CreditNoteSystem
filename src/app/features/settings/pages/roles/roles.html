@@ -1,1 +1,93 @@
-<p>roles works!</p>
+<section class="flex flex-col w-full">
+    <header class="w-full flex items-center justify-end">
+        <div class="flex flex-col">
+            <span class="text-4xl tracking-wider text-[#ff8200] font-semibold">{{'ROLE_MANAGE.TITLE' |
+                translate}}</span>
+            <span class="text-orange-400">{{'ROLE_MANAGE.DESCRIPTION' | translate}}</span>
+        </div>
+    </header>
+    <div class="w-full h-fit mt-20 overflow-x-auto">
+        @if (isLoading()) {
+        <app-spinner></app-spinner>
+        } @else {
+        <table class="w-full  border border-gray-200 border-collapse">
+            <thead class="text-sm text-heading">
+                <tr class="border border-gray-200 ">
+                    <th scope="col" class="px-6 py-3 font-semibold text-center w-12 border border-gray-200">
+                        All
+                    </th>
+                    <th scope="col" class="px-6 py-3 font-semibold text-center w-60 border border-gray-200">
+                        Role
+                    </th>
+                    @for (requestType of requestTypes(); track $index) {
+                    <th scope="col" class="px-6 py-3 font-semibold text-center">
+                        {{requestType.name | titlecase}}
+                    </th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @for (role of roles(); track $index) {
+                <tr>
+                    <td class="border border-gray-200 px-6 py-4 w-fit">
+                        <input type="checkbox" [checked]="isRoleChecked(role.id)"
+                            (change)="onRoleRowToggle(role, $event)" class="size-5 text-emerald-500">
+                    </td>
+                    <td class="border border-gray-200 px-6 py-4 w-fit">
+                        <div class="flex flex-row items-center gap-3">
+                            <span>{{role.roleName | titlecase }}</span>
+                            
+                        </div>
+                    </td>
+                    @for (requestType of requestTypes(); track $index) {
+                    <td class="px-6 py-4 border border-gray-200">
+                        <input type="checkbox" [checked]="hasPermission(role.id, requestType.id)"
+                            (change)="onPermissionChange(role, requestType, $event)"
+                            class="size-5 text-emerald-500 text-center mx-auto w-full">
+                    </td>
+
+
+                    }
+                </tr>
+                }
+            </tbody>
+        </table>
+        }
+    </div>
+
+    <!-- Modal only 1 -->
+    <app-modal size="md" [titleM]="`${permissionPayload().hasAccess ? 'Asignar Permiso' : 'Remover Permiso'}`"
+        [open]="showPermissionModal()" closeText="Cancelar"
+        [primaryText]="`${permissionPayload().hasAccess ? 'Asignar' : 'Remover'}`"
+        (openChange)="onPermissionModalChange($event)" (primaryAction)="confirmPermission()">
+        <p class="text-slate-700">
+            ¿Deseas {{ permissionPayload().hasAccess ? 'asignar' : 'remover' }} el permiso de gestión completa del tipo
+            de solicitud
+            <span class="font-semibold">{{ permissionPayload().requestType.name | titlecase }}</span>
+            al rol
+            <span class="font-semibold">{{ permissionPayload().role.roleName | titlecase }}</span>?
+        </p>
+
+    </app-modal>
+
+    <!-- Modal multi checkbox -->
+    <app-modal size="md" [titleM]="rowArray()[0]?.hasAccess ? 'Asignar Permisos' : 'Remover Permisos'"
+        [open]="showPermissionManyModal()" closeText="Cancelar"
+        [primaryText]="rowArray()[0]?.hasAccess ? 'Asignar' : 'Remover'"
+        (openChange)="onPermissionManyModalChange($event)" (primaryAction)="confirmPermission()">
+        @if (rowArray().length > 0) {
+        <p class="text-slate-700">
+            ¿Deseas {{ rowArray()[0].hasAccess ? 'asignar' : 'remover' }} el permiso de gestión completa de los tipos
+            de solicitud:
+
+            @for (row of rowArray(); track $index; let isLast = $last) {
+            <span class="font-semibold">{{ row.requestType.name | titlecase }}{{ isLast ? '' : ', ' }}</span>
+            }
+
+            al rol
+            <span class="font-semibold">{{ rowArray()[0].role.roleName | titlecase }}</span>?
+        </p>
+        }
+
+    </app-modal>
+</section>

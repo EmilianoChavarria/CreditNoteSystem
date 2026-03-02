@@ -1,0 +1,68 @@
+<div class="autocomplete-wrapper" appClickOutside (clickOutside)="onClickOutside()">
+  <label *ngIf="label" class="block text-sm font-medium text-gray-700">
+    {{ label }}
+    <span *ngIf="isRequired" class="text-red-500 text-lg">*</span>
+  </label>
+
+  <div class="relative">
+    <div class="relative mt-1">
+      <input
+        [formControl]="searchInput"
+        type="text"
+        [placeholder]="placeholder"
+        (focus)="onInputFocus()"
+        [class]="{
+          'border-red-500 focus:ring-red-500': hasError,
+          'border-gray-300 focus:ring-blue-500 focus:border-blue-500': !hasError
+        }"
+        class="w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-1 outline-none"
+      />
+      <span
+        *ngIf="selectedOption()"
+        class="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-400 hover:text-gray-600"
+        (click)="clearSelection()"
+      >
+        ✕
+      </span>
+    </div>
+
+    <!-- Loading Skeleton -->
+    <div *ngIf="isLoading()" class="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-md shadow-lg z-10 p-2 flex flex-col px-3 py-4 gap-y-4">
+      <div class="flex-1">
+        <app-skeleton shape="rectangle" size="100%" height="12px" class="mb-6"></app-skeleton>
+      </div>
+      <div class="flex-1">
+        <app-skeleton shape="rectangle" size="100%" height="12px" class="mb-6"></app-skeleton>
+      </div>
+      <div class="flex-1">
+        <app-skeleton shape="rectangle" size="100%" height="12px" class="mb-6"></app-skeleton>
+      </div>
+    </div>
+
+    <!-- Dropdown Options -->
+    <div
+      *ngIf="isOpen() && !isLoading() && options().length > 0"
+      class="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-md shadow-lg z-10 max-h-64 overflow-y-auto"
+    >
+      <div
+        *ngFor="let option of options(); trackBy: trackByOptionId"
+        (click)="selectOption(option)"
+        class="px-3 py-2 hover:bg-blue-50 cursor-pointer border-b last:border-b-0 text-sm text-gray-700"
+      >
+        {{ displayFn(option) }}
+      </div>
+    </div>
+
+    <!-- No Results -->
+    <div
+      *ngIf="!isLoading() && isOpen() && options().length === 0 && (searchInput.value || '').length > 0"
+      class="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-md shadow-lg z-10 p-3 text-center text-gray-500 text-sm"
+    >
+      No se encontraron resultados
+    </div>
+  </div>
+
+  <small *ngIf="description" class="text-gray-500 text-xs block mt-1">
+    {{ description }}
+  </small>
+</div>

@@ -1,1 +1,37 @@
-<p>users works!</p>
+<section class="flex flex-col w-full">
+    <header class="w-full flex items-center justify-end">
+        <div class="flex flex-col">
+            <span class="text-4xl tracking-wider text-[#ff8200] font-semibold">{{'USER_MANAGE.TITLE' | translate}}</span>
+            <span class="text-orange-400">{{'USER_MANAGE.DESCRIPTION' | translate}}</span>
+        </div>
+    </header>
+    <app-tabla-dinamica [datos]="users()" [columnas]="columns" [accionesPersonalizadas]="acciones" actionMode="menu"
+        [enableFilter]="true" filterField="role.roleName" addLabel="User" addRoute="/app/settings/newUser"
+        [registrosPorPagina]="pageSize()" [serverPagination]="true" [paginaActualExterna]="currentPage()"
+        [hasNextPage]="hasNextPage()" [hasPrevPage]="hasPrevPage()" [loading]="isLoadingTable()"
+        (paginaSiguiente)="onNextPage()" (paginaAnterior)="onPrevPage()"
+        (registrosPorPaginaChange)="onPageSizeChange($event)">
+        
+        <ng-template #cellTemplate let-item let-column="column">
+            @if (column.key === 'isActive') {
+                <app-badge [color]="item.isActive ? 'green' : 'red'" [text]="item.isActive ? 'Activo' : 'Inactivo'" />
+            }
+        </ng-template>
+    </app-tabla-dinamica>
+
+    <app-modal
+        size="md"
+        titleM="Eliminar usuarioa"
+        [open]="showDeleteModal()"
+        closeText="Cancelar"
+        primaryText="Eliminar"
+        (openChange)="onDeleteModalChange($event)"
+        (primaryAction)="confirmDelete()"
+    >
+        <p class="text-slate-700">
+            ¿Seguro que quieres eliminar a
+            <span class="font-semibold">{{ selectedUserToDelete()?.fullName }}</span>?
+        </p>
+
+    </app-modal>
+</section>

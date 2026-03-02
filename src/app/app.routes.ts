@@ -8,11 +8,16 @@ import { Drafts } from './features/requests/pages/drafts/drafts';
 import { BulkUpload } from './features/requests/pages/bulk-upload/bulk-upload';
 import { Pending } from './features/pending/pending';
 import { Notifications } from './features/notifications/notifications';
+import { History } from './features/history/history';
 import { Customers } from './features/settings/pages/customers/customers';
 import { Roles } from './features/settings/pages/roles/roles';
 import { SysConfig } from './features/settings/pages/sys-config/sys-config';
 import { SecurityManage } from './features/settings/pages/security-manage/security-manage';
 import { Users } from './features/settings/pages/users/users';
+import { NewUser } from './features/settings/pages/users/new-user/new-user';
+import { NewCustomer } from './features/settings/pages/customers/new-customer/new-customer';
+import { NotFound } from './features/not-found/not-found';
+import { Workflows } from './features/workflows/workflows';
 
 export const routes: Routes = [
   { 
@@ -30,18 +35,23 @@ export const routes: Routes = [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: Dashboard },
       { path: 'request/new-request', component: NewRequest },
-      { path: 'request/drafts', component: Drafts },
-      { path: 'request/bulk-upload', component: BulkUpload },
+      { path: 'request/drafts', component: BulkUpload },
+      { path: 'request/bulk-upload', component: Drafts },
       { path: 'pending', component: Pending },
       { path: 'history', component: History },
       { path: 'notifications', component: Notifications },
       { path: 'settings/users', component: Users},
+      { path: 'settings/newUser', component: NewUser},
+      { path: 'settings/newCustomer', component: NewCustomer},
       { path: 'settings/customers', component: Customers },
       { path: 'settings/roles', component: Roles },
       { path: 'settings/system-configuration', component: SysConfig },
       { path: 'settings/security-management', component: SecurityManage },
+      { path: 'settings/workflows', component: Workflows },
+      { path: '404', component: NotFound },
+      { path: '**', component: NotFound },
     ]
   },
   { path: '', redirectTo: 'auth', pathMatch: 'full' },
-  { path: '**', redirectTo: 'auth' } // Un "catch-all" siempre es bueno
+  { path: '**', redirectTo: '/app/404' }
 ];
