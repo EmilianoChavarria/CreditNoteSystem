@@ -1,0 +1,242 @@
+<section class="flex flex-col w-full">
+    <header class="w-full flex items-center justify-end">
+        <div class="flex flex-col max-w-1/3">
+            <span class="text-4xl tracking-wider text-[#ff8200] font-semibold">{{'WORKFLOWS_MANAGE.TITLE' |
+                translate}}</span>
+            <span class="text-orange-400">{{'WORKFLOWS_MANAGE.DESCRIPTION' | translate}}</span>
+        </div>
+    </header>
+    <div class="w-full flex flex-col p-4">
+        <div class="w-full flex items-center justify-end mb-6">
+            <button (click)="openModal()"
+                class="flex items-center justify-center bg-[#ff8200] rounded-md text-white px-2 py-1 gap-x-2 hover:cursor-pointer hover:bg-[#fd9628]">
+                <lucide-icon name="settings" size="18"></lucide-icon>
+                Manage Roles
+            </button>
+            <button type="button" (click)="openAddWorkflowModal()"
+                class="ml-2 flex items-center justify-center bg-[#395f93] rounded-md text-white px-2 py-1 gap-x-2 hover:cursor-pointer hover:bg-[#5073a3]">
+                <lucide-icon name="plus" size="18"></lucide-icon>
+                Add Workflow
+            </button>
+        </div>
+        <accordeon-container>
+            @for (workflow of workflowsMock(); track workflow.id) {
+            <accordeon-item [title]="workflow.title" [description]="workflow.description">
+                <div class="flex items-center justify-between">
+                    <div class="flex flex-row text-gray-600">
+                        <button type="button"
+                            class="hover:text-yellow-600 hover:bg-yellow-100 p-2 transition rounded-md hover:cursor-pointer">
+                            <lucide-icon name="pencil" size="18"></lucide-icon>
+                        </button>
+                        <button type="button"
+                            class="hover:text-red-500 hover:bg-red-200 p-2 transition rounded-md hover:cursor-pointer">
+                            <lucide-icon name="trash" size="18"></lucide-icon>
+                        </button>
+                    </div>
+
+                    <button type="button" (click)="openAddStepModal(workflow)"
+                        class="flex items-center justify-center bg-[#ff8200] rounded-md text-white px-3 py-1.5 gap-x-2 hover:cursor-pointer hover:bg-[#fd9628]">
+                        <lucide-icon name="plus" size="16"></lucide-icon>
+                        Agregar paso
+                    </button>
+                </div>
+
+                <div class="mt-4 flex flex-wrap items-center gap-3">
+                    @for (step of workflow.steps; track step.stepNumber; let isLast = $last) {
+                    <div class="flex items-center gap-3">
+                        <div [class]="'relative w-42.5 rounded-xl border p-3 shadow-sm ' + step.cardClass">
+                            <span
+                                class="absolute -top-2 -left-2 h-6 w-6 rounded-full bg-slate-900 text-white text-xs flex items-center justify-center font-semibold">
+                                {{step.stepNumber}}
+                            </span>
+
+                            <div class="flex flex-col items-center text-center gap-y-1">
+                                <lucide-icon [name]="step.icon" size="18" class="text-[#395f93]"></lucide-icon>
+                                <span class="font-semibold text-sm text-gray-800">{{step.roleName}}</span>
+                                <span class="text-xs text-gray-600">{{step.description}}</span>
+                                <span [class]="'mt-2 text-[11px] rounded-full px-2 py-0.5 ' + step.badgeClass">{{step.action}}</span>
+                            </div>
+                        </div>
+
+                        @if (!isLast) {
+                        <div class="relative flex h-full items-center justify-center group px-1">
+                            <span class="text-2xl font-semibold text-gray-400">&gt;</span>
+                            <button type="button"
+                                class="bg-blue-600 absolute -top-2 left-1/2 -translate-x-1/2 hidden group-hover:flex h-5 w-5 items-center justify-center rounded-full border border-[#ff8200]  text-[#ff8200] shadow-md hover:bg-[#fff4e8] hover:cursor-pointer"
+                                (click)="openAddStepModalFromConnector(workflow, step.stepNumber)">
+                                <lucide-icon name="plus" size="16"></lucide-icon>
+                            </button>
+                        </div>
+                        }
+                    </div>
+                    } 
+                </div>
+            </accordeon-item>
+            }
+        </accordeon-container>
+    </div>
+
+    <app-modal size="md" titleM="Roles Manage" [open]="isOpenModal()" closeText="Cancelar" primaryText="Add Role"
+        (openChange)="showModal($event)" (primaryAction)="saveRole()">
+
+        @if(isLoadingRoles()){
+        <app-spinner></app-spinner>
+        } @else {
+        <div class="flex flex-col gap-y-2 max-h-[55vh] overflow-y-auto">
+            @for (role of roles(); track role.id) {
+            <div class="w-full border border-gray-200 rounded-md py-3 px-4 flex flex-row items-center justify-between">
+                <div class="flex flex-row items-center justify-center gap-x-2">
+                    <div class="h-3.5 w-3.5 rounded-full ring-2 ring-offset-2 ring-offset-background"
+                        [style]="`background-color: ${role.color};`" [style.--tw-ring-color]="role.color + '1A'"></div>
+                    <span> {{role.roleName | titlecase}}</span>
+                </div>
+                <div class="flex flex-row text-gray-600">
+                    <button class="hover:text-yellow-600 hover:bg-yellow-100 p-2 transition rounded-md hover:cursor-pointer">
+                        <lucide-icon name="pencil" size="18"></lucide-icon>
+                    </button>
+                    <button class="hover:text-red-500 hover:bg-red-200 p-2 transition rounded-md hover:cursor-pointer">
+                        <lucide-icon name="trash" size="18"></lucide-icon>
+                    </button>
+                </div>
+            </div>
+            }
+
+        </div>
+        }
+
+    </app-modal>
+
+    <app-modal size="md" titleM="Roles" [open]="isOpenRoleModal()" closeText="Cancelar" primaryText="Guardar"
+        (openChange)="showRoleModal($event)" (primaryAction)="saveRole()">
+        <form action="" [formGroup]="form" (submit)="saveRole()">
+            <div>
+                <label class="block font-medium text-[#395f93] text-lg">{{'ROLE_FORM.ROLENAME' | translate}}
+                    <span class="text-red-500 text-lg">*</span>
+                </label>
+                <input type="text" placeholder="ADMIN" formControlName="roleName"
+                    [class]="campoVacio('roleName') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'">
+                @if (campoVacio('roleName')) {
+                <span class="text-sm text-red-500">{{ getErrorMessage('roleName') }}</span>
+                }
+
+            </div>
+            <div class="mt-4 flex flex-col">
+                <span class="block font-medium text-[#395f93] text-lg">{{'ROLE_FORM.SELECT_COLOR' | translate}}</span>
+                <div class="grid grid-cols-8 gap-4 mt-4">
+                    @for (color of ROLE_COLORS; track $index) {
+                    <button type="button"
+                        [class]="`group relative flex size-8 items-center justify-center rounded-full transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background hover:cursor-pointer ${color === selectedItem ? 'scale-110 ring-2 ring-offset-2 ring-offset-background' : 'hover:scale-110' }`"
+                        [style.background-color]="color.value" [style.--tw-ring-color]="color.value"
+                        (click)="onSelectColor(color)" [title]="color.name"
+                        [attr.aria-label]="'Seleccionar color ' + color.name"
+                        [attr.aria-pressed]="color === selectedItem">
+                        @if (color === selectedItem) {
+                        <lucide-icon name="check" size="18" color="#FFF" strokeWidth="5"></lucide-icon>
+                        }
+                    </button>
+                    }
+                </div>
+
+                <span class="block font-medium text-[#395f93] text-lg mt-4">{{'ROLE_FORM.PREVIEW' | translate}}</span>
+                <div
+                    class="w-full flex flex-row items-center justify-start gap-3  rounded-lg border border-gray-300 bg-gray-50 p-3">
+                    <div class="h-2 w-2 rounded-full" [style]="`background-color: ${selectedItem.value};`"></div>
+                    <span class="text-sm font-semibold" [style]="`color: ${selectedItem.value}`">
+                        {{form.get('roleName')?.value || "Nombre del rol"}}
+                    </span>
+                    <div class="ml-auto">
+                        <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+                            [style]="`backgroundColor: ${selectedItem.value + '1A'}; color: ${selectedItem.value}`">
+                            Rol
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </app-modal>
+
+    <app-modal size="md" titleM="Agregar Paso" [open]="isOpenAddStepModal()" closeText="Cancelar"
+        primaryText="Agregar paso" (openChange)="showAddStepModal($event)" (primaryAction)="saveStep()">
+        <form [formGroup]="stepForm" class="flex flex-col gap-5">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block font-medium text-[#2f3042] text-lg">Número de paso</label>
+                    <input type="number" formControlName="stepNumber" placeholder="Ej. 3"
+                        [disabled]="isStepNumberLocked()"
+                        [class]="isStepNumberLocked() ? 'mt-2 w-full border border-gray-300 rounded-md p-2 bg-gray-200 text-gray-500 cursor-not-allowed' : 'mt-2 w-full border border-gray-300 rounded-md p-2 bg-white focus:ring-blue-500 focus:border-blue-500'">
+                </div>
+
+                <div>
+                    <label class="block font-medium text-[#2f3042] text-lg">Rol</label>
+                    <select formControlName="roleId"
+                        class="mt-2 w-full border border-gray-300 rounded-md p-2 bg-white focus:ring-blue-500 focus:border-blue-500">
+                        <option [ngValue]="null" disabled>Selecciona un rol</option>
+                        @for (role of availableRoles(); track role.id) {
+                        <option [ngValue]="role.id">{{ role.roleName }}</option>
+                        }
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block font-medium text-[#2f3042] text-lg">Permisos</label>
+                    <select class="mt-2 w-full border border-gray-300 rounded-md p-2 bg-white"
+                        (change)="onPermissionsChange($event)">
+                        <option value="" selected disabled>Selecciona un permiso</option>
+                        @for (permission of permissionsOptions; track permission) {
+                        <option [value]="permission">{{ permission }}</option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label class="block font-medium text-[#2f3042] text-lg">Descripción</label>
+                <input type="text" formControlName="description" placeholder="Ej. Aprueba la nota de crédito"
+                    class="mt-2 w-full border border-gray-300 rounded-md p-2 bg-white focus:ring-blue-500 focus:border-blue-500">
+            </div>
+
+            
+        </form>
+    </app-modal>
+
+    <app-modal size="lg" titleM="Add Workflow" [open]="isOpenAddWorkflowModal()" closeText="Cancelar"
+        primaryText="Guardar" (openChange)="showAddWorkflowModal($event)" (primaryAction)="saveWorkflow()">
+        <form [formGroup]="workflowForm" class="flex flex-col gap-4">
+            <div>
+                <label class="block font-medium text-[#2f3042] text-lg">Title</label>
+                <input type="text" formControlName="title" placeholder="Ej. Flujo de aprobación"
+                    class="mt-2 w-full border border-gray-300 rounded-md p-2 bg-white focus:ring-blue-500 focus:border-blue-500">
+            </div>
+
+            <div>
+                <label class="block font-medium text-[#2f3042] text-lg">Desscription</label>
+                <textarea formControlName="description" rows="4" placeholder="Describe el flujo"
+                    class="mt-2 w-full border border-gray-300 rounded-md p-2 bg-white focus:ring-blue-500 focus:border-blue-500"></textarea>
+            </div>
+            <div>
+                <label class="block font-medium text-[#2f3042] text-lg">Request Type</label>
+                <select name="requestType" id="" class="mt-2 w-full border border-gray-300 rounded-md p-2 bg-white focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">Credits</option>
+                    <option value="">Debits</option>
+                    <option value="">Auditor Credits</option>
+                    <option value="">Auditor Debits</option>
+                    <option value="">Re-inivoicing</option>
+                    <option value="">Material Return</option>
+                </select>
+            </div>
+            <div>
+                <label class="block font-medium text-[#2f3042] text-lg">Request Type</label>
+                <select name="requestType" id="" class="mt-2 w-full border border-gray-300 rounded-md p-2 bg-white focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">FINANCE PROMPT PAYMENT DISCOUNT (DPP) - ZMXP</option>
+                    <option value="">FINANCE OTHERS - ZMSC</option>
+                    <option value="">MARKETING DISTRIBUTOR AGREEMENT AND CLAIM MANAGEMENT SYSTEM (DACMS) - ZSEN</option>
+                    <option value="">MARKETING ADVERTISING - ZADV</option>
+                    <option value="">MARKETING PRICING - ZDPR</option>
+                    <option value="">MARKETING OTHER - ZMSC</option>
+                    <option value="">CUSTOMER SERVICE WAREHOUSE - ZMSC</option>
+                </select>
+            </div>
+            
+        </form>
+    </app-modal>
+</section>

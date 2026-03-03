@@ -1,59 +1,140 @@
-# NotasCreditosFront
+# Notas Créditos Front
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.1.1.
+Frontend de gestión de notas de crédito desarrollado con Angular 21.
 
-## Development server
+## Resumen
 
-To start a local development server, run:
+Este proyecto implementa:
 
-```bash
-ng serve
-```
+- Autenticación y layout protegido por guardas.
+- Dashboard con tarjetas/estadísticas y gráficas.
+- Gestión de solicitudes (nueva, borradores, carga masiva).
+- Módulos funcionales de pendientes, historial y notificaciones.
+- Configuración administrativa (usuarios, clientes, roles, seguridad, workflows, configuración del sistema).
+- Internacionalización con `@ngx-translate` (es/en).
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+## Stack técnico
 
-## Code scaffolding
+- Angular 21 (`@angular/build` + standalone components).
+- TypeScript 5.9.
+- RxJS 7.
+- `@ngx-translate/core` + `@ngx-translate/http-loader`.
+- `lucide-angular` para iconografía.
+- `ng2-charts` + `chart.js` para gráficas.
+- `ngx-toastr` para notificaciones.
+- `pdfmake` para generación de documentos.
+- Tailwind CSS v4 (instalado en dependencias de desarrollo).
+- Vitest (ejecución de pruebas unitarias vía `ng test`).
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## Requisitos
 
-```bash
-ng generate component component-name
-```
+- Node.js LTS reciente.
+- npm 10+ (el proyecto declara `npm@10.8.1`).
+- Angular CLI 21 (opcional global; puede usarse con `npx ng`).
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## Inicio rápido
 
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+1. Instalar dependencias:
 
 ```bash
-ng test
+npm install
 ```
 
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
+2. Levantar entorno local:
 
 ```bash
-ng e2e
+npm run start
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+3. Abrir en navegador:
 
-## Additional Resources
+```text
+http://localhost:4200/
+```
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+## Scripts disponibles
+
+- `npm run start`: servidor de desarrollo (`ng serve`).
+- `npm run build`: compilación de producción.
+- `npm run watch`: build en modo observación para desarrollo.
+- `npm run test`: pruebas unitarias.
+
+## Estructura del proyecto
+
+```text
+src/
+	app/
+		core/
+			guards/
+			interceptors/
+			services/
+		data/
+			interfaces/
+		features/
+			auth/
+			dashboard/
+			history/
+			notifications/
+			pending/
+			requests/
+			settings/
+			not-found/
+		shared/
+			components/
+			directives/
+```
+
+### Carpetas clave
+
+- `core`: servicios base, guardas e interceptores.
+- `features`: páginas y flujos por dominio funcional.
+- `shared`: componentes reutilizables y directivas comunes.
+- `data/interfaces`: contratos de tipos para entidades y respuestas API.
+- `public/assets/i18n`: archivos de traducción `es.json` y `en.json`.
+
+## Enrutamiento principal
+
+- `auth/*`: acceso al flujo de autenticación (protegido con `LoginGuard`).
+- `app/*`: área autenticada bajo `Layout` (protegida con `AuthGuard`).
+- `app/dashboard`: inicio de la aplicación.
+- `app/request/*`: flujos de solicitudes.
+- `app/settings/*`: administración y parametrización.
+- `app/404`: pantalla de no encontrado.
+
+## Configuración destacada
+
+- Bootstrapping standalone en `src/main.ts` con `bootstrapApplication`.
+- Proveedores globales en `src/app/app.config.ts`:
+	- `provideRouter(routes)`
+	- `provideHttpClient()`
+	- `TranslateModule.forRoot(...)`
+	- `LucideAngularModule.pick(...)`
+	- `provideCharts(withDefaultRegisterables())`
+	- `provideToastr()`
+
+## Internacionalización
+
+- Idiomas activos: Español (`es`) e Inglés (`en`).
+- Ubicación de traducciones: `public/assets/i18n/`.
+- Loader personalizado: `CustomTranslateLoader` en `app.config.ts`.
+
+## Build y calidad
+
+- Build productivo con presupuestos configurados en `angular.json`.
+- Estilo de código soportado por Prettier (configuración incluida en `package.json`).
+- Ejecutar pruebas unitarias:
+
+```bash
+npm run test
+```
+
+## Notas para desarrollo
+
+- El proyecto usa arquitectura por features y componentes standalone.
+- Para agregar nuevas pantallas, mantener la convención actual en `src/app/features`.
+- Para componentes compartidos, usar `src/app/shared/components`.
+
+## Recursos
+
+- Angular CLI Docs: https://angular.dev/tools/cli
+- Angular Docs: https://angular.dev

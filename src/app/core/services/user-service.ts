@@ -46,7 +46,7 @@ export class UserService {
       params.cursor = cursor;
     }
 
-    return this._httpService.get<CursorPagination<User>>('/users', { params }).pipe(
+    return this._httpService.get<CursorPagination<User>>('/usersPag', { params }).pipe(
       map((response: ApiResponse<CursorPagination<User>>) => {
         const payload = response.data;
 

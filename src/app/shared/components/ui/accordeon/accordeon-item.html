@@ -2,7 +2,7 @@
   <button
     [id]="buttonId"
     type="button"
-    class="flex w-full items-center justify-between gap-4 px-4 py-3 text-left transition hover:bg-gray-50"
+    class="flex w-full items-center justify-between gap-4 px-4 py-3 text-left transition hover:bg-gray-50 hover:cursor-pointer"
     [attr.aria-expanded]="isOpen()"
     [attr.aria-controls]="panelId"
     (click)="toggle()"
