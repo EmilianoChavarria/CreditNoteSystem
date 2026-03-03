@@ -17,7 +17,7 @@ import { Users } from './features/settings/pages/users/users';
 import { NewUser } from './features/settings/pages/users/new-user/new-user';
 import { NewCustomer } from './features/settings/pages/customers/new-customer/new-customer';
 import { NotFound } from './features/not-found/not-found';
-import { Workflows } from './features/workflows/workflows';
+import { Workflows } from './features/settings/pages/workflows/workflows';
 
 export const routes: Routes = [
   { 
