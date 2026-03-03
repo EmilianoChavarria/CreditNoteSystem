@@ -28,7 +28,7 @@
   "REQUEST_TYPES": {
     "DEFAULT": "Select an option",
     "CREDIT": "Credit",
-    "DEBIT": "Débito",
+    "DEBIT": "Debits",
     "AUDITOR_CREDIT": "Auditor Credit",
     "AUDITOR_DEBIT": "Auditor Debit",
     "RE_INVOICING": "Re Invoincing",
