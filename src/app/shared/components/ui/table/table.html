@@ -14,7 +14,7 @@
             </div>
 
             <!-- FILTRO -->
-            <div *ngIf="enableFilter && filterField" class="relative min-w-45">
+            <div *ngIf="enableFilter() && filterField()" class="relative min-w-45">
                 <div class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
                     <lucide-icon name="filter"></lucide-icon>
                 </div>
@@ -44,16 +44,16 @@
                 <lucide-icon name="sheet" size="18"></lucide-icon>
                 {{'TABLE.EXCEL_BUTTON' | translate}}
             </button>
-            @if (canAdd) {
+            @if (canAdd()) {
             <button
                 class="rounded-md bg-[#ff8200] px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center">
                 <lucide-icon name="file-up" size="18"></lucide-icon>
                 {{'TABLE.BULK_BUTTON' | translate}}
             </button>
-            <a *ngIf="addRoute" [routerLink]="addRoute"
+            <a *ngIf="addRoute()" [routerLink]="addRoute()"
                 class="rounded-md bg-[#3c6194] px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center">
                 <lucide-icon name="plus" size="18"></lucide-icon>
-                {{'TABLE.ADD_BUTTON' | translate}} {{ addLabel }}
+                {{'TABLE.ADD_BUTTON' | translate}} {{ addLabel() }}
             </a>
             }
         </div>
@@ -79,15 +79,15 @@
                         </div>
                     </th>
 
-                    <th *ngIf="!sinAcciones" class="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase">
+                    <th *ngIf="!sinAcciones()" class="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase">
                         Acciones
                     </th>
                 </tr>
             </thead>
 
             <tbody class="divide-y divide-gray-200">
-                @if(loading){
-                <td [attr.colspan]="columnasInterno().length + (sinAcciones ? 0 : 1)"
+                @if(loading()){
+                <td [attr.colspan]="columnasInterno().length + (sinAcciones() ? 0 : 1)"
                     class="px-6 py-8 text-center text-gray-500 italic">
                     <app-spinner></app-spinner>
                 </td>
@@ -104,13 +104,13 @@
                         }
                     </td>
 
-                    <td *ngIf="!sinAcciones" class="px-6 py-2 text-right">
+                    <td *ngIf="!sinAcciones()" class="px-6 py-2 text-right">
 
                         <!-- INLINE -->
-                        <div *ngIf="actionMode === 'inline'" class="flex justify-end gap-2">
+                        <div *ngIf="actionMode() === 'inline'" class="flex justify-end gap-2">
 
                             <!-- ACCIONES PERSONALIZADAS -->
-                            <button *ngFor="let accion of accionesPersonalizadas" (click)="ejecutarAccion(accion, item)"
+                            <button *ngFor="let accion of accionesPersonalizadas()" (click)="ejecutarAccion(accion, item)"
                                 class="p-1.5 rounded-md text-[#ff8200] hover:bg-[#ff82001A] transition hover:cursor-pointer"
                                 [ngClass]="accion.className">
                                 <lucide-icon *ngIf="accion.icon" [name]="accion.icon"></lucide-icon>
@@ -120,7 +120,7 @@
                         </div>
 
                         <!-- MENU CON POPOVER -->
-                        <app-popover *ngIf="actionMode === 'menu'" #popoverMenu position="bottom-center" width="220px">
+                        <app-popover *ngIf="actionMode() === 'menu'" #popoverMenu position="bottom-center" width="220px">
 
                             <!-- TRIGGER -->
                             <div trigger class="p-2 rounded-md hover:bg-gray-100 cursor-pointer inline-flex">
@@ -131,7 +131,7 @@
                             <div content class="p-2 space-y-1">
 
                                 <!-- ACCIONES PERSONALIZADAS -->
-                                <button *ngFor="let accion of accionesPersonalizadas"
+                                <button *ngFor="let accion of accionesPersonalizadas()"
                                     (click)="ejecutarAccion(accion, item); popoverMenu.close()"
                                     class="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-gray-100 transition"
                                     [ngClass]="accion.className">
@@ -149,8 +149,8 @@
                 </tr>
                 }
 
-                <tr *ngIf="!loading && datosPaginados().length === 0">
-                    <td [attr.colspan]="columnasInterno().length + (sinAcciones ? 0 : 1)"
+                <tr *ngIf="!loading() && datosPaginados().length === 0">
+                    <td [attr.colspan]="columnasInterno().length + (sinAcciones() ? 0 : 1)"
                         class="px-6 py-8 text-center text-gray-500 italic">
                         Sin registros
                     </td>
@@ -166,7 +166,7 @@
             <div class="relative">
                 <select id="page-size"
                     class="appearance-none bg-white text-sm pl-3 pr-8 py-1.5 border border-gray-300 rounded-lg"
-                    [value]="registrosPorPaginaInterno()" [disabled]="loading"
+                    [value]="registrosPorPaginaInterno()" [disabled]="loading()"
                     (change)="cambiarRegistrosPorPagina($any($event.target).value)">
                     <option *ngFor="let opt of pageSizeOptions" [value]="opt">
                         {{ opt }}
@@ -176,18 +176,18 @@
                     <lucide-icon name="chevron-down" size="16"></lucide-icon>
                 </div>
             </div>
-            <span>{{'TABLE.PAGE' | translate}} {{ serverPagination ? paginaActualExterna : paginaActual() }}
+            <span>{{'TABLE.PAGE' | translate}} {{ serverPagination() ? paginaActualExterna() : paginaActual() }}
                 {{'TABLE.OF' | translate}} {{
-                serverPagination ? (totalPaginasExterno ?? '...') : totalPaginas() }}</span>
+                serverPagination() ? (totalPaginasExterno() ?? '...') : totalPaginas() }}</span>
             <div class="flex flex-row gap-1">
                 <button (click)="irPaginaAnterior()"
-                    [disabled]="loading || (serverPagination ? !hasPrevPage : paginaActual() === 1)"
+                    [disabled]="loading() || (serverPagination() ? !hasPrevPage() : paginaActual() === 1)"
                     class="px-1 py-1.5 text-sm rounded-md hover:cursor-pointer hover:bg-gray-100">
                     <lucide-icon name="chevron-left"></lucide-icon>
                 </button>
 
                 <button (click)="irPaginaSiguiente()"
-                    [disabled]="loading || (serverPagination ? !hasNextPage : paginaActual() === totalPaginas())"
+                    [disabled]="loading() || (serverPagination() ? !hasNextPage() : paginaActual() === totalPaginas())"
                     class="px-1 py-1.5 text-sm rounded-md hover:cursor-pointer hover:bg-gray-100">
                     <lucide-icon name="chevron-right"></lucide-icon>
                 </button>
