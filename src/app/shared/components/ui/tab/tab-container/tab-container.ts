@@ -1,4 +1,4 @@
-import { Component, ContentChildren, QueryList, AfterContentInit, EventEmitter, Output, OnDestroy, Input } from '@angular/core';
+import { Component, ContentChildren, QueryList, AfterContentInit, OnDestroy, input, output } from '@angular/core';
 import { Tab } from '../tab';
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
@@ -17,7 +17,7 @@ import { Subscription } from 'rxjs';
                   'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-100': !tab.active
                 }"
                 class="  px-0 md:px-20 py-3 text-sm font-medium rounded-t-lg border-2 transition-colors duration-200 focus:outline-none">
-          {{ tab.title }}
+          {{ tab.title() }}
         </button>
       </div>
 
@@ -25,7 +25,7 @@ import { Subscription } from 'rxjs';
         <ng-content></ng-content>
       </div>
 
-      @if (showBottomButtons) {
+      @if (showBottomButtons()) {
         <div class="flex justify-between items-center p-4 ">
           
           <button (click)="prev()" 
@@ -57,8 +57,8 @@ import { Subscription } from 'rxjs';
 })
 export class TabsContainer implements AfterContentInit, OnDestroy {
   @ContentChildren(Tab) tabs!: QueryList<Tab>;
-  @Output() onSave = new EventEmitter<void>();
-  @Input() showBottomButtons: boolean = true;
+  readonly onSave = output<void>();
+  readonly showBottomButtons = input<boolean>(true);
   selectedIndex: number = 0;
   private tabsSubscription?: Subscription;
 
@@ -104,6 +104,7 @@ export class TabsContainer implements AfterContentInit, OnDestroy {
   }
 
   save() {
+    // TODO: The 'emit' function requires a mandatory void argument
     this.onSave.emit();
   }
 }
