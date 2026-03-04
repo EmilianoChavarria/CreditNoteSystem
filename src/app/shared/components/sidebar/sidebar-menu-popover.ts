@@ -1,4 +1,4 @@
-import { Component, Output, EventEmitter, input } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
 
@@ -47,9 +47,10 @@ interface SidebarOptions {
 export class SidebarMenuPopoverComponent {
   readonly option = input.required<SidebarOptions>();
   readonly isVisible = input<boolean>(false);
-  @Output() mouseLeave = new EventEmitter<void>();
+  readonly mouseLeave = output<void>();
 
   onMouseLeave() {
+    // TODO: The 'emit' function requires a mandatory void argument
     this.mouseLeave.emit();
   }
 }
