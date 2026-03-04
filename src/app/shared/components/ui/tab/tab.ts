@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 
 @Component({
   selector: 'app-tab',
@@ -10,6 +10,6 @@ import { Component, Input } from '@angular/core';
   `
 })
 export class Tab {
-  @Input() title: string = '';
+  readonly title = input<string>('');
   active: boolean = false;
 }
