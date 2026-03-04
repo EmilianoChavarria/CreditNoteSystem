@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges, computed, signal, ChangeDetectionStrategy, effect, TemplateRef, ContentChild } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges, computed, signal, ChangeDetectionStrategy, effect, TemplateRef, ContentChild, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
 import { Spinner } from "../spinner/spinner";
@@ -46,28 +46,31 @@ export class Table<T extends Record<string, any>>
     this.registrosPorPaginaInterno.set(safeValue);
     this.paginaActual.set(1);
   }
-  @Input() serverPagination = false;
-  @Input() paginaActualExterna = 1;
-  @Input() totalPaginasExterno: number | null = null;
-  @Input() hasNextPage = false;
-  @Input() hasPrevPage = false;
-  @Input() loading = false;
+  readonly serverPagination = input(false);
+  readonly paginaActualExterna = input(1);
+  readonly totalPaginasExterno = input<number | null>(null);
+  readonly hasNextPage = input(false);
+  readonly hasPrevPage = input(false);
+  readonly loading = input(false);
 
-  @Input() enableFilter: boolean = false;
-  @Input() filterField?: string; // Permite propiedades anidadas como "role.roleName"
-  @Input() filterOptions?: { label: string; value: any }[];
-  @Input() filterDefault: any = 'all';
+  readonly enableFilter = input<boolean>(false);
+  readonly filterField = input<string>(); // Permite propiedades anidadas como "role.roleName"
+  readonly filterOptions = input<{
+    label: string;
+    value: any;
+}[]>();
+  readonly filterDefault = input<any>('all');
 
-  @Input() sinAcciones: boolean = false;
-  @Input() actionMode: 'inline' | 'menu' = 'inline';
-  @Input() accionesPersonalizadas?: AccionPersonalizada<T>[];
-  @Input() canAdd: boolean = true;
-  @Input() addLabel = 'User';
-  @Input() addRoute?: string;
+  readonly sinAcciones = input<boolean>(false);
+  readonly actionMode = input<'inline' | 'menu'>('inline');
+  readonly accionesPersonalizadas = input<AccionPersonalizada<T>[]>();
+  readonly canAdd = input<boolean>(true);
+  readonly addLabel = input('User');
+  readonly addRoute = input<string>();
 
-  @Output() paginaSiguiente = new EventEmitter<void>();
-  @Output() paginaAnterior = new EventEmitter<void>();
-  @Output() registrosPorPaginaChange = new EventEmitter<number>();
+  readonly paginaSiguiente = output<void>();
+  readonly paginaAnterior = output<void>();
+  readonly registrosPorPaginaChange = output<number>();
 
   // Template personalizado para celdas
   @ContentChild('cellTemplate', { static: false }) cellTemplate?: TemplateRef<any>;
@@ -86,7 +89,7 @@ export class Table<T extends Record<string, any>>
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['filterDefault']) {
-      this.filterValue.set(this.filterDefault ?? 'all');
+      this.filterValue.set(this.filterDefault() ?? 'all');
     }
   }
 
@@ -102,21 +105,22 @@ export class Table<T extends Record<string, any>>
   }
 
   get tieneAcciones(): boolean {
-    return !this.sinAcciones &&
-      (!!this.accionesPersonalizadas?.length || true);
+    return !this.sinAcciones() &&
+      (!!this.accionesPersonalizadas()?.length || true);
   }
 
   // ================== COMPUTED ==================
 
   computedFilterOptions = computed(() => {
-    if (!this.enableFilter || !this.filterField) return [];
+    if (!this.enableFilter() || !this.filterField()) return [];
 
-    if (this.filterOptions?.length) return this.filterOptions;
+    const filterOptions = this.filterOptions();
+    if (filterOptions?.length) return filterOptions;
 
     const uniques = Array.from(
       new Set(
         this.datosInterno().map(d =>
-          this.getNestedValue(d, this.filterField!)
+          this.getNestedValue(d, this.filterField()!)
         )
       )
     ).filter(v => v !== null && v !== undefined);
@@ -132,12 +136,12 @@ export class Table<T extends Record<string, any>>
 
     // FILTRO
     if (
-      this.enableFilter &&
-      this.filterField &&
+      this.enableFilter() &&
+      this.filterField() &&
       this.filterValue() !== 'all'
     ) {
       resultado = resultado.filter(item =>
-        String(this.getNestedValue(item, this.filterField!)) === String(this.filterValue())
+        String(this.getNestedValue(item, this.filterField()!)) === String(this.filterValue())
       );
     }
 
@@ -181,7 +185,7 @@ export class Table<T extends Record<string, any>>
   );
 
   datosPaginados = computed(() => {
-    if (this.serverPagination) {
+    if (this.serverPagination()) {
       return this.datosProcesados();
     }
 
@@ -214,7 +218,7 @@ export class Table<T extends Record<string, any>>
     const safeValue = this.pageSizeOptions.includes(parsed) ? parsed : 10;
     this.registrosPorPaginaInterno.set(safeValue);
 
-    if (this.serverPagination) {
+    if (this.serverPagination()) {
       this.registrosPorPaginaChange.emit(safeValue);
       return;
     }
@@ -223,8 +227,9 @@ export class Table<T extends Record<string, any>>
   }
 
   irPaginaAnterior() {
-    if (this.serverPagination) {
-      if (this.hasPrevPage) {
+    if (this.serverPagination()) {
+      if (this.hasPrevPage()) {
+        // TODO: The 'emit' function requires a mandatory void argument
         this.paginaAnterior.emit();
       }
       return;
@@ -234,8 +239,9 @@ export class Table<T extends Record<string, any>>
   }
 
   irPaginaSiguiente() {
-    if (this.serverPagination) {
-      if (this.hasNextPage) {
+    if (this.serverPagination()) {
+      if (this.hasNextPage()) {
+        // TODO: The 'emit' function requires a mandatory void argument
         this.paginaSiguiente.emit();
       }
       return;
