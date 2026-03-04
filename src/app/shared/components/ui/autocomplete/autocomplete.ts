@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnDestroy, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, ChangeDetectionStrategy, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, switchMap, Subject, Observable, of } from 'rxjs';
@@ -21,18 +21,18 @@ export interface AutocompleteOption {
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class Autocomplete implements OnInit, OnDestroy {
-  @Input() control: FormControl = new FormControl();
-  @Input() placeholder: string = 'Buscar...';
-  @Input() label: string = '';
-  @Input() isRequired: boolean = false;
-  @Input() description: string = '';
-  @Input() searchFn: ((term: string) => Observable<AutocompleteOption[]>) | null = null;
-  @Input() displayFn: (option: AutocompleteOption) => string = (opt) => opt.label;
-  @Input() labelProperty: string = 'label';
-  @Input() idProperty: string = 'id';
-  @Input() debounceMs: number = 500;
-  @Input() minCharacters: number = 1;
-  @Input() hasError: boolean = false;
+  readonly control = input<FormControl>(new FormControl());
+  readonly placeholder = input<string>('Buscar...');
+  readonly label = input<string>('');
+  readonly isRequired = input<boolean>(false);
+  readonly description = input<string>('');
+  readonly searchFn = input<((term: string) => Observable<AutocompleteOption[]>) | null>(null);
+  readonly displayFn = input<(option: AutocompleteOption) => string>((opt) => opt.label);
+  readonly labelProperty = input<string>('label');
+  readonly idProperty = input<string>('id');
+  readonly debounceMs = input<number>(500);
+  readonly minCharacters = input<number>(1);
+  readonly hasError = input<boolean>(false);
 
   isOpen = signal(false);
   isLoading = signal(false);
@@ -44,9 +44,10 @@ export class Autocomplete implements OnInit, OnDestroy {
   ngOnInit() {
     this.setupSearch();
     // Si el control tiene un valor inicial, mostrarlo
-    if (this.control.value && typeof this.control.value === 'object') {
-      this.selectedOption.set(this.control.value);
-      this.searchInput.setValue(this.displayFn(this.control.value), { emitEvent: false });
+    const control = this.control();
+    if (control.value && typeof control.value === 'object') {
+      this.selectedOption.set(control.value);
+      this.searchInput.setValue(this.displayFn()(control.value), { emitEvent: false });
     }
   }
 
@@ -56,16 +57,16 @@ export class Autocomplete implements OnInit, OnDestroy {
   }
 
   private setupSearch() {
-    if (!this.searchFn) return;
+    if (!this.searchFn()) return;
 
     this.searchInput.valueChanges
       .pipe(
-        debounceTime(this.debounceMs),
+        debounceTime(this.debounceMs()),
         distinctUntilChanged(),
         switchMap((term) => {
           const searchTerm = (term || '').trim();
           
-          if (searchTerm.length < this.minCharacters) {
+          if (searchTerm.length < this.minCharacters()) {
             this.options.set([]);
             this.isOpen.set(false);
             this.isLoading.set(false);
@@ -74,7 +75,7 @@ export class Autocomplete implements OnInit, OnDestroy {
 
           this.isLoading.set(true);
           this.isOpen.set(false);
-          return this.searchFn!(searchTerm);
+          return this.searchFn()!(searchTerm);
         })
       )
       .subscribe({
@@ -95,15 +96,15 @@ export class Autocomplete implements OnInit, OnDestroy {
 
   selectOption(option: AutocompleteOption) {
     this.selectedOption.set(option);
-    this.control.setValue(option, { emitEvent: false });
-    this.searchInput.setValue(this.displayFn(option), { emitEvent: false });
+    this.control().setValue(option, { emitEvent: false });
+    this.searchInput.setValue(this.displayFn()(option), { emitEvent: false });
     this.isOpen.set(false);
     this.options.set([]);
   }
 
   onInputFocus() {
     const searchTerm = (this.searchInput.value || '').trim();
-    if (searchTerm.length >= this.minCharacters && this.options().length > 0) {
+    if (searchTerm.length >= this.minCharacters() && this.options().length > 0) {
       this.isOpen.set(true);
     }
   }
@@ -114,7 +115,7 @@ export class Autocomplete implements OnInit, OnDestroy {
 
   clearSelection() {
     this.searchInput.setValue('', { emitEvent: false });
-    this.control.setValue(null, { emitEvent: false });
+    this.control().setValue(null, { emitEvent: false });
     this.selectedOption.set(null);
     this.options.set([]);
     this.isOpen.set(false);
