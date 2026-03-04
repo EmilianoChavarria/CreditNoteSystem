@@ -1,0 +1,40 @@
+<app-modal size="md" titleM="Agregar Paso" [open]="open()" closeText="Cancelar" primaryText="Agregar paso"
+    (openChange)="openChange.emit($event)" (primaryAction)="primaryAction.emit()">
+    <form [formGroup]="stepForm()" class="flex flex-col gap-5">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block font-medium text-[#2f3042] text-lg">Número de paso</label>
+                <input type="number" formControlName="stepNumber" placeholder="Ej. 3" [disabled]="isStepNumberLocked()"
+                    [class]="isStepNumberLocked() ? 'mt-2 w-full border border-gray-300 rounded-md p-2 bg-gray-200 text-gray-500 cursor-not-allowed' : 'mt-2 w-full border border-gray-300 rounded-md p-2 bg-white focus:ring-blue-500 focus:border-blue-500'">
+            </div>
+
+            <div>
+                <label class="block font-medium text-[#2f3042] text-lg">Rol</label>
+                <select formControlName="roleId"
+                    class="mt-2 w-full border border-gray-300 rounded-md p-2 bg-white focus:ring-blue-500 focus:border-blue-500">
+                    <option [ngValue]="null" disabled>Selecciona un rol</option>
+                    @for (role of availableRoles(); track role.id) {
+                    <option [ngValue]="role.id">{{ role.roleName }}</option>
+                    }
+                </select>
+            </div>
+
+            <div>
+                <label class="block font-medium text-[#2f3042] text-lg">Permisos</label>
+                <select class="mt-2 w-full border border-gray-300 rounded-md p-2 bg-white"
+                    (change)="permissionsChange.emit($event)">
+                    <option value="" selected disabled>Selecciona un permiso</option>
+                    @for (permission of permissionsOptions(); track permission) {
+                    <option [value]="permission">{{ permission }}</option>
+                    }
+                </select>
+            </div>
+        </div>
+
+        <div>
+            <label class="block font-medium text-[#2f3042] text-lg">Descripción</label>
+            <input type="text" formControlName="description" placeholder="Ej. Aprueba la nota de crédito"
+                class="mt-2 w-full border border-gray-300 rounded-md p-2 bg-white focus:ring-blue-500 focus:border-blue-500">
+        </div>
+    </form>
+</app-modal>
