@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -9,39 +9,42 @@ import { CommonModule } from '@angular/common';
   standalone: true
 })
 export class Skeleton {
-  @Input() shape: 'circle' | 'square' | 'rectangle' = 'rectangle';
-  @Input() size: string = '100%';
-  @Input() width: string = '';
-  @Input() height: string = '';
-  @Input() count: number = 1;
+  readonly shape = input<'circle' | 'square' | 'rectangle'>('rectangle');
+  readonly size = input<string>('100%');
+  readonly width = input<string>('');
+  readonly height = input<string>('');
+  readonly count = input<number>(1);
 
   get skeletons(): number[] {
-    return Array.from({ length: this.count }, (_, i) => i);
+    return Array.from({ length: this.count() }, (_, i) => i);
   }
 
   getSkeletonStyle(): Record<string, string> {
     const style: Record<string, string> = {};
 
-    if (this.width) {
-      style['width'] = this.width;
+    const width = this.width();
+    if (width) {
+      style['width'] = width;
     } else {
-      style['width'] = this.shape === 'circle' ? this.size : this.size;
+      style['width'] = this.shape() === 'circle' ? this.size() : this.size();
     }
 
-    if (this.height) {
-      style['height'] = this.height;
+    const height = this.height();
+    if (height) {
+      style['height'] = height;
     } else {
-      style['height'] = this.shape === 'circle' ? this.size : '20px';
+      style['height'] = this.shape() === 'circle' ? this.size() : '20px';
     }
 
-    if (this.shape === 'circle') {
+    const shape = this.shape();
+    if (shape === 'circle') {
       style['border-radius'] = '50%';
-      style['width'] = this.size;
-      style['height'] = this.size;
-    } else if (this.shape === 'square') {
+      style['width'] = this.size();
+      style['height'] = this.size();
+    } else if (shape === 'square') {
       style['border-radius'] = '4px';
-      style['width'] = this.size;
-      style['height'] = this.size;
+      style['width'] = this.size();
+      style['height'] = this.size();
     } else {
       style['border-radius'] = '4px';
     }
