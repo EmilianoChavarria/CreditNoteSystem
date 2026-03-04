@@ -1,0 +1,47 @@
+<app-modal size="md" titleM="Roles" [open]="open()" closeText="Cancelar" primaryText="Guardar"
+    (openChange)="openChange.emit($event)" (primaryAction)="primaryAction.emit()">
+    <form [formGroup]="form()" (submit)="primaryAction.emit()">
+        <div>
+            <label class="block font-medium text-[#395f93] text-lg">{{ 'ROLE_FORM.ROLENAME' | translate }}
+                <span class="text-red-500 text-lg">*</span>
+            </label>
+            <input type="text" placeholder="ADMIN" formControlName="roleName"
+                [class]="campoVacio('roleName') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'">
+            @if (campoVacio('roleName')) {
+            <span class="text-sm text-red-500">{{ getErrorMessage('roleName') }}</span>
+            }
+        </div>
+
+        <div class="mt-4 flex flex-col">
+            <span class="block font-medium text-[#395f93] text-lg">{{ 'ROLE_FORM.SELECT_COLOR' | translate }}</span>
+            <div class="grid grid-cols-8 gap-4 mt-4">
+                @for (color of roleColors(); track $index) {
+                <button type="button"
+                    [class]="`group relative flex size-8 items-center justify-center rounded-full transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background hover:cursor-pointer ${color.value === selectedItem().value ? 'scale-110 ring-2 ring-offset-2 ring-offset-background' : 'hover:scale-110' }`"
+                    [style.background-color]="color.value" [style.--tw-ring-color]="color.value"
+                    (click)="selectColor.emit(color)" [title]="color.name"
+                    [attr.aria-label]="'Seleccionar color ' + color.name"
+                    [attr.aria-pressed]="color.value === selectedItem().value">
+                    @if (color.value === selectedItem().value) {
+                    <lucide-icon name="check" size="18" color="#FFF" [strokeWidth]="5"></lucide-icon>
+                    }
+                </button>
+                }
+            </div>
+
+            <span class="block font-medium text-[#395f93] text-lg mt-4">{{ 'ROLE_FORM.PREVIEW' | translate }}</span>
+            <div class="w-full flex flex-row items-center justify-start gap-3 rounded-lg border border-gray-300 bg-gray-50 p-3">
+                <div class="h-2 w-2 rounded-full" [style]="`background-color: ${selectedItem().value};`"></div>
+                <span class="text-sm font-semibold" [style]="`color: ${selectedItem().value}`">
+                    {{ form().get('roleName')?.value || 'Nombre del rol' }}
+                </span>
+                <div class="ml-auto">
+                    <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+                        [style]="`backgroundColor: ${selectedItem().value + '1A'}; color: ${selectedItem().value}`">
+                        Rol
+                    </span>
+                </div>
+            </div>
+        </div>
+    </form>
+</app-modal>
