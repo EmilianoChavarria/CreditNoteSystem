@@ -1,0 +1,27 @@
+<app-modal size="md" titleM="Roles Manage" [open]="open()" closeText="Cancelar" primaryText="Add Role"
+    (openChange)="openChange.emit($event)" (primaryAction)="primaryAction.emit()">
+
+    @if (isLoading()) {
+    <app-spinner></app-spinner>
+    } @else {
+    <div class="flex flex-col gap-y-2 max-h-[55vh] overflow-y-auto">
+        @for (role of roles(); track role.id) {
+        <div class="w-full border border-gray-200 rounded-md py-3 px-4 flex flex-row items-center justify-between">
+            <div class="flex flex-row items-center justify-center gap-x-2">
+                <div class="h-3.5 w-3.5 rounded-full ring-2 ring-offset-2 ring-offset-background"
+                    [style]="`background-color: ${role.color};`" [style.--tw-ring-color]="role.color + '1A'"></div>
+                <span>{{ role.roleName | titlecase }}</span>
+            </div>
+            <div class="flex flex-row text-gray-600">
+                <button class="hover:text-yellow-600 hover:bg-yellow-100 p-2 transition rounded-md hover:cursor-pointer">
+                    <lucide-icon name="pencil" size="18"></lucide-icon>
+                </button>
+                <button class="hover:text-red-500 hover:bg-red-200 p-2 transition rounded-md hover:cursor-pointer">
+                    <lucide-icon name="trash" size="18"></lucide-icon>
+                </button>
+            </div>
+        </div>
+        }
+    </div>
+    }
+</app-modal>
