@@ -1,7 +1,7 @@
 <div class="autocomplete-wrapper" appClickOutside (clickOutside)="onClickOutside()">
-  <label *ngIf="label" class="block text-sm font-medium text-gray-700">
-    {{ label }}
-    <span *ngIf="isRequired" class="text-red-500 text-lg">*</span>
+  <label *ngIf="label()" class="block text-sm font-medium text-gray-700">
+    {{ label() }}
+    <span *ngIf="isRequired()" class="text-red-500 text-lg">*</span>
   </label>
 
   <div class="relative">
@@ -9,11 +9,11 @@
       <input
         [formControl]="searchInput"
         type="text"
-        [placeholder]="placeholder"
+        [placeholder]="placeholder()"
         (focus)="onInputFocus()"
         [class]="{
-          'border-red-500 focus:ring-red-500': hasError,
-          'border-gray-300 focus:ring-blue-500 focus:border-blue-500': !hasError
+          'border-red-500 focus:ring-red-500': hasError(),
+          'border-gray-300 focus:ring-blue-500 focus:border-blue-500': !hasError()
         }"
         class="w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-1 outline-none"
       />
@@ -49,7 +49,7 @@
         (click)="selectOption(option)"
         class="px-3 py-2 hover:bg-blue-50 cursor-pointer border-b last:border-b-0 text-sm text-gray-700"
       >
-        {{ displayFn(option) }}
+        {{ displayFn()(option) }}
       </div>
     </div>
 
@@ -62,7 +62,7 @@
     </div>
   </div>
 
-  <small *ngIf="description" class="text-gray-500 text-xs block mt-1">
-    {{ description }}
+  <small *ngIf="description()" class="text-gray-500 text-xs block mt-1">
+    {{ description() }}
   </small>
 </div>
