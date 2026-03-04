@@ -3,12 +3,15 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { AccordeonContainer } from "../../../../shared/components/ui/accordeon/accordeon-container";
 import { AccordeonItem } from "../../../../shared/components/ui/accordeon/accordeon-item";
 import { LucideAngularModule } from "lucide-angular";
-import { Modal } from "../../../../shared/components/ui/modal/modal";
 import { RoleService } from '../../../../core/services/role-service';
 import { Role } from '../../../../data/interfaces/User';
-import { Spinner } from "../../../../shared/components/ui/spinner/spinner";
-import { TitleCasePipe } from '@angular/common';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { ClassificationTypeGroup, WorkflowService } from '../../../../core/services/workflow-service';
+import { map } from 'rxjs';
+import { RolesManageModal } from './components/roles-manage-modal/roles-manage-modal';
+import { RoleFormModal } from './components/role-form-modal/role-form-modal';
+import { AddStepModal } from './components/add-step-modal/add-step-modal';
+import { AddWorkflowModal } from './components/add-workflow-modal/add-workflow-modal';
 
 interface Color {
   name: string;
@@ -29,6 +32,7 @@ interface WorkflowGroup {
   id: number;
   title: string;
   description: string;
+  type: string;
   steps: WorkflowStep[];
 }
 
@@ -42,7 +46,7 @@ interface BranchRule {
 
 @Component({
   selector: 'app-workflows',
-  imports: [TranslatePipe, AccordeonContainer, AccordeonItem, LucideAngularModule, Modal, Spinner, TitleCasePipe, ReactiveFormsModule],
+  imports: [TranslatePipe, AccordeonContainer, AccordeonItem, LucideAngularModule, RolesManageModal, RoleFormModal, AddStepModal, AddWorkflowModal],
   templateUrl: './workflows.html',
   styleUrl: './workflows.css'
 })
@@ -59,6 +63,7 @@ export class Workflows {
   public form = new FormGroup({
     roleName: new FormControl<string>('', Validators.required)
   });
+
   public stepForm = new FormGroup({
     stepNumber: new FormControl<number | null>(null, Validators.required),
     roleId: new FormControl<number | null>(null, Validators.required),
@@ -68,8 +73,12 @@ export class Workflows {
 
   public workflowForm = new FormGroup({
     title: new FormControl<string>('', Validators.required),
-    description: new FormControl<string>('', Validators.required)
+    description: new FormControl<string>('', Validators.required),
+    requestType: new FormControl<string>('DE', Validators.required),
+    classificationType: new FormControl<string>('DE')
   });
+
+  public classificationTypes = signal<ClassificationTypeGroup[]>([])
 
   public permissionsOptions = [
     'Aprobar',
@@ -86,6 +95,7 @@ export class Workflows {
       id: 1,
       title: 'Flujo principal - Nota de crédito',
       description: 'Proceso lineal con aprobación en cadena para notas de crédito',
+      type: "sales",
       steps: [
         { stepNumber: 1, roleName: 'Requester', description: 'Crea la nota', action: 'Creación', icon: 'user', cardClass: 'border-orange-200 bg-orange-50', badgeClass: 'bg-orange-100 text-orange-700 border border-orange-200' },
         { stepNumber: 2, roleName: 'Processor', description: 'Procesa y valida', action: 'Procesamiento', icon: 'settings', cardClass: 'border-slate-300 bg-slate-50', badgeClass: 'bg-slate-100 text-slate-700 border border-slate-300' },
@@ -98,6 +108,7 @@ export class Workflows {
       id: 2,
       title: 'Flujo alterno - Nota de débito',
       description: 'Proceso lineal con aprobación en cadena para notas de débito',
+      type: "",
       steps: [
         { stepNumber: 1, roleName: 'Requester', description: 'Crea la nota', action: 'Creación', icon: 'user', cardClass: 'border-orange-200 bg-orange-50', badgeClass: 'bg-orange-100 text-orange-700 border border-orange-200' },
         { stepNumber: 2, roleName: 'Finance', description: 'Procesamiento financiero', action: 'Procesamiento', icon: 'building-2', cardClass: 'border-slate-300 bg-slate-50', badgeClass: 'bg-slate-100 text-slate-700 border border-slate-300' },
@@ -157,7 +168,8 @@ export class Workflows {
   public selectedItem: Color = { name: "", value: "" };
 
   constructor(
-    private _roleService: RoleService
+    private _roleService: RoleService,
+    private _workflowService: WorkflowService
   ) {
 
   }
@@ -165,11 +177,27 @@ export class Workflows {
   private getRoles() {
     this._roleService.getRoles().subscribe({
       next: (response) => {
+        // console.log(response);
         this.isLoadingRoles.set(false);
         this.roles.set(response);
+        console.log(this.roles());
       },
       error: (error) => {
         this.isLoadingRoles.set(false);
+        console.log(error);
+      }
+    })
+  }
+
+  private getClassificationTypesS() {
+    this._workflowService.getClassificationTypes().pipe(
+      map((items: ClassificationTypeGroup[]) => items.filter((item) => item.type !== null)),
+    ).subscribe({
+      next: (response) => {
+        console.log(response);
+        this.classificationTypes.set(response);
+      },
+      error: (error) => {
         console.log(error);
       }
     })
@@ -216,8 +244,14 @@ export class Workflows {
   }
 
   public openAddWorkflowModal() {
+    this.getClassificationTypesS();
     this.isOpenAddWorkflowModal.set(true);
     this.workflowForm.reset({ title: '', description: '' });
+  }
+
+  onRequestTypeChange(event: any) {
+    const value = event.target.value as string;
+    console.log(value);
   }
 
   public showAddWorkflowModal(isOpen: boolean) {
@@ -272,23 +306,6 @@ export class Workflows {
     const target = event.target as HTMLSelectElement;
     this.stepForm.controls.permissions.setValue(target.value);
     this.stepForm.controls.permissions.markAsTouched();
-  }
-
-  campoVacio(controlName: string): boolean {
-    const control = this.form.get(controlName);
-    if (!control) return false;
-    return control.invalid && (control.touched || this.submitted());
-  }
-
-  getErrorMessage(controlName: string): string {
-    const control = this.form.get(controlName);
-    if (!control || !control.errors) return '';
-
-    if (control.errors['required']) {
-      return 'Este campo es obligatorio';
-    }
-
-    return 'Valor no válido';
   }
 
   private resetStepModalData() {
