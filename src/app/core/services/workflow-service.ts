@@ -46,4 +46,17 @@ export class WorkflowService {
     )
   }
 
+  storeClassification(data: Workflow) {
+    return this._httpService.post<Workflow>('workflows', data).pipe(
+      tap((response: ApiResponse<Workflow>) => {
+        if (response.success) { }
+      }),
+      map((response) => response.data ?? {}),
+      catchError((error) => {
+        console.log(error);
+        throw error;
+      })
+    )
+  }
+
 }

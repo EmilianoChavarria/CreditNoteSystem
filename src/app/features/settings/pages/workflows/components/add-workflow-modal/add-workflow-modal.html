@@ -3,7 +3,7 @@
     <form [formGroup]="workflowForm()" class="flex flex-col gap-4">
         <div>
             <label class="block font-medium text-[#2f3042] text-lg">Title</label>
-            <input type="text" formControlName="title" placeholder="Ej. Flujo de aprobación"
+            <input type="text" formControlName="name" placeholder="Ej. Flujo de aprobación"
                 class="mt-2 w-full border border-gray-300 rounded-md p-2 bg-white focus:ring-blue-500 focus:border-blue-500">
         </div>
 
@@ -16,16 +16,16 @@
         <div class="flex items-center justify-between gap-x-4">
             <div class="w-1/2">
                 <label class="block font-medium text-[#2f3042] text-lg">Request Type</label>
-                <select name="request_type" id="request_type" formControlName="requestType"
+                <select name="request_type" id="request_type" formControlName="requestTypeId"
                     class="mt-2 h-11 border w-full border-gray-300 rounded-lg pl-2 pr-4"
                     (change)="requestTypeChange.emit($event)">
-                    <option value="DE">{{ 'REQUEST_TYPES.DEFAULT' | translate }}</option>
-                    <option value="1">{{ 'REQUEST_TYPES.CREDIT' | translate }}</option>
-                    <option value="2">{{ 'REQUEST_TYPES.DEBIT' | translate }}</option>
-                    <option value="3">{{ 'REQUEST_TYPES.AUDITOR_CREDIT' | translate }}</option>
-                    <option value="4">{{ 'REQUEST_TYPES.AUDITOR_DEBIT' | translate }}</option>
-                    <option value="5">{{ 'REQUEST_TYPES.RE_INVOICING' | translate }}</option>
-                    <option value="6">{{ 'REQUEST_TYPES.MATERIAL_RETURN' | translate }}</option>
+                    <option [ngValue]="0">{{ 'REQUEST_TYPES.DEFAULT' | translate }}</option>
+                    <option [ngValue]="1">{{ 'REQUEST_TYPES.CREDIT' | translate }}</option>
+                    <option [ngValue]="2">{{ 'REQUEST_TYPES.DEBIT' | translate }}</option>
+                    <option [ngValue]="3">{{ 'REQUEST_TYPES.AUDITOR_CREDIT' | translate }}</option>
+                    <option [ngValue]="4">{{ 'REQUEST_TYPES.AUDITOR_DEBIT' | translate }}</option>
+                    <option [ngValue]="5">{{ 'REQUEST_TYPES.RE_INVOICING' | translate }}</option>
+                    <option [ngValue]="6">{{ 'REQUEST_TYPES.MATERIAL_RETURN' | translate }}</option>
                 </select>
             </div>
 

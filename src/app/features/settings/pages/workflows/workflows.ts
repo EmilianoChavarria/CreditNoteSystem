@@ -12,6 +12,7 @@ import { RolesManageModal } from './components/roles-manage-modal/roles-manage-m
 import { RoleFormModal } from './components/role-form-modal/role-form-modal';
 import { AddStepModal } from './components/add-step-modal/add-step-modal';
 import { AddWorkflowModal } from './components/add-workflow-modal/add-workflow-modal';
+import { Workflow } from '../../../../data/interfaces/Workflow';
 
 interface Color {
   name: string;
@@ -72,10 +73,10 @@ export class Workflows {
   });
 
   public workflowForm = new FormGroup({
-    title: new FormControl<string>('', Validators.required),
-    description: new FormControl<string>('', Validators.required),
-    requestType: new FormControl<string>('DE', Validators.required),
-    classificationType: new FormControl<string>('DE')
+    name: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+    description: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+    requestTypeId: new FormControl(0, { nonNullable: true, validators: [Validators.required] }),
+    classificationType: new FormControl('', { nonNullable: true })
   });
 
   public classificationTypes = signal<ClassificationTypeGroup[]>([])
@@ -246,12 +247,14 @@ export class Workflows {
   public openAddWorkflowModal() {
     this.getClassificationTypesS();
     this.isOpenAddWorkflowModal.set(true);
-    this.workflowForm.reset({ title: '', description: '' });
+    this.workflowForm.reset({ name: '', description: '', requestTypeId: 0, classificationType: '' });
   }
 
-  onRequestTypeChange(event: any) {
-    const value = event.target.value as string;
-    console.log(value);
+  onRequestTypeChange(event: Event) {
+    const target = event.target as HTMLSelectElement;
+    const value = Number(target.value);
+    this.workflowForm.controls.requestTypeId.setValue(Number.isNaN(value) ? 0 : value);
+    console.log(this.workflowForm.controls.requestTypeId.value);
   }
 
   public showAddWorkflowModal(isOpen: boolean) {
@@ -290,7 +293,30 @@ export class Workflows {
 
   public saveWorkflow() {
     this.workflowForm.markAllAsTouched();
+
+    if (this.workflowForm.invalid) {
+      return;
+    }
+
+    const formValue = this.workflowForm.getRawValue();
+    console.log(formValue);
+    const object: Workflow = {
+      name: formValue.name,
+      description: formValue.description,
+      requestTypeId: formValue.requestTypeId,
+      classificationType: formValue.classificationType
+    };
+
+    console.log(object);
     this.isOpenAddWorkflowModal.set(false);
+    this._workflowService.storeClassification(object).subscribe({
+      next: (response) => {
+        console.log(response);
+      },
+      error: (error) => {
+        console.log(error);
+      }
+    })
   }
 
   onSelectColor(item: Color): void {
