@@ -1,11 +1,29 @@
 <section class="flex flex-col w-full">
     <header class="w-full flex items-center justify-end">
         <div class="flex flex-col">
-            <span class="text-4xl tracking-wider text-[#ff8200] font-semibold">User Management</span>
-            <span class="text-orange-400">Create, Edit and Manage User Accounts</span>
+            <span class="text-4xl tracking-wider text-[#ff8200] font-semibold">{{'CUSTOMER_VIEW.TITLE' | translate}}</span>
+            <span class="text-orange-400">{{'CUSTOMER_VIEW.DESCRIPTION' | translate}}</span>
         </div>
     </header>
     <app-tabla-dinamica [datos]="customers()" [columnas]="columns" [accionesPersonalizadas]="acciones" actionMode="menu"
-        [enableFilter]="true" filterField="area" addLabel="customer" addRoute="/app/settings/newCustomer">
+        [enableFilter]="true" filterField="area" addLabel="customer" addRoute="/app/settings/newCustomer"
+        [canAdd]="false" [botonesCabeceraPersonalizados]="headerButtons"
+        [registrosPorPagina]="pageSize()" [serverPagination]="true" [paginaActualExterna]="currentPage()"
+        [hasNextPage]="hasNextPage()" [hasPrevPage]="hasPrevPage()" [loading]="isLoadingTable()"
+        (paginaSiguiente)="onNextPage()" (paginaAnterior)="onPrevPage()"
+        (registrosPorPaginaChange)="onPageSizeChange($event)"
+        >
+        <ng-template #headerButtonTemplate let-button let-execute="execute">
+            <button type="button" class="rounded-md bg-black text-white px-3 py-1 flex items-center gap-2 text-nowrap"
+                (click)="execute(button)">
+                @if (button.icon) {
+                <lucide-icon [name]="button.icon" size="18"></lucide-icon>
+                }
+                <span>{{ button.label }}</span>
+            </button>
+        </ng-template>
     </app-tabla-dinamica>
+
+    <app-assign-modal [open]="isOpenModal()" 
+        (openChange)="showModal($event)" (primaryAction)="assignManagers()"/>
 </section>
