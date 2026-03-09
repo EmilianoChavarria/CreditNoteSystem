@@ -60,6 +60,10 @@
     "TITLE": "User Management",
     "DESCRIPTION": "Create, Edit and Manage User Accounts"
   },
+  "CUSTOMER_VIEW": {
+    "TITLE": "Customer List",
+    "DESCRIPTION": "See the customers list and Assign their Managers"
+  },
   "ROLE_MANAGE": {
     "TITLE": "Roles & Request Types Permission",
     "DESCRIPTION": "Configure Role Permissions For Request Types"

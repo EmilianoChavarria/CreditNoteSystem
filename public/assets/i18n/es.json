@@ -60,6 +60,10 @@
     "TITLE": "Gestión de Usuarios",
     "DESCRIPTION": "Crea, Edita y Gestiona las Cuentas de Usuarios"
   },
+  "CUSTOMER_VIEW": {
+    "TITLE": "Lista de Clientes",
+    "DESCRIPTION": "Mira la lista de clientes y asigna sus gerentes"
+  },
   "ROLE_MANAGE": {
     "TITLE": "Roles y Permisos por Tipos de Solicitud",
     "DESCRIPTION": "Configurar Permisos de Roles Para Tipos de Solicitud"
