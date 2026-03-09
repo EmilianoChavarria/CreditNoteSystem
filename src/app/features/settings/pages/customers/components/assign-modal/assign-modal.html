@@ -1,5 +1,5 @@
 <app-modal size="lg" titleM="Assign Managers" [open]="open()" closeText="Cancelar" primaryText="Save"
-    (openChange)="openChange.emit($event)" (primaryAction)="primaryAction.emit()">
+    (openChange)="openChange.emit($event)" (primaryAction)="onPrimaryAction()">
 
     <div class="flex flex-col gap-y-2 max-h-[55vh] overflow-y-auto px-3">
         <app-select
@@ -7,8 +7,8 @@
             label="Area"
             placeholder="Select area"
             [options]="areaOptions"
-            [value]="area"
-            (valueChange)="area = $event"
+            [value]="assignForm.controls.area.value"
+            (valueChange)="assignForm.controls.area.setValue($event)"
         />
 
         <div class="border-t border-gray-200 my-6 flex items-center justify-between w-full">
@@ -22,8 +22,8 @@
                     label="Sales Engineer"
                     placeholder="Select manager"
                     [options]="managerOptions"
-                    [value]="salesEngineer"
-                    (valueChange)="salesEngineer = $event"
+                    [value]="assignForm.controls.salesEngineer.value"
+                    (valueChange)="assignForm.controls.salesEngineer.setValue($event)"
                 />
             </div>
 
@@ -33,8 +33,8 @@
                     label="Sales Manager"
                     placeholder="Select manager"
                     [options]="managerOptions"
-                    [value]="salesManager"
-                    (valueChange)="salesManager = $event"
+                    [value]="assignForm.controls.salesManager.value"
+                    (valueChange)="assignForm.controls.salesManager.setValue($event)"
                 />
             </div>
         </div>
@@ -46,8 +46,8 @@
                     label="Finance Manager"
                     placeholder="Select manager"
                     [options]="managerOptions"
-                    [value]="financeManager"
-                    (valueChange)="financeManager = $event"
+                    [value]="assignForm.controls.financeManager.value"
+                    (valueChange)="assignForm.controls.financeManager.setValue($event)"
                 />
             </div>
 
@@ -57,8 +57,8 @@
                     label="Marketing Manager"
                     placeholder="Select manager"
                     [options]="managerOptions"
-                    [value]="marketingManager"
-                    (valueChange)="marketingManager = $event"
+                    [value]="assignForm.controls.marketingManager.value"
+                    (valueChange)="assignForm.controls.marketingManager.setValue($event)"
                 />
             </div>
         </div>
@@ -70,8 +70,8 @@
                     label="CS Manager"
                     placeholder="Select manager"
                     [options]="managerOptions"
-                    [value]="csManager"
-                    (valueChange)="csManager = $event"
+                    [value]="assignForm.controls.csManager.value"
+                    (valueChange)="assignForm.controls.csManager.setValue($event)"
                 />
             </div>
         </div>

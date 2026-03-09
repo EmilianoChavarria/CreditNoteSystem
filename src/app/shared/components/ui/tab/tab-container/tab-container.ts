@@ -8,7 +8,7 @@ import { Subscription } from 'rxjs';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="w-full mx-auto shadow-lg rounded-lg overflow-hidden">
+    <div class="w-full mx-auto shadow-lg rounded-lg overflow-visible">
       <div class="flex border-b border-gray-200 bg-gray-50">
         <button *ngFor="let tab of tabs; let i = index" 
                 (click)="selectTab(tab, i)"

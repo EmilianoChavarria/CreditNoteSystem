@@ -5,7 +5,7 @@ import { CustomerService } from '../../../../core/services/customer-service';
 import { LucideAngularModule } from "lucide-angular";
 import { finalize } from 'rxjs';
 import { TranslatePipe } from '@ngx-translate/core';
-import { AssignModal } from "./components/assign-modal/assign-modal";
+import { AssignManagersPayload, AssignModal } from "./components/assign-modal/assign-modal";
 
 @Component({
     selector: 'app-customers',
@@ -19,10 +19,10 @@ export class Customers {
     public currentPage = signal<number>(1);
     public hasNextPage = signal<boolean>(false);
     public hasPrevPage = signal<boolean>(false);
+    public totalPages = signal<number>(1);
     public isLoadingTable = signal<boolean>(true);
-    private nextCursor = signal<string | null>(null);
-    private prevCursor = signal<string | null>(null);
     public customers = signal<Customer[]>([]);
+    public customer?: Customer;
 
     public isOpenModal = signal<boolean>(false);
 
@@ -102,7 +102,7 @@ export class Customers {
             key: 'reset',
             icon: 'user-plus',
             label: 'Assign Manager',
-            accion: (user) => this.showModal(true)
+            accion: (user) => this.openModal(user)
         }
     ];
 
@@ -122,58 +122,101 @@ export class Customers {
         this.getUsers();
     }
 
+    public openModal(customer: Customer) {
+        this.showModal(true);
+        console.log(customer);
+        this.customer = customer;
+    }
+
     public showModal(isOpen: boolean) {
         this.isOpenModal.set(isOpen);
     }
 
-    public assignManagers() {
-        console.log("asd");
+    public assignManagers(payload: AssignManagersPayload) {
+        console.log('Assign managers payload:', payload);
+        let newObject = {
+            idClient: this.customer?.idCliente,
+            salesEngineerId: payload.salesEngineer,
+            salesManagerId: payload.salesManager,
+            financeManagerId: payload.financeManager,
+            marketingManagerId: payload.marketingManager,
+            customerServiceManagerId: payload.csManager,
+            area: payload.area
+        }
+        console.log(newObject);
+
+        this._customerService.saveExtraData(newObject).subscribe({
+            next: (response) => {
+                console.log(response);
+            },
+            error: (error) => {
+                console.log(error);
+            }
+        })
         this.showModal(false);
+        this.getUsers();
     }
 
     onNextPage(): void {
-        const cursor = this.nextCursor();
-        if (!cursor) {
+        const page = this.currentPage();
+        const lastPage = this.totalPages();
+
+        if (page >= lastPage) {
             return;
         }
 
-        this.currentPage.update((value) => value + 1);
-        this.getUsers(cursor);
+        this.getUsers(page + 1);
     }
 
     onPrevPage(): void {
-        const cursor = this.prevCursor();
-        if (!cursor) {
+        const page = this.currentPage();
+
+        if (page <= 1) {
             return;
         }
 
-        this.currentPage.update((value) => Math.max(1, value - 1));
-        this.getUsers(cursor);
+        this.getUsers(page - 1);
+    }
+
+    onFirstPage(): void {
+        if (this.currentPage() === 1) {
+            return;
+        }
+
+        this.getUsers(1);
+    }
+
+    onLastPage(): void {
+        const lastPage = this.totalPages();
+
+        if (this.currentPage() === lastPage) {
+            return;
+        }
+
+        this.getUsers(lastPage);
     }
 
     onPageSizeChange(size: number): void {
         this.pageSize.set(size);
-        this.currentPage.set(1);
-        this.nextCursor.set(null);
-        this.prevCursor.set(null);
         this.hasNextPage.set(false);
         this.hasPrevPage.set(false);
-        this.getUsers();
+        this.totalPages.set(1);
+        this.getUsers(1);
     }
 
-    getUsers(cursor?: string | null): void {
+    getUsers(page = 1): void {
         this.isLoadingTable.set(true);
 
-        this._customerService.getCustomersPaginated(this.pageSize(), cursor).pipe(
+        this._customerService.getCustomersPaginated(this.pageSize(), page).pipe(
             finalize(() => this.isLoadingTable.set(false))
         ).subscribe({
             next: (response) => {
                 this.customers.set(response.data);
-                this.nextCursor.set(response.next_cursor ?? null);
-                this.prevCursor.set(response.prev_cursor ?? null);
-                this.hasNextPage.set(!!response.next_cursor || !!response.next_page_url);
-                this.hasPrevPage.set(!!response.prev_cursor || !!response.prev_page_url);
-                console.log('✅ Usuarios cargados:', response);
+                this.currentPage.set(response.current_page ?? page);
+                this.totalPages.set(response.last_page ?? 1);
+                this.hasNextPage.set(!!response.next_page_url);
+                this.hasPrevPage.set(!!response.prev_page_url);
+                // console.log('✅ Usuarios cargados:', response);
             },
             error: (error) => {
                 console.error('❌ Error al cargar usuarios:', error);

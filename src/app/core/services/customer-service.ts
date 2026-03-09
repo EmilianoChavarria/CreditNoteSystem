@@ -1,9 +1,17 @@
 import { Injectable } from '@angular/core';
 import { HttpService } from './http-service';
 import { catchError, map, Observable, tap, throwError } from 'rxjs';
-import { Customer } from '../../data/interfaces/Customer';
+import { Customer, CustomerLocal } from '../../data/interfaces/Customer';
 import { ApiResponse } from '../../data/interfaces/ApiResponse-interface';
-import { CursorPagination } from './user-service';
+
+export interface PagePagination<T> {
+  data: T[];
+  current_page: number;
+  last_page: number;
+  per_page?: number;
+  next_page_url?: string | null;
+  prev_page_url?: string | null;
+}
 
 interface SearchCustomerResponse {
   search: string;
@@ -35,23 +43,19 @@ export class CustomerService {
     );
   }
 
-  getCustomersPaginated(perPage = 10, cursor?: string | null): Observable<CursorPagination<Customer>> {
-    const params: { perPage: number; cursor?: string } = { perPage };
+  getCustomersPaginated(perPage = 10, page = 1): Observable<PagePagination<Customer>> {
+    const params = { per_page: perPage, page };
 
-    if (cursor) {
-      params.cursor = cursor;
-    }
-
-    return this._httpService.get<CursorPagination<Customer>>('/customers', { params }).pipe(
-      map((response: ApiResponse<CursorPagination<Customer>>) => {
+    return this._httpService.get<PagePagination<Customer>>('/customers', { params }).pipe(
+      map((response: ApiResponse<PagePagination<Customer>>) => {
         const payload = response.data;
 
         return {
           data: payload?.data ?? [],
+          current_page: payload?.current_page ?? 1,
+          last_page: payload?.last_page ?? 1,
           per_page: payload?.per_page,
-          next_cursor: payload?.next_cursor ?? null,
           next_page_url: payload?.next_page_url ?? null,
-          prev_cursor: payload?.prev_cursor ?? null,
           prev_page_url: payload?.prev_page_url ?? null,
         };
       }),
@@ -69,6 +73,17 @@ export class CustomerService {
       }),
       catchError((error) => {
         console.log(error);
+        return throwError(() => error);
+      })
+    )
+  }
+
+  saveExtraData(customer: CustomerLocal) {
+    return this._httpService.post('/customers/saveLocal', customer).pipe(
+      tap((response) => {
+        
+      }),
+      catchError((error) => {
         return throwError(() => error);
       })
     )

@@ -47,19 +47,19 @@ export interface Customer {
 }
 
 export interface CustomerLocal {
-  idCustomer: number;
-  idClient: number;
+  idCustomer?: number;
+  idCliente?: string;
   area: string;
-  salesEngineerId: number;
-  salesManagerId: number;
-  financeManagerId: number;
-  marketingManagerId: number;
-  customerServiceManagerId: number;
-  salesEngineer: Manager;
-  salesManager: Manager;
-  financeManager: Manager;
-  marketingManager: Manager;
-  customerServiceManager: Manager;
+  salesEngineerId: string;
+  salesManagerId: string;
+  financeManagerId: string;
+  marketingManagerId: string;
+  customerServiceManagerId: string;
+  salesEngineer?: Manager;
+  salesManager?: Manager;
+  financeManager?: Manager;
+  marketingManager?: Manager;
+  customerServiceManager?: Manager;
 }
 
 export interface Manager {

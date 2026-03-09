@@ -39,6 +39,21 @@ export class UserService {
     );
   }
 
+  getManagers(): Observable<User[]> {
+    return this._httpService.get<User[]>('users/managers').pipe(
+      tap((response: ApiResponse<User[]>) => {
+        if (response.success) {
+
+        }
+      }),
+      map((response: ApiResponse<User[]>) => response.data ?? []),
+      catchError((error) => {
+        console.log(error);
+        throw error;
+      })
+    )
+  }
+
   getUsersPaginated(perPage = 10, cursor?: string | null): Observable<CursorPagination<User>> {
     const params: { perPage: number; cursor?: string } = { perPage };
 
@@ -81,10 +96,10 @@ export class UserService {
     );
   }
 
-  saveUser(user: Partial<User>){
+  saveUser(user: Partial<User>) {
     return this._httpService.post('/auth/register', user).pipe(
       tap(() => {
-        
+
       }),
       catchError((error) => {
         console.log(error);
@@ -105,10 +120,10 @@ export class UserService {
     )
   }
 
-  deleteUser(userId:number){
+  deleteUser(userId: number) {
     return this._httpService.delete(`/users/${userId}`).pipe(
       tap((response) => {
-        
+
       }),
       catchError((error) => {
         console.log(error);

@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 
 export interface SelectOption {
-  value: string;
+  value: number | string;
   label: string;
 }
 

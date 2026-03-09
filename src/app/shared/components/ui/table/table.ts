@@ -80,6 +80,8 @@ export class Table<T extends Record<string, any>>
 
   readonly paginaSiguiente = output<void>();
   readonly paginaAnterior = output<void>();
+  readonly paginaPrimera = output<void>();
+  readonly paginaUltima = output<void>();
   readonly registrosPorPaginaChange = output<number>();
 
   // Template personalizado para celdas
@@ -240,8 +242,7 @@ export class Table<T extends Record<string, any>>
   irPaginaAnterior() {
     if (this.serverPagination()) {
       if (this.hasPrevPage()) {
-        // TODO: The 'emit' function requires a mandatory void argument
-        this.paginaAnterior.emit();
+        this.paginaAnterior.emit(undefined);
       }
       return;
     }
@@ -252,13 +253,34 @@ export class Table<T extends Record<string, any>>
   irPaginaSiguiente() {
     if (this.serverPagination()) {
       if (this.hasNextPage()) {
-        // TODO: The 'emit' function requires a mandatory void argument
-        this.paginaSiguiente.emit();
+        this.paginaSiguiente.emit(undefined);
       }
       return;
     }
 
     this.cambiarPagina(this.paginaActual() + 1);
+  }
+
+  irPrimeraPagina() {
+    if (this.serverPagination()) {
+      if (this.hasPrevPage()) {
+        this.paginaPrimera.emit(undefined);
+      }
+      return;
+    }
+
+    this.cambiarPagina(1);
+  }
+
+  irUltimaPagina() {
+    if (this.serverPagination()) {
+      if (this.hasNextPage()) {
+        this.paginaUltima.emit(undefined);
+      }
+      return;
+    }
+
+    this.cambiarPagina(this.totalPaginas());
   }
 
   ejecutarAccion(accion: AccionPersonalizada<T>, item: T) {

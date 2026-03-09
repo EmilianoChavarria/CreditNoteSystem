@@ -9,8 +9,10 @@
         [enableFilter]="true" filterField="area" addLabel="customer" addRoute="/app/settings/newCustomer"
         [canAdd]="false" [botonesCabeceraPersonalizados]="headerButtons"
         [registrosPorPagina]="pageSize()" [serverPagination]="true" [paginaActualExterna]="currentPage()"
+        [totalPaginasExterno]="totalPages()"
         [hasNextPage]="hasNextPage()" [hasPrevPage]="hasPrevPage()" [loading]="isLoadingTable()"
         (paginaSiguiente)="onNextPage()" (paginaAnterior)="onPrevPage()"
+        (paginaPrimera)="onFirstPage()" (paginaUltima)="onLastPage()"
         (registrosPorPaginaChange)="onPageSizeChange($event)"
         >
         <ng-template #headerButtonTemplate let-button let-execute="execute">
@@ -25,5 +27,5 @@
     </app-tabla-dinamica>
 
     <app-assign-modal [open]="isOpenModal()" 
-        (openChange)="showModal($event)" (primaryAction)="assignManagers()"/>
+        (openChange)="showModal($event)" (primaryAction)="assignManagers($event)"/>
 </section>
