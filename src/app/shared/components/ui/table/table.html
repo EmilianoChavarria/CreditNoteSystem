@@ -56,6 +56,26 @@
                 {{'TABLE.ADD_BUTTON' | translate}} {{ addLabel() }}
             </a>
             }
+
+            <ng-container *ngFor="let boton of botonesCabeceraPersonalizados()">
+                @if (boton.useTemplate && headerButtonTemplate;) {
+                <ng-container>
+                    <ng-container
+                        *ngTemplateOutlet="headerButtonTemplate; context: { $implicit: boton, button: boton, execute: ejecutarAccionCabecera.bind(this) }"></ng-container>
+                </ng-container>
+                }@else{
+                <ng-template #defaultHeaderButton>
+                    <button type="button" (click)="ejecutarAccionCabecera(boton)" [disabled]="boton.disabled"
+                        class="rounded-md px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                        [ngClass]="boton.className ?? 'bg-[#3c6194]'">
+                        @if (boton.icon) {
+                        <lucide-icon [name]="boton.icon" size="18"></lucide-icon>
+                        }
+                        {{ boton.label }}
+                    </button>
+                </ng-template>
+                }
+            </ng-container>
         </div>
 
 
@@ -79,7 +99,8 @@
                         </div>
                     </th>
 
-                    <th *ngIf="!sinAcciones()" class="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase">
+                    <th *ngIf="!sinAcciones()"
+                        class="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase">
                         Acciones
                     </th>
                 </tr>
@@ -110,7 +131,8 @@
                         <div *ngIf="actionMode() === 'inline'" class="flex justify-end gap-2">
 
                             <!-- ACCIONES PERSONALIZADAS -->
-                            <button *ngFor="let accion of accionesPersonalizadas()" (click)="ejecutarAccion(accion, item)"
+                            <button *ngFor="let accion of accionesPersonalizadas()"
+                                (click)="ejecutarAccion(accion, item)"
                                 class="p-1.5 rounded-md text-[#ff8200] hover:bg-[#ff82001A] transition hover:cursor-pointer"
                                 [ngClass]="accion.className">
                                 <lucide-icon *ngIf="accion.icon" [name]="accion.icon"></lucide-icon>
@@ -120,7 +142,8 @@
                         </div>
 
                         <!-- MENU CON POPOVER -->
-                        <app-popover *ngIf="actionMode() === 'menu'" #popoverMenu position="bottom-center" width="220px">
+                        <app-popover *ngIf="actionMode() === 'menu'" #popoverMenu position="bottom-center"
+                            width="220px">
 
                             <!-- TRIGGER -->
                             <div trigger class="p-2 rounded-md hover:bg-gray-100 cursor-pointer inline-flex">

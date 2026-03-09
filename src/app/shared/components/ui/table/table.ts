@@ -24,6 +24,15 @@ export interface AccionPersonalizada<T> {
   accion: (item: T) => void;
 }
 
+export interface BotonCabeceraPersonalizado {
+  label: string;
+  icon?: string;
+  className?: string;
+  disabled?: boolean;
+  useTemplate?: boolean;
+  accion?: () => void;
+}
+
 @Component({
   selector: 'app-tabla-dinamica',
   standalone: true,
@@ -67,6 +76,7 @@ export class Table<T extends Record<string, any>>
   readonly canAdd = input<boolean>(true);
   readonly addLabel = input('User');
   readonly addRoute = input<string>();
+  readonly botonesCabeceraPersonalizados = input<BotonCabeceraPersonalizado[]>([]);
 
   readonly paginaSiguiente = output<void>();
   readonly paginaAnterior = output<void>();
@@ -74,6 +84,7 @@ export class Table<T extends Record<string, any>>
 
   // Template personalizado para celdas
   @ContentChild('cellTemplate', { static: false }) cellTemplate?: TemplateRef<any>;
+  @ContentChild('headerButtonTemplate', { static: false }) headerButtonTemplate?: TemplateRef<any>;
 
   // ================== STATE ==================
   datosInterno = signal<T[]>([]);
@@ -258,6 +269,12 @@ export class Table<T extends Record<string, any>>
 
     if (!disabled) {
       accion.accion(item);
+    }
+  }
+
+  ejecutarAccionCabecera(boton: BotonCabeceraPersonalizado) {
+    if (!boton.disabled) {
+      boton.accion?.();
     }
   }
 }
