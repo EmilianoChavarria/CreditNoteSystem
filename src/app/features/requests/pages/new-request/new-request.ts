@@ -348,10 +348,11 @@ export class NewRequest implements OnInit {
                     console.warn('Expected array but got:', customers);
                     return [];
                 }
-                return customers.map(customer => ({
-                    ...customer,
-                    label: customer.customerName
-                } as AutocompleteOption));
+                return customers.map((customer): AutocompleteOption => ({
+                    id: customer.idCliente,
+                    label: customer.razonSocial,
+                    customer
+                }));
             }),
             catchError(error => {
                 console.error('Error searching customers:', error);
@@ -361,6 +362,6 @@ export class NewRequest implements OnInit {
     }
 
     displayCustomer(customer: any) {
-        return customer?.customerName || '';
+        return customer?.label || customer?.customer?.razonSocial || customer?.razonSocial || '';
     }
 }
