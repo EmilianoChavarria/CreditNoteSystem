@@ -17,8 +17,7 @@
             <div class="w-1/2">
                 <label class="block font-medium text-[#2f3042] text-lg">Request Type</label>
                 <select name="request_type" id="request_type" formControlName="requestTypeId"
-                    class="mt-2 h-11 border w-full border-gray-300 rounded-lg pl-2 pr-4"
-                    (change)="requestTypeChange.emit($event)">
+                    class="mt-2 h-11 border w-full border-gray-300 rounded-lg pl-2 pr-4">
                     <option [ngValue]="0">{{ 'REQUEST_TYPES.DEFAULT' | translate }}</option>
                     <option [ngValue]="1">{{ 'REQUEST_TYPES.CREDIT' | translate }}</option>
                     <option [ngValue]="2">{{ 'REQUEST_TYPES.DEBIT' | translate }}</option>

@@ -17,5 +17,4 @@ export class AddWorkflowModal {
 
   readonly openChange = output<boolean>();
   readonly primaryAction = output<void>();
-  readonly requestTypeChange = output<Event>();
 }
