@@ -27,6 +27,7 @@ export class NewRequest implements OnInit {
     public currentTabs: any[] = [];
     public submitted: boolean = false;
     public isLoadingForm = signal<boolean>(false);
+    public isRegisterRequestDisabled = signal<boolean>(false);
     private requestNumber = signal<string>('');
     public reasons = signal<Reason[]>([]);
     public classifications = signal<Classification[]>([]);
@@ -90,6 +91,7 @@ export class NewRequest implements OnInit {
         const value = event.target.value;
         this.selectedRequestType = value;
         this.isLoadingForm.set(true);
+        this.isRegisterRequestDisabled.set(false);
 
         // Mapear el valor del select al key del JSON
         const moduleMap: { [key: string]: string } = {
@@ -314,8 +316,8 @@ export class NewRequest implements OnInit {
 
         if (this.profileForm.valid) {
             const formValue = this.profileForm.getRawValue();
-            console.log('FormData capturado con profileForm:', formValue);
-            console.log('Tipo de request:', this.selectedRequestType);
+            // console.log('FormData capturado con profileForm:', formValue);
+            // console.log('Tipo de request:', this.selectedRequestType);
             delete formValue.sapScreen;
             delete formValue.attachSupports;
             delete formValue.reviewComments;
@@ -328,10 +330,10 @@ export class NewRequest implements OnInit {
                 totalAmount: formValue.totalAmount.toFixed(2),
                 status: 'created'
             }
-            console.log("Form parseado", newObject);
+            // console.log("Form parseado", newObject);
             // alert('Datos impresos en consola');
             this.saveRequest(newObject);
-            this.submitted = false; // Resetear después de guardar exitosamente
+            // this.submitted = false; // Resetear después de guardar exitosamente
         } else {
             this.toastr.error('Por favor, rellena los campos obligatorios', 'Error');
         }
@@ -362,6 +364,29 @@ export class NewRequest implements OnInit {
     }
 
     displayCustomer(customer: any) {
+        // console.log(customer);
         return customer?.label || customer?.customer?.razonSocial || customer?.razonSocial || '';
+    }
+
+    onCustomerSelected(option: AutocompleteOption) {
+        console.log('Cliente seleccionado:', option);
+        const salesManagerId = option?.['customer']?.clienteExt?.salesManagerId;
+        const salesEngineerId = option?.['customer']?.clienteExt?.salesEngineerId;
+        const financeManagerId = option?.['customer']?.clienteExt?.financeManagerId;
+        const marketingManagerId = option?.['customer']?.clienteExt?.marketingManagerId;
+        const customerServiceManagerId = option?.['customer']?.clienteExt?.customerServiceManagerId;
+        const hasAssignedWorkflow = [
+            salesManagerId,
+            salesEngineerId,
+            financeManagerId,
+            marketingManagerId,
+            customerServiceManagerId
+        ].every((id) => id !== null && id !== undefined);
+
+        this.isRegisterRequestDisabled.set(!hasAssignedWorkflow);
+
+        if (!hasAssignedWorkflow) {
+            this.toastr.error('El cliente no tiene un flujo de aprobación asignado, favor de avisar al administrador', 'Error');
+        }
     }
 }

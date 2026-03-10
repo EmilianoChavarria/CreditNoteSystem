@@ -20,7 +20,7 @@
     <app-spinner></app-spinner>
     } @else {
     <form [formGroup]="profileForm" *ngIf="currentTabs.length > 0">
-        <app-tabs-container (onSave)="handleSave()">
+        <app-tabs-container [registerDisabled]="isRegisterRequestDisabled()" (onSave)="handleSave()">
 
             <app-tab *ngFor="let tab of currentTabs" [title]="tab.title">
                 <div class="grid grid-cols-4 gap-4">
@@ -146,7 +146,8 @@
                                 [placeholder]="field.placeholder" [isRequired]="field.validators?.includes('required')"
                                 [description]="field.description" [searchFn]="searchCustomers.bind(this)"
                                 [displayFn]="displayCustomer.bind(this)" [debounceMs]="500" [minCharacters]="1"
-                                [hasError]="campoVacio(field.formControlName)"></app-autocomplete>
+                                [hasError]="campoVacio(field.formControlName)"
+                                (optionSelected)="onCustomerSelected($event)"></app-autocomplete>
                             <small *ngIf="campoVacio(field.formControlName)" class="text-red-500 text-xs block mt-1">
                                 {{ getFieldError(field.formControlName) }}
                             </small>
