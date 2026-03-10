@@ -46,7 +46,9 @@ import { Subscription } from 'rxjs';
             </button>
             <button (click)="save()" 
                     *ngIf="selectedIndex === tabs.length - 1"
-                    class="px-4 py-2 text-sm font-semibold text-white bg-green-600 rounded-md hover:bg-green-700 transition">
+                    [disabled]="registerDisabled()"
+                    [ngClass]="registerDisabled() ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'"
+                    class="px-4 py-2 text-sm font-semibold text-white rounded-md transition">
               Register request
             </button>
           </div>
@@ -59,6 +61,7 @@ export class TabsContainer implements AfterContentInit, OnDestroy {
   @ContentChildren(Tab) tabs!: QueryList<Tab>;
   readonly onSave = output<void>();
   readonly showBottomButtons = input<boolean>(true);
+  readonly registerDisabled = input<boolean>(false);
   selectedIndex: number = 0;
   private tabsSubscription?: Subscription;
 

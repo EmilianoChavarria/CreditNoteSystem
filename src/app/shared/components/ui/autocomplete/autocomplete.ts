@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, signal, ChangeDetectionStrategy, input } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, ChangeDetectionStrategy, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, switchMap, Subject, Observable, of } from 'rxjs';
@@ -33,6 +33,7 @@ export class Autocomplete implements OnInit, OnDestroy {
   readonly debounceMs = input<number>(500);
   readonly minCharacters = input<number>(1);
   readonly hasError = input<boolean>(false);
+  readonly optionSelected = output<AutocompleteOption>();
 
   isOpen = signal(false);
   isLoading = signal(false);
@@ -65,7 +66,7 @@ export class Autocomplete implements OnInit, OnDestroy {
         distinctUntilChanged(),
         switchMap((term) => {
           const searchTerm = (term || '').trim();
-          
+
           if (searchTerm.length < this.minCharacters()) {
             this.options.set([]);
             this.isOpen.set(false);
@@ -95,6 +96,8 @@ export class Autocomplete implements OnInit, OnDestroy {
   }
 
   selectOption(option: AutocompleteOption) {
+    this.optionSelected.emit(option);
+    
     this.selectedOption.set(option);
     this.control().setValue(option, { emitEvent: false });
     this.searchInput.setValue(this.displayFn()(option), { emitEvent: false });
