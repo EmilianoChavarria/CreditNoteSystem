@@ -88,7 +88,7 @@
             <div class="relative mt-4 pb-4 pl-11">
               <div class="absolute left-4.25 top-0 h-full w-px bg-slate-300"></div>
 
-              @for (step of workflowDetail.steps; track step.number) {
+              @for (step of workflowDetail.steps; track $index) {
                 <div class="relative mb-5">
                   <div
                     class="absolute -left-11 top-3 flex h-8 w-8 items-center justify-center rounded-full border text-sm"
