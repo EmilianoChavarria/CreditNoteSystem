@@ -11,6 +11,137 @@ export interface RequestNumber {
   prefix: string;
 }
 
+export interface RequestHistoryRole {
+  id: number;
+  roleName: string;
+}
+
+export interface RequestHistoryStep {
+  id: number;
+  stepName: string;
+  stepOrder: number;
+  role: RequestHistoryRole;
+  isInitialStep: boolean;
+  isFinalStep: boolean;
+  isCurrent: boolean;
+  wasVisited: boolean;
+  latestStatus: string | null;
+  latestStartedAt: string | null;
+  latestCompletedAt: string | null;
+}
+
+export interface RequestHistoryLog {
+  id: number;
+  requestWorkflowStepId: number;
+  requestId: number;
+  workflowStepId: number;
+  actionUserId: number;
+  actionType: string;
+  comments: string | null;
+  createdAt: string;
+  workflow_step: {
+    id: number;
+    workflowId: number;
+    stepName: string;
+    stepOrder: number;
+    roleId: number;
+    isInitialStep: boolean;
+    isFinalStep: boolean;
+  };
+  action_user: {
+    id: number;
+    fullName: string;
+    email: string;
+    roleId: number;
+  };
+  request_step: {
+    id: number;
+    requestId: number;
+    workflowStepId: number;
+    assignedRoleId: number;
+    status: string;
+    startedAt: string | null;
+    completedAt: string | null;
+  };
+}
+
+export interface RequestHistoryTimelineItem {
+  sequence: number;
+  timestamp: string;
+  actionType: string;
+  message: string;
+  comments: string | null;
+  step: {
+    id: number;
+    name: string;
+    order: number;
+  };
+  fromStep: {
+    id: number;
+    name: string;
+    order: number;
+  } | null;
+  toStep: {
+    id: number;
+    name: string;
+    order: number;
+  } | null;
+  actionUser: {
+    id: number;
+    fullName: string;
+    email: string;
+    roleId: number;
+  };
+}
+
+export interface RequestHistoryData {
+  request: Request;
+  workflow: {
+    id: number;
+    name: string | null;
+  };
+  progress: {
+    currentStepOrder: number;
+    totalSteps: number;
+    percent: number;
+  };
+  steps: RequestHistoryStep[];
+  history: RequestHistoryLog[];
+  timeline?: RequestHistoryTimelineItem[];
+  currentStep: {
+    id: number;
+    requestId: number;
+    workflowId: number;
+    workflowStepId: number;
+    assignedRoleId: number;
+    status: string;
+    createdAt: string;
+    updatedAt: string;
+    workflow_step: {
+      id: number;
+      workflowId: number;
+      stepName: string;
+      stepOrder: number;
+      roleId: number;
+      isInitialStep: boolean;
+      isFinalStep: boolean;
+      role: RequestHistoryRole;
+    };
+    assigned_role: RequestHistoryRole;
+    workflow: {
+      id: number;
+      name: string;
+      description: string;
+      isActive: boolean;
+      requestTypeId: number;
+      classificationType: string;
+      createdAt: string;
+      updatedAt: string;
+      deletedAt: string | null;
+    };
+  };
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -49,6 +180,21 @@ export class RequestService {
       })
     )
 
+  }
+
+  getRequestHistory(requestId: number): Observable<RequestHistoryData | null> {
+    return this._httpService.get<RequestHistoryData>(`/requests/${requestId}/history`).pipe(
+      tap((response: ApiResponse<RequestHistoryData>) => {
+        if (response.success) {
+
+        }
+      }),
+      map((response: ApiResponse<RequestHistoryData>) => response.data ?? null),
+      catchError((error) => {
+        console.log(error);
+        throw error;
+      })
+    )
   }
 
   getClassificationsByType(id: number): Observable<Classification[]> {
