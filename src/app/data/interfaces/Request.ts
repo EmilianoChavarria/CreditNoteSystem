@@ -1,4 +1,4 @@
-import { User } from './User';
+import { Role, User } from './User';
 export interface Request {
     id?: number;
     requestNumber: string;
@@ -40,6 +40,19 @@ export interface Request {
     customer: Customer
     reason: Reason
     classification: Classification;
+    workflow_current_step: WorkflowCurrentStep
+}
+
+interface WorkflowCurrentStep {
+    id: number
+    requestId: number
+    workflowId: number
+    workflowStepId: number
+    assignedRoleId: number
+    status: string
+    createdAt: string
+    updatedAt: string
+    assigned_role: Role
 }
 
 export interface RequestType {
