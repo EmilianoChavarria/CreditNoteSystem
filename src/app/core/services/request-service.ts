@@ -35,6 +35,22 @@ export class RequestService {
     )
   }
 
+  getMyPendingRequests(): Observable<Request[]>{
+    return this._httpService.get<Request[]>('requests/pending/1').pipe(
+      tap((response: ApiResponse<Request[]>) => {
+        if(response.success){
+
+        }
+      }),
+      map((response: ApiResponse<Request[]>) => response.data ?? []),
+      catchError((error) => {
+        console.log(error);
+        throw error;
+      })
+    )
+
+  }
+
   getClassificationsByType(id: number): Observable<Classification[]> {
     return this._httpService.get<Classification[]>(`classifications/requestType/${id}`).pipe(
       tap((response: ApiResponse<Classification[]>) => {
