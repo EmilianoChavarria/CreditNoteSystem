@@ -12,4 +12,22 @@ export interface Workflow {
   deletedAt?: string;
   request_type?: RequestType;
   classification?: Classification;
+  steps?: WorkflowStep[];
+}
+
+export interface WorkflowStep {
+  id: number;
+  workflowId: number;
+  stepName: string;
+  stepOrder: number;
+  roleId: number;
+  isInitialStep: boolean;
+  isFinalStep: boolean;
+  role?: WorkflowStepRole;
+}
+
+export interface WorkflowStepRole {
+  id: number;
+  roleName: string;
+  color?: string;
 }

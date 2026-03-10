@@ -18,7 +18,7 @@ export class WorkflowService {
   ) { }
 
   getWorkflows() {
-    return this._httpService.get<Workflow[]>('/workflows').pipe(
+    return this._httpService.get<Workflow[]>('/workflowsteps/workflows').pipe(
       tap((response: ApiResponse<Workflow[]>) => {
         if (response.success) {
 
