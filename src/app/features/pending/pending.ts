@@ -14,6 +14,7 @@ import { Modal } from "../../shared/components/ui/modal/modal";
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { WorkflowDetail, WorkflowHistoryDrawer } from '../history/components/workflow-history-drawer/workflow-history-drawer';
 import { finalize } from 'rxjs';
+import { RequestHistoryData, RequestHistoryLog } from '../../core/services/request-service';
 
 // 👇 Accede al default export real
 const pdf: any = (pdfMake as any).default ?? pdfMake;
@@ -117,222 +118,16 @@ export class Pending {
     ];
 
 
-    // TODO: QUITAR DESPUES DE LA REUNIÓN-------------------------------------------
     public showHistoryDrawer = signal<boolean>(false);
-    public workflowDetail: WorkflowDetail = {
-        code: 'NC-001',
-        company: 'Grupo Bimbo S.A.',
-        amount: 'USD 45,000.00',
-        classification: 'Sales',
-        flow: 'Flujo: Flujo 1 — Con aprobación de CS Leader (Sales)',
-        createdDate: '01 feb 2026',
-        progressText: 'Paso 9 de 11',
-        statusLabel: 'Liberada',
-        steps: [
-            {
-                number: 1,
-                title: 'Paso 1',
-                status: 'Creado',
-                role: 'Requester',
-                user: 'María López',
-                date: '01 feb 2026',
-                time: '03:00 a.m.',
-                note: ''
-            },
-            {
-                number: 2,
-                title: 'Paso 2',
-                status: 'Procesado',
-                role: 'Processor',
-                user: 'Andrés Morales',
-                date: '01 feb 2026',
-                time: '07:00 a.m.',
-                note: 'Datos validados correctamente'
-            },
-            {
-                number: 3,
-                title: 'Paso 3',
-                status: 'Aprobado',
-                role: 'Finance',
-                user: 'Luis Hernández',
-                date: '02 feb 2026',
-                time: '03:00 a.m.',
-                note: ''
-            },
-            {
-                number: 4,
-                title: 'Paso 4',
-                status: 'Aprobado',
-                role: 'Manager',
-                user: 'Roberto Mendez',
-                date: '02 feb 2026',
-                time: '08:00 a.m.',
-                note: ''
-            },
-            {
-                number: 5,
-                title: 'Paso 5',
-                status: 'Aprobado',
-                role: 'General Manager',
-                user: 'Patricia Vega',
-                date: '03 feb 2026',
-                time: '03:30 a.m.',
-                note: ''
-            },
-            {
-                number: 6,
-                title: 'Paso 6',
-                status: 'Rechazado',
-                role: 'Business Controllers',
-                user: 'Fernando Díaz',
-                date: '03 feb 2026',
-                time: '10:00 a.m.',
-                note: 'Discrepancia en el monto facturado'
-            },
-            {
-                number: 7,
-                title: 'Paso 5',
-                status: 'Devuelto',
-                role: 'General Manager',
-                user: 'Fernando Díaz',
-                date: '03 feb 2026',
-                time: '10:01 a.m.',
-                note: ''
-            },
-            {
-                number: 8,
-                title: 'Paso 5',
-                status: 'Aprobado',
-                role: 'General Manager',
-                user: 'Patricia Vega',
-                date: '04 feb 2026',
-                time: '04:00 a.m.',
-                note: 'Monto corregido'
-            }
-        ]
-    };
+    public workflowDetail: WorkflowDetail | null = null;
 
     closeHistoryDrawer(): void {
         this.showHistoryDrawer.set(false);
     }
     public selectedRequest = signal<Request | null>(null);
-    // -----------------------------------------------------------------------------
 
     public submitted = signal(false);
     public showDeclineModal = signal<boolean>(false);
-
-    private readonly mockSteps: WorkflowDetail['steps'] = [
-        {
-            number: 1,
-            title: 'Paso 1',
-            status: 'Creado',
-            role: 'Requester',
-            user: 'María López',
-            date: '01 feb 2026',
-            time: '03:00 a.m.',
-            note: ''
-        },
-        {
-            number: 2,
-            title: 'Paso 2',
-            status: 'Procesado',
-            role: 'Processor',
-            user: 'Andrés Morales',
-            date: '01 feb 2026',
-            time: '07:00 a.m.',
-            note: 'Datos validados correctamente'
-        },
-        {
-            number: 3,
-            title: 'Paso 3',
-            status: 'Aprobado',
-            role: 'Finance',
-            user: 'Luis Hernández',
-            date: '02 feb 2026',
-            time: '03:00 a.m.',
-            note: ''
-        },
-        {
-            number: 4,
-            title: 'Paso 4',
-            status: 'Aprobado',
-            role: 'Manager',
-            user: 'Roberto Mendez',
-            date: '02 feb 2026',
-            time: '08:00 a.m.',
-            note: ''
-        },
-        {
-            number: 5,
-            title: 'Paso 5',
-            status: 'Aprobado',
-            role: 'General Manager',
-            user: 'Patricia Vega',
-            date: '03 feb 2026',
-            time: '03:30 a.m.',
-            note: ''
-        },
-        {
-            number: 6,
-            title: 'Paso 6',
-            status: 'Rechazado',
-            role: 'Business Controllers',
-            user: 'Fernando Díaz',
-            date: '03 feb 2026',
-            time: '10:00 a.m.',
-            note: 'Discrepancia en el monto facturado'
-        },
-        {
-            number: 7,
-            title: 'Paso 5',
-            status: 'Devuelto',
-            role: 'General Manager',
-            user: 'Fernando Díaz',
-            date: '03 feb 2026',
-            time: '10:01 a.m.',
-            note: ''
-        },
-        {
-            number: 8,
-            title: 'Paso 5',
-            status: 'Aprobado',
-            role: 'General Manager',
-            user: 'Patricia Vega',
-            date: '04 feb 2026',
-            time: '04:00 a.m.',
-            note: 'Monto corregido'
-        }
-    ];
-
-    private readonly mockCommentsHistory: NonNullable<WorkflowDetail['commentsHistory']> = [
-        {
-            id: 1,
-            author: 'Andrés Morales',
-            role: 'Processor',
-            comment: 'Se valida documentación inicial y se envía al flujo de aprobación.',
-            status: 'Procesado',
-            date: '01 feb 2026',
-            time: '07:05 a.m.'
-        },
-        {
-            id: 2,
-            author: 'Fernando Díaz',
-            role: 'Business Controllers',
-            comment: 'Discrepancia en el monto facturado. Se solicita corrección al paso anterior.',
-            status: 'Rechazado',
-            date: '03 feb 2026',
-            time: '10:00 a.m.'
-        },
-        {
-            id: 3,
-            author: 'Patricia Vega',
-            role: 'General Manager',
-            comment: 'Se corrige el monto y se aprueba nuevamente para cierre del flujo.',
-            status: 'Aprobado',
-            date: '04 feb 2026',
-            time: '04:00 a.m.'
-        }
-    ];
 
     constructor(
         private _requestsService: RequestService
@@ -627,8 +422,36 @@ export class Pending {
 
     openHistoryDrawer(request: Request): void {
         this.selectedRequest.set(request);
-        this.workflowDetail = this.buildWorkflowDetailFromRequest(request);
-        this.showHistoryDrawer.set(true);
+        this.showHistoryDrawer.set(false);
+        this.workflowDetail = null;
+
+        if (!request.id) {
+            this.workflowDetail = this.buildWorkflowDetailFromRequest(request);
+            setTimeout(() => {
+                this.showHistoryDrawer.set(true);
+            });
+            return;
+        }
+
+        this._requestsService.getRequestHistory(request.id).subscribe({
+            next: (response) => {
+                if (!response) {
+                    this.workflowDetail = this.buildWorkflowDetailFromRequest(request);
+                } else {
+                    this.workflowDetail = this.buildWorkflowDetailFromHistory(response);
+                }
+
+                setTimeout(() => {
+                    this.showHistoryDrawer.set(true);
+                });
+            },
+            error: () => {
+                this.workflowDetail = this.buildWorkflowDetailFromRequest(request);
+                setTimeout(() => {
+                    this.showHistoryDrawer.set(true);
+                });
+            }
+        });
     }
 
     private buildWorkflowDetailFromRequest(request: Request): WorkflowDetail {
@@ -643,9 +466,123 @@ export class Pending {
             createdDate: request.createdAt ? moment(request.createdAt).format('DD MMM YYYY') : '-',
             progressText: 'Paso 9 de 11',
             statusLabel: this.toTitleCase(request.status),
-            steps: this.mockSteps,
-            commentsHistory: this.mockCommentsHistory
+            steps: [],
+            commentsHistory: []
         };
+    }
+
+    private buildWorkflowDetailFromHistory(data: RequestHistoryData): WorkflowDetail {
+        const request = data.request;
+        const amount = this.formatAmount(request.currency, request.totalAmount ?? request.amount);
+        const roleNameByStepId = new Map<number, string>();
+        data.steps.forEach((step) => {
+            roleNameByStepId.set(step.id, step.role?.roleName ?? step.stepName ?? '-');
+        });
+
+        const timelineSteps = (data.timeline ?? [])
+            .slice()
+            .sort((a, b) => a.sequence - b.sequence)
+            .map((item) => {
+                const eventMoment = moment(item.timestamp);
+
+                return {
+                    number: item.step.order,
+                    title: `Paso ${item.step.order}`,
+                    status: this.mapHistoryStatus(item.actionType),
+                    role: roleNameByStepId.get(item.step.id) ?? item.step.name,
+                    user: item.actionUser?.fullName ?? '-',
+                    date: eventMoment.format('DD MMM YYYY'),
+                    time: eventMoment.format('hh:mm a'),
+                    note: item.comments ?? item.message ?? ''
+                };
+            });
+
+        const latestHistoryByStep = new Map<number, RequestHistoryLog>();
+
+        data.history.forEach((historyItem) => {
+            const existing = latestHistoryByStep.get(historyItem.workflowStepId);
+
+            if (!existing || new Date(historyItem.createdAt).getTime() > new Date(existing.createdAt).getTime()) {
+                latestHistoryByStep.set(historyItem.workflowStepId, historyItem);
+            }
+        });
+
+        const fallbackSteps = Array.from(latestHistoryByStep.values())
+            .sort((a, b) => a.workflow_step.stepOrder - b.workflow_step.stepOrder)
+            .map((historyItem) => {
+                const eventDate = historyItem.request_step?.completedAt ?? historyItem.request_step?.startedAt ?? historyItem.createdAt;
+                const eventMoment = eventDate ? moment(eventDate) : null;
+
+                return {
+                    number: historyItem.workflow_step.stepOrder,
+                    title: `Paso ${historyItem.workflow_step.stepOrder}`,
+                    status: this.mapHistoryStatus(historyItem.request_step?.status ?? historyItem.actionType),
+                    role: historyItem.workflow_step?.stepName ?? '-',
+                    user: historyItem.action_user?.fullName ?? '-',
+                    date: eventMoment ? eventMoment.format('DD MMM YYYY') : '-',
+                    time: eventMoment ? eventMoment.format('hh:mm a') : '-',
+                    note: historyItem.comments ?? ''
+                };
+            });
+
+        return {
+            code: `${request.requestNumber ?? '-'}`,
+            company: request.customer?.customerName ?? 'Sin cliente',
+            amount,
+            classification: request.classification?.name ?? 'Sin clasificación',
+            flow: `Flujo: ${request.request_type?.name?.toUpperCase() ?? 'N/A'} (${request.area ?? 'N/A'})`,
+            createdDate: request.createdAt ? moment(request.createdAt).format('DD MMM YYYY') : '-',
+            progressText: `Paso ${data.progress.currentStepOrder} de ${data.progress.totalSteps}`,
+            statusLabel: this.toTitleCase(request.status),
+            steps: timelineSteps.length > 0 ? timelineSteps : fallbackSteps,
+            commentsHistory: data.history.map((historyItem) => {
+                const createdAt = moment(historyItem.createdAt);
+
+                return {
+                    id: historyItem.id,
+                    author: historyItem.action_user?.fullName ?? '-',
+                    role: historyItem.workflow_step?.stepName ?? '-',
+                    comment: historyItem.comments ?? 'Sin comentarios',
+                    status: this.mapHistoryStatus(historyItem.actionType),
+                    date: createdAt.format('DD MMM YYYY'),
+                    time: createdAt.format('hh:mm a')
+                };
+            })
+        };
+    }
+
+    private mapHistoryStatus(status: string | null | undefined): string {
+        const normalized = (status ?? '').toLowerCase();
+
+        if (normalized === 'created') {
+            return 'Creado';
+        }
+
+        if (normalized === 'processed') {
+            return 'Procesado';
+        }
+
+        if (normalized === 'rejected') {
+            return 'Rechazado';
+        }
+
+        if (normalized === 'returned') {
+            return 'Devuelto';
+        }
+
+        if (normalized === 'routed') {
+            return 'Procesado';
+        }
+
+        if (normalized === 'routed_back' || normalized === 'returned') {
+            return 'Devuelto';
+        }
+
+        if (normalized === 'pending') {
+            return 'Procesado';
+        }
+
+        return 'Aprobado';
     }
 
     private formatAmount(currency: string | undefined, amountValue: number | string | undefined): string {
