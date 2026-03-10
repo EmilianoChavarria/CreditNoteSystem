@@ -18,6 +18,7 @@ import { NewUser } from './features/settings/pages/users/new-user/new-user';
 import { NewCustomer } from './features/settings/pages/customers/new-customer/new-customer';
 import { NotFound } from './features/not-found/not-found';
 import { Workflows } from './features/settings/pages/workflows/workflows';
+import { MyApprovals } from './features/pages/my-approvals/my-approvals';
 
 export const routes: Routes = [
   { 
@@ -37,6 +38,7 @@ export const routes: Routes = [
       { path: 'request/new-request', component: NewRequest },
       { path: 'request/drafts', component: BulkUpload },
       { path: 'request/bulk-upload', component: Drafts },
+      { path: 'my-approvals', component: MyApprovals },
       { path: 'pending', component: Pending },
       { path: 'history', component: History },
       { path: 'notifications', component: Notifications },
