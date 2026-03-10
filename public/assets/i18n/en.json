@@ -75,7 +75,11 @@
   },
   "PENDING": {
     "TITLE": "Pending Requests",
-    "DESCRIPTION": "Continue With Your Request Process"
+    "DESCRIPTION": "Continue With Your Approval Request Process"
+  },
+  "LIST": {
+    "TITLE": "Requests List",
+    "DESCRIPTION": "See the complete list of requests"
   },
   "HISTORY": {
     "TITLE": "History",

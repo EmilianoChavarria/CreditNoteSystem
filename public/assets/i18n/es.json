@@ -77,6 +77,10 @@
     "TITLE": "Solicitudes Pendientes",
     "DESCRIPTION": "Continua Con Tu Proceso de Solicitud"
   },
+  "LIST": {
+    "TITLE": "Listado de Solicitudes",
+    "DESCRIPTION": "Visualiza el listado completo de solicitudes"
+  },
   "HISTORY": {
     "TITLE": "Historial",
     "DESCRIPTION": "Ver tus solicitudes"
