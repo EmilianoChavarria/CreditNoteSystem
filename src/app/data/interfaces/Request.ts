@@ -37,8 +37,8 @@ export interface Request {
     deletedAt: string | null;
     request_type: RequestType;
     user: User;
-    customer: Customer
-    reason: Reason
+    customer: Customer;
+    reason: Reason;
     classification: Classification;
     workflow_current_step: WorkflowCurrentStep
 }
