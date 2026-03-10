@@ -44,18 +44,19 @@
                 <div class="mt-4 flex flex-wrap items-center gap-3">
                     @for (step of workflow.steps; track step.stepNumber; let isLast = $last) {
                     <div class="flex items-center gap-3">
-                        <div [class]="'relative w-42.5 rounded-xl border p-3 shadow-sm ' + step.cardClass">
+                        <div [class]="'relative w-42.5 rounded-xl border p-3 shadow-sm ' + step.cardClass"
+                            [style.border-color]="step.cardBorderColor">
                             <span
                                 class="absolute -top-2 -left-2 h-6 w-6 rounded-full bg-slate-900 text-white text-xs flex items-center justify-center font-semibold">
                                 {{step.stepNumber}}
                             </span>
 
                             <div class="flex flex-col items-center text-center gap-y-1">
-                                <lucide-icon [name]="step.icon" size="18" class="text-[#395f93]"></lucide-icon>
+                                <lucide-icon [name]="step.icon" size="18" [style.color]="step.iconColor || '#395f93'"></lucide-icon>
                                 <span class="font-semibold text-sm text-gray-800">{{step.roleName}}</span>
                                 <span class="text-xs text-gray-600">{{step.description}}</span>
-                                <span
-                                    [class]="'mt-2 text-[11px] rounded-full px-2 py-0.5 ' + step.badgeClass">{{step.action}}</span>
+                                <span [class]="'mt-2 text-[11px] rounded-full px-2 py-0.5 ' + step.badgeClass"
+                                    [style.color]="step.badgeColor" [style.background-color]="step.badgeBgColor">{{step.action}}</span>
                             </div>
                         </div>
 
@@ -93,6 +94,6 @@
 
     <app-add-workflow-modal [open]="isOpenAddWorkflowModal()" [workflowForm]="workflowForm"
         [classificationTypes]="classificationTypes()" (openChange)="showAddWorkflowModal($event)"
-        (primaryAction)="saveWorkflow()" (requestTypeChange)="onRequestTypeChange($event)">
+        (primaryAction)="saveWorkflow()">
     </app-add-workflow-modal>
 </section>

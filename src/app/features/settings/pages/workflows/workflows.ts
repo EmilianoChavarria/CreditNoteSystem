@@ -27,6 +27,12 @@ interface WorkflowStep {
   icon: string;
   cardClass: string;
   badgeClass: string;
+  cardBorderColor?: string;
+  cardBgColor?: string;
+  iconColor?: string;
+  badgeColor?: string;
+  badgeBgColor?: string;
+  badgeBorderColor?: string;
 }
 
 interface WorkflowGroup {
@@ -34,6 +40,7 @@ interface WorkflowGroup {
   title: string;
   description: string;
   type: string;
+  requestTypeName?: string;
   steps: WorkflowStep[];
 }
 
@@ -91,32 +98,7 @@ export class Workflows {
   public conditionComparators = ['Es igual a', 'Contiene'];
   public branchComparators = ['Mayor que', 'Igual que'];
 
-  public workflowsMock = signal<WorkflowGroup[]>([
-    {
-      id: 1,
-      title: 'Flujo principal - Nota de crédito',
-      description: 'Proceso lineal con aprobación en cadena para notas de crédito',
-      type: "sales",
-      steps: [
-        { stepNumber: 1, roleName: 'Requester', description: 'Crea la nota', action: 'Creación', icon: 'user', cardClass: 'border-orange-200 bg-orange-50', badgeClass: 'bg-orange-100 text-orange-700 border border-orange-200' },
-        { stepNumber: 2, roleName: 'Processor', description: 'Procesa y valida', action: 'Procesamiento', icon: 'settings', cardClass: 'border-slate-300 bg-slate-50', badgeClass: 'bg-slate-100 text-slate-700 border border-slate-300' },
-        { stepNumber: 3, roleName: 'CS Leader', description: 'Aprueba la nota', action: 'Aprobación', icon: 'shield-check', cardClass: 'border-blue-300 bg-blue-50', badgeClass: 'bg-blue-100 text-blue-700 border border-blue-300' },
-        { stepNumber: 4, roleName: 'Manager', description: 'Aprobación gerencial', action: 'Aprobación', icon: 'clipboard-check', cardClass: 'border-blue-300 bg-blue-50', badgeClass: 'bg-blue-100 text-blue-700 border border-blue-300' },
-        { stepNumber: 5, roleName: 'Released', description: 'Nota liberada', action: 'Liberación', icon: 'check', cardClass: 'border-emerald-300 bg-emerald-50', badgeClass: 'bg-emerald-100 text-emerald-700 border border-emerald-300' }
-      ]
-    },
-    {
-      id: 2,
-      title: 'Flujo alterno - Nota de débito',
-      description: 'Proceso lineal con aprobación en cadena para notas de débito',
-      type: "",
-      steps: [
-        { stepNumber: 1, roleName: 'Requester', description: 'Crea la nota', action: 'Creación', icon: 'user', cardClass: 'border-orange-200 bg-orange-50', badgeClass: 'bg-orange-100 text-orange-700 border border-orange-200' },
-        { stepNumber: 2, roleName: 'Finance', description: 'Procesamiento financiero', action: 'Procesamiento', icon: 'building-2', cardClass: 'border-slate-300 bg-slate-50', badgeClass: 'bg-slate-100 text-slate-700 border border-slate-300' },
-        { stepNumber: 3, roleName: 'Approve', description: 'Aprobación final', action: 'Aprobación', icon: 'shield-check', cardClass: 'border-blue-300 bg-blue-50', badgeClass: 'bg-blue-100 text-blue-700 border border-blue-300' }
-      ]
-    }
-  ]);
+  public workflowsMock = signal<WorkflowGroup[]>([]);
 
   public activeWorkflow = signal<WorkflowGroup | null>(null);
   public advanceConditions = signal<AdvanceCondition[]>([]);
@@ -172,7 +154,109 @@ export class Workflows {
     private _roleService: RoleService,
     private _workflowService: WorkflowService
   ) {
+    this.getWorkflows();
+  }
 
+  private getWorkflows() {
+    this._workflowService.getWorkflows().subscribe({
+      next: (response) => {
+        const mappedWorkflows = response.map((workflow) => {
+          const sortedSteps = [...(workflow.steps ?? [])].sort((a, b) => a.stepOrder - b.stepOrder);
+
+          return {
+            id: workflow.id ?? 0,
+            title: workflow.name,
+            description: workflow.request_type?.name ? `${workflow.description} - ${workflow.request_type.name}` : workflow.description,
+            type: workflow.classificationType ?? '',
+            requestTypeName: workflow.request_type?.name,
+            steps: sortedSteps.map((step) => {
+              const action = step.isInitialStep ? 'Inicio' : step.isFinalStep ? 'Finalización' : 'Aprobación';
+              const roleColor = step.role?.color;
+
+              return {
+                stepNumber: step.stepOrder,
+                roleName: step.role?.roleName ?? step.stepName,
+                description: step.stepName,
+                action,
+                icon: this.getStepIcon(action),
+                cardClass: this.getStepCardClass(action),
+                badgeClass: this.getStepBadgeClass(action),
+                cardBorderColor: roleColor,
+                cardBgColor: this.hexToRgba(roleColor, 0.1),
+                iconColor: roleColor,
+                badgeColor: roleColor,
+                badgeBgColor: this.hexToRgba(roleColor, 0.12),
+                badgeBorderColor: roleColor
+              };
+            })
+          } as WorkflowGroup;
+        });
+
+        this.workflowsMock.set(mappedWorkflows);
+      },
+      error: (error) => {
+        console.log(error);
+      }
+    })
+  }
+
+  private getStepIcon(action: string): string {
+    switch (action) {
+      case 'Inicio':
+        return 'play';
+      case 'Finalización':
+        return 'check';
+      default:
+        return 'shield-check';
+    }
+  }
+
+  private getStepCardClass(action: string): string {
+    switch (action) {
+      case 'Inicio':
+        return 'h-40 border-orange-200 bg-orange-50';
+      case 'Finalización':
+        return 'h-40 border-emerald-300 bg-emerald-50';
+      default:
+        return 'h-40 border-blue-300 bg-blue-50';
+    }
+  }
+
+  private getStepBadgeClass(action: string): string {
+    switch (action) {
+      case 'Inicio':
+        return 'border bg-orange-100 text-orange-700';
+      case 'Finalización':
+        return 'border bg-emerald-100 text-emerald-700';
+      default:
+        return 'border bg-blue-100 text-blue-700';
+    }
+  }
+
+  private hexToRgba(hexColor?: string, alpha: number = 1): string | undefined {
+    if (!hexColor) {
+      return undefined;
+    }
+
+    const normalized = hexColor.replace('#', '');
+    const isShort = normalized.length === 3;
+    const fullHex = isShort
+      ? normalized.split('').map((char) => char + char).join('')
+      : normalized;
+
+    if (fullHex.length !== 6) {
+      return undefined;
+    }
+
+    const r = Number.parseInt(fullHex.slice(0, 2), 16);
+    const g = Number.parseInt(fullHex.slice(2, 4), 16);
+    const b = Number.parseInt(fullHex.slice(4, 6), 16);
+
+    if ([r, g, b].some((value) => Number.isNaN(value))) {
+      return undefined;
+    }
+
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   }
 
   private getRoles() {
@@ -250,13 +334,6 @@ export class Workflows {
     this.workflowForm.reset({ name: '', description: '', requestTypeId: 0, classificationType: '' });
   }
 
-  onRequestTypeChange(event: Event) {
-    const target = event.target as HTMLSelectElement;
-    const value = Number(target.value);
-    this.workflowForm.controls.requestTypeId.setValue(Number.isNaN(value) ? 0 : value);
-    console.log(this.workflowForm.controls.requestTypeId.value);
-  }
-
   public showAddWorkflowModal(isOpen: boolean) {
     this.isOpenAddWorkflowModal.set(isOpen);
   }
@@ -312,6 +389,7 @@ export class Workflows {
     this._workflowService.storeClassification(object).subscribe({
       next: (response) => {
         console.log(response);
+        this.getWorkflows();
       },
       error: (error) => {
         console.log(error);
