@@ -88,7 +88,7 @@ export class Sidebar {
           { iconName: 'FolderUp', optionName: 'SIDEBAR.BULK_UPLOAD', url: '/app/request/bulk-upload' },
         ]
       },
-      { iconName: 'clipboard-check', optionName: 'SIDEBAR.APPROVE', url: '/app/pending' },
+      { iconName: 'file-clock', optionName: 'SIDEBAR.APPROVE', url: '/app/my-approvals' },
       { iconName: 'clipboard-check', optionName: 'SIDEBAR.PENDING', url: '/app/pending' },
       // { iconName: 'clipboard-list', optionName: 'SIDEBAR.HISTORY', url: '/app/history' },
       { iconName: 'bell', optionName: 'SIDEBAR.NOTIFICATIONS', url: '/app/notifications' },
