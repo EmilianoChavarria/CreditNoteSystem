@@ -15,7 +15,7 @@
         (paginaPrimera)="onFirstPage()" (paginaUltima)="onLastPage()"
         (registrosPorPaginaChange)="onPageSizeChange($event)"
         >
-        <ng-template #headerButtonTemplate let-button let-execute="execute">
+        <!-- <ng-template #headerButtonTemplate let-button let-execute="execute">
             <button type="button" class="rounded-md bg-black text-white px-3 py-1 flex items-center gap-2 text-nowrap"
                 (click)="execute(button)">
                 @if (button.icon) {
@@ -23,7 +23,7 @@
                 }
                 <span>{{ button.label }}</span>
             </button>
-        </ng-template>
+        </ng-template> -->
     </app-tabla-dinamica>
 
     <app-assign-modal [open]="isOpenModal()" 
