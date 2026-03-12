@@ -302,4 +302,32 @@ export class RequestService {
 
   }
 
+  approveRequest(requestId: number): Observable<any> {
+    return this._httpService.post(`/requests/${requestId}/approve`, {}).pipe(
+      tap((response: ApiResponse<any>) => {
+        if (response.success) {
+          console.log('Request approved successfully');
+        }
+      }),
+      catchError((error) => {
+        console.log(error);
+        throw error;
+      })
+    )
+  }
+
+  rejectRequest(requestId: number, comments: string): Observable<any> {
+    return this._httpService.post(`/requests/${requestId}/reject`, { comments }).pipe(
+      tap((response: ApiResponse<any>) => {
+        if (response.success) {
+          console.log('Request rejected successfully');
+        }
+      }),
+      catchError((error) => {
+        console.log(error);
+        throw error;
+      })
+    )
+  }
+
 }
