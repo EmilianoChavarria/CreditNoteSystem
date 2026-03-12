@@ -333,7 +333,7 @@ export class NewRequest implements OnInit {
             // console.log("Form parseado", newObject);
             // alert('Datos impresos en consola');
             this.saveRequest(newObject);
-            // this.submitted = false; // Resetear después de guardar exitosamente
+            this.submitted = false; // Resetear después de guardar exitosamente
         } else {
             this.toastr.error('Por favor, rellena los campos obligatorios', 'Error');
         }
