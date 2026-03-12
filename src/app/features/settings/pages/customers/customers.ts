@@ -101,7 +101,7 @@ export class Customers {
         {
             key: 'reset',
             icon: 'user-plus',
-            label: 'Assign Manager',
+            label: 'See Info',
             accion: (user) => this.openModal(user)
         }
     ];
