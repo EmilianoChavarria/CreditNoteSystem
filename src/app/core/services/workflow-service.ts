@@ -59,4 +59,43 @@ export class WorkflowService {
     )
   }
 
+  storeWorkflowStep(data: any) {
+    return this._httpService.post<any>('/workflowsteps', data).pipe(
+      tap((response: ApiResponse<any>) => {
+        if (response.success) { }
+      }),
+      map((response) => response.data ?? {}),
+      catchError((error) => {
+        console.log(error);
+        throw error;
+      })
+    )
+  }
+
+  updateWorkflowStep(id: number, data: any) {
+    return this._httpService.put<any>(`/workflowsteps/${id}`, data).pipe(
+      tap((response: ApiResponse<any>) => {
+        if (response.success) { }
+      }),
+      map((response) => response.data ?? {}),
+      catchError((error) => {
+        console.log(error);
+        throw error;
+      })
+    )
+  }
+
+  getWorkflowSteps(workflowId: number) {
+    return this._httpService.get<any>(`/workflowsteps/workflow/${workflowId}`).pipe(
+      tap((response: ApiResponse<any>) => {
+        if (response.success) { }
+      }),
+      map((response) => response.data?.steps ?? []),
+      catchError((error) => {
+        console.log(error);
+        throw error;
+      })
+    )
+  }
+
 }
