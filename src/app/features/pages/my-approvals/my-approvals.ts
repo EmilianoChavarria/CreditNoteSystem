@@ -1,10 +1,11 @@
 import { Component, signal } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AccionPersonalizada, Column, Table } from '../../../shared/components/ui/table/table';
 import { Request } from '../../../data/interfaces/Request';
 import { WorkflowDetail, WorkflowHistoryDrawer } from '../../history/components/workflow-history-drawer/workflow-history-drawer';
 import { RequestHistoryData, RequestHistoryLog, RequestService } from '../../../core/services/request-service';
+import { ToastService } from '../../../core/services/toast-service';
 import moment from 'moment';
 import * as pdfMake from 'pdfmake/build/pdfmake';
 import * as pdfFonts from 'pdfmake/build/vfs_fonts';
@@ -19,7 +20,7 @@ const pdf: any = (pdfMake as any).default ?? pdfMake;
 pdf.vfs = (pdfFonts as any).default?.vfs ?? (pdfFonts as any).vfs;
 @Component({
   selector: 'app-my-approvals',
-  imports: [TranslatePipe, WorkflowHistoryDrawer, Modal, Table, Badge, UpperCasePipe, Spinner],
+  imports: [TranslatePipe, WorkflowHistoryDrawer, Modal, Table, Badge, UpperCasePipe, Spinner, ReactiveFormsModule],
   templateUrl: './my-approvals.html',
   styleUrl: './my-approvals.css',
 })
@@ -37,7 +38,7 @@ export class MyApprovals {
     private prevCursor = signal<string | null>(null);
     public isLoading = signal<boolean>(false);
     public form = new FormGroup({
-        reason: new FormControl<string>('', Validators.required)
+        comments: new FormControl<string>('', Validators.required)
     })
     public columns: Column<Request>[] = [
         {
@@ -80,7 +81,7 @@ export class MyApprovals {
             key: 'approve',
             icon: 'check',
             label: 'Approve',
-            accion: (request) => this.logAction(request)
+            accion: (request) => this.approveRequest(request)
         },
         {
             key: 'decline',
@@ -127,7 +128,8 @@ export class MyApprovals {
     public showDeclineModal = signal<boolean>(false);
 
     constructor(
-        private _requestsService: RequestService
+        private _requestsService: RequestService,
+        private _toastService: ToastService
     ) { }
 
     onRequestTypeChange(event: any) {
@@ -191,11 +193,16 @@ export class MyApprovals {
 
     onDeclineModalChange(isOpen: boolean = true, request?: Request): void {
         this.showDeclineModal.set(isOpen);
-        // if (!isOpen) {
-        //     this.selectedUserToDelete.set(null);
-        // }
-        console.log(request);
-
+        if (isOpen && request) {
+            this.selectedRequest.set(request);
+            this.form.reset();
+            this.submitted.set(false);
+        }
+        if (!isOpen) {
+            this.selectedRequest.set(null);
+            this.form.reset();
+            this.submitted.set(false);
+        }
     }
 
     campoVacio(controlName: string): boolean {
@@ -216,7 +223,40 @@ export class MyApprovals {
     }
 
     declineRequest(request: Request) {
+        if (!request.id || !this.form.valid) {
+            return;
+        }
 
+        const comments = this.form.get('comments')?.value || '';
+        
+        this._requestsService.rejectRequest(request.id, comments).subscribe({
+            next: () => {
+                this._toastService.success('Request rejected successfully', 'Success');
+                this.onDeclineModalChange(false);
+                this.loadMyPendingRequests();
+            },
+            error: (error) => {
+                this._toastService.error('Error rejecting request', 'Error');
+                console.error('Error rejecting request:', error);
+            }
+        });
+    }
+
+    approveRequest(request: Request) {
+        if (!request.id) {
+            return;
+        }
+
+        this._requestsService.approveRequest(request.id).subscribe({
+            next: () => {
+                this._toastService.success('Request approved successfully', 'Success');
+                this.loadMyPendingRequests();
+            },
+            error: (error) => {
+                this._toastService.error('Error approving request', 'Error');
+                console.error('Error approving request:', error);
+            }
+        });
     }
 
     logAction(request: Request) {
