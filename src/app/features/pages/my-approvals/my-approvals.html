@@ -56,15 +56,15 @@
     }
 
     <app-modal size="md" titleM="Reason for Rejection" [open]="showDeclineModal()" closeText="Cancelar"
-        primaryText="Reject" (openChange)="onDeclineModalChange($event)" (primaryAction)="onDeclineModalChange()">
-        <div>
+        primaryText="Reject" (openChange)="onDeclineModalChange($event)" (primaryAction)="declineRequest(selectedRequest()!)">
+        <div [formGroup]="form">
             <label class="block font-medium text-[#395f93] text-lg">{{'REJECTION.REASON' | translate}}
                 <span class="text-red-500 text-lg">*</span>
             </label>
-            <textarea placeholder="Reason..." formControlName="reason"
-                [class]="campoVacio('reason') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'"></textarea>
-            @if (campoVacio('reason')) {
-            <span class="text-sm text-red-500">{{ getErrorMessage('reason') }}</span>
+            <textarea placeholder="Add your comments..." formControlName="comments"
+                [class]="campoVacio('comments') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'"></textarea>
+            @if (campoVacio('comments')) {
+            <span class="text-sm text-red-500">{{ getErrorMessage('comments') }}</span>
             }
 
         </div>
