@@ -19,6 +19,11 @@
                 Add Workflow
             </button>
         </div>
+        @if (isLoadingWorkflows()) {
+        <div class="flex items-center justify-center py-24">
+            <app-spinner size="large"></app-spinner>
+        </div>
+        } @else {
         <accordeon-container>
             @for (workflow of workflowsMock(); track workflow.id) {
             <accordeon-item [title]="workflow.title" [description]="workflow.description">
@@ -44,12 +49,16 @@
                 <div class="mt-4 flex flex-wrap items-center gap-3">
                     @for (step of workflow.steps; track step.stepNumber; let isLast = $last) {
                     <div class="flex items-center gap-3">
-                        <div [class]="'relative w-42.5 rounded-xl border p-3 shadow-sm ' + step.cardClass"
+                        <div [class]="'relative w-42.5 rounded-xl border p-3 shadow-sm group ' + step.cardClass"
                             [style.border-color]="step.cardBorderColor">
                             <span
                                 class="absolute -top-2 -left-2 h-6 w-6 rounded-full bg-slate-900 text-white text-xs flex items-center justify-center font-semibold">
                                 {{step.stepNumber}}
                             </span>
+                            <button type="button" (click)="openEditStepModal(workflow, step)"
+                                class="absolute inset-0 rounded-xl bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center hover:cursor-pointer">
+                                <lucide-icon name="pencil" size="20" class="text-white"></lucide-icon>
+                            </button>
 
                             <div class="flex flex-col items-center text-center gap-y-1">
                                 <lucide-icon [name]="step.icon" size="18" [style.color]="step.iconColor || '#395f93'"></lucide-icon>
@@ -76,6 +85,7 @@
             </accordeon-item>
             }
         </accordeon-container>
+        }
     </div>
 
     <app-roles-manage-modal [open]="isOpenModal()" [isLoading]="isLoadingRoles()" [roles]="roles()"
@@ -88,8 +98,10 @@
     </app-role-form-modal>
 
     <app-add-step-modal [open]="isOpenAddStepModal()" [stepForm]="stepForm" [isStepNumberLocked]="isStepNumberLocked()"
-        [availableRoles]="availableRoles()" [permissionsOptions]="permissionsOptions" (openChange)="showAddStepModal($event)"
-        (primaryAction)="saveStep()" (permissionsChange)="onPermissionsChange($event)">
+        [modalTitle]="editingStepId() !== null ? 'Editar Paso' : 'Agregar Paso'"
+        [isLoading]="isLoadingStepModal()" [isSaving]="isSavingStep()"
+        [availableRoles]="availableRoles()" [transitions]="transitions()" [availableSteps]="workflowSteps()" (openChange)="showAddStepModal($event)"
+        (primaryAction)="saveStep()" (transitionsChange)="transitions.set($event)">
     </app-add-step-modal>
 
     <app-add-workflow-modal [open]="isOpenAddWorkflowModal()" [workflowForm]="workflowForm"
