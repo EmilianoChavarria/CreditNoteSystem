@@ -7,12 +7,13 @@ import { RoleService } from '../../../../core/services/role-service';
 import { Role } from '../../../../data/interfaces/User';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ClassificationTypeGroup, WorkflowService } from '../../../../core/services/workflow-service';
-import { map } from 'rxjs';
+import { forkJoin, map } from 'rxjs';
 import { RolesManageModal } from './components/roles-manage-modal/roles-manage-modal';
 import { RoleFormModal } from './components/role-form-modal/role-form-modal';
 import { AddStepModal } from './components/add-step-modal/add-step-modal';
 import { AddWorkflowModal } from './components/add-workflow-modal/add-workflow-modal';
 import { Workflow } from '../../../../data/interfaces/Workflow';
+import { Spinner } from '../../../../shared/components/ui/spinner/spinner';
 
 interface Color {
   name: string;
@@ -20,7 +21,10 @@ interface Color {
 }
 
 interface WorkflowStep {
+  id: number;
   stepNumber: number;
+  roleId: number;
+  isFinalStep: boolean;
   roleName: string;
   description: string;
   action: string;
@@ -54,7 +58,7 @@ interface BranchRule {
 
 @Component({
   selector: 'app-workflows',
-  imports: [TranslatePipe, AccordeonContainer, AccordeonItem, LucideAngularModule, RolesManageModal, RoleFormModal, AddStepModal, AddWorkflowModal],
+  imports: [TranslatePipe, AccordeonContainer, AccordeonItem, LucideAngularModule, RolesManageModal, RoleFormModal, AddStepModal, AddWorkflowModal, Spinner],
   templateUrl: './workflows.html',
   styleUrl: './workflows.css'
 })
@@ -65,6 +69,10 @@ export class Workflows {
   public isOpenAddStepModal = signal<boolean>(false);
   public isOpenAddWorkflowModal = signal<boolean>(false);
   public isStepNumberLocked = signal<boolean>(false);
+  public editingStepId = signal<number | null>(null);
+  public isLoadingWorkflows = signal<boolean>(true);
+  public isLoadingStepModal = signal<boolean>(false);
+  public isSavingStep = signal<boolean>(false);
   public roles = signal<Role[]>([]);
   public isLoadingRoles = signal<boolean>(true);
   public submitted = signal(false);
@@ -73,11 +81,13 @@ export class Workflows {
   });
 
   public stepForm = new FormGroup({
-    stepNumber: new FormControl<number | null>(null, Validators.required),
+    workflowId: new FormControl<number | null>(null),
+    stepOrder: new FormControl<number | null>(null, Validators.required),
     roleId: new FormControl<number | null>(null, Validators.required),
-    permissions: new FormControl<string | null>(null, Validators.required),
-    description: new FormControl<string>('', Validators.required)
+    isFinalStep: new FormControl<boolean>(false)
   });
+
+  public transitions = signal<any[]>([]);
 
   public workflowForm = new FormGroup({
     name: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
@@ -99,6 +109,7 @@ export class Workflows {
   public branchComparators = ['Mayor que', 'Igual que'];
 
   public workflowsMock = signal<WorkflowGroup[]>([]);
+  public workflowSteps = signal<any[]>([]);
 
   public activeWorkflow = signal<WorkflowGroup | null>(null);
   public advanceConditions = signal<AdvanceCondition[]>([]);
@@ -158,6 +169,7 @@ export class Workflows {
   }
 
   private getWorkflows() {
+    this.isLoadingWorkflows.set(true);
     this._workflowService.getWorkflows().subscribe({
       next: (response) => {
         const mappedWorkflows = response.map((workflow) => {
@@ -174,7 +186,10 @@ export class Workflows {
               const roleColor = step.role?.color;
 
               return {
+                id: step.id,
                 stepNumber: step.stepOrder,
+                roleId: step.role?.id ?? step.roleId,
+                isFinalStep: step.isFinalStep,
                 roleName: step.role?.roleName ?? step.stepName,
                 description: step.stepName,
                 action,
@@ -193,11 +208,13 @@ export class Workflows {
         });
 
         this.workflowsMock.set(mappedWorkflows);
+        this.isLoadingWorkflows.set(false);
       },
       error: (error) => {
         console.log(error);
+        this.isLoadingWorkflows.set(false);
       }
-    })
+    });
   }
 
   private getStepIcon(action: string): string {
@@ -259,6 +276,36 @@ export class Workflows {
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   }
 
+  private loadModalData(workflowId: number) {
+    this.isLoadingStepModal.set(true);
+    forkJoin({
+      roles: this._roleService.getRoles(),
+      steps: this._workflowService.getWorkflowSteps(workflowId)
+    }).subscribe({
+      next: ({ roles, steps }) => {
+        this.isLoadingRoles.set(false);
+        this.roles.set(roles);
+        this.workflowSteps.set(steps);
+        this.isLoadingStepModal.set(false);
+      },
+      error: (error) => {
+        console.log(error);
+        this.isLoadingStepModal.set(false);
+      }
+    });
+  }
+
+  private getWorkflowSteps(workflowId: number) {
+    this._workflowService.getWorkflowSteps(workflowId).subscribe({
+      next: (response) => {
+        this.workflowSteps.set(response);
+      },
+      error: (error) => {
+        console.log(error);
+      }
+    });
+  }
+
   private getRoles() {
     this._roleService.getRoles().subscribe({
       next: (response) => {
@@ -306,7 +353,25 @@ export class Workflows {
     this.isStepNumberLocked.set(false);
     this.isOpenAddStepModal.set(true);
     this.resetStepModalData();
-    this.stepForm.controls.stepNumber.enable();
+    this.stepForm.controls.stepOrder.enable();
+    const lastStep = workflow.steps.length > 0 ? Math.max(...workflow.steps.map(s => s.stepNumber)) : 0;
+    this.stepForm.controls.stepOrder.setValue(lastStep + 1);
+    this.loadModalData(workflow.id);
+  }
+
+  public openEditStepModal(workflow: WorkflowGroup, step: WorkflowStep) {
+    this.activeWorkflow.set(workflow);
+    this.isStepNumberLocked.set(false);
+    this.isOpenAddStepModal.set(true);
+    this.resetStepModalData();
+    this.editingStepId.set(step.id);
+    this.stepForm.controls.stepOrder.enable();
+    this.stepForm.patchValue({
+      stepOrder: step.stepNumber,
+      roleId: step.roleId,
+      isFinalStep: step.isFinalStep
+    });
+    this.loadModalData(workflow.id);
   }
 
   public openAddStepModalFromConnector(workflow: WorkflowGroup, currentStepNumber: number) {
@@ -314,10 +379,9 @@ export class Workflows {
     this.isStepNumberLocked.set(true);
     this.isOpenAddStepModal.set(true);
     this.resetStepModalData();
-
-    const nextStep = currentStepNumber + 1;
-    this.stepForm.controls.stepNumber.setValue(nextStep);
-    this.stepForm.controls.stepNumber.disable();
+    this.stepForm.controls.stepOrder.setValue(currentStepNumber + 1);
+    this.stepForm.controls.stepOrder.disable();
+    this.loadModalData(workflow.id);
   }
 
   public showAddStepModal(isOpen: boolean) {
@@ -364,8 +428,46 @@ export class Workflows {
       return;
     }
 
-    this.isOpenAddStepModal.set(false);
-    this.resetStepModalData();
+    const activeWorkflow = this.activeWorkflow();
+    if (!activeWorkflow) {
+      return;
+    }
+
+    const formValue = this.stepForm.getRawValue();
+    const selectedRole = this.availableRoles().find(r => r.id === formValue.roleId);
+    
+    const stepPayload: any = {
+      workflowId: activeWorkflow.id,
+      stepName: selectedRole?.roleName || '',
+      stepOrder: formValue.stepOrder,
+      roleId: formValue.roleId,
+      isFinalStep: formValue.isFinalStep
+    };
+
+    if (this.transitions().length > 0) {
+      stepPayload.transitions = this.transitions();
+    }
+
+    this.isSavingStep.set(true);
+
+    const editId = this.editingStepId();
+    const request$ = editId !== null
+      ? this._workflowService.updateWorkflowStep(editId, stepPayload)
+      : this._workflowService.storeWorkflowStep(stepPayload);
+
+    request$.subscribe({
+      next: (response) => {
+        console.log(response);
+        this.isSavingStep.set(false);
+        this.isOpenAddStepModal.set(false);
+        this.resetStepModalData();
+        this.getWorkflows();
+      },
+      error: (error) => {
+        console.log(error);
+        this.isSavingStep.set(false);
+      }
+    });
   }
 
   public saveWorkflow() {
@@ -406,22 +508,18 @@ export class Workflows {
     this.isOpenRoleModal.set(true);
   }
 
-  public onPermissionsChange(event: Event): void {
-    const target = event.target as HTMLSelectElement;
-    this.stepForm.controls.permissions.setValue(target.value);
-    this.stepForm.controls.permissions.markAsTouched();
-  }
-
   private resetStepModalData() {
     this.submitted.set(false);
+    this.editingStepId.set(null);
     this.stepForm.reset({
-      stepNumber: null,
+      workflowId: null,
+      stepOrder: null,
       roleId: null,
-      permissions: null,
-      description: ''
+      isFinalStep: false
     });
-    this.stepForm.controls.stepNumber.enable();
+    this.stepForm.controls.stepOrder.enable();
     this.isStepNumberLocked.set(false);
+    this.transitions.set([]);
     this.advanceConditions.set([]);
     this.branchRules.set([]);
     this.nextConditionId = 1;
