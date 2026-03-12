@@ -25,9 +25,9 @@
                     class="p-2 h-11 w-full border border-gray-300 rounded-lg disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
                     placeholder="Enter password" value="12345qwerty" formControlName="password">
                 <button (click)="togglePassword()" type="button"
-                    class="absolute inset-y-0 end-0 flex items-center z-20 px-3 rounded-e-md focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-50"
+                    class="absolute inset-y-0 end-0 flex items-center z-20 px-3 rounded-e-md transition-colors focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-50 hover:cursor-pointer hover:bg-gray-200"
                     [disabled]="isLoading">
-                    <lucide-icon name="eye" [size]="24" color="#302F2F" [strokeWidth]="1.5"></lucide-icon>
+                    <lucide-icon [name]="showPassword ? 'eye-closed' : 'eye'" [size]="24" color="#302F2F" [strokeWidth]="1.5"></lucide-icon>
                 </button>
             </div>
         </div>
