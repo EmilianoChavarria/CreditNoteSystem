@@ -1,4 +1,4 @@
-import { Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
@@ -12,7 +12,8 @@ interface Color {
 @Component({
   selector: 'app-role-form-modal',
   imports: [Modal, ReactiveFormsModule, TranslatePipe, LucideAngularModule],
-  templateUrl: './role-form-modal.html'
+  templateUrl: './role-form-modal.html',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class RoleFormModal {
   readonly open = input<boolean>(false);
@@ -24,6 +25,31 @@ export class RoleFormModal {
   readonly openChange = output<boolean>();
   readonly primaryAction = output<void>();
   readonly selectColor = output<Color>();
+
+  private readonly submitAttempted = signal(false);
+
+  readonly showColorError = computed(() => {
+    return this.submitAttempted() && !this.selectedItem().value;
+  });
+
+  handleOpenChange(isOpen: boolean): void {
+    if (!isOpen) {
+      this.submitAttempted.set(false);
+    }
+
+    this.openChange.emit(isOpen);
+  }
+
+  submitForm(): void {
+    this.submitAttempted.set(true);
+    this.form().markAllAsTouched();
+
+    if (this.form().invalid || !this.selectedItem().value) {
+      return;
+    }
+
+    this.primaryAction.emit();
+  }
 
   campoVacio(controlName: string): boolean {
     const control = this.form().get(controlName);

@@ -1,6 +1,6 @@
 <app-modal size="md" titleM="Roles" [open]="open()" closeText="Cancelar" primaryText="Guardar"
-    (openChange)="openChange.emit($event)" (primaryAction)="primaryAction.emit()">
-    <form [formGroup]="form()" (submit)="primaryAction.emit()">
+    (openChange)="handleOpenChange($event)" (primaryAction)="submitForm()">
+    <form [formGroup]="form()" (submit)="submitForm()">
         <div>
             <label class="block font-medium text-[#395f93] text-lg">{{ 'ROLE_FORM.ROLENAME' | translate }}
                 <span class="text-red-500 text-lg">*</span>
@@ -14,7 +14,7 @@
 
         <div class="mt-4 flex flex-col">
             <span class="block font-medium text-[#395f93] text-lg">{{ 'ROLE_FORM.SELECT_COLOR' | translate }}</span>
-            <div class="grid grid-cols-8 gap-4 mt-4">
+            <div [class]="`grid grid-cols-8 gap-4 mt-4 border py-4 px-2 rounded-lg ${showColorError() ? 'border-red-500': 'border-transparent'}`">
                 @for (color of roleColors(); track $index) {
                 <button type="button"
                     [class]="`group relative flex size-8 items-center justify-center rounded-full transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background hover:cursor-pointer ${color.value === selectedItem().value ? 'scale-110 ring-2 ring-offset-2 ring-offset-background' : 'hover:scale-110' }`"
@@ -28,6 +28,9 @@
                 </button>
                 }
             </div>
+            @if (showColorError()) {
+            <span class="mt-2 text-sm text-red-500">Debes seleccionar un color</span>
+            }
 
             <span class="block font-medium text-[#395f93] text-lg mt-4">{{ 'ROLE_FORM.PREVIEW' | translate }}</span>
             <div class="w-full flex flex-row items-center justify-start gap-3 rounded-lg border border-gray-300 bg-gray-50 p-3">
