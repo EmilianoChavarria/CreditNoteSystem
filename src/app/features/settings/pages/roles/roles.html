@@ -30,7 +30,7 @@
                 @for (role of roles(); track $index) {
                 <tr>
                     <td class="border border-gray-200 px-6 py-4 w-fit">
-                        <input type="checkbox" [checked]="isRoleChecked(role.id)"
+                        <input type="checkbox" [checked]="isRoleChecked(role.id || 0)"
                             (change)="onRoleRowToggle(role, $event)" class="size-5 text-emerald-500">
                     </td>
                     <td class="border border-gray-200 px-6 py-4 w-fit">
@@ -41,7 +41,7 @@
                     </td>
                     @for (requestType of requestTypes(); track $index) {
                     <td class="px-6 py-4 border border-gray-200">
-                        <input type="checkbox" [checked]="hasPermission(role.id, requestType.id)"
+                        <input type="checkbox" [checked]="hasPermission(role.id || 0, requestType.id)"
                             (change)="onPermissionChange(role, requestType, $event)"
                             class="size-5 text-emerald-500 text-center mx-auto w-full">
                     </td>

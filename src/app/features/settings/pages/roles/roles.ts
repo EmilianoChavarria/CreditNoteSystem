@@ -66,9 +66,9 @@ export class Roles {
         const matrix: Record<number, Record<number, boolean>> = {};
 
         for (const role of this.roles()) {
-            matrix[role.id] = {};
+            matrix[role.id || 0] = {};
             for (const requestType of this.requestTypes()) {
-                matrix[role.id][requestType.id] = false;
+                matrix[role.id || 0][requestType.id] = false;
             }
         }
 
@@ -96,7 +96,7 @@ export class Roles {
         return types.every(requestType => this.hasPermission(roleId, requestType.id));
     }
 
-    
+
     onRoleRowToggle(role: Role, event: Event): void {
         const input = event.target as HTMLInputElement;
         const checked = input.checked;
@@ -107,7 +107,7 @@ export class Roles {
         }));
 
         this.permissionsMatrix.update(current => {
-            const updatedRow: Record<number, boolean> = { ...(current[role.id] ?? {}) };
+            const updatedRow: Record<number, boolean> = { ...(current[role.id || 0] ?? {}) };
 
             for (const requestType of this.requestTypes()) {
                 updatedRow[requestType.id] = checked;
@@ -115,7 +115,7 @@ export class Roles {
 
             return {
                 ...current,
-                [role.id]: updatedRow,
+                [role.id || 0]: updatedRow,
             };
         });
 
@@ -134,7 +134,7 @@ export class Roles {
 
     onPermissionChange(role: Role, requestType: RequestType, event: Event): void {
         event.preventDefault();
-        const currentAccess = this.hasPermission(role.id, requestType.id);
+        const currentAccess = this.hasPermission(role.id || 0, requestType.id);
         this.permissionPayload.set({ role, requestType, hasAccess: !currentAccess });
         this.onPermissionModalChange(true);
     }
