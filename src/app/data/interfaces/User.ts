@@ -13,7 +13,7 @@ export interface User {
 }
 
 export interface Role {
-  id: number;
+  id?: number;
   roleName: string;
   color?: string;
   isActive?: string;
