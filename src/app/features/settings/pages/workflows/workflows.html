@@ -89,7 +89,7 @@
     </div>
 
     <app-roles-manage-modal [open]="isOpenModal()" [isLoading]="isLoadingRoles()" [roles]="roles()"
-        (openChange)="showModal($event)" (primaryAction)="saveRole()">
+        (openChange)="showModal($event)" (primaryAction)="openRoleModal()">
     </app-roles-manage-modal>
 
     <app-role-form-modal [open]="isOpenRoleModal()" [form]="form" [submitted]="submitted()" [roleColors]="ROLE_COLORS"

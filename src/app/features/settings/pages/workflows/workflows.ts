@@ -14,6 +14,7 @@ import { AddStepModal } from './components/add-step-modal/add-step-modal';
 import { AddWorkflowModal } from './components/add-workflow-modal/add-workflow-modal';
 import { Workflow } from '../../../../data/interfaces/Workflow';
 import { Spinner } from '../../../../shared/components/ui/spinner/spinner';
+import { ToastService } from '../../../../core/services/toast-service';
 
 interface Color {
   name: string;
@@ -163,7 +164,8 @@ export class Workflows {
 
   constructor(
     private _roleService: RoleService,
-    private _workflowService: WorkflowService
+    private _workflowService: WorkflowService,
+    private _toastService: ToastService
   ) {
     this.getWorkflows();
   }
@@ -435,7 +437,7 @@ export class Workflows {
 
     const formValue = this.stepForm.getRawValue();
     const selectedRole = this.availableRoles().find(r => r.id === formValue.roleId);
-    
+
     const stepPayload: any = {
       workflowId: activeWorkflow.id,
       stepName: selectedRole?.roleName || '',
@@ -503,9 +505,27 @@ export class Workflows {
     this.selectedItem = item;
   }
 
+  openRoleModal() {
+    this.isOpenRoleModal.set(true);
+  }
+
   public saveRole() {
     console.log("Si jala");
-    this.isOpenRoleModal.set(true);
+    const data = {
+      color: this.selectedItem.value,
+      roleName: this.form.value.roleName?.toUpperCase()
+    } as Role;
+    this._roleService.saveRole(data).subscribe({
+      next: (response) => {
+        console.log(response);
+        this._toastService.success(response.message || '', 'Éxito')
+        this.isOpenRoleModal.set(false);
+        this.getRoles();
+      },
+      error: (error) => {
+        console.log(error);
+      }
+    })
   }
 
   private resetStepModalData() {
