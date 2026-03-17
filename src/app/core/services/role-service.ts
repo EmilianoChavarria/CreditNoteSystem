@@ -44,6 +44,20 @@ export class RoleService {
     )
   }
 
+  saveRole(data: Role) {
+    return this._httpSevice.post<Role>('roles', data).pipe(
+      tap((response: ApiResponse<Role>) => {
+        if (response.success) {
+
+        }
+      }),
+      catchError((error) => {
+        console.log(error);
+        throw error;
+      })
+    )
+  }
+
   getAllPermissions(): Observable<RolePermission[]> {
     return this._httpSevice.get<RolePermission[]>('/rolesPermission').pipe(
       map((response: ApiResponse<RolePermission[]>) => response.data ?? []),
