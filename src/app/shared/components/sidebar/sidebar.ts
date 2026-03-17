@@ -105,8 +105,27 @@ export class Sidebar {
     ];
   }
 
+  private createCustomerSidebarOptions(): SidebarOptions[] {
+    return [
+      { iconName: 'receipt', optionName: 'SIDEBAR.MY_INVOICES', url: '/app/clients' }
+    ];
+  }
+
   private applyRolePermissions(user: AuthUser | null): void {
     const isAdmin = this.isAdmin(user);
+    const isCustomer = this.isCustomer(user);
+
+    if (isCustomer) {
+      const customerHomeRoute = '/app/pending';
+      this.sidebarOptions = this.createCustomerSidebarOptions();
+
+      if (this.router.url !== customerHomeRoute) {
+        this.router.navigate([customerHomeRoute]);
+      }
+
+      this.setActiveOption(customerHomeRoute);
+      return;
+    }
 
     this.sidebarOptions = this.createSidebarOptions().filter(option => {
       if (option.url === '/app/settings') {
@@ -126,6 +145,11 @@ export class Sidebar {
   private isAdmin(user: AuthUser | null): boolean {
     const roleName = user?.roleName?.trim().toUpperCase();
     return roleName === 'ADMIN';
+  }
+
+  private isCustomer(user: AuthUser | null): boolean {
+    const roleName = user?.roleName?.trim().toUpperCase();
+    return roleName === 'CUSTOMER';
   }
 
   setActiveOption(route: string) {

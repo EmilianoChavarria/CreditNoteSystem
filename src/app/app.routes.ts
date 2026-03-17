@@ -19,6 +19,7 @@ import { NewCustomer } from './features/settings/pages/customers/new-customer/ne
 import { NotFound } from './features/not-found/not-found';
 import { Workflows } from './features/settings/pages/workflows/workflows';
 import { MyApprovals } from './features/pages/my-approvals/my-approvals';
+import { Clients } from './features/clients/clients';
 
 export const routes: Routes = [
   { 
@@ -39,6 +40,7 @@ export const routes: Routes = [
       { path: 'request/drafts', component: BulkUpload },
       { path: 'request/bulk-upload', component: Drafts },
       { path: 'my-approvals', component: MyApprovals },
+      { path: 'clients', component: Clients },
       { path: 'pending', component: Pending },
       { path: 'history', component: History },
       { path: 'notifications', component: Notifications },
