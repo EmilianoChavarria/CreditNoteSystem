@@ -1,9 +1,9 @@
-import { Component, Input, OnChanges, SimpleChanges, computed, signal, ChangeDetectionStrategy, effect, TemplateRef, ContentChild, input, output } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges, computed, signal, ChangeDetectionStrategy, effect, TemplateRef, ContentChild, input, output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
 import { Spinner } from "../spinner/spinner";
 import { Popover } from "../popover/popover";
-import { RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 
 export interface Column<T> {
@@ -36,12 +36,14 @@ export interface BotonCabeceraPersonalizado {
 @Component({
   selector: 'app-tabla-dinamica',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, Spinner, Popover, RouterLink, TranslatePipe],
+  imports: [CommonModule, LucideAngularModule, Spinner, Popover, TranslatePipe],
   templateUrl: './table.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class Table<T extends Record<string, any>>
   implements OnChanges {
+
+  private readonly router = inject(Router);
 
   // ================== INPUTS ==================
   @Input() set datos(value: T[]) {
@@ -83,6 +85,7 @@ export class Table<T extends Record<string, any>>
   readonly paginaPrimera = output<void>();
   readonly paginaUltima = output<void>();
   readonly registrosPorPaginaChange = output<number>();
+  readonly addClick = output<void>();
 
   // Template personalizado para celdas
   @ContentChild('cellTemplate', { static: false }) cellTemplate?: TemplateRef<any>;
@@ -298,5 +301,15 @@ export class Table<T extends Record<string, any>>
     if (!boton.disabled) {
       boton.accion?.();
     }
+  }
+
+  onAddClick(): void {
+    const route = this.addRoute();
+    if (route) {
+      this.router.navigateByUrl(route);
+      return;
+    }
+
+    this.addClick.emit();
   }
 }

@@ -1,11 +1,11 @@
 <div class="autocomplete-wrapper" appClickOutside (clickOutside)="onClickOutside()">
-  <label *ngIf="label()" class="block text-sm font-medium text-gray-700">
+  <label *ngIf="label()" class="block font-medium text-gray-700">
     {{ label() }}
     <span *ngIf="isRequired()" class="text-red-500 text-lg">*</span>
   </label>
 
   <div class="relative">
-    <div class="relative mt-1">
+    <div class="relative">
       <input
         [formControl]="searchInput"
         type="text"
@@ -25,6 +25,7 @@
         ✕
       </span>
     </div>
+    
 
     <!-- Loading Skeleton -->
     <div *ngIf="isLoading()" class="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-md shadow-lg z-10 p-2 flex flex-col px-3 py-4 gap-y-4">

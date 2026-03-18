@@ -6,11 +6,13 @@
         </div>
     </header>
     <app-tabla-dinamica [datos]="users()" [columnas]="columns" [accionesPersonalizadas]="acciones" actionMode="menu"
-        [enableFilter]="true" filterField="role.roleName" addLabel="User" addRoute="/app/settings/newUser"
+        [enableFilter]="true" filterField="role.roleName" [canAdd]="true"
+        [addLabel]="'User'"
         [registrosPorPagina]="pageSize()" [serverPagination]="true" [paginaActualExterna]="currentPage()"
         [hasNextPage]="hasNextPage()" [hasPrevPage]="hasPrevPage()" [loading]="isLoadingTable()"
         (paginaSiguiente)="onNextPage()" (paginaAnterior)="onPrevPage()"
-        (registrosPorPaginaChange)="onPageSizeChange($event)">
+        (registrosPorPaginaChange)="onPageSizeChange($event)"
+        (addClick)="openUserModalForCreate()">
         
         <ng-template #cellTemplate let-item let-column="column">
             @if (column.key === 'isActive') {
@@ -20,8 +22,153 @@
     </app-tabla-dinamica>
 
     <app-modal
+        size="lg"
+        [titleM]="isEditMode() ? 'Editar usuario' : 'Nuevo usuario'"
+        [open]="showUserModal()"
+        closeText="Cancelar"
+        [primaryText]="isSavingUser() ? 'Guardando...' : (isEditMode() ? 'Actualizar' : 'Guardar')"
+        [showPrimaryButton]="!isUserModalLoading()"
+        (openChange)="onUserModalChange($event)"
+        (primaryAction)="saveUserFromModal()"
+    >
+        @if (isUserModalLoading()) {
+            <div class="py-8">
+                <app-spinner size="large"></app-spinner>
+            </div>
+        } @else {
+            <form [formGroup]="userForm" (ngSubmit)="saveUserFromModal()" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block font-medium text-[#395f93] text-sm">Nombre completo <span class="text-red-500">*</span></label>
+                    <input
+                        type="text"
+                        placeholder="Juan Perez"
+                        formControlName="fullName"
+                        [class]="campoVacio('fullName') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'"
+                    />
+                    @if (campoVacio('fullName')) {
+                        <span class="text-sm text-red-500">{{ getErrorMessage('fullName') }}</span>
+                    }
+                </div>
+
+                <div>
+                    <label class="block font-medium text-[#395f93] text-sm">Correo <span class="text-red-500">*</span></label>
+                    <input
+                        type="text"
+                        placeholder="example@email.com"
+                        formControlName="email"
+                        [class]="campoVacio('email') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'"
+                    />
+                    @if (campoVacio('email')) {
+                        <span class="text-sm text-red-500">{{ getErrorMessage('email') }}</span>
+                    }
+                </div>
+
+                @if (!isEditMode()) {
+                    <div class="md:col-span-2">
+                        <label class="block font-medium text-[#395f93] text-sm">Password <span class="text-red-500">*</span></label>
+                        <div class="relative mt-2">
+                            <input
+                                [type]="showPassword() ? 'text' : 'password'"
+                                placeholder="********"
+                                formControlName="password"
+                                [class]="campoVacio('password') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'"
+                            />
+                            <button
+                                type="button"
+                                (click)="togglePassword()"
+                                class="absolute inset-y-0 end-0 flex items-center px-3 text-xs text-slate-600"
+                            >
+                                {{ showPassword() ? 'Ocultar' : 'Mostrar' }}
+                            </button>
+                        </div>
+
+                        @if (campoVacio('password')) {
+                            @if (passwordErrors().length > 0) {
+                                @for (error of passwordErrors(); track $index) {
+                                    <span class="text-sm text-red-500 block">- {{ error }}</span>
+                                }
+                            } @else {
+                                <span class="text-sm text-red-500">{{ getErrorMessage('password') }}</span>
+                            }
+                        }
+                    </div>
+                }
+
+                <div>
+                    <label class="block font-medium text-[#395f93] text-sm">Rol <span class="text-red-500">*</span></label>
+                    <select
+                        formControlName="roleId"
+                        (change)="onRoleChange()"
+                        [class]="campoVacio('roleId') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'"
+                    >
+                        <option [ngValue]="0">Selecciona un rol</option>
+                        @for (item of roles(); track item.id) {
+                            <option [ngValue]="item.id">{{ item.roleName }}</option>
+                        }
+                    </select>
+                    @if (campoVacio('roleId')) {
+                        <span class="text-sm text-red-500">{{ getErrorMessage('roleId') }}</span>
+                    }
+                </div>
+
+                <div [class.hidden]="!isCustomerRoleSelected()">
+                    <app-autocomplete
+                        [control]="$any(userForm.get('customerId'))"
+                        label="Cliente"
+                        placeholder="Buscar cliente"
+                        [isRequired]="isCustomerRoleSelected()"
+                        [searchFn]="searchCustomers.bind(this)"
+                        [displayFn]="displayCustomer.bind(this)"
+                        [debounceMs]="500"
+                        [minCharacters]="1"
+                        [hasError]="campoVacio('customerId')"
+                        (optionSelected)="onCustomerSelected($event)">
+                    </app-autocomplete>
+
+                    @if (campoVacio('customerId')) {
+                        <span class="text-sm text-red-500">{{ getErrorMessage('customerId') }}</span>
+                    }
+                </div>
+
+                <div>
+                    <label class="block font-medium text-[#395f93] text-sm">Supervisor <span class="text-red-500">*</span></label>
+                    <select
+                        formControlName="supervisorId"
+                        [class]="campoVacio('supervisorId') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'"
+                    >
+                        <option [ngValue]="0">Selecciona un supervisor</option>
+                        @for (item of supervisors(); track item.id) {
+                            <option [ngValue]="item.id">{{ item.fullName }} ({{ item.role.roleName }})</option>
+                        }
+                    </select>
+                    @if (campoVacio('supervisorId')) {
+                        <span class="text-sm text-red-500">{{ getErrorMessage('supervisorId') }}</span>
+                    }
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="block font-medium text-[#395f93] text-sm">Idioma preferido <span class="text-red-500">*</span></label>
+                    <select
+                        formControlName="preferredLanguage"
+                        [class]="campoVacio('preferredLanguage') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'"
+                    >
+                        <option value="DEF">Selecciona un idioma</option>
+                        <option value="es">Espanol</option>
+                        <option value="en">Ingles</option>
+                    </select>
+                    @if (campoVacio('preferredLanguage')) {
+                        <span class="text-sm text-red-500">{{ getErrorMessage('preferredLanguage') }}</span>
+                    }
+                </div>
+
+                <button type="submit" class="hidden"></button>
+            </form>
+        }
+    </app-modal>
+
+    <app-modal
         size="md"
-        titleM="Eliminar usuarioa"
+        titleM="Eliminar usuario"
         [open]="showDeleteModal()"
         closeText="Cancelar"
         primaryText="Eliminar"

@@ -50,11 +50,11 @@
                 <lucide-icon name="file-up" size="18"></lucide-icon>
                 {{'TABLE.BULK_BUTTON' | translate}}
             </button>
-            <a *ngIf="addRoute()" [routerLink]="addRoute()"
-                class="rounded-md bg-[#3c6194] px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center">
+            <button type="button" (click)="onAddClick()"
+                class="rounded-md bg-[#3c6194] hover:bg-[#2c5999] hover:cursor-pointer px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center">
                 <lucide-icon name="plus" size="18"></lucide-icon>
                 {{'TABLE.ADD_BUTTON' | translate}} {{ addLabel() }}
-            </a>
+            </button>
             }
 
             <ng-container *ngFor="let boton of botonesCabeceraPersonalizados()">
@@ -64,16 +64,14 @@
                         *ngTemplateOutlet="headerButtonTemplate; context: { $implicit: boton, button: boton, execute: ejecutarAccionCabecera.bind(this) }"></ng-container>
                 </ng-container>
                 }@else{
-                <ng-template #defaultHeaderButton>
-                    <button type="button" (click)="ejecutarAccionCabecera(boton)" [disabled]="boton.disabled"
-                        class="rounded-md px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-                        [ngClass]="boton.className ?? 'bg-[#3c6194]'">
-                        @if (boton.icon) {
-                        <lucide-icon [name]="boton.icon" size="18"></lucide-icon>
-                        }
-                        {{ boton.label }}
-                    </button>
-                </ng-template>
+                <button type="button" (click)="ejecutarAccionCabecera(boton)" [disabled]="boton.disabled"
+                    class="rounded-md px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                    [ngClass]="boton.className ?? 'bg-[#3c6194]'">
+                    @if (boton.icon) {
+                    <lucide-icon [name]="boton.icon" size="18"></lucide-icon>
+                    }
+                    {{ boton.label }}
+                </button>
                 }
             </ng-container>
         </div>
