@@ -18,6 +18,7 @@
     "APPROVE": "My Approvals",
     "MY_INVOICES": "My Invoices",
     "HISTORY": "History",
+    "ORDERS": "Return Orders",
     "NOTIFICATIONS": "Notifications",
     "SETTINGS": "Settings",
     "USER_MANAGEMENT": "User Management",
@@ -67,8 +68,8 @@
     "DESCRIPTION": "See the customers list and Assign their Managers"
   },
   "ROLE_MANAGE": {
-    "TITLE": "Roles & Request Types Permission",
-    "DESCRIPTION": "Configure Role Permissions For Request Types"
+    "TITLE": "Roles Manage",
+    "DESCRIPTION": "Manage system roles and their associated permissions."
   },
   "WORKFLOWS_MANAGE": {
     "TITLE": "Approval Flows",

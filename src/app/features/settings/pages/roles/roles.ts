@@ -9,12 +9,15 @@ import { forkJoin } from 'rxjs';
 import { Spinner } from "../../../../shared/components/ui/spinner/spinner";
 import { Modal } from "../../../../shared/components/ui/modal/modal";
 import { ToastrService } from 'ngx-toastr';
+import { Badge } from '../../../../shared/components/ui/badge/badge';
+import { LucideAngularModule } from "lucide-angular";
+import { RouterLink } from "@angular/router";
 
 @Component({
     selector: 'app-roles',
     templateUrl: './roles.html',
     styleUrl: './roles.css',
-    imports: [TranslatePipe, TitleCasePipe, Spinner, Modal]
+    imports: [TranslatePipe, TitleCasePipe, Spinner, Modal, Badge, LucideAngularModule, RouterLink]
 })
 export class Roles {
 

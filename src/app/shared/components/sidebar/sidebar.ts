@@ -90,6 +90,7 @@ export class Sidebar {
       },
       { iconName: 'file-clock', optionName: 'SIDEBAR.APPROVE', url: '/app/my-approvals' },
       { iconName: 'clipboard-check', optionName: 'SIDEBAR.PENDING', url: '/app/pending' },
+      { iconName: 'square-arrow-down', optionName: 'SIDEBAR.ORDERS', url: '/app/pending' },
       // { iconName: 'clipboard-list', optionName: 'SIDEBAR.HISTORY', url: '/app/history' },
       { iconName: 'bell', optionName: 'SIDEBAR.NOTIFICATIONS', url: '/app/notifications' },
       {

@@ -6,52 +6,52 @@
             <span class="text-orange-400">{{'ROLE_MANAGE.DESCRIPTION' | translate}}</span>
         </div>
     </header>
-    <div class="w-full h-fit mt-20 overflow-x-auto">
+    <div class="w-full h-fit flex items-center justify-center mt-20 overflow-x-auto">
         @if (isLoading()) {
         <app-spinner></app-spinner>
         } @else {
-        <table class="w-full  border border-gray-200 border-collapse">
-            <thead class="text-sm text-heading">
-                <tr class="border border-gray-200 ">
-                    <th scope="col" class="px-6 py-3 font-semibold text-center w-12 border border-gray-200">
-                        All
-                    </th>
-                    <th scope="col" class="px-6 py-3 font-semibold text-center w-60 border border-gray-200">
-                        Role
-                    </th>
-                    @for (requestType of requestTypes(); track $index) {
-                    <th scope="col" class="px-6 py-3 font-semibold text-center">
-                        {{requestType.name | titlecase}}
-                    </th>
-                    }
-                </tr>
-            </thead>
-            <tbody>
-                @for (role of roles(); track $index) {
-                <tr>
-                    <td class="border border-gray-200 px-6 py-4 w-fit">
-                        <input type="checkbox" [checked]="isRoleChecked(role.id || 0)"
-                            (change)="onRoleRowToggle(role, $event)" class="size-5 text-emerald-500">
-                    </td>
-                    <td class="border border-gray-200 px-6 py-4 w-fit">
-                        <div class="flex flex-row items-center gap-3">
-                            <span>{{role.roleName | titlecase }}</span>
-                            
-                        </div>
-                    </td>
-                    @for (requestType of requestTypes(); track $index) {
-                    <td class="px-6 py-4 border border-gray-200">
-                        <input type="checkbox" [checked]="hasPermission(role.id || 0, requestType.id)"
-                            (change)="onPermissionChange(role, requestType, $event)"
-                            class="size-5 text-emerald-500 text-center mx-auto w-full">
-                    </td>
-
-
-                    }
-                </tr>
-                }
-            </tbody>
-        </table>
+            <div class=" w-full overflow-hidden rounded-lg max-w-7xl ">
+                <table class="w-full border border-gray-200 border-collapse rounded-2xl ">
+                    <thead class="text-sm text-heading bg-gray-100">
+                        <tr class="border border-gray-200 ">
+                            <th scope="col" class="px-6 py-3 font-semibold text-center w-12 border-y border-gray-200">
+                                Nombre del rol
+                            </th>
+                            <th scope="col" class="px-6 py-3 font-semibold text-center w-60 border-y border-gray-200">
+                                Estado
+                            </th>
+                            <th scope="col" class="px-6 py-3 font-semibold text-center w-60 border-y border-gray-200">
+                                Acciones
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="">
+                        @for (role of roles(); track $index) {
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
+                                <div class="flex flex-row items-center gap-3">
+                                    <div class="p-2 bg-orange-50 rounded-lg border border-orange-100">
+                                        <lucide-icon name="shield" size="18" strokeWidth="2" color="#ff8200"></lucide-icon>
+                                    </div>
+                                    <span>{{role.roleName | titlecase }}</span>
+                                </div>
+                            </td>
+                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
+                                <div class="flex flex-row justify-center items-center gap-3">
+                                    <app-badge [color]="role.isActive ? 'green': 'red'" [text]="role.isActive ? 'Activo': 'Inactivo'"></app-badge>
+                                </div>
+                            </td>
+                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
+                                <div class="flex flex-row justify-center items-center gap-3 text-[#ff8200] hover:text-[#975005] transition-colors hover:cursor-pointer">
+                                    <lucide-icon name="pencil" size="18" strokeWidth="2" ></lucide-icon>
+                                    <button routerLink="manage-permissions" class="text-sm">Editar Permisos</button>
+                                </div>
+                            </td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
         }
     </div>
 

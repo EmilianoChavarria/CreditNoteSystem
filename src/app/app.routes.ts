@@ -19,6 +19,7 @@ import { NotFound } from './features/not-found/not-found';
 import { Workflows } from './features/settings/pages/workflows/workflows';
 import { MyApprovals } from './features/pages/my-approvals/my-approvals';
 import { Clients } from './features/clients/clients';
+import { ManageRoles } from './features/settings/pages/roles/pages/manage-roles/manage-roles';
 
 export const routes: Routes = [
   { 
@@ -48,6 +49,7 @@ export const routes: Routes = [
       { path: 'settings/newCustomer', component: NewCustomer},
       { path: 'settings/customers', component: Customers },
       { path: 'settings/roles', component: Roles },
+      { path: 'settings/roles/manage-permissions', component: ManageRoles },
       { path: 'settings/system-configuration', component: SysConfig },
       { path: 'settings/security-management', component: SecurityManage },
       { path: 'settings/workflows', component: Workflows },

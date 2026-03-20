@@ -2,3 +2,7 @@
 
 @import "tailwindcss";
 @import 'ngx-toastr/toastr';
+
+body {
+    font-family: 'Inter', sans-serif;
+}

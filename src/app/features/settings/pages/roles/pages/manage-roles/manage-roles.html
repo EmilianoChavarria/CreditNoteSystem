@@ -1,0 +1,334 @@
+<section class="w-full">
+    <!-- Container max-w-7xl -->
+    <div class="flex flex-col max-w-7xl mx-auto gap-y-6">
+        <div class="flex flex-row justify-start items-center">
+            <div class="flex flex-col">
+                <span class="text-3xl font-semibold">ADMIN</span>
+                <span class="text-gray-600">Define los permisos y accesos para este rol en el sistema</span>
+            </div>
+
+        </div>
+
+        <div class="bg-white shadow-md rounded-lg w-full py-4 px-8">
+            <div class="flex flex-col">
+                <span class="text-lg font-semibold text-gray-800">Acceso General</span>
+                <span class="text-gray-600">Controla el acceso a las secciones principales de la plataforma.</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-1">
+                <div class="flex flex-row items-center justify-between border-b border-gray-200 py-5 px-2">
+                    <div class="flex flex-col">
+                        <span class="font-semibold text-sm">Dashboard</span>
+                        <span class="text-gray-600 text-sm mt-1">Acceso de lectura a las métricas principales.</span>
+                    </div>
+                    <app-switch [checked]="isActive()" (checkedChange)="isActive.set($event)"></app-switch>
+                </div>
+                <div class="flex flex-row items-center justify-between border-b border-gray-200 py-5 px-2">
+                    <div class="flex flex-col">
+                        <span class="font-semibold text-sm">Dashboard</span>
+                        <span class="text-gray-600 text-sm mt-1">Acceso de lectura a las métricas principales.</span>
+                    </div>
+                    <app-switch [checked]="isActive()" (checkedChange)="isActive.set($event)"></app-switch>
+                </div>
+                <div class="flex flex-row items-center justify-between border-b border-gray-200 py-5 px-2">
+                    <div class="flex flex-col">
+                        <span class="font-semibold text-sm">Dashboard</span>
+                        <span class="text-gray-600 text-sm mt-1">Acceso de lectura a las métricas principales.</span>
+                    </div>
+                    <app-switch [checked]="isActive()" (checkedChange)="isActive.set($event)"></app-switch>
+                </div>
+                <div class="flex flex-row items-center justify-between border-b border-gray-200 py-5 px-2">
+                    <div class="flex flex-col">
+                        <span class="font-semibold text-sm">Dashboard</span>
+                        <span class="text-gray-600 text-sm mt-1">Acceso de lectura a las métricas principales.</span>
+                    </div>
+                    <app-switch [checked]="isActive()" (checkedChange)="isActive.set($event)"></app-switch>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white shadow-md rounded-lg w-full py-4 px-8">
+            <div class="flex flex-col">
+                <span class="text-lg font-semibold text-gray-800">Acceso General</span>
+                <span class="text-gray-600">Controla el acceso a las secciones principales de la plataforma.</span>
+            </div>
+            <div class=" w-full overflow-hidden rounded-lg">
+                <table class="w-full border border-gray-200 border-collapse max-w-7xl rounded-2xl mt-4">
+                    <thead class="text-sm text-heading bg-gray-100">
+                        <tr class="border border-gray-200 ">
+                            <th scope="col" class="px-6 py-3 font-semibold text-center w-12 border-y border-gray-200">
+                                Tipo de solicitud
+                            </th>
+                            <th scope="col" class="px-6 py-3 font-semibold text-center w-60 border-y border-gray-200">
+                                Ver Listado
+                            </th>
+                            <th scope="col" class="px-6 py-3 font-semibold text-center w-60 border-y border-gray-200">
+                                Crear
+                            </th>
+                            <th scope="col" class="px-6 py-3 font-semibold text-center w-60 border-y border-gray-200">
+                                Editar
+                            </th>
+                            <th scope="col" class="px-6 py-3 font-semibold text-center w-60 border-y border-gray-200">
+                                Ver Borradores
+                            </th>
+                            <th scope="col" class="px-6 py-3 font-semibold text-center w-60 border-y border-gray-200">
+                                Carga Masiva
+                            </th>
+                            <th scope="col" class="px-6 py-3 font-semibold text-center w-60 border-y border-gray-200">
+                                My Approvals
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="">
+
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
+                                <div class="flex flex-row items-center gap-3">
+                                    <span class="text-sm font-bold text-gray-800">Credits</span>
+                                </div>
+                            </td>
+                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
+                                <div class="flex flex-row justify-center items-center gap-3">
+                                    <input type="checkbox" name="" id="">
+                                </div>
+                            </td>
+                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
+                                <div class="flex flex-row justify-center items-center gap-3">
+                                    <input type="checkbox" name="" id="">
+                                </div>
+                            </td>
+                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
+                                <div class="flex flex-row justify-center items-center gap-3">
+                                    <input type="checkbox" name="" id="">
+                                </div>
+                            </td>
+                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
+                                <div class="flex flex-row justify-center items-center gap-3">
+                                    <input type="checkbox" name="" id="">
+                                </div>
+                            </td>
+                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
+                                <div class="flex flex-row justify-center items-center gap-3">
+                                    <input type="checkbox" name="" id="">
+                                </div>
+                            </td>
+                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
+                                <div class="flex flex-row justify-center items-center gap-3">
+                                    <input type="checkbox" name="" id="">
+                                </div>
+                            </td>
+
+                        </tr>
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
+                                <div class="flex flex-row items-center gap-3">
+                                    <span class="text-sm font-bold text-gray-800">Debits</span>
+                                </div>
+                            </td>
+                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
+                                <div class="flex flex-row justify-center items-center gap-3">
+                                    <input type="checkbox" name="" id="">
+                                </div>
+                            </td>
+                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
+                                <div class="flex flex-row justify-center items-center gap-3">
+                                    <input type="checkbox" name="" id="">
+                                </div>
+                            </td>
+                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
+                                <div class="flex flex-row justify-center items-center gap-3">
+                                    <input type="checkbox" name="" id="">
+                                </div>
+                            </td>
+                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
+                                <div class="flex flex-row justify-center items-center gap-3">
+                                    <input type="checkbox" name="" id="">
+                                </div>
+                            </td>
+                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
+                                <div class="flex flex-row justify-center items-center gap-3">
+                                    <input type="checkbox" name="" id="">
+                                </div>
+                            </td>
+                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
+                                <div class="flex flex-row justify-center items-center gap-3">
+                                    <input type="checkbox" name="" id="">
+                                </div>
+                            </td>
+
+                        </tr>
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
+                                <div class="flex flex-row items-center gap-3">
+                                    <span class="text-sm font-bold text-gray-800">Auditor Credits</span>
+                                </div>
+                            </td>
+                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
+                                <div class="flex flex-row justify-center items-center gap-3">
+                                    <input type="checkbox" name="" id="">
+                                </div>
+                            </td>
+                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
+                                <div class="flex flex-row justify-center items-center gap-3">
+                                    <input type="checkbox" name="" id="">
+                                </div>
+                            </td>
+                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
+                                <div class="flex flex-row justify-center items-center gap-3">
+                                    <input type="checkbox" name="" id="">
+                                </div>
+                            </td>
+                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
+                                <div class="flex flex-row justify-center items-center gap-3">
+                                    <input type="checkbox" name="" id="">
+                                </div>
+                            </td>
+                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
+                                <div class="flex flex-row justify-center items-center gap-3">
+                                    <input type="checkbox" name="" id="">
+                                </div>
+                            </td>
+                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
+                                <div class="flex flex-row justify-center items-center gap-3">
+                                    <input type="checkbox" name="" id="">
+                                </div>
+                            </td>
+
+                        </tr>
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
+                                <div class="flex flex-row items-center gap-3">
+                                    <span class="text-sm font-bold text-gray-800">Auditor Debits</span>
+                                </div>
+                            </td>
+                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
+                                <div class="flex flex-row justify-center items-center gap-3">
+                                    <input type="checkbox" name="" id="">
+                                </div>
+                            </td>
+                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
+                                <div class="flex flex-row justify-center items-center gap-3">
+                                    <input type="checkbox" name="" id="">
+                                </div>
+                            </td>
+                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
+                                <div class="flex flex-row justify-center items-center gap-3">
+                                    <input type="checkbox" name="" id="">
+                                </div>
+                            </td>
+                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
+                                <div class="flex flex-row justify-center items-center gap-3">
+                                    <input type="checkbox" name="" id="">
+                                </div>
+                            </td>
+                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
+                                <div class="flex flex-row justify-center items-center gap-3">
+                                    <input type="checkbox" name="" id="">
+                                </div>
+                            </td>
+                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
+                                <div class="flex flex-row justify-center items-center gap-3">
+                                    <input type="checkbox" name="" id="">
+                                </div>
+                            </td>
+
+                        </tr>
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
+                                <div class="flex flex-row items-center gap-3">
+                                    <span class="text-sm font-bold text-gray-800">Re-invoicing</span>
+                                </div>
+                            </td>
+                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
+                                <div class="flex flex-row justify-center items-center gap-3">
+                                    <input type="checkbox" name="" id="">
+                                </div>
+                            </td>
+                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
+                                <div class="flex flex-row justify-center items-center gap-3">
+                                    <input type="checkbox" name="" id="">
+                                </div>
+                            </td>
+                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
+                                <div class="flex flex-row justify-center items-center gap-3">
+                                    <input type="checkbox" name="" id="">
+                                </div>
+                            </td>
+                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
+                                <div class="flex flex-row justify-center items-center gap-3">
+                                    <input type="checkbox" name="" id="">
+                                </div>
+                            </td>
+                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
+                                <div class="flex flex-row justify-center items-center gap-3">
+                                    <input type="checkbox" name="" id="">
+                                </div>
+                            </td>
+                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
+                                <div class="flex flex-row justify-center items-center gap-3">
+                                    <input type="checkbox" name="" id="">
+                                </div>
+                            </td>
+
+                        </tr>
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
+                                <div class="flex flex-row items-center gap-3">
+                                    <span class="text-sm font-bold text-gray-800">Material return</span>
+                                </div>
+                            </td>
+                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
+                                <div class="flex flex-row justify-center items-center gap-3">
+                                    <input type="checkbox" name="" id="">
+                                </div>
+                            </td>
+                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
+                                <div class="flex flex-row justify-center items-center gap-3">
+                                    <input type="checkbox" name="" id="">
+                                </div>
+                            </td>
+                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
+                                <div class="flex flex-row justify-center items-center gap-3">
+                                    <input type="checkbox" name="" id="">
+                                </div>
+                            </td>
+                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
+                                <div class="flex flex-row justify-center items-center gap-3">
+                                    <input type="checkbox" name="" id="">
+                                </div>
+                            </td>
+                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
+                                <div class="flex flex-row justify-center items-center gap-3">
+                                    <input type="checkbox" name="" id="">
+                                </div>
+                            </td>
+                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
+                                <div class="flex flex-row justify-center items-center gap-3">
+                                    <input type="checkbox" name="" id="">
+                                </div>
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+
+        <div class="flex flex-row justify-end items-center">
+            <div class="flex gap-x-4">
+                <button
+                    class="border border-gray-300 rounded-md px-4 py-2 flex flex-row items-center justify-center gap-x-1">
+                    <lucide-icon name="x" size="17"></lucide-icon>
+                    Cancelar
+                </button>
+                <button
+                    class="bg-[#ff8200] text-white rounded-md px-4 py-2 flex flex-row items-center justify-center gap-x-2 hover:cursor-pointer hover:bg-[#db7201]">
+                    <lucide-icon name="save" size="17"></lucide-icon>
+                    Guardar cambios
+                </button>
+            </div>
+
+        </div>
+    </div>
+</section>

@@ -15,8 +15,9 @@ export interface RequestOptions {
 })
 export class HttpService {
   // private readonly baseURL = 'http://192.168.2.29:8000/api';
+  private readonly baseURL = 'http://192.168.2.52:8000/api';
   // private readonly baseURL = 'http://127.0.0.1:8000/api';
-  private readonly baseURL = 'http://localhost:8000/api';
+  // private readonly baseURL = 'http://localhost:8000/api';
   private readonly defaultTimeout = 10000;
   private readonly defaultHeaders = {
     'Content-Type': 'application/json'

@@ -1,0 +1,9 @@
+<label class="ui-switch" [class.ui-switch--disabled]="disabled()">
+    <input class="ui-switch__input" type="checkbox" role="switch" [id]="id()" [checked]="checked()"
+        [disabled]="disabled()" [attr.aria-label]="ariaLabel() || label() || 'Toggle switch'"
+        (change)="onInputChange($event)" />
+
+    <span class="ui-switch__track" aria-hidden="true">
+        <span class="ui-switch__thumb"></span>
+    </span>
+</label>
