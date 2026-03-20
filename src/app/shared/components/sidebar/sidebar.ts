@@ -90,7 +90,7 @@ export class Sidebar {
       },
       { iconName: 'file-clock', optionName: 'SIDEBAR.APPROVE', url: '/app/my-approvals' },
       { iconName: 'clipboard-check', optionName: 'SIDEBAR.PENDING', url: '/app/pending' },
-      { iconName: 'square-arrow-down', optionName: 'SIDEBAR.ORDERS', url: '/app/pending' },
+      { iconName: 'square-arrow-down', optionName: 'SIDEBAR.RETURN_ORDERS_APPROVAL', url: '/app/approvals/return-orders' },
       // { iconName: 'clipboard-list', optionName: 'SIDEBAR.HISTORY', url: '/app/history' },
       { iconName: 'bell', optionName: 'SIDEBAR.NOTIFICATIONS', url: '/app/notifications' },
       {
@@ -108,7 +108,8 @@ export class Sidebar {
 
   private createCustomerSidebarOptions(): SidebarOptions[] {
     return [
-      { iconName: 'receipt', optionName: 'SIDEBAR.MY_INVOICES', url: '/app/clients' }
+      { iconName: 'receipt', optionName: 'SIDEBAR.MY_INVOICES', url: '/app/clients' },
+      { iconName: 'clipboard-check', optionName: 'SIDEBAR.ORDERS', url: '/app/clients/orders' },
     ];
   }
 
@@ -117,14 +118,17 @@ export class Sidebar {
     const isCustomer = this.isCustomer(user);
 
     if (isCustomer) {
-      const customerHomeRoute = '/app/pending';
+      const customerHomeRoute = '/app/clients';
+      const customerAllowedRoutes = ['/app/clients', '/app/clients/orders'];
       this.sidebarOptions = this.createCustomerSidebarOptions();
 
-      if (this.router.url !== customerHomeRoute) {
+      const canAccessCurrentRoute = customerAllowedRoutes.some(route => this.router.url.startsWith(route));
+
+      if (!canAccessCurrentRoute) {
         this.router.navigate([customerHomeRoute]);
       }
 
-      this.setActiveOption(customerHomeRoute);
+      this.setActiveOption(this.router.url);
       return;
     }
 

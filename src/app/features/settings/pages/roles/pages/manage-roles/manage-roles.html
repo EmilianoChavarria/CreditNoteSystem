@@ -20,36 +20,57 @@
                         <span class="font-semibold text-sm">Dashboard</span>
                         <span class="text-gray-600 text-sm mt-1">Acceso de lectura a las métricas principales.</span>
                     </div>
-                    <app-switch [checked]="isActive()" (checkedChange)="isActive.set($event)"></app-switch>
+                    <app-switch [checked]="isPermissionActive('dashboard')" (checkedChange)="setPermissionActive('dashboard', $event)"></app-switch>
                 </div>
                 <div class="flex flex-row items-center justify-between border-b border-gray-200 py-5 px-2">
                     <div class="flex flex-col">
-                        <span class="font-semibold text-sm">Dashboard</span>
+                        <span class="font-semibold text-sm">Notificaciones</span>
                         <span class="text-gray-600 text-sm mt-1">Acceso de lectura a las métricas principales.</span>
                     </div>
-                    <app-switch [checked]="isActive()" (checkedChange)="isActive.set($event)"></app-switch>
+                    <app-switch [checked]="isPermissionActive('notifications')" (checkedChange)="setPermissionActive('notifications', $event)"></app-switch>
                 </div>
                 <div class="flex flex-row items-center justify-between border-b border-gray-200 py-5 px-2">
                     <div class="flex flex-col">
-                        <span class="font-semibold text-sm">Dashboard</span>
+                        <span class="font-semibold text-sm">Mis Aprobaciones</span>
                         <span class="text-gray-600 text-sm mt-1">Acceso de lectura a las métricas principales.</span>
                     </div>
-                    <app-switch [checked]="isActive()" (checkedChange)="isActive.set($event)"></app-switch>
+                    <app-switch [checked]="isPermissionActive('myApprovals')" (checkedChange)="setPermissionActive('myApprovals', $event)"></app-switch>
                 </div>
                 <div class="flex flex-row items-center justify-between border-b border-gray-200 py-5 px-2">
                     <div class="flex flex-col">
-                        <span class="font-semibold text-sm">Dashboard</span>
+                        <span class="font-semibold text-sm">Aprobación de Órdenes de Devolución</span>
                         <span class="text-gray-600 text-sm mt-1">Acceso de lectura a las métricas principales.</span>
                     </div>
-                    <app-switch [checked]="isActive()" (checkedChange)="isActive.set($event)"></app-switch>
+                    <app-switch [checked]="isPermissionActive('returnOrdersApproval')" (checkedChange)="setPermissionActive('returnOrdersApproval', $event)"></app-switch>
+                </div>
+                <div class="flex flex-row items-center justify-between border-b border-gray-200 py-5 px-2">
+                    <div class="flex flex-col">
+                        <span class="font-semibold text-sm">Configuración</span>
+                        <span class="text-gray-600 text-sm mt-1">Acceso de lectura a las métricas principales.</span>
+                    </div>
+                    <app-switch [checked]="isPermissionActive('settings')" (checkedChange)="setPermissionActive('settings', $event)"></app-switch>
+                </div>
+                <div class="flex flex-row items-center justify-between border-b border-gray-200 py-5 px-2">
+                    <div class="flex flex-col">
+                        <span class="font-semibold text-sm">Mis Facturas</span>
+                        <span class="text-gray-600 text-sm mt-1">Sección para clientes para generar una órden de devolución</span>
+                    </div>
+                    <app-switch [checked]="isPermissionActive('myInvoices')" (checkedChange)="setPermissionActive('myInvoices', $event)"></app-switch>
+                </div>
+                <div class="flex flex-row items-center justify-between border-b border-gray-200 py-5 px-2">
+                    <div class="flex flex-col">
+                        <span class="font-semibold text-sm">Mis órdenes</span>
+                        <span class="text-gray-600 text-sm mt-1">Sección para clientes para generar una órden de devolución</span>
+                    </div>
+                    <app-switch [checked]="isPermissionActive('myOrders')" (checkedChange)="setPermissionActive('myOrders', $event)"></app-switch>
                 </div>
             </div>
         </div>
 
         <div class="bg-white shadow-md rounded-lg w-full py-4 px-8">
             <div class="flex flex-col">
-                <span class="text-lg font-semibold text-gray-800">Acceso General</span>
-                <span class="text-gray-600">Controla el acceso a las secciones principales de la plataforma.</span>
+                <span class="text-lg font-semibold text-gray-800">Módulo de Solicitudes</span>
+                <span class="text-gray-600">Permisos granulares por tipo de solicitud y acción.</span>
             </div>
             <div class=" w-full overflow-hidden rounded-lg">
                 <table class="w-full border border-gray-200 border-collapse max-w-7xl rounded-2xl mt-4">

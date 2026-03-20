@@ -19,7 +19,9 @@ import { NotFound } from './features/not-found/not-found';
 import { Workflows } from './features/settings/pages/workflows/workflows';
 import { MyApprovals } from './features/pages/my-approvals/my-approvals';
 import { Clients } from './features/clients/clients';
+import { ClientOrders } from './features/clients/client-orders';
 import { ManageRoles } from './features/settings/pages/roles/pages/manage-roles/manage-roles';
+import { ReturnOrdersApproval } from './features/approvals/return-orders-approval/return-orders-approval';
 
 export const routes: Routes = [
   { 
@@ -40,7 +42,9 @@ export const routes: Routes = [
       { path: 'request/drafts', component: BulkUpload },
       { path: 'request/bulk-upload', component: Drafts },
       { path: 'my-approvals', component: MyApprovals },
+      { path: 'approvals/return-orders', component: ReturnOrdersApproval },
       { path: 'clients', component: Clients },
+      { path: 'clients/orders', component: ClientOrders },
       { path: 'pending', component: Pending },
       { path: 'history', component: History },
       { path: 'notifications', component: Notifications },

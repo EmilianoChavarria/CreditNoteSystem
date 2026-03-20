@@ -17,6 +17,8 @@
     "PENDING": "Lista de Solicitudes",
     "APPROVE": "Mis Aprobaciones",
     "MY_INVOICES": "Mis Facturas",
+    "ORDERS": "Mis Órdenes",
+      "RETURN_ORDERS_APPROVAL": "Aprobar Ordenes Devolucion",
     "HISTORY": "Historial",
     "NOTIFICATIONS": "Notificaciones",
     "SETTINGS": "Configuración",

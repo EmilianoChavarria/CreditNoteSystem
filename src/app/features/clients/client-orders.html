@@ -1,0 +1,103 @@
+<section class="w-full">
+  <div class="mx-auto flex w-full flex-col gap-5">
+    <header class="flex flex-col gap-1">
+      <p class="text-xs font-semibold uppercase tracking-wider text-orange-700">Cliente</p>
+      <h1 class="text-2xl font-semibold text-gray-800">Ordenes de devolucion generadas</h1>
+      <p class="text-sm text-gray-600">Consulta el historial de ordenes, su estatus y el detalle de productos por factura.</p>
+    </header>
+
+    @if (orders().length === 0) {
+    <article class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+      <p class="text-sm text-gray-600">Aun no hay ordenes de devolucion generadas.</p>
+    </article>
+    } @else {
+    <div class="flex flex-col gap-3">
+      @for (order of orders(); track order.id) {
+      <article class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+        <header class="flex flex-col gap-2 border-b border-gray-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p class="text-sm font-semibold text-gray-800">Orden {{ order.orderNumber }}</p>
+            <p class="text-xs text-gray-500">Fecha: {{ order.createdAt | date: 'dd/MM/yyyy HH:mm' }}</p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <span [class]="'rounded-full border px-2.5 py-1 text-[11px] font-semibold ' + statusClasses(order.status)">
+              {{ order.status }}
+            </span>
+            <span class="rounded-full border border-gray-200 bg-gray-50 px-2.5 py-1 text-[11px] text-gray-600">
+              {{ order.products.length }} productos
+            </span>
+            <button
+              type="button"
+              class="rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+              (click)="toggleOrder(order.id)"
+            >
+              {{ isExpanded(order.id) ? 'Ocultar' : 'Ver detalle' }}
+            </button>
+          </div>
+        </header>
+
+        <div class="grid grid-cols-1 gap-2 border-b border-gray-200 bg-gray-50 px-4 py-2 text-xs text-gray-600 sm:grid-cols-3">
+          <p>
+            <span class="font-medium text-gray-700">Facturas:</span>
+            {{ order.invoices.join(', ') }}
+          </p>
+          <p>
+            <span class="font-medium text-gray-700">Subtotal:</span>
+            {{ order.subtotal | currency: 'MXN' : 'symbol' : '1.2-2' }}
+          </p>
+          <p>
+            <span class="font-medium text-gray-700">Total:</span>
+            {{ order.total | currency: 'MXN' : 'symbol' : '1.2-2' }}
+          </p>
+        </div>
+
+        @if (isExpanded(order.id)) {
+        <div class="w-full overflow-x-auto">
+          <table class="min-w-225 w-full border-collapse bg-white">
+            <thead class="bg-white text-xs uppercase tracking-wide text-gray-600">
+              <tr>
+                <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">Factura</th>
+                <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">No. Parte</th>
+                <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">Parte Cliente</th>
+                <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">Cantidad</th>
+                <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">PU</th>
+                <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">Importe</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (product of order.products; track product.id) {
+              <tr class="hover:bg-gray-50">
+                <td class="border-b border-gray-200 px-3 py-2 text-sm text-gray-700">{{ product.invoiceNumber }}</td>
+                <td class="border-b border-gray-200 px-3 py-2 text-sm text-gray-700">{{ product.partNumber }}</td>
+                <td class="border-b border-gray-200 px-3 py-2 text-sm text-gray-700">{{ product.customerPart }}</td>
+                <td class="border-b border-gray-200 px-3 py-2 text-sm text-gray-700">{{ product.quantity }} {{ product.unit }}</td>
+                <td class="border-b border-gray-200 px-3 py-2 text-sm text-gray-700">{{ product.unitPrice | currency: 'MXN' : 'symbol' : '1.2-2' }}</td>
+                <td class="border-b border-gray-200 px-3 py-2 text-sm text-gray-700">{{ product.quantity * product.unitPrice | currency: 'MXN' : 'symbol' : '1.2-2' }}</td>
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <footer class="grid grid-cols-1 gap-2 bg-gray-50 px-4 py-3 text-sm sm:grid-cols-3">
+          <p class="flex items-center justify-between text-gray-700">
+            <span>Subtotal</span>
+            <strong>{{ order.subtotal | currency: 'MXN' : 'symbol' : '1.2-2' }}</strong>
+          </p>
+          <p class="flex items-center justify-between text-gray-700">
+            <span>IVA</span>
+            <strong>{{ order.tax | currency: 'MXN' : 'symbol' : '1.2-2' }}</strong>
+          </p>
+          <p class="flex items-center justify-between text-gray-800">
+            <span class="font-semibold">Total</span>
+            <strong>{{ order.total | currency: 'MXN' : 'symbol' : '1.2-2' }}</strong>
+          </p>
+        </footer>
+        }
+      </article>
+      }
+    </div>
+    }
+  </div>
+</section>
