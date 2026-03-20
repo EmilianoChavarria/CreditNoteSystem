@@ -10,6 +10,6 @@ import { Component, input } from '@angular/core';
   `
 })
 export class Tab {
-  readonly title = input<string>('');
+  readonly titleT = input<string>('');
   active: boolean = false;
 }
