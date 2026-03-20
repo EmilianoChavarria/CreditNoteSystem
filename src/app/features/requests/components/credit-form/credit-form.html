@@ -129,11 +129,11 @@
                     }
                 </div>
                 <div class="col-span-2">
-                    <label class="block text-sm font-medium text-[#395f93]">
+                    <label for="sapScreen" class="block text-sm font-medium text-[#395f93]">
                         {{'NEW_REQUEST_FORM.SAP_SCREEN' | translate}}
                         <span class="text-red-500">*</span>
                     </label>
-                    <input type="file" formControlName="sapScreen"
+                    <input type="file" id="sapScreen" formControlName="sapScreen"
                         [class]="campoVacio('sapScreen') ? 'border-red-500 mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-md file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100' : 'mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-md file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 border border-gray-300 shadow-sm rounded-md'">
                     <small *ngIf="campoVacio('sapScreen')" class="text-red-500 text-xs block mt-1">
                         {{ getFieldError('sapScreen') }}
@@ -194,11 +194,11 @@
                     }
                 </div>
                 <div class="col-span-2">
-                    <label class="block text-sm font-medium text-[#395f93]">
+                    <label for="attachSupports" class="block text-sm font-medium text-[#395f93]">
                         {{'NEW_REQUEST_FORM.ATTACH_SUPPORTS' | translate}}
                         <span class="text-red-500">*</span>
                     </label>
-                    <input type="file" multiple (change)="onAttachSupportsChange($event)"
+                    <input type="file" id="attachSupports" multiple (change)="onAttachSupportsChange($event)" formControlName="attachSupports"
                         [class]="campoVacio('attachSupports') ? ' mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-md file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100 border border-red-300 rounded-md' : 'mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-md file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 border border-gray-300 shadow-sm rounded-md'">
                     <small *ngIf="campoVacio('attachSupports')" class="text-red-500 text-xs block mt-1">
                         {{ getFieldError('attachSupports') }}
