@@ -13,12 +13,13 @@ import { Observable, of, forkJoin, combineLatest, Subscription } from 'rxjs';
 import { map, catchError, startWith } from 'rxjs/operators';
 import { Classification, Reason, RequestType } from '../../../../data/interfaces/Request';
 import { ToastrService } from 'ngx-toastr';
+import { CreditForm } from "../../components/credit-form/credit-form";
 
 @Component({
     selector: 'app-new-request',
     templateUrl: './new-request.html',
     styleUrl: './new-request.css',
-    imports: [TabsContainer, Tab, ReactiveFormsModule, TranslatePipe, CommonModule, Spinner, Autocomplete],
+    imports: [TabsContainer, Tab, ReactiveFormsModule, TranslatePipe, CommonModule, Spinner, Autocomplete, CreditForm],
 })
 export class NewRequest implements OnInit {
     public profileForm: FormGroup;
@@ -89,7 +90,6 @@ export class NewRequest implements OnInit {
 
     onRequestTypeChange(event: any) {
         const value = event.target.value;
-        this.selectedRequestType = value;
         this.isLoadingForm.set(true);
         this.isRegisterRequestDisabled.set(false);
 
@@ -104,45 +104,46 @@ export class NewRequest implements OnInit {
         };
 
         const moduleKey = moduleMap[value];
-        // console.log(moduleKey);
-        if (moduleKey && this.formConfig[moduleKey]) {
-            const requestTypeId = Number(this.selectedRequestType);
+        console.log(moduleKey);
+        this.selectedRequestType = moduleKey;
+        // if (moduleKey && this.formConfig[moduleKey]) {
+        //     const requestTypeId = Number(this.selectedRequestType);
 
-            // Combinar los 3 observables
-            forkJoin({
-                requestNumber: this._requestService.getNextRequestNumber(requestTypeId),
-                reasons: this._requestService.getReasons(),
-                classifications: this._requestService.getClassificationsByType(requestTypeId)
-            }).subscribe({
-                next: (results) => {
-                    // Actualizar los signals con los datos
-                    this.requestNumber.set(results.requestNumber.requestNumber);
-                    this.reasons.set(results.reasons);
-                    this.classifications.set(results.classifications);
+        //     // Combinar los 3 observables
+        //     forkJoin({
+        //         requestNumber: this._requestService.getNextRequestNumber(requestTypeId),
+        //         reasons: this._requestService.getReasons(),
+        //         classifications: this._requestService.getClassificationsByType(requestTypeId)
+        //     }).subscribe({
+        //         next: (results) => {
+        //             // Actualizar los signals con los datos
+        //             this.requestNumber.set(results.requestNumber.requestNumber);
+        //             this.reasons.set(results.reasons);
+        //             this.classifications.set(results.classifications);
 
-                    // Actualizar tabs y form
-                    this.currentTabs = this.formConfig[moduleKey].tabs;
-                    this.buildForm(moduleKey);
+        //             // Actualizar tabs y form
+        //             this.currentTabs = this.formConfig[moduleKey].tabs;
+        //             this.buildForm(moduleKey);
 
-                    // Establecer el request number en el form
-                    const requestNumberControl = this.profileForm.get('requestNumber');
-                    if (requestNumberControl) {
-                        requestNumberControl.setValue(results.requestNumber.requestNumber);
-                        requestNumberControl.disable({ emitEvent: false });
-                    }
+        //             // Establecer el request number en el form
+        //             const requestNumberControl = this.profileForm.get('requestNumber');
+        //             if (requestNumberControl) {
+        //                 requestNumberControl.setValue(results.requestNumber.requestNumber);
+        //                 requestNumberControl.disable({ emitEvent: false });
+        //             }
 
-                    this.isLoadingForm.set(false);
-                },
-                error: (error) => {
-                    console.error('Error cargando datos del form:', error);
-                    this.isLoadingForm.set(false);
-                }
-            });
-        } else {
-            this.currentTabs = [];
-            this.profileForm = this.fb.group({});
-            this.isLoadingForm.set(false);
-        }
+        //             this.isLoadingForm.set(false);
+        //         },
+        //         error: (error) => {
+        //             console.error('Error cargando datos del form:', error);
+        //             this.isLoadingForm.set(false);
+        //         }
+        //     });
+        // } else {
+        //     this.currentTabs = [];
+        //     this.profileForm = this.fb.group({});
+        //     this.isLoadingForm.set(false);
+        // }
     }
 
     buildForm(moduleKey: string) {
