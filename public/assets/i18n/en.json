@@ -111,5 +111,27 @@
     "ROLENAME": "Role Name",
     "SELECT_COLOR": "Select a Color",
     "PREVIEW": "Preview"
+  },
+  "NEW_REQUEST_FORM": {
+    "REQUEST_NUMBER": "Request Number",
+    "ORDER_NUMBER": "Order Number",
+    "CREDIT_NUMBER": "Credit Number",
+    "REQUEST_DATE": "Request Date",
+    "CUSTOMER_NUMBER": "Customer Number",
+    "CUSTOMER_NAME": "Customer Name",
+    "AREA": "Area",
+    "REASON": "Reason Why Are You Applying",
+    "CLASSIFICATION": "Classification",
+    "CUSTOMER": "Customer Name",
+    "DELIVERY_NOTE": "Delivery Note",
+    "INVOICE_NUMBER": "Invoice Number",
+    "SAP_SCREEN": "SAP Screen",
+    "CURRENCY": "Currency",
+    "EXCHANGE_RATE": "Exchange Rate",
+    "AMOUNT": "Amount",
+    "HAS_IVA": "Has IVA?",
+    "TOTAL_AMOUNT": "Total Amount",
+    "ATTACH_SUPPORTS": "Attach Supports",
+    "COMMENTS": "Comments"
   }
 }
