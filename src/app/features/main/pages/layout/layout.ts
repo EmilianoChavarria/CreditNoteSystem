@@ -14,6 +14,7 @@ import { Footer } from '../../../../shared/components/footer/footer';
         RouterOutlet,
         Footer,
     ],
+    
 })
 export class Layout {
 
