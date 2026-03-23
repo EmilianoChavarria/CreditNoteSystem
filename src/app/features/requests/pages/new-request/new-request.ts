@@ -19,7 +19,7 @@ import { CreditForm } from "../../components/credit-form/credit-form";
     selector: 'app-new-request',
     templateUrl: './new-request.html',
     styleUrl: './new-request.css',
-    imports: [TabsContainer, Tab, ReactiveFormsModule, TranslatePipe, CommonModule, Spinner, Autocomplete, CreditForm],
+    imports: [ReactiveFormsModule, TranslatePipe, CommonModule, CreditForm],
 })
 export class NewRequest implements OnInit {
     public profileForm: FormGroup;
