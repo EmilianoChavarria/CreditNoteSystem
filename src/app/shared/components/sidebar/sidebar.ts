@@ -1,11 +1,12 @@
-import { Component } from '@angular/core';
+import { Component, inject, NgZone, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
-import { SidebarMenuPopoverComponent } from './sidebar-menu-popover';
 import { Router } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { AuthService, AuthUser } from '../../../core/services/auth-service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { SidebarItem, SidebarService } from '../../../core/services/sidebar.service';
+import { ToastService } from '../../../core/services/toast-service';
 
 interface SidebarOptions {
   iconName: string,
@@ -25,21 +26,26 @@ interface SidebarOptions {
 export class Sidebar {
 
   public isOpen: boolean = true;
+  public isLoadingSidebar: boolean = true;
   public openedOptionIndex: number | null = null;
   public hoveredOptionIndexOnCollapse: number | null = null;
   public sidebarOptions: SidebarOptions[] = [];
+  private _sidebarService = inject(SidebarService);
+  private _ngZone = inject(NgZone);
+  private _cdr = inject(ChangeDetectorRef);
 
   constructor(
     private router: Router,
     private _authService: AuthService,
+    private _toastService: ToastService,
   ) {
-    this.applyRolePermissions(this._authService.getCurrentUser());
-
     this._authService.user$
       .pipe(takeUntilDestroyed())
       .subscribe(user => {
-        this.applyRolePermissions(user);
+        this.loadSidebarOptions(user);
       });
+
+    this.loadSidebarOptions(this._authService.getCurrentUser());
   }
 
 
@@ -53,19 +59,28 @@ export class Sidebar {
   }
 
   onToggleOption(index: number, route: string, hasChildren: boolean = false) {
-    if (!this.isOpen) {
-      this.isOpen = true;
-      this.openedOptionIndex = index;
-      if (!hasChildren) {
-        this.navigate(route);
+    // Run all state mutations outside Angular zone to avoid change detection errors
+    this._ngZone.runOutsideAngular(() => {
+      if (!this.isOpen) {
+        this.isOpen = true;
+        this.openedOptionIndex = index;
+        if (!hasChildren) {
+          this.setActiveOption(route);
+          this.router.navigate([route]);
+        }
+        // Force change detection explicitly
+        this._cdr.detectChanges();
+        return;
       }
-      return;
-    }
-    if (!hasChildren) {
-      this.navigate(route);
-    } else {
-      this.openedOptionIndex = this.openedOptionIndex === index ? null : index;
-    }
+      if (!hasChildren) {
+        this.setActiveOption(route);
+        this.router.navigate([route]);
+      } else {
+        this.openedOptionIndex = this.openedOptionIndex === index ? null : index;
+      }
+      // Force change detection explicitly
+      this._cdr.detectChanges();
+    });
   }
 
   onHoverOption(index: number) {
@@ -76,6 +91,106 @@ export class Sidebar {
 
   onLeaveOption() {
     this.hoveredOptionIndexOnCollapse = null;
+  }
+
+  private loadSidebarOptions(user: AuthUser | null): void {
+    // Don't load sidebar if user is not authenticated (e.g., after logout)
+    if (!user) {
+      this.isLoadingSidebar = false;
+      this.sidebarOptions = [];
+      this.openedOptionIndex = null;
+      this._cdr.detectChanges();
+      return;
+    }
+
+    this.isLoadingSidebar = true;
+
+    this._sidebarService.getSidebarByRole().subscribe({
+      next: (sidebarItems: SidebarItem[]) => {
+        this._ngZone.runOutsideAngular(() => {
+          this.sidebarOptions = this.mapSidebarItems(sidebarItems);
+          this.ensureRouteAccess(user);
+          this.setActiveOption(this.router.url);
+          this.isLoadingSidebar = false;
+          // Force change detection explicitly
+          this._cdr.detectChanges();
+        });
+      },
+      error: () => {
+        this._ngZone.runOutsideAngular(() => {
+          this.sidebarOptions = this.getFallbackSidebarOptions(user);
+          this.ensureRouteAccess(user);
+          this.setActiveOption(this.router.url);
+          this.isLoadingSidebar = false;
+          // Force change detection explicitly
+          this._cdr.detectChanges();
+        });
+        this._toastService.error('No se pudo cargar el menu del usuario', 'Sidebar');
+      }
+    });
+  }
+
+  private ensureRouteAccess(user: AuthUser | null): void {
+    const allowedRoutes = this.getAllowedRoutes(this.sidebarOptions);
+
+    if (!allowedRoutes.length) {
+      const fallbackHome = this.isCustomer(user) ? '/app/clients' : '/app/dashboard';
+      // Execute navigation outside Angular zone
+      this._ngZone.runOutsideAngular(() => {
+        this.router.navigate([fallbackHome]);
+        this._cdr.detectChanges();
+      });
+      return;
+    }
+
+    const canAccessCurrentRoute = allowedRoutes.some(route => this.router.url.startsWith(route));
+
+    if (!canAccessCurrentRoute) {
+      // Execute navigation outside Angular zone
+      this._ngZone.runOutsideAngular(() => {
+        this.router.navigate([allowedRoutes[0]]);
+        this._cdr.detectChanges();
+      });
+    }
+  }
+
+  private mapSidebarItems(items: SidebarItem[]): SidebarOptions[] {
+    return [...items]
+      .sort((a, b) => a.orderIndex - b.orderIndex)
+      .map(item => ({
+        iconName: item.icon,
+        optionName: item.name,
+        url: item.url,
+        children: item.children?.length
+          ? [...item.children]
+              .sort((a, b) => a.orderIndex - b.orderIndex)
+              .map(child => ({
+                iconName: child.icon,
+                optionName: child.name,
+                url: child.url,
+              }))
+          : undefined,
+      }));
+  }
+
+  private getAllowedRoutes(options: SidebarOptions[]): string[] {
+    const routes: string[] = [];
+
+    options.forEach(option => {
+      if (option.url) {
+        routes.push(option.url);
+      }
+
+      if (option.children?.length) {
+        option.children.forEach(child => {
+          if (child.url) {
+            routes.push(child.url);
+          }
+        });
+      }
+    });
+
+    return routes;
   }
 
   private createSidebarOptions(): SidebarOptions[] {
@@ -113,38 +228,18 @@ export class Sidebar {
     ];
   }
 
-  private applyRolePermissions(user: AuthUser | null): void {
-    const isAdmin = this.isAdmin(user);
-    const isCustomer = this.isCustomer(user);
-
-    if (isCustomer) {
-      const customerHomeRoute = '/app/clients';
-      const customerAllowedRoutes = ['/app/clients', '/app/clients/orders'];
-      this.sidebarOptions = this.createCustomerSidebarOptions();
-
-      const canAccessCurrentRoute = customerAllowedRoutes.some(route => this.router.url.startsWith(route));
-
-      if (!canAccessCurrentRoute) {
-        this.router.navigate([customerHomeRoute]);
-      }
-
-      this.setActiveOption(this.router.url);
-      return;
+  private getFallbackSidebarOptions(user: AuthUser | null): SidebarOptions[] {
+    if (this.isCustomer(user)) {
+      return this.createCustomerSidebarOptions();
     }
 
-    this.sidebarOptions = this.createSidebarOptions().filter(option => {
+    const isAdmin = this.isAdmin(user);
+    return this.createSidebarOptions().filter(option => {
       if (option.url === '/app/settings') {
         return isAdmin;
       }
-
       return true;
     });
-
-    if (!isAdmin && this.router.url.startsWith('/app/settings')) {
-      this.router.navigate(['/app/dashboard']);
-    }
-
-    this.setActiveOption(this.router.url);
   }
 
   private isAdmin(user: AuthUser | null): boolean {
@@ -173,7 +268,10 @@ export class Sidebar {
         if (activeChild) {
           activeChild.active = true;
           option.active = true; // Marcar también el padre
-          this.openedOptionIndex = this.sidebarOptions.indexOf(option);
+          const index = this.sidebarOptions.indexOf(option);
+          if (index >= 0) {
+            this.openedOptionIndex = index;
+          }
           return;
         }
       } else {
@@ -187,8 +285,13 @@ export class Sidebar {
   }
 
   navigate(route: string) {
-    this.setActiveOption(route);
-    this.router.navigate([route]);
+    // Run all state mutations outside Angular zone to avoid change detection errors
+    this._ngZone.runOutsideAngular(() => {
+      this.setActiveOption(route);
+      this.router.navigate([route]);
+      // Force change detection explicitly
+      this._cdr.detectChanges();
+    });
   }
 
 }

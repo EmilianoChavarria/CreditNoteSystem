@@ -1,5 +1,13 @@
-<section
-    [class]="(isOpen ? 'w-64 shadow-2xl' : 'w-20 shadow-none') + ' transition-all duration-300 ease-in-out bg-white h-full border-r-2 border-[#ff8200] p-4 flex flex-col '">
+@if (isLoadingSidebar) {
+<div class="fixed inset-0 z-999 bg-white/80 backdrop-blur-sm flex items-center justify-center">
+    <div class="h-14 w-14 rounded-full border-4 border-[#326295] border-r-transparent animate-spin" role="status">
+        <span class="sr-only">Loading...</span>
+    </div>
+</div>
+}
+
+@if (!isLoadingSidebar) {
+<section [class]="(isOpen ? 'w-64 shadow-2xl' : 'w-20 shadow-none') + ' transition-all duration-300 ease-in-out bg-white h-full border-r-2 border-[#ff8200] p-4 flex flex-col '">
 
     <button (click)="onToggleSidebar()" class="mb-2 mx-auto hover:cursor-pointer">
         <lucide-icon [name]="isOpen ? 'panel-left-close' : 'panel-left-open'" size="42" strokeWidth="1.5" color="#326295" class="shrink-0"></lucide-icon>
@@ -39,3 +47,4 @@
         }
     </ul>
 </section>
+}
