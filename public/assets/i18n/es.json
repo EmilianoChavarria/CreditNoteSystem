@@ -18,7 +18,7 @@
     "APPROVE": "Mis Aprobaciones",
     "MY_INVOICES": "Mis Facturas",
     "ORDERS": "Mis Órdenes",
-      "RETURN_ORDERS_APPROVAL": "Aprobar Ordenes Devolucion",
+    "RETURN_ORDERS_APPROVAL": "Aprobar Ordenes Devolucion",
     "HISTORY": "Historial",
     "NOTIFICATIONS": "Notificaciones",
     "SETTINGS": "Configuración",
@@ -40,7 +40,7 @@
     "ALL_TYPES": "Todas las opciones",
     "DEFAULT_TEXT": "Por favor, seleccione un tipo de solicitud para comenzar"
   },
-  "TABLE" : {
+  "TABLE": {
     "REG_PER_PAGE": "Registros por página",
     "PAGE": "Página",
     "OF": "de",
@@ -111,5 +111,27 @@
     "ROLENAME": "Nombre del Rol",
     "SELECT_COLOR": "Selecciona un Color",
     "PREVIEW": "Vista Previa"
+  },
+  "NEW_REQUEST_FORM": {
+    "REQUEST_NUMBER": "Número de Solicitud",
+    "ORDER_NUMBER": "Número de Orden",
+    "CREDIT_NUMBER": "Número de Crédito",
+    "REQUEST_DATE": "Fecha de Solicitud",
+    "CUSTOMER_NUMBER": "Número de Cliente",
+    "CUSTOMER_NAME": "Nombre del Cliente",
+    "AREA": "Área",
+    "REASON": "Motivo de la Solicitud",
+    "CLASSIFICATION": "Clasificación",
+    "CUSTOMER": "Nombre del Cliente",
+    "DELIVERY_NOTE": "Nota de Entrega",
+    "INVOICE_NUMBER": "Número de Factura",
+    "SAP_SCREEN": "Pantalla de SAP",
+    "CURRENCY": "Moneda",
+    "EXCHANGE_RATE": "Tipo de Cambio",
+    "AMOUNT": "Monto",
+    "HAS_IVA": "¿Tiene IVA?",
+    "TOTAL_AMOUNT": "Monto Total",
+    "ATTACH_SUPPORTS": "Adjuntar Soportes",
+    "COMMENTS": "Comentarios"
   }
 }
