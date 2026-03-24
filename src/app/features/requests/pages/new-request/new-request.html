@@ -13,8 +13,13 @@
         </div>
     </div>
 
-    @if (selectedRequestType === 'credits') {
-        <app-credit-form></app-credit-form>
+    @switch (selectedRequestType) {
+        @case ('credits') {
+            <app-credit-form></app-credit-form>
+        }
+        @case ('debits') {
+            <app-debit-form></app-debit-form>
+        }
     }
 
 
