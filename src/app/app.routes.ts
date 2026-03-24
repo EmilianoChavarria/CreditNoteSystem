@@ -22,6 +22,7 @@ import { Clients } from './features/clients/clients';
 import { ClientOrders } from './features/clients/client-orders';
 import { ManageRoles } from './features/settings/pages/roles/pages/manage-roles/manage-roles';
 import { ReturnOrdersApproval } from './features/approvals/return-orders-approval/return-orders-approval';
+import { ActionGuard } from './core/guards/action.guard';
 
 export const routes: Routes = [
   { 
@@ -38,9 +39,24 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: Dashboard },
-      { path: 'request/new-request', component: NewRequest },
-      { path: 'request/drafts', component: BulkUpload },
-      { path: 'request/bulk-upload', component: Drafts },
+      {
+        path: 'request/new-request',
+        component: NewRequest,
+        canActivate: [ActionGuard],
+        data: { requiredAction: 'new_request' }
+      },
+      {
+        path: 'request/drafts',
+        component: Drafts,
+        canActivate: [ActionGuard],
+        data: { requiredAction: 'drafts' }
+      },
+      {
+        path: 'request/bulk-upload',
+        component: BulkUpload,
+        canActivate: [ActionGuard],
+        data: { requiredAction: 'bulk_load' }
+      },
       { path: 'my-approvals', component: MyApprovals },
       { path: 'approvals/return-orders', component: ReturnOrdersApproval },
       { path: 'clients', component: Clients },
