@@ -44,7 +44,12 @@
                             <td class="border-y border-gray-200 px-6 py-4 w-fit">
                                 <div class="flex flex-row justify-center items-center gap-3 text-[#ff8200] hover:text-[#975005] transition-colors hover:cursor-pointer">
                                     <lucide-icon name="pencil" size="18" strokeWidth="2" ></lucide-icon>
-                                    <button routerLink="manage-permissions" class="text-sm">Editar Permisos</button>
+                                    <button
+                                        [routerLink]="['manage-permissions']"
+                                        [queryParams]="{ roleId: role.id, roleName: role.roleName }"
+                                        class="text-sm">
+                                        Editar Permisos
+                                    </button>
                                 </div>
                             </td>
                         </tr>
