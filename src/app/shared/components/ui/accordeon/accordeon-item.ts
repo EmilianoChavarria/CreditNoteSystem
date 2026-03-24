@@ -12,7 +12,7 @@ import { ChangeDetectionStrategy, Component, OnInit, computed, input, output, si
 export class AccordeonItem implements OnInit {
   private static nextId = 0;
 
-  readonly title = input.required<string>();
+  readonly titleM = input.required<string>();
   readonly description = input<string>('');
   readonly openButtonText = input<string>('Abrir');
   readonly closeButtonText = input<string>('Cerrar');
