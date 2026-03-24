@@ -3,11 +3,17 @@
     <div class="flex flex-col max-w-7xl mx-auto gap-y-6">
         <div class="flex flex-row justify-start items-center">
             <div class="flex flex-col">
-                <span class="text-3xl font-semibold">ADMIN</span>
+                <span class="text-3xl font-semibold">{{ selectedRoleName()}}</span>
                 <span class="text-gray-600">Define los permisos y accesos para este rol en el sistema</span>
             </div>
 
         </div>
+
+        @if (isLoading()) {
+        <div class="bg-white shadow-md rounded-lg w-full py-10 px-8 text-center text-gray-600">
+            Cargando permisos del rol...
+        </div>
+        } @else {
 
         <div class="bg-white shadow-md rounded-lg w-full py-4 px-8">
             <div class="flex flex-col">
@@ -15,55 +21,17 @@
                 <span class="text-gray-600">Controla el acceso a las secciones principales de la plataforma.</span>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-1">
+                @for (module of modules(); track module.id) {
                 <div class="flex flex-row items-center justify-between border-b border-gray-200 py-5 px-2">
                     <div class="flex flex-col">
-                        <span class="font-semibold text-sm">Dashboard</span>
-                        <span class="text-gray-600 text-sm mt-1">Acceso de lectura a las métricas principales.</span>
+                        <span class="font-semibold text-sm">{{ module.name | translate }}</span>
+                        <span class="text-gray-600 text-sm mt-1">{{ module.url }}</span>
                     </div>
-                    <app-switch [checked]="isPermissionActive('dashboard')" (checkedChange)="setPermissionActive('dashboard', $event)"></app-switch>
+                    <app-switch [checked]="isPermissionActive(module.id.toString())"
+                        (checkedChange)="setPermissionActive(module.id.toString(), $event)">
+                    </app-switch>
                 </div>
-                <div class="flex flex-row items-center justify-between border-b border-gray-200 py-5 px-2">
-                    <div class="flex flex-col">
-                        <span class="font-semibold text-sm">Notificaciones</span>
-                        <span class="text-gray-600 text-sm mt-1">Acceso de lectura a las métricas principales.</span>
-                    </div>
-                    <app-switch [checked]="isPermissionActive('notifications')" (checkedChange)="setPermissionActive('notifications', $event)"></app-switch>
-                </div>
-                <div class="flex flex-row items-center justify-between border-b border-gray-200 py-5 px-2">
-                    <div class="flex flex-col">
-                        <span class="font-semibold text-sm">Mis Aprobaciones</span>
-                        <span class="text-gray-600 text-sm mt-1">Acceso de lectura a las métricas principales.</span>
-                    </div>
-                    <app-switch [checked]="isPermissionActive('myApprovals')" (checkedChange)="setPermissionActive('myApprovals', $event)"></app-switch>
-                </div>
-                <div class="flex flex-row items-center justify-between border-b border-gray-200 py-5 px-2">
-                    <div class="flex flex-col">
-                        <span class="font-semibold text-sm">Aprobación de Órdenes de Devolución</span>
-                        <span class="text-gray-600 text-sm mt-1">Acceso de lectura a las métricas principales.</span>
-                    </div>
-                    <app-switch [checked]="isPermissionActive('returnOrdersApproval')" (checkedChange)="setPermissionActive('returnOrdersApproval', $event)"></app-switch>
-                </div>
-                <div class="flex flex-row items-center justify-between border-b border-gray-200 py-5 px-2">
-                    <div class="flex flex-col">
-                        <span class="font-semibold text-sm">Configuración</span>
-                        <span class="text-gray-600 text-sm mt-1">Acceso de lectura a las métricas principales.</span>
-                    </div>
-                    <app-switch [checked]="isPermissionActive('settings')" (checkedChange)="setPermissionActive('settings', $event)"></app-switch>
-                </div>
-                <div class="flex flex-row items-center justify-between border-b border-gray-200 py-5 px-2">
-                    <div class="flex flex-col">
-                        <span class="font-semibold text-sm">Mis Facturas</span>
-                        <span class="text-gray-600 text-sm mt-1">Sección para clientes para generar una órden de devolución</span>
-                    </div>
-                    <app-switch [checked]="isPermissionActive('myInvoices')" (checkedChange)="setPermissionActive('myInvoices', $event)"></app-switch>
-                </div>
-                <div class="flex flex-row items-center justify-between border-b border-gray-200 py-5 px-2">
-                    <div class="flex flex-col">
-                        <span class="font-semibold text-sm">Mis órdenes</span>
-                        <span class="text-gray-600 text-sm mt-1">Sección para clientes para generar una órden de devolución</span>
-                    </div>
-                    <app-switch [checked]="isPermissionActive('myOrders')" (checkedChange)="setPermissionActive('myOrders', $event)"></app-switch>
-                </div>
+                }
             </div>
         </div>
 
@@ -77,258 +45,34 @@
                     <thead class="text-sm text-heading bg-gray-100">
                         <tr class="border border-gray-200 ">
                             <th scope="col" class="px-6 py-3 font-semibold text-center w-12 border-y border-gray-200">
-                                Tipo de solicitud
+                                {{'DASHBOARD.REQ_FILTER'|translate}}
                             </th>
+                            @for (action of actions(); track action.id) {
                             <th scope="col" class="px-6 py-3 font-semibold text-center w-60 border-y border-gray-200">
-                                Ver Listado
+                                {{ action.name | titlecase }}
                             </th>
-                            <th scope="col" class="px-6 py-3 font-semibold text-center w-60 border-y border-gray-200">
-                                Crear
-                            </th>
-                            <th scope="col" class="px-6 py-3 font-semibold text-center w-60 border-y border-gray-200">
-                                Editar
-                            </th>
-                            <th scope="col" class="px-6 py-3 font-semibold text-center w-60 border-y border-gray-200">
-                                Ver Borradores
-                            </th>
-                            <th scope="col" class="px-6 py-3 font-semibold text-center w-60 border-y border-gray-200">
-                                Carga Masiva
-                            </th>
-                            <th scope="col" class="px-6 py-3 font-semibold text-center w-60 border-y border-gray-200">
-                                My Approvals
-                            </th>
+                            }
                         </tr>
                     </thead>
                     <tbody class="">
-
+                        @for (requestType of requestTypes(); track requestType.id) {
                         <tr class="hover:bg-gray-50 transition-colors">
                             <td class="border-y border-gray-200 px-6 py-4 w-fit">
                                 <div class="flex flex-row items-center gap-3">
-                                    <span class="text-sm font-bold text-gray-800">Credits</span>
+                                    <span class="text-sm font-bold text-gray-800">{{ requestType.name }}</span>
                                 </div>
                             </td>
+                            @for (action of actions(); track action.id) {
                             <td class="border-y border-gray-200 px-6 py-4 w-fit">
                                 <div class="flex flex-row justify-center items-center gap-3">
-                                    <input type="checkbox" name="" id="">
+                                    <input type="checkbox" class="h-4 w-4 accent-[#ff8200]"
+                                        [checked]="isRequestPermissionActive(requestType.id, action.slug)"
+                                        (change)="setRequestPermissionActive(requestType.id, action.slug, $event)">
                                 </div>
                             </td>
-                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
-                                <div class="flex flex-row justify-center items-center gap-3">
-                                    <input type="checkbox" name="" id="">
-                                </div>
-                            </td>
-                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
-                                <div class="flex flex-row justify-center items-center gap-3">
-                                    <input type="checkbox" name="" id="">
-                                </div>
-                            </td>
-                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
-                                <div class="flex flex-row justify-center items-center gap-3">
-                                    <input type="checkbox" name="" id="">
-                                </div>
-                            </td>
-                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
-                                <div class="flex flex-row justify-center items-center gap-3">
-                                    <input type="checkbox" name="" id="">
-                                </div>
-                            </td>
-                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
-                                <div class="flex flex-row justify-center items-center gap-3">
-                                    <input type="checkbox" name="" id="">
-                                </div>
-                            </td>
-
+                            }
                         </tr>
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
-                                <div class="flex flex-row items-center gap-3">
-                                    <span class="text-sm font-bold text-gray-800">Debits</span>
-                                </div>
-                            </td>
-                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
-                                <div class="flex flex-row justify-center items-center gap-3">
-                                    <input type="checkbox" name="" id="">
-                                </div>
-                            </td>
-                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
-                                <div class="flex flex-row justify-center items-center gap-3">
-                                    <input type="checkbox" name="" id="">
-                                </div>
-                            </td>
-                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
-                                <div class="flex flex-row justify-center items-center gap-3">
-                                    <input type="checkbox" name="" id="">
-                                </div>
-                            </td>
-                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
-                                <div class="flex flex-row justify-center items-center gap-3">
-                                    <input type="checkbox" name="" id="">
-                                </div>
-                            </td>
-                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
-                                <div class="flex flex-row justify-center items-center gap-3">
-                                    <input type="checkbox" name="" id="">
-                                </div>
-                            </td>
-                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
-                                <div class="flex flex-row justify-center items-center gap-3">
-                                    <input type="checkbox" name="" id="">
-                                </div>
-                            </td>
-
-                        </tr>
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
-                                <div class="flex flex-row items-center gap-3">
-                                    <span class="text-sm font-bold text-gray-800">Auditor Credits</span>
-                                </div>
-                            </td>
-                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
-                                <div class="flex flex-row justify-center items-center gap-3">
-                                    <input type="checkbox" name="" id="">
-                                </div>
-                            </td>
-                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
-                                <div class="flex flex-row justify-center items-center gap-3">
-                                    <input type="checkbox" name="" id="">
-                                </div>
-                            </td>
-                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
-                                <div class="flex flex-row justify-center items-center gap-3">
-                                    <input type="checkbox" name="" id="">
-                                </div>
-                            </td>
-                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
-                                <div class="flex flex-row justify-center items-center gap-3">
-                                    <input type="checkbox" name="" id="">
-                                </div>
-                            </td>
-                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
-                                <div class="flex flex-row justify-center items-center gap-3">
-                                    <input type="checkbox" name="" id="">
-                                </div>
-                            </td>
-                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
-                                <div class="flex flex-row justify-center items-center gap-3">
-                                    <input type="checkbox" name="" id="">
-                                </div>
-                            </td>
-
-                        </tr>
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
-                                <div class="flex flex-row items-center gap-3">
-                                    <span class="text-sm font-bold text-gray-800">Auditor Debits</span>
-                                </div>
-                            </td>
-                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
-                                <div class="flex flex-row justify-center items-center gap-3">
-                                    <input type="checkbox" name="" id="">
-                                </div>
-                            </td>
-                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
-                                <div class="flex flex-row justify-center items-center gap-3">
-                                    <input type="checkbox" name="" id="">
-                                </div>
-                            </td>
-                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
-                                <div class="flex flex-row justify-center items-center gap-3">
-                                    <input type="checkbox" name="" id="">
-                                </div>
-                            </td>
-                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
-                                <div class="flex flex-row justify-center items-center gap-3">
-                                    <input type="checkbox" name="" id="">
-                                </div>
-                            </td>
-                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
-                                <div class="flex flex-row justify-center items-center gap-3">
-                                    <input type="checkbox" name="" id="">
-                                </div>
-                            </td>
-                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
-                                <div class="flex flex-row justify-center items-center gap-3">
-                                    <input type="checkbox" name="" id="">
-                                </div>
-                            </td>
-
-                        </tr>
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
-                                <div class="flex flex-row items-center gap-3">
-                                    <span class="text-sm font-bold text-gray-800">Re-invoicing</span>
-                                </div>
-                            </td>
-                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
-                                <div class="flex flex-row justify-center items-center gap-3">
-                                    <input type="checkbox" name="" id="">
-                                </div>
-                            </td>
-                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
-                                <div class="flex flex-row justify-center items-center gap-3">
-                                    <input type="checkbox" name="" id="">
-                                </div>
-                            </td>
-                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
-                                <div class="flex flex-row justify-center items-center gap-3">
-                                    <input type="checkbox" name="" id="">
-                                </div>
-                            </td>
-                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
-                                <div class="flex flex-row justify-center items-center gap-3">
-                                    <input type="checkbox" name="" id="">
-                                </div>
-                            </td>
-                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
-                                <div class="flex flex-row justify-center items-center gap-3">
-                                    <input type="checkbox" name="" id="">
-                                </div>
-                            </td>
-                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
-                                <div class="flex flex-row justify-center items-center gap-3">
-                                    <input type="checkbox" name="" id="">
-                                </div>
-                            </td>
-
-                        </tr>
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
-                                <div class="flex flex-row items-center gap-3">
-                                    <span class="text-sm font-bold text-gray-800">Material return</span>
-                                </div>
-                            </td>
-                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
-                                <div class="flex flex-row justify-center items-center gap-3">
-                                    <input type="checkbox" name="" id="">
-                                </div>
-                            </td>
-                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
-                                <div class="flex flex-row justify-center items-center gap-3">
-                                    <input type="checkbox" name="" id="">
-                                </div>
-                            </td>
-                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
-                                <div class="flex flex-row justify-center items-center gap-3">
-                                    <input type="checkbox" name="" id="">
-                                </div>
-                            </td>
-                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
-                                <div class="flex flex-row justify-center items-center gap-3">
-                                    <input type="checkbox" name="" id="">
-                                </div>
-                            </td>
-                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
-                                <div class="flex flex-row justify-center items-center gap-3">
-                                    <input type="checkbox" name="" id="">
-                                </div>
-                            </td>
-                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
-                                <div class="flex flex-row justify-center items-center gap-3">
-                                    <input type="checkbox" name="" id="">
-                                </div>
-                            </td>
-
-                        </tr>
+                        }
 
                     </tbody>
                 </table>
@@ -338,18 +82,19 @@
 
         <div class="flex flex-row justify-end items-center">
             <div class="flex gap-x-4">
-                <button
+                <button (click)="onCancel()"
                     class="border border-gray-300 rounded-md px-4 py-2 flex flex-row items-center justify-center gap-x-1">
                     <lucide-icon name="x" size="17"></lucide-icon>
                     Cancelar
                 </button>
-                <button
+                <button (click)="onSaveChanges()" [disabled]="isSaving()"
                     class="bg-[#ff8200] text-white rounded-md px-4 py-2 flex flex-row items-center justify-center gap-x-2 hover:cursor-pointer hover:bg-[#db7201]">
                     <lucide-icon name="save" size="17"></lucide-icon>
-                    Guardar cambios
+                    {{ isSaving() ? 'Guardando...' : 'Guardar cambios' }}
                 </button>
             </div>
 
         </div>
+        }
     </div>
 </section>
