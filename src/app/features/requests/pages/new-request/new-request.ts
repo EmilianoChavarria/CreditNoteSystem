@@ -14,6 +14,8 @@ import { map, catchError, startWith } from 'rxjs/operators';
 import { Classification, Reason, RequestType } from '../../../../data/interfaces/Request';
 import { ToastrService } from 'ngx-toastr';
 import { CreditForm } from "../../components/credit-form/credit-form";
+import { AuthService } from '../../../../core/services/auth-service';
+import { PermissionAction, RequestTypePermissionRecord, RoleService } from '../../../../core/services/role-service';
 
 @Component({
     selector: 'app-new-request',
@@ -32,8 +34,12 @@ export class NewRequest implements OnInit {
     private requestNumber = signal<string>('');
     public reasons = signal<Reason[]>([]);
     public classifications = signal<Classification[]>([]);
+    public availableRequestTypes = signal<RequestType[]>([]);
     private computedSubscriptions: Subscription[] = [];
+    private requestTypeActionPermissions = signal<Record<number, Record<string, boolean>>>({});
     private toastr = inject(ToastrService);
+    private authService = inject(AuthService);
+    private roleService = inject(RoleService);
     constructor(
         private fb: FormBuilder,
         private _requestService: RequestService,
@@ -44,7 +50,81 @@ export class NewRequest implements OnInit {
     }
 
     ngOnInit() {
+        this.loadAllowedRequestTypes();
+    }
 
+    private loadAllowedRequestTypes(): void {
+        const currentRoleId = this.authService.getCurrentUser()?.roleId;
+
+        if (currentRoleId) {
+            this.loadRequestTypesByRole(currentRoleId);
+            return;
+        }
+
+        this.authService.checkSession().subscribe({
+            next: () => {
+                const resolvedRoleId = this.authService.getCurrentUser()?.roleId;
+                if (!resolvedRoleId) {
+                    this.availableRequestTypes.set([]);
+                    return;
+                }
+
+                this.loadRequestTypesByRole(resolvedRoleId);
+            },
+            error: () => {
+                this.availableRequestTypes.set([]);
+            }
+        });
+    }
+
+    private loadRequestTypesByRole(roleId: number): void {
+        forkJoin({
+            actions: this.roleService.getActions(),
+            requestTypes: this._requestService.getRequestTypes(),
+            permissions: this.roleService.getRequestTypePermissionsByRole(roleId),
+        }).subscribe({
+            next: ({ actions, requestTypes, permissions }) => {
+                const permissionMatrix = this.buildRequestTypeActionPermissions(actions, permissions);
+                this.requestTypeActionPermissions.set(permissionMatrix);
+
+                const filteredTypes = requestTypes.filter((requestType) => {
+                    const permissionsBySlug = permissionMatrix[requestType.id] ?? {};
+                    return Boolean(permissionsBySlug['create'] || permissionsBySlug['new_request']);
+                });
+
+                this.availableRequestTypes.set(filteredTypes);
+            },
+            error: () => {
+                this.availableRequestTypes.set([]);
+            }
+        });
+    }
+
+    private buildRequestTypeActionPermissions(
+        actions: PermissionAction[],
+        permissions: RequestTypePermissionRecord[]
+    ): Record<number, Record<string, boolean>> {
+        const actionSlugById = actions.reduce<Record<number, string>>((acc, action) => {
+            acc[action.id] = action.slug?.trim().toLowerCase() ?? '';
+            return acc;
+        }, {});
+
+        const permissionMatrix: Record<number, Record<string, boolean>> = {};
+
+        for (const permission of permissions) {
+            const slug = actionSlugById[permission.action_id];
+            if (!slug) {
+                continue;
+            }
+
+            if (!permissionMatrix[permission.request_type_id]) {
+                permissionMatrix[permission.request_type_id] = {};
+            }
+
+            permissionMatrix[permission.request_type_id][slug] = Boolean(permission.is_allowed);
+        }
+
+        return permissionMatrix;
     }
 
     getNextRequestNumber(requestTypeId: number) {
