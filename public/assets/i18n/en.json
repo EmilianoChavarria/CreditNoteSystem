@@ -116,6 +116,7 @@
     "REQUEST_NUMBER": "Request Number",
     "ORDER_NUMBER": "Order Number",
     "CREDIT_NUMBER": "Credit Number",
+    "DEBIT_NUMBER": "Debit Number",
     "REQUEST_DATE": "Request Date",
     "CUSTOMER_NUMBER": "Customer Number",
     "CUSTOMER_NAME": "Customer Name",
