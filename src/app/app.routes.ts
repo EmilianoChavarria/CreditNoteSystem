@@ -24,6 +24,7 @@ import { ManageRoles } from './features/settings/pages/roles/pages/manage-roles/
 import { ReturnOrdersApproval } from './features/approvals/return-orders-approval/return-orders-approval';
 import { ActionGuard } from './core/guards/action.guard';
 
+
 export const routes: Routes = [
   { 
     path: 'auth', 
@@ -42,20 +43,20 @@ export const routes: Routes = [
       {
         path: 'request/new-request',
         component: NewRequest,
-        canActivate: [ActionGuard],
-        data: { requiredAction: 'new_request' }
+        canActivate: [ActionGuard]
+        // data: { requiredAction: 'new_request' }
       },
       {
         path: 'request/drafts',
         component: Drafts,
         canActivate: [ActionGuard],
-        data: { requiredAction: 'drafts' }
+        // data: { requiredAction: 'drafts' }
       },
       {
         path: 'request/bulk-upload',
         component: BulkUpload,
         canActivate: [ActionGuard],
-        data: { requiredAction: 'bulk_load' }
+        // data: { requiredAction: 'bulk_load' }
       },
       { path: 'my-approvals', component: MyApprovals },
       { path: 'approvals/return-orders', component: ReturnOrdersApproval },
