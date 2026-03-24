@@ -8,12 +8,9 @@
                 <select name="request_type" id="request_type" (change)="onRequestTypeChange($event)"
                     class="h-11 border border-gray-300 rounded-lg w-64 pl-2 pr-4">
                     <option value="DE">{{'REQUEST_TYPES.DEFAULT'| translate}}</option>
-                    <option value="1">{{'REQUEST_TYPES.CREDIT'| translate}}</option>
-                    <option value="2">{{'REQUEST_TYPES.DEBIT'| translate}}</option>
-                    <option value="3">{{'REQUEST_TYPES.AUDITOR_CREDIT'| translate}}</option>
-                    <option value="4">{{'REQUEST_TYPES.AUDITOR_DEBIT'| translate}}</option>
-                    <option value="5">{{'REQUEST_TYPES.RE_INVOICING'| translate}}</option>
-                    <option value="6">{{'REQUEST_TYPES.MATERIAL_RETURN'| translate}}</option>
+                    @for (requestType of availableRequestTypes(); track requestType.id) {
+                    <option [value]="requestType.id">{{ requestType.name | translate }}</option>
+                    }
                 </select>
             </div>
         </div>
@@ -50,7 +47,7 @@
         (closed)="closeHistoryDrawer()"></app-workflow-history-drawer>
     } @else {
     <div class="text-center py-20 text-gray-500">
-        <img src="assets/png/TIMKEN-DISABLE-esp.png" alt="" class="h-92 mx-auto">
+        <img src="assets/png/TIMKEN-DISABLE-esp.webp" alt="" class="h-92 mx-auto">
         <p class="text-2xl text-[#3c6194] font-semibold">{{'REQUEST_TYPES.DEFAULT_TEXT'| translate}}</p>
     </div>
     }

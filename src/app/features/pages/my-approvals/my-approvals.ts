@@ -1,8 +1,8 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AccionPersonalizada, Column, Table } from '../../../shared/components/ui/table/table';
-import { Request } from '../../../data/interfaces/Request';
+import { Request, RequestType } from '../../../data/interfaces/Request';
 import { WorkflowDetail, WorkflowHistoryDrawer } from '../../history/components/workflow-history-drawer/workflow-history-drawer';
 import { RequestHistoryData, RequestHistoryLog, RequestService } from '../../../core/services/request-service';
 import { ToastService } from '../../../core/services/toast-service';
@@ -13,6 +13,9 @@ import { Modal } from "../../../shared/components/ui/modal/modal";
 import { Badge } from "../../../shared/components/ui/badge/badge";
 import { JsonPipe, UpperCasePipe } from '@angular/common';
 import { Spinner } from "../../../shared/components/ui/spinner/spinner";
+import { AuthService } from '../../../core/services/auth-service';
+import { PermissionAction, RequestTypePermissionRecord, RoleService } from '../../../core/services/role-service';
+import { forkJoin } from 'rxjs';
 // 👇 Accede al default export real
 const pdf: any = (pdfMake as any).default ?? pdfMake;
 
@@ -29,6 +32,7 @@ export class MyApprovals {
   
     public selectedRequestType: string = '';
     public requests = signal<Request[]>([]);
+    public availableRequestTypes = signal<RequestType[]>([]);
     public pageSize = signal<number>(10);
     public currentPage = signal<number>(1);
     public hasNextPage = signal<boolean>(false);
@@ -126,11 +130,92 @@ export class MyApprovals {
 
     public submitted = signal(false);
     public showDeclineModal = signal<boolean>(false);
+    private readonly requestTypeActionPermissions = signal<Record<number, Record<string, boolean>>>({});
+    private readonly authService = inject(AuthService);
+    private readonly roleService = inject(RoleService);
 
     constructor(
         private _requestsService: RequestService,
         private _toastService: ToastService
     ) { }
+
+    ngOnInit(): void {
+        this.loadAllowedRequestTypes();
+    }
+
+    private loadAllowedRequestTypes(): void {
+        const currentRoleId = this.authService.getCurrentUser()?.roleId;
+
+        if (currentRoleId) {
+            this.loadRequestTypesByRole(currentRoleId);
+            return;
+        }
+
+        this.authService.checkSession().subscribe({
+            next: () => {
+                const resolvedRoleId = this.authService.getCurrentUser()?.roleId;
+                if (!resolvedRoleId) {
+                    this.availableRequestTypes.set([]);
+                    return;
+                }
+
+                this.loadRequestTypesByRole(resolvedRoleId);
+            },
+            error: () => {
+                this.availableRequestTypes.set([]);
+            }
+        });
+    }
+
+    private loadRequestTypesByRole(roleId: number): void {
+        forkJoin({
+            actions: this.roleService.getActions(),
+            requestTypes: this._requestsService.getRequestTypes(),
+            permissions: this.roleService.getRequestTypePermissionsByRole(roleId),
+        }).subscribe({
+            next: ({ actions, requestTypes, permissions }) => {
+                const permissionMatrix = this.buildRequestTypeActionPermissions(actions, permissions);
+                this.requestTypeActionPermissions.set(permissionMatrix);
+
+                const filteredTypes = requestTypes.filter((requestType) => {
+                    const permissionsBySlug = permissionMatrix[requestType.id] ?? {};
+                    return Boolean(permissionsBySlug['approve']);
+                });
+
+                this.availableRequestTypes.set(filteredTypes);
+            },
+            error: () => {
+                this.availableRequestTypes.set([]);
+            }
+        });
+    }
+
+    private buildRequestTypeActionPermissions(
+        actions: PermissionAction[],
+        permissions: RequestTypePermissionRecord[]
+    ): Record<number, Record<string, boolean>> {
+        const actionSlugById = actions.reduce<Record<number, string>>((acc, action) => {
+            acc[action.id] = action.slug?.trim().toLowerCase() ?? '';
+            return acc;
+        }, {});
+
+        const permissionMatrix: Record<number, Record<string, boolean>> = {};
+
+        for (const permission of permissions) {
+            const slug = actionSlugById[permission.action_id];
+            if (!slug) {
+                continue;
+            }
+
+            if (!permissionMatrix[permission.request_type_id]) {
+                permissionMatrix[permission.request_type_id] = {};
+            }
+
+            permissionMatrix[permission.request_type_id][slug] = Boolean(permission.is_allowed);
+        }
+
+        return permissionMatrix;
+    }
 
     onRequestTypeChange(event: any) {
         this.isLoading.set(true);
