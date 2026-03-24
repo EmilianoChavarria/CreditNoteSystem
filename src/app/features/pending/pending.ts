@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import { RequestService } from '../../core/services/request-service';
 import { Request } from '../../data/interfaces/Request';
@@ -13,8 +13,12 @@ import { UpperCasePipe } from '@angular/common';
 import { Modal } from "../../shared/components/ui/modal/modal";
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { WorkflowDetail, WorkflowHistoryDrawer } from '../history/components/workflow-history-drawer/workflow-history-drawer';
-import { finalize } from 'rxjs';
+import { finalize, forkJoin } from 'rxjs';
 import { RequestHistoryData, RequestHistoryLog } from '../../core/services/request-service';
+import { AuthService } from '../../core/services/auth-service';
+import { PermissionAction, RequestTypePermissionRecord, RoleService } from '../../core/services/role-service';
+import { RequestType } from '../../data/interfaces/Request';
+import { getPermissionSlugsForCustomAction } from '../../core/constants/action-permission-map';
 
 // 👇 Accede al default export real
 const pdf: any = (pdfMake as any).default ?? pdfMake;
@@ -30,6 +34,8 @@ pdf.vfs = (pdfFonts as any).default?.vfs ?? (pdfFonts as any).vfs;
 export class Pending {
 
     public selectedRequestType: string = '';
+    public requestTypes = signal<RequestType[]>([]);
+    public availableRequestTypes = signal<RequestType[]>([]);
     public requests = signal<Request[]>([]);
     public pageSize = signal<number>(10);
     public currentPage = signal<number>(1);
@@ -78,7 +84,7 @@ export class Pending {
         }
     ];
 
-    acciones: AccionPersonalizada<Request>[] = [
+    private readonly baseAcciones: AccionPersonalizada<Request>[] = [
         {
             key: 'approve',
             icon: 'check',
@@ -104,7 +110,7 @@ export class Pending {
             accion: (request) => this.logAction(request)
         },
         {
-            key: 'history',
+            key: 'see_history',
             icon: 'history',
             label: 'See history',
             accion: (request) => this.logAction(request)
@@ -116,6 +122,7 @@ export class Pending {
             accion: (request) => this.logAction(request)
         }
     ];
+    public acciones = signal<AccionPersonalizada<Request>[]>([]);
 
 
     public showHistoryDrawer = signal<boolean>(false);
@@ -129,14 +136,138 @@ export class Pending {
     public submitted = signal(false);
     public showDeclineModal = signal<boolean>(false);
 
+    private readonly requestTypeActionPermissions = signal<Record<number, Record<string, boolean>>>({});
+
+    private readonly _roleService = inject(RoleService);
+    private readonly _authService = inject(AuthService);
+
     constructor(
         private _requestsService: RequestService
-    ) { }
+    ) {
+        this.initializePermissions();
+    }
+
+    private initializePermissions(): void {
+        this.isLoading.set(true);
+        const roleId = this._authService.getCurrentUser()?.roleId;
+
+        if (roleId) {
+            this.loadPermissionContext(roleId);
+            return;
+        }
+
+        this._authService.checkSession().subscribe({
+            next: (isValid) => {
+                const resolvedRoleId = this._authService.getCurrentUser()?.roleId;
+                if (isValid && resolvedRoleId) {
+                    this.loadPermissionContext(resolvedRoleId);
+                    return;
+                }
+
+                this._requestsService.getRequestTypes().subscribe({
+                    next: (requestTypes) => {
+                        this.requestTypes.set(requestTypes);
+                        this.availableRequestTypes.set([]);
+                        this.acciones.set([]);
+                        this.isLoading.set(false);
+                    },
+                    error: () => {
+                        this.availableRequestTypes.set([]);
+                        this.acciones.set([]);
+                        this.isLoading.set(false);
+                    }
+                });
+            },
+            error: () => {
+                this.availableRequestTypes.set([]);
+                this.acciones.set([]);
+                this.isLoading.set(false);
+            }
+        });
+    }
+
+    private loadPermissionContext(roleId: number): void {
+        forkJoin({
+            actions: this._roleService.getActions(),
+            requestTypes: this._requestsService.getRequestTypes(),
+            permissions: this._roleService.getRequestTypePermissionsByRole(roleId),
+        }).subscribe({
+            next: ({ actions, requestTypes, permissions }) => {
+                this.requestTypes.set(requestTypes);
+                this.requestTypeActionPermissions.set(this.buildRequestTypeActionPermissions(actions, permissions));
+
+                const allowedTypes = requestTypes.filter(requestType => this.canViewRequestType(requestType.id));
+                this.availableRequestTypes.set(allowedTypes);
+
+                this.selectedRequestType = 'DE';
+                this.requests.set([]);
+                this.updateVisibleActions();
+                this.isLoading.set(false);
+            },
+            error: () => {
+                this.availableRequestTypes.set([]);
+                this.acciones.set([]);
+                this.isLoading.set(false);
+            }
+        });
+    }
+
+    private buildRequestTypeActionPermissions(
+        actions: PermissionAction[],
+        permissions: RequestTypePermissionRecord[]
+    ): Record<number, Record<string, boolean>> {
+        const actionSlugById = actions.reduce<Record<number, string>>((acc, action) => {
+            acc[action.id] = action.slug?.trim().toLowerCase() ?? '';
+            return acc;
+        }, {});
+
+        const permissionMatrix: Record<number, Record<string, boolean>> = {};
+
+        for (const permission of permissions) {
+            const slug = actionSlugById[permission.action_id];
+            if (!slug) {
+                continue;
+            }
+
+            if (!permissionMatrix[permission.request_type_id]) {
+                permissionMatrix[permission.request_type_id] = {};
+            }
+
+            permissionMatrix[permission.request_type_id][slug] = Boolean(permission.is_allowed);
+        }
+
+        return permissionMatrix;
+    }
+
+    private canViewRequestType(requestTypeId: number): boolean {
+        const permissionsBySlug = this.requestTypeActionPermissions()[requestTypeId] ?? {};
+
+        // Pending select must be filtered strictly by the "view" permission.
+        return Boolean(permissionsBySlug['view']);
+    }
+
+    private updateVisibleActions(): void {
+        const requestTypeId = Number(this.selectedRequestType);
+
+        if (!requestTypeId || Number.isNaN(requestTypeId)) {
+            this.acciones.set([]);
+            return;
+        }
+
+        const permissionsBySlug = this.requestTypeActionPermissions()[requestTypeId] ?? {};
+        const visibleActions = this.baseAcciones.filter(action => {
+            const slugCandidates = getPermissionSlugsForCustomAction(action.key);
+            return slugCandidates.some(slug => permissionsBySlug[slug]);
+        });
+
+        this.acciones.set(visibleActions);
+    }
 
     onRequestTypeChange(event: any) {
         this.isLoading.set(true);
         const value = event.target.value as string;
         this.selectedRequestType = value;
+        this.updateVisibleActions();
 
         this.currentPage.set(1);
         this.nextCursor.set(null);
