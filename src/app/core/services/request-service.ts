@@ -155,9 +155,9 @@ export class RequestService {
     private http: HttpClient
   ) { }
 
-  getExchangeRate() {
-    return this.http.get(`https://www.banxico.org.mx/SieAPIRest/service/v1/series/SF43718/datos/oportuno?token=df86e3c71f798ed791afff85b7074abefeb34558903553b6e1aa37f0214aa0bb`).pipe(
-      map((response: any) => response.bmx.series[0].datos[0].dato || ''),
+  getExchangeRate(): Observable<string> {
+    return this.http.get(`https://www.banxico.org.mx/SieAPIRest/service/v1/series/SF43718/datos/oportuno?token=${this.token}`).pipe(
+      map((response: any) => response?.bmx?.series?.[0]?.datos?.[0]?.dato ?? ''),
       catchError((error: any) => {
         console.log(error);
         throw error;
