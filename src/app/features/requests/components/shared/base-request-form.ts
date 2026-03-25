@@ -1,0 +1,320 @@
+import { Directive, OnDestroy, OnInit, signal } from '@angular/core';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { map, Observable, Subscription } from 'rxjs';
+import { Classification, Customer, Reason } from '../../../../data/interfaces/Request';
+import { RequestService } from '../../../../core/services/request-service';
+import { CustomerService } from '../../../../core/services/customer-service';
+import { ToastService } from '../../../../core/services/toast-service';
+
+interface RequestFormOptions {
+  includeOrderNumber: boolean;
+  includeCreditNumber: boolean;
+  includeStatus: boolean;
+}
+
+const DEFAULT_OPTIONS: RequestFormOptions = {
+  includeOrderNumber: true,
+  includeCreditNumber: true,
+  includeStatus: true,
+};
+
+@Directive()
+export abstract class BaseRequestForm implements OnInit, OnDestroy {
+  constructor(
+    protected readonly requestService: RequestService,
+    protected readonly customerService: CustomerService,
+    protected readonly toastService: ToastService,
+  ) {}
+
+  protected readonly maxSupportFiles = 10;
+  protected readonly requestTypeId = 1;
+  public submitted = signal<boolean>(false);
+  public reasons = signal<Reason[]>([]);
+  public classifications = signal<Classification[]>([]);
+  public selectedCustomer = signal<Customer | null>(null);
+  public selectedSupportFiles = signal<File[]>([]);
+
+  private subscriptions: Subscription[] = [];
+  private amountSubscription: Subscription | null = null;
+  private ivaSubscription: Subscription | null = null;
+
+  public form: FormGroup = this.createForm();
+
+  protected getFormOptions(): RequestFormOptions {
+    return DEFAULT_OPTIONS;
+  }
+
+  ngOnInit(): void {
+    this.getReasons();
+    this.getClassifications();
+    this.setupTotalAmountListener();
+  }
+
+  protected createForm(): FormGroup {
+    const formOptions = this.getFormOptions();
+    const controls: Record<string, FormControl> = {
+      requestNumber: new FormControl<string>({ value: '', disabled: true }, []),
+      requestDate: new FormControl(new Date().toISOString().split('T')[0], [Validators.required]),
+      customerId: new FormControl<string>('', [Validators.required]),
+      customerNumber: new FormControl<string>({ value: '', disabled: true }, [Validators.required]),
+      area: new FormControl<string>('', [Validators.required]),
+      reasonId: new FormControl<string>('', [Validators.required]),
+      classificationId: new FormControl<string>('', [Validators.required]),
+      deliveryNote: new FormControl<string>(''),
+      invoiceNumber: new FormControl<string>('', [Validators.required]),
+      invoiceDate: new FormControl<string>('', [Validators.required]),
+      sapScreen: new FormControl<File | null>(null),
+      currency: new FormControl<string>('', [Validators.required]),
+      exchangeRate: new FormControl<number>(1, [Validators.required, Validators.min(0)]),
+      amount: new FormControl<number>(0, [Validators.required, Validators.min(0)]),
+      hasIva: new FormControl<boolean>(false),
+      totalAmount: new FormControl<string>({ value: '', disabled: true }, []),
+      attachSupports: new FormControl<File[] | null>(null),
+      comments: new FormControl<string>(''),
+      reviewComments: new FormControl<string>({ value: '', disabled: true }, []),
+    };
+
+    if (formOptions.includeOrderNumber) {
+      controls['orderNumber'] = new FormControl<string>('');
+    }
+
+    if (formOptions.includeCreditNumber) {
+      controls['creditNumber'] = new FormControl<string>('');
+    }
+
+    if (formOptions.includeStatus) {
+      controls['status'] = new FormControl<string>({ value: 'DRAFT', disabled: true }, []);
+    }
+
+    return new FormGroup(controls);
+  }
+
+  getReasons(): void {
+    this.requestService.getReasons().subscribe({
+      next: (response: Reason[]) => {
+        this.reasons.set(response);
+      },
+      error: (error) => {
+        console.log(error);
+      }
+    });
+  }
+
+  getClassifications(): void {
+    this.requestService.getClassificationsByType(this.requestTypeId).subscribe({
+      next: (response: Classification[]) => {
+        this.classifications.set(response);
+      },
+      error: (error) => {
+        console.log(error);
+      }
+    });
+  }
+
+  campoVacio(controlName: string): boolean {
+    const control = this.form.get(controlName);
+    if (!control) {
+      return false;
+    }
+
+    return control.invalid && (control.touched || this.submitted());
+  }
+
+  getErrorMessage(controlName: string): string {
+    const control = this.form.get(controlName);
+    if (!control || !control.errors) {
+      return '';
+    }
+
+    if (control.errors['required']) {
+      return 'Este campo es obligatorio';
+    }
+
+    if (control.errors['email']) {
+      return 'Ingresa un correo valido';
+    }
+
+    if (control.errors['passwordInvalid']) {
+      return '';
+    }
+
+    if (control.errors['min']) {
+      return 'Selecciona una opcion valida';
+    }
+
+    if (control.errors['pattern']) {
+      return 'Selecciona un idioma valido';
+    }
+
+    return 'Valor no valido';
+  }
+
+  getFieldError(campo: string): string {
+    const control = this.form.get(campo);
+    if (!control || !this.campoVacio(campo)) {
+      return '';
+    }
+
+    const errors = control.errors;
+    if (!errors) {
+      return '';
+    }
+
+    if (errors['required']) {
+      return 'Este campo es obligatorio';
+    }
+    if (errors['email']) {
+      return 'Please enter a valid email';
+    }
+    if (errors['min']) {
+      return `El valor minimo es ${errors['min'].min}`;
+    }
+    if (errors['max']) {
+      return `El valor maximo es ${errors['max'].max}`;
+    }
+    if (errors['minlength']) {
+      return `Minimo ${errors['minlength'].requiredLength} caracteres`;
+    }
+    if (errors['maxlength']) {
+      return `Maximo ${errors['maxlength'].requiredLength} caracteres`;
+    }
+    if (errors['pattern']) {
+      return 'El formato no es valido';
+    }
+    if (errors['maxFiles']) {
+      return `Solo puedes subir hasta ${this.maxSupportFiles} archivos`;
+    }
+
+    return 'Error en el campo';
+  }
+
+  onAttachSupportsChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const files = Array.from(input.files ?? []);
+    const attachSupportsControl = this.form.get('attachSupports');
+
+    if (!attachSupportsControl) {
+      return;
+    }
+
+    if (files.length > this.maxSupportFiles) {
+      const limitedFiles = files.slice(0, this.maxSupportFiles);
+      this.selectedSupportFiles.set(limitedFiles);
+      attachSupportsControl.setValue(limitedFiles);
+      attachSupportsControl.setErrors({ maxFiles: true });
+      attachSupportsControl.markAsTouched();
+      this.toastService.error(`Solo puedes subir hasta ${this.maxSupportFiles} archivos`, 'Carga de archivos');
+      input.value = '';
+      return;
+    }
+
+    this.selectedSupportFiles.set(files);
+    attachSupportsControl.setValue(files);
+    attachSupportsControl.setErrors(null);
+    attachSupportsControl.markAsTouched();
+  }
+
+  removeSupportFile(index: number): void {
+    const attachSupportsControl = this.form.get('attachSupports');
+    const currentFiles = [...this.selectedSupportFiles()];
+
+    if (!attachSupportsControl || index < 0 || index >= currentFiles.length) {
+      return;
+    }
+
+    currentFiles.splice(index, 1);
+    this.selectedSupportFiles.set(currentFiles);
+    attachSupportsControl.setValue(currentFiles.length ? currentFiles : null);
+    attachSupportsControl.setErrors(null);
+    attachSupportsControl.markAsTouched();
+  }
+
+  formatFileSize(bytes: number): string {
+    if (!bytes) {
+      return '0 KB';
+    }
+
+    const kilobytes = bytes / 1024;
+    if (kilobytes < 1024) {
+      return `${kilobytes.toFixed(1)} KB`;
+    }
+
+    return `${(kilobytes / 1024).toFixed(2)} MB`;
+  }
+
+  saveRequest(): void {
+    console.log(this.form.value);
+  }
+
+  searchCustomers(searchTerm: string): Observable<any[]> {
+    if (!searchTerm || searchTerm.trim().length === 0) {
+      return new Observable(observer => {
+        observer.next([]);
+        observer.complete();
+      });
+    }
+
+    return this.customerService.getCustomersByName(searchTerm).pipe(
+      map(customers =>
+        customers.map(customer => ({
+          id: customer.idCliente,
+          label: `${customer.idCliente} - ${customer.razonSocial}`,
+          data: customer
+        }))
+      )
+    );
+  }
+
+  displayCustomer(option: any): string {
+    if (!option) {
+      return '';
+    }
+    return option.label || '';
+  }
+
+  onCustomerSelected(option: any): void {
+    if (option) {
+      this.form.controls['customerNumber'].setValue(option.id);
+    }
+  }
+
+  private setupTotalAmountListener(): void {
+    const amountControl = this.form.get('amount');
+    const ivaControl = this.form.get('hasIva');
+
+    if (amountControl && ivaControl) {
+      this.amountSubscription = amountControl.valueChanges.subscribe(() => {
+        this.updateTotalAmount();
+      });
+
+      this.ivaSubscription = ivaControl.valueChanges.subscribe(() => {
+        this.updateTotalAmount();
+      });
+
+      this.updateTotalAmount();
+    }
+  }
+
+  private updateTotalAmount(): void {
+    const amountControl = this.form.get('amount');
+    const ivaControl = this.form.get('hasIva');
+    const totalControl = this.form.get('totalAmount');
+
+    if (amountControl && ivaControl && totalControl) {
+      const amount = amountControl.value || 0;
+      const hasIva = ivaControl.value || false;
+      const total = hasIva ? amount * 1.16 : amount;
+      totalControl.setValue(Number(total).toFixed(2), { emitEvent: false });
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.amountSubscription) {
+      this.amountSubscription.unsubscribe();
+    }
+    if (this.ivaSubscription) {
+      this.ivaSubscription.unsubscribe();
+    }
+    this.subscriptions.forEach(sub => sub.unsubscribe());
+  }
+}
