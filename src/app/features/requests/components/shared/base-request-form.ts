@@ -1,6 +1,6 @@
 import { Directive, OnDestroy, OnInit, signal } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { map, Observable, Subscription } from 'rxjs';
+import { map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { Classification, Customer, Reason } from '../../../../data/interfaces/Request';
 import { RequestService } from '../../../../core/services/request-service';
 import { CustomerService } from '../../../../core/services/customer-service';
@@ -37,6 +37,7 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy {
   private subscriptions: Subscription[] = [];
   private amountSubscription: Subscription | null = null;
   private ivaSubscription: Subscription | null = null;
+  private currencySubscription: Subscription | null = null;
 
   public form: FormGroup = this.createForm();
 
@@ -48,7 +49,7 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy {
     this.getReasons();
     this.getClassifications();
     this.setupTotalAmountListener();
-    this.getExchangeRate();
+    this.setupCurrencyExchangeRateListener();
 
   }
 
@@ -78,7 +79,7 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy {
       invoiceDate: new FormControl<string>('', [Validators.required]),
       sapScreen: new FormControl<File | null>(null),
       currency: new FormControl<string>('', [Validators.required]),
-      exchangeRate: new FormControl<number>(1, [Validators.required, Validators.min(0)]),
+      exchangeRate: new FormControl<number | null>(null, [Validators.required, Validators.min(0)]),
       amount: new FormControl<number | null>(null, [Validators.required, Validators.min(0)]),
       hasIva: new FormControl<boolean>(false),
       totalAmount: new FormControl<string>({ value: '', disabled: true }, []),
@@ -313,6 +314,43 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy {
     }
   }
 
+  private setupCurrencyExchangeRateListener(): void {
+    const currencyControl = this.form.get('currency');
+    const exchangeRateControl = this.form.get('exchangeRate');
+
+    if (!currencyControl || !exchangeRateControl) {
+      return;
+    }
+
+    this.currencySubscription = currencyControl.valueChanges.pipe(
+      switchMap((currency: string | null) => {
+        if (!currency || currency === 'MXN') {
+          return of(1);
+        }
+
+        return this._requestService.getExchangeRate().pipe(
+          map((value: string) => {
+            const parsedRate = parseFloat(value);
+            return Number.isFinite(parsedRate) ? parsedRate : 1;
+          })
+        );
+      })
+    ).subscribe({
+      next: (rate: number) => {
+        exchangeRateControl.setValue(rate, { emitEvent: false });
+      },
+      error: (error) => {
+        console.log(error);
+        exchangeRateControl.setValue(1, { emitEvent: false });
+      }
+    });
+
+    const currentCurrency = currencyControl.value as string | null;
+    if (!currentCurrency || currentCurrency === 'MXN') {
+      exchangeRateControl.setValue(1, { emitEvent: false });
+    }
+  }
+
   private updateTotalAmount(): void {
     const amountControl = this.form.get('amount');
     const ivaControl = this.form.get('hasIva');
@@ -332,6 +370,9 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy {
     }
     if (this.ivaSubscription) {
       this.ivaSubscription.unsubscribe();
+    }
+    if (this.currencySubscription) {
+      this.currencySubscription.unsubscribe();
     }
     this.subscriptions.forEach(sub => sub.unsubscribe());
   }
