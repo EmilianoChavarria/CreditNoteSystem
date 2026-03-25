@@ -28,7 +28,7 @@ export class AuditorCreditForm extends BaseRequestForm {
 
   protected override getFormOptions() {
     return {
-      includeOrderNumber: false,
+      includeOrderNumber: true,
       includeCreditNumber: false,
       includeStatus: false,
     };

@@ -21,10 +21,10 @@ const DEFAULT_OPTIONS: RequestFormOptions = {
 @Directive()
 export abstract class BaseRequestForm implements OnInit, OnDestroy {
   constructor(
-    protected readonly requestService: RequestService,
-    protected readonly customerService: CustomerService,
-    protected readonly toastService: ToastService,
-  ) {}
+    protected readonly _requestService: RequestService,
+    protected readonly _customerService: CustomerService,
+    protected readonly _toastService: ToastService,
+  ) { }
 
   protected readonly maxSupportFiles = 10;
   protected readonly requestTypeId = 1;
@@ -48,6 +48,19 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy {
     this.getReasons();
     this.getClassifications();
     this.setupTotalAmountListener();
+    this.getExchangeRate();
+
+  }
+
+  getExchangeRate() {
+    this._requestService.getExchangeRate().subscribe({
+      next: (response) => {
+        console.log(response);
+      },
+      error: (error) => {
+        console.log(error);
+      }
+    })
   }
 
   protected createForm(): FormGroup {
@@ -66,7 +79,7 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy {
       sapScreen: new FormControl<File | null>(null),
       currency: new FormControl<string>('', [Validators.required]),
       exchangeRate: new FormControl<number>(1, [Validators.required, Validators.min(0)]),
-      amount: new FormControl<number>(0, [Validators.required, Validators.min(0)]),
+      amount: new FormControl<number | null>(null, [Validators.required, Validators.min(0)]),
       hasIva: new FormControl<boolean>(false),
       totalAmount: new FormControl<string>({ value: '', disabled: true }, []),
       attachSupports: new FormControl<File[] | null>(null),
@@ -90,7 +103,7 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy {
   }
 
   getReasons(): void {
-    this.requestService.getReasons().subscribe({
+    this._requestService.getReasons().subscribe({
       next: (response: Reason[]) => {
         this.reasons.set(response);
       },
@@ -101,7 +114,7 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy {
   }
 
   getClassifications(): void {
-    this.requestService.getClassificationsByType(this.requestTypeId).subscribe({
+    this._requestService.getClassificationsByType(this.requestTypeId).subscribe({
       next: (response: Classification[]) => {
         this.classifications.set(response);
       },
@@ -203,7 +216,7 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy {
       attachSupportsControl.setValue(limitedFiles);
       attachSupportsControl.setErrors({ maxFiles: true });
       attachSupportsControl.markAsTouched();
-      this.toastService.error(`Solo puedes subir hasta ${this.maxSupportFiles} archivos`, 'Carga de archivos');
+      this._toastService.error(`Solo puedes subir hasta ${this.maxSupportFiles} archivos`, 'Carga de archivos');
       input.value = '';
       return;
     }
@@ -243,6 +256,11 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy {
   }
 
   saveRequest(): void {
+    if (this.form.invalid) {
+      return Object.values(this.form.controls).forEach(control => {
+        control.markAllAsTouched();
+      });
+    }
     console.log(this.form.value);
   }
 
@@ -254,7 +272,7 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy {
       });
     }
 
-    return this.customerService.getCustomersByName(searchTerm).pipe(
+    return this._customerService.getCustomersByName(searchTerm).pipe(
       map(customers =>
         customers.map(customer => ({
           id: customer.idCliente,

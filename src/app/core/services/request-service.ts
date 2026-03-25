@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpService } from './http-service';
-import { catchError, map, Observable, tap, throwError } from 'rxjs';
+import { catchError, map, Observable, tap } from 'rxjs';
 import { Classification, Reason, Request, RequestType } from '../../data/interfaces/Request';
 import { ApiResponse } from '../../data/interfaces/ApiResponse-interface';
 import { CursorPagination } from './user-service';
+import { HttpClient } from '@angular/common/http';
 
 export interface RequestNumber {
   requestTypeId: number;
@@ -147,9 +148,22 @@ export interface RequestHistoryData {
 })
 export class RequestService {
 
+  private token = 'df86e3c71f798ed791afff85b7074abefeb34558903553b6e1aa37f0214aa0bb';
+
   constructor(
-    private _httpService: HttpService
+    private _httpService: HttpService,
+    private http: HttpClient
   ) { }
+
+  getExchangeRate() {
+    return this.http.get(`https://www.banxico.org.mx/SieAPIRest/service/v1/series/SF43718/datos/oportuno?token=df86e3c71f798ed791afff85b7074abefeb34558903553b6e1aa37f0214aa0bb`).pipe(
+      map((response: any) => response.bmx.series[0].datos[0].dato || ''),
+      catchError((error: any) => {
+        console.log(error);
+        throw error;
+      })
+    )
+  }
 
   getReasons(): Observable<Reason[]> {
     return this._httpService.get<Reason[]>('/requests/reasons').pipe(
@@ -166,10 +180,10 @@ export class RequestService {
     )
   }
 
-  getMyPendingRequests(): Observable<Request[]>{
+  getMyPendingRequests(): Observable<Request[]> {
     return this._httpService.get<Request[]>('requests/pending/1').pipe(
       tap((response: ApiResponse<Request[]>) => {
-        if(response.success){
+        if (response.success) {
 
         }
       }),
