@@ -18,12 +18,13 @@ import { AuthService } from '../../../../core/services/auth-service';
 import { PermissionAction, RequestTypePermissionRecord, RoleService } from '../../../../core/services/role-service';
 import { DebitForm } from "../../components/debit-form/debit-form";
 import { AuditorCreditForm } from "../../components/auditor-credit-form/auditor-credit-form";
+import { AuditorDebitForm } from "../../components/auditor-debit-form/auditor-debit-form";
 
 @Component({
     selector: 'app-new-request',
     templateUrl: './new-request.html',
     styleUrl: './new-request.css',
-    imports: [ReactiveFormsModule, TranslatePipe, CommonModule, CreditForm, DebitForm, AuditorCreditForm],
+    imports: [ReactiveFormsModule, TranslatePipe, CommonModule, CreditForm, DebitForm, AuditorCreditForm, AuditorDebitForm],
 })
 export class NewRequest implements OnInit {
     public profileForm: FormGroup;
