@@ -9,10 +9,11 @@ import { BaseRequestForm } from '../shared/base-request-form';
 import { RequestService } from '../../../../core/services/request-service';
 import { CustomerService } from '../../../../core/services/customer-service';
 import { ToastService } from '../../../../core/services/toast-service';
+import { Spinner } from '../../../../shared/components/ui/spinner/spinner';
 
 @Component({
   selector: 'app-credit-form',
-  imports: [ReactiveFormsModule, CommonModule, TabsContainer, Tab, TranslatePipe, Autocomplete],
+  imports: [ReactiveFormsModule, CommonModule, TabsContainer, Tab, TranslatePipe, Autocomplete, Spinner],
   templateUrl: './credit-form.html',
   styleUrl: './credit-form.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
