@@ -9,10 +9,11 @@ import { BaseRequestForm } from '../shared/base-request-form';
 import { RequestService } from '../../../../core/services/request-service';
 import { CustomerService } from '../../../../core/services/customer-service';
 import { ToastService } from '../../../../core/services/toast-service';
+import { Spinner } from '../../../../shared/components/ui/spinner/spinner';
 
 @Component({
   selector: 'app-debit-form',
-  imports: [Tab, TabsContainer, Autocomplete, ReactiveFormsModule, TranslatePipe, TitleCasePipe],
+  imports: [Tab, TabsContainer, Autocomplete, ReactiveFormsModule, TranslatePipe, TitleCasePipe, Spinner],
   templateUrl: './debit-form.html',
   styleUrl: './debit-form.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
