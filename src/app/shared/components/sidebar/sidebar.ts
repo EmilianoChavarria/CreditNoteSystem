@@ -1,12 +1,13 @@
 import { Component, inject, NgZone, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
-import { Router } from '@angular/router';
+import { NavigationEnd, Router } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { AuthService, AuthUser } from '../../../core/services/auth-service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SidebarItem, SidebarService } from '../../../core/services/sidebar.service';
 import { ToastService } from '../../../core/services/toast-service';
+import { filter } from 'rxjs/operators';
 
 interface SidebarOptions {
   iconName: string,
@@ -43,6 +44,18 @@ export class Sidebar {
       .pipe(takeUntilDestroyed())
       .subscribe(user => {
         this.loadSidebarOptions(user);
+      });
+
+    this.router.events
+      .pipe(
+        filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+        takeUntilDestroyed()
+      )
+      .subscribe(event => {
+        this._ngZone.runOutsideAngular(() => {
+          this.setActiveOption(event.urlAfterRedirects);
+          this._cdr.detectChanges();
+        });
       });
 
     this.loadSidebarOptions(this._authService.getCurrentUser());
@@ -253,6 +266,8 @@ export class Sidebar {
   }
 
   setActiveOption(route: string) {
+    const normalizedRoute = this.normalizeRoute(route);
+
     this.sidebarOptions.forEach(option => {
       option.active = false;
       if (option.children) {
@@ -264,7 +279,7 @@ export class Sidebar {
     for (let option of this.sidebarOptions) {
       if (option.children) {
         // Si tiene hijos, buscar en los hijos
-        const activeChild = option.children.find(child => child.url === route);
+        const activeChild = option.children.find(child => this.normalizeRoute(child.url) === normalizedRoute);
         if (activeChild) {
           activeChild.active = true;
           option.active = true; // Marcar también el padre
@@ -276,12 +291,25 @@ export class Sidebar {
         }
       } else {
         // Si no tiene hijos, marcar la opción directamente
-        if (option.url === route) {
+        if (this.normalizeRoute(option.url) === normalizedRoute) {
           option.active = true;
           return;
         }
       }
     }
+  }
+
+  private normalizeRoute(route: string): string {
+    if (!route) {
+      return '';
+    }
+
+    const routeWithoutQuery = route.split('?')[0].split('#')[0];
+    if (routeWithoutQuery.length > 1 && routeWithoutQuery.endsWith('/')) {
+      return routeWithoutQuery.slice(0, -1);
+    }
+
+    return routeWithoutQuery;
   }
 
   navigate(route: string) {
