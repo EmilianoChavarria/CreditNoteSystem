@@ -1,3 +1,6 @@
+@if(isLoadingInitialData()){
+<app-spinner></app-spinner>
+}@else {
 <form action="" [formGroup]="form">
     <app-tabs-container (onSave)="saveRequest()">
         <app-tab titleT="Request & Customer">
@@ -244,3 +247,4 @@
         </app-tab>
     </app-tabs-container>
 </form>
+}
