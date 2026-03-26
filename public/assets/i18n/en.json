@@ -126,6 +126,7 @@
     "CUSTOMER": "Customer Name",
     "DELIVERY_NOTE": "Delivery Note",
     "INVOICE_NUMBER": "Invoice Number",
+    "INVOICE_DATE": "Invoice Date",
     "SAP_SCREEN": "SAP Screen",
     "CURRENCY": "Currency",
     "EXCHANGE_RATE": "Exchange Rate",
