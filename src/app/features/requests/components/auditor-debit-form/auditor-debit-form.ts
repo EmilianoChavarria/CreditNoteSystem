@@ -9,10 +9,11 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Autocomplete } from '../../../../shared/components/ui/autocomplete/autocomplete';
 import { TitleCasePipe } from '@angular/common';
+import { Spinner } from '../../../../shared/components/ui/spinner/spinner';
 
 @Component({
   selector: 'app-auditor-debit-form',
-  imports: [TabsContainer, Tab, ReactiveFormsModule, TranslatePipe, Autocomplete, TitleCasePipe],
+  imports: [TabsContainer, Tab, ReactiveFormsModule, TranslatePipe, Autocomplete, TitleCasePipe, Spinner],
   templateUrl: './auditor-debit-form.html',
   styleUrl: './auditor-debit-form.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
