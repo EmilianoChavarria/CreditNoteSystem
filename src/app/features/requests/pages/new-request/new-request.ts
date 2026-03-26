@@ -30,6 +30,7 @@ export class NewRequest implements OnInit {
     public profileForm: FormGroup;
     public formConfig: any = formFieldsConfig;
     public selectedRequestType: string = '';
+    public selectedRequestTypeId: number | null = null;
     public currentTabs: any[] = [];
     public submitted: boolean = false;
     public isLoadingForm = signal<boolean>(false);
@@ -173,6 +174,7 @@ export class NewRequest implements OnInit {
 
     onRequestTypeChange(event: any) {
         const value = event.target.value;
+        const numericRequestTypeId = Number(value);
         this.isLoadingForm.set(true);
         this.isRegisterRequestDisabled.set(false);
 
@@ -189,6 +191,7 @@ export class NewRequest implements OnInit {
         const moduleKey = moduleMap[value];
         console.log(moduleKey);
         this.selectedRequestType = moduleKey;
+        this.selectedRequestTypeId = Number.isNaN(numericRequestTypeId) ? null : numericRequestTypeId;
         // if (moduleKey && this.formConfig[moduleKey]) {
         //     const requestTypeId = Number(this.selectedRequestType);
 
