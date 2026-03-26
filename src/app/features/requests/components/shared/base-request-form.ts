@@ -1,6 +1,6 @@
-import { Directive, OnDestroy, OnInit, signal } from '@angular/core';
+import { Directive, Input, OnChanges, OnDestroy, OnInit, signal, SimpleChanges } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { map, Observable, of, Subscription, switchMap } from 'rxjs';
+import { forkJoin, map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { Classification, Customer, Reason } from '../../../../data/interfaces/Request';
 import { RequestService } from '../../../../core/services/request-service';
 import { CustomerService } from '../../../../core/services/customer-service';
@@ -19,7 +19,7 @@ const DEFAULT_OPTIONS: RequestFormOptions = {
 };
 
 @Directive()
-export abstract class BaseRequestForm implements OnInit, OnDestroy {
+export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
   constructor(
     protected readonly _requestService: RequestService,
     protected readonly _customerService: CustomerService,
@@ -27,10 +27,11 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy {
   ) { }
 
   protected readonly maxSupportFiles = 10;
-  protected readonly requestTypeId = 1;
+  @Input() requestTypeId: number | null = null;
   public submitted = signal<boolean>(false);
   public reasons = signal<Reason[]>([]);
   public classifications = signal<Classification[]>([]);
+  public isLoadingInitialData = signal<boolean>(false);
   public selectedCustomer = signal<Customer | null>(null);
   public selectedSupportFiles = signal<File[]>([]);
 
@@ -46,11 +47,46 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.getReasons();
-    this.getClassifications();
+    this.loadInitialData();
     this.setupTotalAmountListener();
     this.setupCurrencyExchangeRateListener();
+  }
 
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['requestTypeId'] && this.requestTypeId !== null) {
+      this.loadInitialData();
+    }
+  }
+
+  private loadInitialData(): void {
+    if (this.requestTypeId === null) {
+      this.reasons.set([]);
+      this.classifications.set([]);
+      this.form.controls['requestNumber'].setValue('');
+      return;
+    }
+
+    this.isLoadingInitialData.set(true);
+
+    forkJoin({
+      requestNumber: this._requestService.getNextRequestNumber(this.requestTypeId),
+      reasons: this._requestService.getReasons(),
+      classifications: this._requestService.getClassificationsByType(this.requestTypeId),
+    }).subscribe({
+      next: ({ requestNumber, reasons, classifications }) => {
+        this.form.controls['requestNumber'].setValue(requestNumber.requestNumber);
+        this.reasons.set(reasons);
+        this.classifications.set(classifications);
+        this.isLoadingInitialData.set(false);
+      },
+      error: (error) => {
+        console.log(error);
+        this.reasons.set([]);
+        this.classifications.set([]);
+        this.form.controls['requestNumber'].setValue('');
+        this.isLoadingInitialData.set(false);
+      }
+    });
   }
 
   getExchangeRate() {
@@ -103,6 +139,18 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy {
     return new FormGroup(controls);
   }
 
+  getNextRequestNumber() {
+    this._requestService.getNextRequestNumber(this.requestTypeId || 0).subscribe({
+      next: (response) => {
+        console.log(response);
+        this.form.controls['requestNumber'].setValue(response.requestNumber);
+      },
+      error: (error) => {
+        console.log(error);
+      }
+    })
+  }
+
   getReasons(): void {
     this._requestService.getReasons().subscribe({
       next: (response: Reason[]) => {
@@ -115,6 +163,11 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy {
   }
 
   getClassifications(): void {
+    if (this.requestTypeId === null) {
+      this.classifications.set([]);
+      return;
+    }
+
     this._requestService.getClassificationsByType(this.requestTypeId).subscribe({
       next: (response: Classification[]) => {
         this.classifications.set(response);
