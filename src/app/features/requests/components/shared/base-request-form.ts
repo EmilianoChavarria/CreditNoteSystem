@@ -1,7 +1,7 @@
 import { Directive, Input, OnChanges, OnDestroy, OnInit, signal, SimpleChanges } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { forkJoin, map, Observable, of, Subscription, switchMap } from 'rxjs';
-import { Classification, Customer, Reason } from '../../../../data/interfaces/Request';
+import { Classification, Customer, Reason, Request } from '../../../../data/interfaces/Request';
 import { RequestService } from '../../../../core/services/request-service';
 import { CustomerService } from '../../../../core/services/customer-service';
 import { ToastService } from '../../../../core/services/toast-service';
@@ -28,6 +28,7 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
 
   protected readonly maxSupportFiles = 10;
   @Input() requestTypeId: number | null = null;
+  @Input() initialRequestData: Partial<Request> | null = null;
   public submitted = signal<boolean>(false);
   public reasons = signal<Reason[]>([]);
   public classifications = signal<Classification[]>([]);
@@ -56,6 +57,10 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
     if (changes['requestTypeId'] && this.requestTypeId !== null) {
       this.loadInitialData();
     }
+
+    if (changes['initialRequestData'] && this.initialRequestData) {
+      this.applyInitialRequestData();
+    }
   }
 
   private loadInitialData(): void {
@@ -77,6 +82,7 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
         this.form.controls['requestNumber'].setValue(requestNumber.requestNumber);
         this.reasons.set(reasons);
         this.classifications.set(classifications);
+        this.applyInitialRequestData();
         this.isLoadingInitialData.set(false);
       },
       error: (error) => {
@@ -84,9 +90,63 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
         this.reasons.set([]);
         this.classifications.set([]);
         this.form.controls['requestNumber'].setValue('');
+        this.applyInitialRequestData();
         this.isLoadingInitialData.set(false);
       }
     });
+  }
+
+  private applyInitialRequestData(): void {
+    if (!this.initialRequestData) {
+      return;
+    }
+
+    const patchValue: Record<string, unknown> = {};
+    const requestDataEntries = Object.entries(this.initialRequestData as Record<string, unknown>);
+
+    for (const [key, value] of requestDataEntries) {
+      if (!(key in this.form.controls) || value === undefined) {
+        continue;
+      }
+
+      if (key === 'requestDate' || key === 'invoiceDate') {
+        patchValue[key] = this.formatDateForInput(value);
+        continue;
+      }
+
+      if (key === 'customerId') {
+        const customerName = this.initialRequestData.customer?.customerName ?? '';
+        patchValue[key] = {
+          id: value,
+          label: `${value} - ${customerName}`,
+          data: {
+            idCliente: value,
+            razonSocial: customerName,
+          }
+        };
+        continue;
+      }
+
+      patchValue[key] = value;
+    }
+
+    if ('customerNumber' in this.form.controls && this.initialRequestData.customerId) {
+      patchValue['customerNumber'] = String(this.initialRequestData.customerId);
+    }
+
+    this.form.patchValue(patchValue, { emitEvent: false });
+  }
+
+  private formatDateForInput(value: unknown): string {
+    if (typeof value !== 'string' || value.trim().length === 0) {
+      return '';
+    }
+
+    if (value.includes('T')) {
+      return value.split('T')[0];
+    }
+
+    return value;
   }
 
   getExchangeRate() {
@@ -310,12 +370,86 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
   }
 
   saveRequest(): void {
+    this.submitted.set(true);
+    this.logFormValidationState();
+
+    Object.values(this.form.controls).forEach(control => {
+      control.markAllAsTouched();
+    });
+
     if (this.form.invalid) {
-      return Object.values(this.form.controls).forEach(control => {
-        control.markAllAsTouched();
-      });
+      this._toastService.error('Debe llenar todos los campos del formulario', "Error")
+      return;
     }
-    console.log(this.form.value);
+
+    if (this.requestTypeId === null) {
+      this._toastService.error('No se pudo identificar el tipo de solicitud', 'Error');
+      return;
+    }
+
+    const formValue = this.form.getRawValue();
+    const selectedCustomer = formValue.customerId as
+      | string
+      | number
+      | { id?: string | number; data?: { idCliente?: string | number } }
+      | null;
+
+    const customerId = typeof selectedCustomer === 'object' && selectedCustomer !== null
+      ? selectedCustomer.id ?? selectedCustomer.data?.idCliente ?? ''
+      : selectedCustomer;
+
+    const payload = {
+      requestTypeId: this.requestTypeId,
+      ...formValue,
+      customerId,
+      reasonId: Number(formValue.reasonId),
+      classificationId: Number(formValue.classificationId),
+      exchangeRate: Number(formValue.exchangeRate),
+      amount: Number(formValue.amount),
+      totalAmount: Number(formValue.totalAmount),
+      status: 'created',
+    };
+
+    delete payload.sapScreen;
+    delete payload.attachSupports;
+    delete payload.reviewComments;
+
+    this._requestService.saveRequest(payload).subscribe({
+      next: (response: any) => {
+        if (response?.success) {
+          this._toastService.success(response?.message ?? 'Solicitud guardada correctamente', 'Exito');
+          this.submitted.set(false);
+          return;
+        }
+
+        this._toastService.error(response?.message ?? 'No se pudo guardar la solicitud', 'Error');
+      },
+      error: (error: any) => {
+        const message = error?.error?.message ?? error?.message ?? 'No se pudo guardar la solicitud';
+        this._toastService.error(message, 'Error');
+      }
+    });
+  }
+
+  private logFormValidationState(): void {
+    const controlState = Object.entries(this.form.controls).map(([name, control]) => ({
+      field: name,
+      valid: control.valid,
+      invalid: control.invalid,
+      disabled: control.disabled,
+      touched: control.touched,
+      errors: control.errors,
+    }));
+
+    const invalidFields = controlState.filter(control => control.invalid && !control.disabled);
+    const validFields = controlState.filter(control => control.valid && !control.disabled);
+
+    console.table(controlState);
+    console.log('Campos invalidos:', invalidFields.map(field => ({
+      field: field.field,
+      errors: field.errors,
+    })));
+    console.log('Campos validos:', validFields.map(field => field.field));
   }
 
   searchCustomers(searchTerm: string): Observable<any[]> {

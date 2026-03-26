@@ -131,10 +131,20 @@
                     <label for="invoiceNumber"
                         class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.INVOICE_NUMBER' |
                         translate}}<span class="text-red-500">*</span></label>
-                    <input id="invoiceNumber" type="date" formControlName="invoiceNumber"
+                    <input id="invoiceNumber" type="text" formControlName="invoiceNumber"
                         [class]="campoVacio('invoiceNumber') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
                     @if (campoVacio('invoiceNumber')) {
                     <span class="text-sm text-red-500">{{ getErrorMessage('invoiceNumber') }}</span>
+                    }
+                </div>
+                <div>
+                    <label for="invoiceDate"
+                        class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.INVOICE_DATE' |
+                        translate}}<span class="text-red-500">*</span></label>
+                    <input id="invoiceDate" type="date" formControlName="invoiceDate"
+                        [class]="campoVacio('invoiceDate') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
+                    @if (campoVacio('invoiceDate')) {
+                    <span class="text-sm text-red-500">{{ getErrorMessage('invoiceDate') }}</span>
                     }
                 </div>
                 <div class="col-span-2">

@@ -46,16 +46,18 @@
                     }
                 </div>
 
-                <app-autocomplete [control]="$any(form.get('customerId'))"
-                    [label]="`${'NEW_REQUEST_FORM.CUSTOMER' | translate}`"
-                    placeholder="Buscar cliente por nombre o código" [isRequired]="true"
-                    [searchFn]="searchCustomers.bind(this)" [displayFn]="displayCustomer.bind(this)" [debounceMs]="500"
-                    [minCharacters]="1" [hasError]="campoVacio('customerId')"
-                    (optionSelected)="onCustomerSelected($event)">
-                </app-autocomplete>
-                @if (campoVacio('customerId')) {
-                <span class="text-sm text-red-500">{{ getErrorMessage('customerId') }}</span>
-                }
+                <div>
+                    <app-autocomplete [control]="$any(form.get('customerId'))"
+                        [label]="`${'NEW_REQUEST_FORM.CUSTOMER' | translate}`"
+                        placeholder="Buscar cliente por nombre o código" [isRequired]="true"
+                        [searchFn]="searchCustomers.bind(this)" [displayFn]="displayCustomer.bind(this)" [debounceMs]="500"
+                        [minCharacters]="1" [hasError]="campoVacio('customerId')"
+                        (optionSelected)="onCustomerSelected($event)">
+                    </app-autocomplete>
+                    @if (campoVacio('customerId')) {
+                    <span class="text-sm text-red-500">{{ getErrorMessage('customerId') }}</span>
+                    }
+                </div>
 
                 <div>
                     <label for="customerNumber"

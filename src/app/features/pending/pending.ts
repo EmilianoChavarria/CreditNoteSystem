@@ -19,6 +19,7 @@ import { AuthService } from '../../core/services/auth-service';
 import { PermissionAction, RequestTypePermissionRecord, RoleService } from '../../core/services/role-service';
 import { RequestType } from '../../data/interfaces/Request';
 import { getPermissionSlugsForCustomAction } from '../../core/constants/action-permission-map';
+import { Router } from '@angular/router';
 
 // 👇 Accede al default export real
 const pdf: any = (pdfMake as any).default ?? pdfMake;
@@ -107,7 +108,7 @@ export class Pending {
             key: 'edit',
             icon: 'pencil',
             label: 'Editar',
-            accion: (request) => this.logAction(request)
+            accion: (request) => this.editRequest(request)
         },
         {
             key: 'see_history',
@@ -142,7 +143,8 @@ export class Pending {
     private readonly _authService = inject(AuthService);
 
     constructor(
-        private _requestsService: RequestService
+        private _requestsService: RequestService,
+        private readonly router: Router,
     ) {
         this.initializePermissions();
     }
@@ -381,7 +383,21 @@ export class Pending {
 
     }
 
+    editRequest(request: Request): void {
+        const requestTypeId = Number(request.requestTypeId);
+
+        if (!requestTypeId || Number.isNaN(requestTypeId)) {
+            return;
+        }
+
+        this.router.navigate(['/app/request/new-request'], {
+            queryParams: { requestTypeId },
+            state: { editRequest: request }
+        });
+    }
+
     logAction(request: Request) {
+        console.log(request);
         this.openHistoryDrawer(request);
     }
 

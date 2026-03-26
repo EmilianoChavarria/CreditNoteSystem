@@ -19,6 +19,8 @@ import { PermissionAction, RequestTypePermissionRecord, RoleService } from '../.
 import { DebitForm } from "../../components/debit-form/debit-form";
 import { AuditorCreditForm } from "../../components/auditor-credit-form/auditor-credit-form";
 import { AuditorDebitForm } from "../../components/auditor-debit-form/auditor-debit-form";
+import { ActivatedRoute, Router } from '@angular/router';
+import { Request } from '../../../../data/interfaces/Request';
 
 @Component({
     selector: 'app-new-request',
@@ -39,6 +41,7 @@ export class NewRequest implements OnInit {
     public reasons = signal<Reason[]>([]);
     public classifications = signal<Classification[]>([]);
     public availableRequestTypes = signal<RequestType[]>([]);
+    public editingRequestData = signal<Partial<Request> | null>(null);
     private computedSubscriptions: Subscription[] = [];
     private requestTypeActionPermissions = signal<Record<number, Record<string, boolean>>>({});
     private toastr = inject(ToastrService);
@@ -47,14 +50,48 @@ export class NewRequest implements OnInit {
     constructor(
         private fb: FormBuilder,
         private _requestService: RequestService,
-        private _customerService: CustomerService
+        private _customerService: CustomerService,
+        private readonly route: ActivatedRoute,
+        private readonly router: Router,
 
     ) {
         this.profileForm = this.fb.group({});
     }
 
     ngOnInit() {
+        this.applyIncomingEditState();
         this.loadAllowedRequestTypes();
+    }
+
+    private applyIncomingEditState(): void {
+        const requestTypeIdParam = this.route.snapshot.queryParamMap.get('requestTypeId');
+        const requestTypeId = Number(requestTypeIdParam);
+
+        if (!Number.isNaN(requestTypeId) && requestTypeId > 0) {
+            this.selectedRequestTypeId = requestTypeId;
+            this.selectedRequestType = this.resolveRequestTypeModuleKey(requestTypeId);
+        }
+
+        const navigationState = this.router.getCurrentNavigation()?.extras?.state as { editRequest?: Request } | undefined;
+        const browserState = history.state as { editRequest?: Request };
+        const editRequest = navigationState?.editRequest ?? browserState?.editRequest;
+
+        if (editRequest) {
+            this.editingRequestData.set(editRequest);
+        }
+    }
+
+    private resolveRequestTypeModuleKey(requestTypeId: number): string {
+        const moduleMap: Record<number, string> = {
+            1: 'credits',
+            2: 'debits',
+            3: 'auditor-credits',
+            4: 'auditor-debits',
+            5: 're-invoicing',
+            6: 'material-return',
+        };
+
+        return moduleMap[requestTypeId] ?? '';
     }
 
     private loadAllowedRequestTypes(): void {
@@ -178,17 +215,7 @@ export class NewRequest implements OnInit {
         this.isLoadingForm.set(true);
         this.isRegisterRequestDisabled.set(false);
 
-        // Mapear el valor del select al key del JSON
-        const moduleMap: { [key: string]: string } = {
-            '1': 'credits',
-            '2': 'debits',
-            '3': 'auditor-credits',
-            '4': 'auditor-debits',
-            '5': 're-invoicing',
-            '6': 'material-return'
-        };
-
-        const moduleKey = moduleMap[value];
+        const moduleKey = this.resolveRequestTypeModuleKey(numericRequestTypeId);
         console.log(moduleKey);
         this.selectedRequestType = moduleKey;
         this.selectedRequestTypeId = Number.isNaN(numericRequestTypeId) ? null : numericRequestTypeId;
