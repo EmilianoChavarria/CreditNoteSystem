@@ -40,7 +40,7 @@ import { Subscription } from 'rxjs';
           </button>
   
           <div class="flex gap-x-2">
-            <button (click)="save()" 
+            <button (click)="saveDraft()" 
                     class="px-4 py-2 text-sm font-semibold text-white bg-gray-600 rounded-md hover:bg-gray-700 transition">
               Save as draft
             </button>
@@ -60,6 +60,7 @@ import { Subscription } from 'rxjs';
 export class TabsContainer implements AfterContentInit, OnDestroy {
   @ContentChildren(Tab) tabs!: QueryList<Tab>;
   readonly onSave = output<void>();
+  readonly onSaveDraft = output<void>();
   readonly showBottomButtons = input<boolean>(true);
   readonly registerDisabled = input<boolean>(false);
   selectedIndex: number = 0;
@@ -104,6 +105,10 @@ export class TabsContainer implements AfterContentInit, OnDestroy {
     if (this.selectedIndex > 0) {
       this.selectTab(this.tabs.toArray()[this.selectedIndex - 1], this.selectedIndex - 1);
     }
+  }
+
+  saveDraft() {
+    this.onSaveDraft.emit();
   }
 
   save() {
