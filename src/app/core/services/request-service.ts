@@ -268,6 +268,33 @@ export class RequestService {
     );
   }
 
+  getDraftsPaginated(perPage = 10, cursor?: string | null): Observable<CursorPagination<Request>> {
+    const params: { perPage: number; cursor?: string } = { perPage };
+
+    if (cursor) {
+      params.cursor = cursor;
+    }
+
+    return this._httpService.get<CursorPagination<Request>>(`/requests/drafts`, { params }).pipe(
+      map((response: ApiResponse<CursorPagination<Request>>) => {
+        const payload = response.data;
+
+        return {
+          data: payload?.data ?? [],
+          per_page: payload?.per_page,
+          next_cursor: payload?.next_cursor ?? null,
+          next_page_url: payload?.next_page_url ?? null,
+          prev_cursor: payload?.prev_cursor ?? null,
+          prev_page_url: payload?.prev_page_url ?? null,
+        };
+      }),
+      catchError(error => {
+        console.log(error);
+        throw error;
+      })
+    );
+  }
+
   getNextRequestNumber(requestTypeId: number): Observable<RequestNumber> {
     return this._httpService.get<RequestNumber>(`/requests/next-number/${requestTypeId}`).pipe(
       tap((response: ApiResponse<RequestNumber>) => {
@@ -305,7 +332,7 @@ export class RequestService {
     return this._httpService.post('/requests/draft', object).pipe(
       tap((response) => {
         if (response.success) {
-          console.log('Draft saved successfully');
+          console.log('Draft saved successfully', response);
         }
       }),
       catchError((error) => {
