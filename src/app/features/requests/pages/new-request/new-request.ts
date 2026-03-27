@@ -453,6 +453,39 @@ export class NewRequest implements OnInit {
         }
     }
 
+    saveDraft(object: any) {
+        this._requestService.saveDraft(object).subscribe({
+            next: (response) => {
+                this.toastr.success(response.message, 'Success');
+                this.submitted = false; // Resetear después de guardar como borrador
+            },
+            error: (error) => {
+                this.toastr.error('Error al guardar el borrador', 'Error');
+            }
+        })
+    }
+
+    handleSaveDraft() {
+        // No validar campos obligatorios - guardar como borrador
+        const formValue = this.profileForm.getRawValue();
+        delete formValue.sapScreen;
+        delete formValue.attachSupports;
+        delete formValue.reviewComments;
+        delete formValue.creditNumber;
+        delete formValue.orderNumber;
+        
+        const newObject = {
+            requestTypeId: this.selectedRequestType,
+            ...formValue,
+            customerId: formValue.customerId?.id || null,
+            totalAmount: formValue.totalAmount ? formValue.totalAmount.toFixed(2) : 0,
+            status: 'draft'
+        }
+        
+        this.saveDraft(newObject);
+        this.submitted = false;
+    }
+
     searchCustomers(term: string): Observable<AutocompleteOption[]> {
         if (!term || term.trim().length === 0) {
             return of([]);
