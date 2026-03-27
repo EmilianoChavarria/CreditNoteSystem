@@ -1,1 +1,33 @@
-<span>asd</span>
+<div class="p-8 flex flex-col">
+
+    <div class="flex items-center justify-between mb-10">
+        <h1 class="font-semibold text-[#3c6194] text-2xl">Borradores</h1>
+    </div>
+
+    @if (isLoadingTable()) {
+        <app-spinner></app-spinner>
+    } @else {
+        <app-tabla-dinamica 
+            [columnas]="columns"
+            [datos]="drafts()"
+            [accionesPersonalizadas]="acciones()"
+            [loading]="isLoadingTable()"
+            [paginaActualExterna]="currentPage()"
+            [registrosPorPagina]="pageSize()"
+            [hasNextPage]="hasNextPage()"
+            [hasPrevPage]="hasPrevPage()"
+            (paginaSiguiente)="onNextPage()"
+            (paginaAnterior)="onPrevPage()"
+            (registrosPorPaginaChange)="onPageSizeChange($event)"
+            [canAdd]="false"
+            >
+        </app-tabla-dinamica>
+    }
+
+    @if (!isLoadingTable() && drafts().length === 0) {
+        <div class="text-center py-20 text-gray-500">
+            <p class="text-2xl text-[#3c6194] font-semibold">No hay borradores</p>
+        </div>
+    }
+
+</div>
