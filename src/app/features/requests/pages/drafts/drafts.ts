@@ -14,7 +14,7 @@ import { Router } from '@angular/router';
     selector: 'app-drafts',
     templateUrl: './drafts.html',
     styleUrl: './drafts.css',
-    imports: [TranslatePipe, Table, Spinner, Badge, UpperCasePipe],
+    imports: [Table, Spinner],
 })
 export class Drafts {
 
