@@ -43,7 +43,7 @@ interface RequestHistoryRow {
     selector: 'app-bulk-upload',
     templateUrl: './bulk-upload.html',
     styleUrl: './bulk-upload.css',
-    imports: [TranslatePipe, Table, Spinner, Badge, UpperCasePipe, TabsContainer, Tab, AccordeonContainer, AccordeonItem, LucideAngularModule, Modal, Popover]
+    imports: [TabsContainer, Tab, AccordeonContainer, AccordeonItem, LucideAngularModule, Modal, Popover]
 })
 export class BulkUpload {
 
