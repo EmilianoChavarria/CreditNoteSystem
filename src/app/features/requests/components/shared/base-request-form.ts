@@ -103,6 +103,7 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
 
     const patchValue: Record<string, unknown> = {};
     const requestDataEntries = Object.entries(this.initialRequestData as Record<string, unknown>);
+    let hasPatchedCustomer = false;
 
     for (const [key, value] of requestDataEntries) {
       if (!(key in this.form.controls) || value === undefined) {
@@ -115,26 +116,165 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
       }
 
       if (key === 'customerId') {
-        const customerName = this.initialRequestData.customer?.customerName ?? '';
+        const customerId = this.normalizeCustomerId(value);
+        const customerName = this.resolveCustomerName(this.initialRequestData);
+        const hasCustomerName = customerName.trim().length > 0;
+
         patchValue[key] = {
-          id: value,
-          label: `${value} - ${customerName}`,
+          id: customerId,
+          label: hasCustomerName ? `${customerId} - ${customerName}` : String(customerId),
           data: {
-            idCliente: value,
+            idCliente: customerId,
             razonSocial: customerName,
           }
         };
+
+        if (!hasCustomerName) {
+          this.populateCustomerNameFromService(customerId);
+        }
+        hasPatchedCustomer = true;
         continue;
       }
 
       patchValue[key] = value;
     }
 
-    if ('customerNumber' in this.form.controls && this.initialRequestData.customerId) {
-      patchValue['customerNumber'] = String(this.initialRequestData.customerId);
+    if (!hasPatchedCustomer && 'customerId' in this.form.controls) {
+      const inferredCustomerId = this.resolveCustomerIdFromRequestData(this.initialRequestData);
+      if (String(inferredCustomerId ?? '').trim().length > 0) {
+        const customerName = this.resolveCustomerName(this.initialRequestData);
+        const hasCustomerName = customerName.trim().length > 0;
+
+        patchValue['customerId'] = {
+          id: inferredCustomerId,
+          label: hasCustomerName ? `${inferredCustomerId} - ${customerName}` : String(inferredCustomerId),
+          data: {
+            idCliente: inferredCustomerId,
+            razonSocial: customerName,
+          }
+        };
+
+        if (!hasCustomerName) {
+          this.populateCustomerNameFromService(inferredCustomerId);
+        }
+      }
+    }
+
+    if ('customerNumber' in this.form.controls) {
+      const inferredCustomerId = this.resolveCustomerIdFromRequestData(this.initialRequestData);
+      if (String(inferredCustomerId ?? '').trim().length > 0) {
+        patchValue['customerNumber'] = String(inferredCustomerId);
+      }
     }
 
     this.form.patchValue(patchValue, { emitEvent: false });
+  }
+
+  private resolveCustomerName(requestData: Partial<Request>): string {
+    const customer = requestData.customer as Record<string, unknown> | undefined;
+    const requestDataRecord = requestData as Record<string, unknown>;
+
+    const candidates = [
+      customer?.['customerName'],
+      customer?.['razonSocial'],
+      customer?.['name'],
+      customer?.['customer_name'],
+      requestDataRecord['customerName'],
+      requestDataRecord['razonSocial'],
+      requestDataRecord['customer_name'],
+      requestDataRecord['customer_name_full'],
+    ];
+
+    for (const candidate of candidates) {
+      if (typeof candidate === 'string' && candidate.trim().length > 0) {
+        return candidate;
+      }
+    }
+
+    return '';
+  }
+
+  private normalizeCustomerId(value: unknown): string | number {
+    if (typeof value === 'string' || typeof value === 'number') {
+      return value;
+    }
+
+    if (value && typeof value === 'object') {
+      const objectValue = value as Record<string, unknown>;
+      const nestedId = objectValue['id'] ?? objectValue['idCliente'];
+      if (typeof nestedId === 'string' || typeof nestedId === 'number') {
+        return nestedId;
+      }
+    }
+
+    return '';
+  }
+
+  private resolveCustomerIdFromRequestData(requestData: Partial<Request>): string | number {
+    const requestDataRecord = requestData as Record<string, unknown>;
+    const customer = requestDataRecord['customer'] as Record<string, unknown> | undefined;
+
+    const candidates = [
+      requestDataRecord['customerId'],
+      requestDataRecord['customer_id'],
+      requestDataRecord['customerNumber'],
+      customer?.['idCliente'],
+      customer?.['customerNumber'],
+      customer?.['id'],
+    ];
+
+    for (const candidate of candidates) {
+      const normalized = this.normalizeCustomerId(candidate);
+      if (String(normalized).trim().length > 0) {
+        return normalized;
+      }
+    }
+
+    return '';
+  }
+
+  private populateCustomerNameFromService(customerId: string | number): void {
+    const searchValue = String(customerId ?? '').trim();
+    if (!searchValue) {
+      return;
+    }
+
+    const subscription = this._customerService.getCustomersByName(searchValue).subscribe({
+      next: (customers: any[]) => {
+        if (!Array.isArray(customers) || customers.length === 0) {
+          return;
+        }
+
+        const exactMatch = customers.find((customer) =>
+          String(customer?.idCliente ?? '').trim() === searchValue
+        );
+
+        const selectedCustomer = exactMatch ?? customers[0];
+        const resolvedCustomerId = selectedCustomer?.idCliente ?? customerId;
+        const customerName = selectedCustomer?.razonSocial
+          ?? selectedCustomer?.customerName
+          ?? selectedCustomer?.name
+          ?? '';
+
+        if (typeof customerName !== 'string' || customerName.trim().length === 0) {
+          return;
+        }
+
+        this.form.get('customerId')?.setValue({
+          id: resolvedCustomerId,
+          label: `${resolvedCustomerId} - ${customerName}`,
+          data: {
+            idCliente: resolvedCustomerId,
+            razonSocial: customerName,
+          }
+        }, { emitEvent: true });
+      },
+      error: () => {
+        // Keep customer ID as fallback if customer name cannot be resolved.
+      }
+    });
+
+    this.subscriptions.push(subscription);
   }
 
   private formatDateForInput(value: unknown): string {
@@ -426,6 +566,57 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
       },
       error: (error: any) => {
         const message = error?.error?.message ?? error?.message ?? 'No se pudo guardar la solicitud';
+        this._toastService.error(message, 'Error');
+      }
+    });
+  }
+
+  saveDraft(): void {
+    // No validar campos obligatorios - guardar como borrador
+    if (this.requestTypeId === null) {
+      this._toastService.error('No se pudo identificar el tipo de solicitud', 'Error');
+      return;
+    }
+
+    const formValue = this.form.getRawValue();
+    const selectedCustomer = formValue.customerId as
+      | string
+      | number
+      | { id?: string | number; data?: { idCliente?: string | number } }
+      | null;
+
+    const customerId = typeof selectedCustomer === 'object' && selectedCustomer !== null
+      ? selectedCustomer.id ?? selectedCustomer.data?.idCliente ?? null
+      : selectedCustomer ?? null;
+
+    const payload = {
+      requestTypeId: this.requestTypeId,
+      ...formValue,
+      customerId,
+      reasonId: formValue.reasonId ? Number(formValue.reasonId) : null,
+      classificationId: formValue.classificationId ? Number(formValue.classificationId) : null,
+      exchangeRate: formValue.exchangeRate ? Number(formValue.exchangeRate) : null,
+      amount: formValue.amount ? Number(formValue.amount) : 0,
+      totalAmount: formValue.totalAmount ? Number(formValue.totalAmount) : 0,
+      status: 'draft',
+    };
+
+    delete payload.sapScreen;
+    delete payload.attachSupports;
+    delete payload.reviewComments;
+
+    this._requestService.saveDraft(payload).subscribe({
+      next: (response: any) => {
+        if (response?.success) {
+          this._toastService.success(response?.message ?? 'Borrador guardado correctamente', 'Exito');
+          this.submitted.set(false);
+          return;
+        }
+
+        this._toastService.error(response?.message ?? 'No se pudo guardar el borrador', 'Error');
+      },
+      error: (error: any) => {
+        const message = error?.error?.message ?? error?.message ?? 'No se pudo guardar el borrador';
         this._toastService.error(message, 'Error');
       }
     });
