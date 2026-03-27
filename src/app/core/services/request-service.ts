@@ -301,6 +301,20 @@ export class RequestService {
     )
   }
 
+  saveDraft(object: any) {
+    return this._httpService.post('/requests/draft', object).pipe(
+      tap((response) => {
+        if (response.success) {
+          console.log('Draft saved successfully');
+        }
+      }),
+      catchError((error) => {
+        console.log(error);
+        throw error;
+      })
+    )
+  }
+
   getRequestTypes(): Observable<RequestType[]> {
     return this._httpService.get<RequestType[]>('/requestType').pipe(
       tap((response: ApiResponse<RequestType[]>) => {
