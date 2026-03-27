@@ -2,7 +2,7 @@
 <app-spinner></app-spinner>
 }@else {
 <form action="" [formGroup]="form">
-    <app-tabs-container (onSave)="saveRequest()">
+    <app-tabs-container (onSave)="saveRequest()" (onSaveDraft)="saveDraft()">
         <app-tab titleT="Request & Customer">
             <div class="grid grid-cols-4 gap-8">
                 <div>
