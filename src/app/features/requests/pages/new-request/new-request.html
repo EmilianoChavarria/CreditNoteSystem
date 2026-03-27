@@ -15,10 +15,20 @@
 
     @switch (selectedRequestType) {
         @case ('credits') {
-            <app-credit-form></app-credit-form>
+            <app-credit-form [requestTypeId]="selectedRequestTypeId"
+                [initialRequestData]="editingRequestData()"></app-credit-form>
         }
         @case ('debits') {
-            <app-debit-form></app-debit-form>
+            <app-debit-form [requestTypeId]="selectedRequestTypeId"
+                [initialRequestData]="editingRequestData()"></app-debit-form>
+        }
+        @case ('auditor-credits') {
+            <app-auditor-credit-form [requestTypeId]="selectedRequestTypeId"
+                [initialRequestData]="editingRequestData()"></app-auditor-credit-form>
+        }
+        @case ('auditor-debits') {
+            <app-auditor-debit-form [requestTypeId]="selectedRequestTypeId"
+                [initialRequestData]="editingRequestData()"></app-auditor-debit-form>
         }
     }
 

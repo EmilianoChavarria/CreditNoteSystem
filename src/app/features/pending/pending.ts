@@ -19,6 +19,7 @@ import { AuthService } from '../../core/services/auth-service';
 import { PermissionAction, RequestTypePermissionRecord, RoleService } from '../../core/services/role-service';
 import { RequestType } from '../../data/interfaces/Request';
 import { getPermissionSlugsForCustomAction } from '../../core/constants/action-permission-map';
+import { Router } from '@angular/router';
 
 // 👇 Accede al default export real
 const pdf: any = (pdfMake as any).default ?? pdfMake;
@@ -39,11 +40,10 @@ export class Pending {
     public requests = signal<Request[]>([]);
     public pageSize = signal<number>(10);
     public currentPage = signal<number>(1);
+    public totalPages = signal<number>(1);
     public hasNextPage = signal<boolean>(false);
     public hasPrevPage = signal<boolean>(false);
     public isLoadingTable = signal<boolean>(true);
-    private nextCursor = signal<string | null>(null);
-    private prevCursor = signal<string | null>(null);
     public isLoading = signal<boolean>(false);
     public form = new FormGroup({
         reason: new FormControl<string>('', Validators.required)
@@ -107,7 +107,7 @@ export class Pending {
             key: 'edit',
             icon: 'pencil',
             label: 'Editar',
-            accion: (request) => this.logAction(request)
+            accion: (request) => this.editRequest(request)
         },
         {
             key: 'see_history',
@@ -142,7 +142,8 @@ export class Pending {
     private readonly _authService = inject(AuthService);
 
     constructor(
-        private _requestsService: RequestService
+        private _requestsService: RequestService,
+        private readonly router: Router,
     ) {
         this.initializePermissions();
     }
@@ -270,8 +271,7 @@ export class Pending {
         this.updateVisibleActions();
 
         this.currentPage.set(1);
-        this.nextCursor.set(null);
-        this.prevCursor.set(null);
+        this.totalPages.set(1);
         this.hasNextPage.set(false);
         this.hasPrevPage.set(false);
 
@@ -285,7 +285,7 @@ export class Pending {
         this.loadRequestsPaginated();
     }
 
-    private loadRequestsPaginated(cursor?: string | null): void {
+    private loadRequestsPaginated(): void {
         const requestTypeId = Number(this.selectedRequestType);
 
         if (!requestTypeId || Number.isNaN(requestTypeId)) {
@@ -297,7 +297,7 @@ export class Pending {
 
         this.isLoadingTable.set(true);
 
-        this._requestsService.getRequestByTypePaginated(requestTypeId, this.pageSize(), cursor).pipe(
+        this._requestsService.getRequestsByTypeWithPagePagination(requestTypeId, this.pageSize(), this.currentPage()).pipe(
             finalize(() => {
                 this.isLoadingTable.set(false);
                 this.isLoading.set(false);
@@ -305,10 +305,10 @@ export class Pending {
         ).subscribe({
             next: (response) => {
                 this.requests.set(response.data);
-                this.nextCursor.set(response.next_cursor ?? null);
-                this.prevCursor.set(response.prev_cursor ?? null);
-                this.hasNextPage.set(!!response.next_cursor || !!response.next_page_url);
-                this.hasPrevPage.set(!!response.prev_cursor || !!response.prev_page_url);
+                this.currentPage.set(response.current_page ?? 1);
+                this.totalPages.set(response.last_page ?? 1);
+                this.hasNextPage.set(!!response.next_page_url);
+                this.hasPrevPage.set(!!response.prev_page_url);
             },
             error: (error) => {
                 console.error('❌ Error al cargar requests:', error);
@@ -317,23 +317,46 @@ export class Pending {
     }
 
     onNextPage(): void {
-        const cursor = this.nextCursor();
-        if (!cursor) {
+        const page = this.currentPage();
+        const lastPage = this.totalPages();
+
+        if (page >= lastPage) {
             return;
         }
 
         this.currentPage.update((value) => value + 1);
-        this.loadRequestsPaginated(cursor);
+        this.loadRequestsPaginated();
     }
 
     onPrevPage(): void {
-        const cursor = this.prevCursor();
-        if (!cursor) {
+        const page = this.currentPage();
+
+        if (page <= 1) {
             return;
         }
 
         this.currentPage.update((value) => Math.max(1, value - 1));
-        this.loadRequestsPaginated(cursor);
+        this.loadRequestsPaginated();
+    }
+
+    onFirstPage(): void {
+        if (this.currentPage() === 1) {
+            return;
+        }
+
+        this.currentPage.set(1);
+        this.loadRequestsPaginated();
+    }
+
+    onLastPage(): void {
+        const lastPage = this.totalPages();
+
+        if (this.currentPage() === lastPage) {
+            return;
+        }
+
+        this.currentPage.set(lastPage);
+        this.loadRequestsPaginated();
     }
 
     onPageSizeChange(size: number): void {
@@ -344,8 +367,7 @@ export class Pending {
 
         this.pageSize.set(size);
         this.currentPage.set(1);
-        this.nextCursor.set(null);
-        this.prevCursor.set(null);
+        this.totalPages.set(1);
         this.hasNextPage.set(false);
         this.hasPrevPage.set(false);
         this.loadRequestsPaginated();
@@ -381,7 +403,21 @@ export class Pending {
 
     }
 
+    editRequest(request: Request): void {
+        const requestTypeId = Number(request.requestTypeId);
+
+        if (!requestTypeId || Number.isNaN(requestTypeId)) {
+            return;
+        }
+
+        this.router.navigate(['/app/request/new-request'], {
+            queryParams: { requestTypeId },
+            state: { editRequest: request }
+        });
+    }
+
     logAction(request: Request) {
+        console.log(request);
         this.openHistoryDrawer(request);
     }
 

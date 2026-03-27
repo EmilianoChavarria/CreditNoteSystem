@@ -1,52 +1,79 @@
+@if(isLoadingInitialData()){
+<app-spinner></app-spinner>
+}@else {
 <form action="" [formGroup]="form">
-    <app-tabs-container (onSave)="saveRequest()">
+    <app-tabs-container (onSave)="saveRequest()" (onSaveDraft)="saveDraft()">
         <app-tab titleT="Request & Customer">
             <div class="grid grid-cols-4 gap-8">
                 <div>
-                    <label for="requestNumber" class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.REQUEST_NUMBER' | translate}}<span class="text-red-500">*</span></label>
-                    <input id="requestNumber" type="text" formControlName="requestNumber" [class]="campoVacio('requestNumber') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
+                    <label for="requestNumber"
+                        class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.REQUEST_NUMBER' |
+                        translate}}<span class="text-red-500">*</span></label>
+                    <input id="requestNumber" type="text" formControlName="requestNumber"
+                        [class]="campoVacio('requestNumber') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
                     @if (campoVacio('requestNumber')) {
                     <span class="text-sm text-red-500">{{ getErrorMessage('requestNumber') }}</span>
                     }
                 </div>
                 <div>
-                    <label for="orderNumber" class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.ORDER_NUMBER' | translate}}</label>
-                    <input id="orderNumber" type="text" formControlName="orderNumber" [class]="campoVacio('orderNumber') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
+                    <label for="orderNumber"
+                        class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.ORDER_NUMBER' |
+                        translate}}</label>
+                    <input id="orderNumber" type="text" formControlName="orderNumber"
+                        [class]="campoVacio('orderNumber') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
                     @if (campoVacio('orderNumber')) {
                     <span class="text-sm text-red-500">{{ getErrorMessage('orderNumber') }}</span>
                     }
                 </div>
                 <div>
-                    <label for="creditNumber" class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.CREDIT_NUMBER' | translate}}</label>
-                    <input id="creditNumber" type="text" formControlName="creditNumber" [class]="campoVacio('creditNumber') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
+                    <label for="creditNumber"
+                        class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.CREDIT_NUMBER' |
+                        translate}}</label>
+                    <input id="creditNumber" type="text" formControlName="creditNumber"
+                        [class]="campoVacio('creditNumber') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
                     @if (campoVacio('creditNumber')) {
                     <span class="text-sm text-red-500">{{ getErrorMessage('creditNumber') }}</span>
                     }
                 </div>
                 <div>
-                    <label for="requestDate" class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.REQUEST_DATE' | translate}}<span class="text-red-500">*</span></label>
-                    <input id="requestDate" type="date" formControlName="requestDate" [class]="campoVacio('requestDate') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
+                    <label for="requestDate"
+                        class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.REQUEST_DATE' |
+                        translate}}<span class="text-red-500">*</span></label>
+                    <input id="requestDate" type="date" formControlName="requestDate"
+                        [class]="campoVacio('requestDate') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
                     @if (campoVacio('requestDate')) {
                     <span class="text-sm text-red-500">{{ getErrorMessage('requestDate') }}</span>
                     }
                 </div>
 
-                <app-autocomplete [control]="$any(form.get('customerId'))" [label]="`${'NEW_REQUEST_FORM.CUSTOMER' | translate}`" placeholder="Buscar cliente por nombre o código" [isRequired]="true" [searchFn]="searchCustomers.bind(this)" [displayFn]="displayCustomer.bind(this)" [debounceMs]="500" [minCharacters]="1" [hasError]="campoVacio('customerId')" (optionSelected)="onCustomerSelected($event)">
-                </app-autocomplete>
-                @if (campoVacio('customerId')) {
-                <span class="text-sm text-red-500">{{ getErrorMessage('customerId') }}</span>
-                }
+                <div>
+                    <app-autocomplete [control]="$any(form.get('customerId'))"
+                        [label]="`${'NEW_REQUEST_FORM.CUSTOMER' | translate}`"
+                        placeholder="Buscar cliente por nombre o código" [isRequired]="true"
+                        [searchFn]="searchCustomers.bind(this)" [displayFn]="displayCustomer.bind(this)"
+                        [debounceMs]="500" [minCharacters]="1" [hasError]="campoVacio('customerId')"
+                        (optionSelected)="onCustomerSelected($event)">
+                    </app-autocomplete>
+                    @if (campoVacio('customerId')) {
+                    <span class="text-sm text-red-500">{{ getErrorMessage('customerId') }}</span>
+                    }
+                </div>
 
                 <div>
-                    <label for="customerNumber" class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.CUSTOMER_NUMBER' | translate}}<span class="text-red-500">*</span></label>
-                    <input id="customerNumber" type="text" formControlName="customerNumber" [class]="campoVacio('customerNumber') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
+                    <label for="customerNumber"
+                        class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.CUSTOMER_NUMBER' |
+                        translate}}<span class="text-red-500">*</span></label>
+                    <input id="customerNumber" type="text" formControlName="customerNumber"
+                        [class]="campoVacio('customerNumber') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
                     @if (campoVacio('customerNumber')) {
                     <span class="text-sm text-red-500">{{ getErrorMessage('customerNumber') }}</span>
                     }
                 </div>
                 <div>
-                    <label for="area" class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.AREA' | translate}}<span class="text-red-500">*</span></label>
-                    <select id="area" formControlName="area" [class]="campoVacio('area') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'">
+                    <label for="area" class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.AREA' |
+                        translate}}<span class="text-red-500">*</span></label>
+                    <select id="area" formControlName="area"
+                        [class]="campoVacio('area') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'">
                         <option value="" disabled>Selecciona una opción</option>
                         <option value="AFTERMARKET">AFTERMARKET</option>
                         <option value="SALES">SALES</option>
@@ -56,8 +83,10 @@
                     }
                 </div>
                 <div>
-                    <label for="reasonId" class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.REASON' | translate}}<span class="text-red-500">*</span></label>
-                    <select id="reasonId" formControlName="reasonId" [class]="campoVacio('reasonId') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'">
+                    <label for="reasonId" class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.REASON' |
+                        translate}}<span class="text-red-500">*</span></label>
+                    <select id="reasonId" formControlName="reasonId"
+                        [class]="campoVacio('reasonId') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'">
                         <option value="" disabled>Selecciona una opción</option>
                         @for (reason of reasons(); track $index) {
                         <option [value]="reason.id">{{reason.name}}</option>
@@ -68,11 +97,15 @@
                     }
                 </div>
                 <div>
-                    <label for="classificationId" class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.CLASSIFICATION' | translate}}<span class="text-red-500">*</span></label>
-                    <select id="classificationId" formControlName="classificationId" [class]="campoVacio('classificationId') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'">
+                    <label for="classificationId"
+                        class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.CLASSIFICATION' |
+                        translate}}<span class="text-red-500">*</span></label>
+                    <select id="classificationId" formControlName="classificationId"
+                        [class]="campoVacio('classificationId') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'">
                         <option value="" disabled>Selecciona una opción</option>
                         @for (classi of classifications(); track $index) {
-                        <option [value]="classi.id">{{classi.name | titlecase}} {{classi.code ? ` - ${classi.code}` : ''}}</option>
+                        <option [value]="classi.id">{{classi.name | titlecase}} {{classi.code ? ` - ${classi.code}` :
+                            ''}}</option>
                         }
                     </select>
                     @if (campoVacio('classificationId')) {
@@ -85,23 +118,44 @@
         <app-tab titleT="Reference & Logistics">
             <div class="grid grid-cols-4 gap-8">
                 <div>
-                    <label for="deliveryNote" class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.DELIVERY_NOTE' | translate}}</label>
-                    <input id="deliveryNote" type="text" formControlName="deliveryNote" [class]="campoVacio('deliveryNote') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
+                    <label for="deliveryNote"
+                        class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.DELIVERY_NOTE' |
+                        translate}}</label>
+                    <input id="deliveryNote" type="text" formControlName="deliveryNote"
+                        [class]="campoVacio('deliveryNote') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
                     @if (campoVacio('deliveryNote')) {
                     <span class="text-sm text-red-500">{{ getErrorMessage('deliveryNote') }}</span>
                     }
                 </div>
                 <div>
-                    <label for="invoiceNumber" class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.INVOICE_NUMBER' | translate}}<span class="text-red-500">*</span></label>
-                    <input id="invoiceNumber" type="date" formControlName="invoiceNumber" [class]="campoVacio('invoiceNumber') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
+                    <label for="invoiceNumber"
+                        class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.INVOICE_NUMBER' |
+                        translate}}<span class="text-red-500">*</span></label>
+                    <input id="invoiceNumber" type="text" formControlName="invoiceNumber"
+                        [class]="campoVacio('invoiceNumber') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
                     @if (campoVacio('invoiceNumber')) {
                     <span class="text-sm text-red-500">{{ getErrorMessage('invoiceNumber') }}</span>
                     }
                 </div>
+                <div>
+                    <label for="invoiceDate"
+                        class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.INVOICE_DATE' |
+                        translate}}<span class="text-red-500">*</span></label>
+                    <input id="invoiceDate" type="date" formControlName="invoiceDate"
+                        [class]="campoVacio('invoiceDate') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
+                    @if (campoVacio('invoiceDate')) {
+                    <span class="text-sm text-red-500">{{ getErrorMessage('invoiceDate') }}</span>
+                    }
+                </div>
                 <div class="col-span-2">
-                    <label for="sapScreen" class="block text-sm font-medium text-[#395f93]">{{'NEW_REQUEST_FORM.SAP_SCREEN' | translate}}<span class="text-red-500">*</span></label>
-                    <input type="file" id="sapScreen" formControlName="sapScreen" [class]="campoVacio('sapScreen') ? 'border-red-500 mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-md file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100' : 'mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-md file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 border border-gray-300 shadow-sm rounded-md'">
-                    <small *ngIf="campoVacio('sapScreen')" class="text-red-500 text-xs block mt-1">{{ getFieldError('sapScreen') }}</small>
+                    <label for="sapScreen"
+                        class="block text-sm font-medium text-[#395f93]">{{'NEW_REQUEST_FORM.SAP_SCREEN' |
+                        translate}}<span class="text-red-500">*</span></label>
+                    <input type="file" id="sapScreen" formControlName="sapScreen"
+                        [class]="campoVacio('sapScreen') ? 'border-red-500 mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-md file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100' : 'mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-md file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 border border-gray-300 shadow-sm rounded-md'">
+                    @if (campoVacio('sapScreen')) {
+                    <small class="text-red-500 text-xs block mt-1">{{ getFieldError('sapScreen') }}</small>
+                    }
                 </div>
             </div>
         </app-tab>
@@ -109,8 +163,10 @@
         <app-tab titleT="Financial Data">
             <div class="grid grid-cols-4 gap-8">
                 <div>
-                    <label for="currency" class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.CURRENCY' | translate}}<span class="text-red-500">*</span></label>
-                    <select id="currency" formControlName="currency" [class]="campoVacio('currency') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'">
+                    <label for="currency" class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.CURRENCY'
+                        | translate}}<span class="text-red-500">*</span></label>
+                    <select id="currency" formControlName="currency"
+                        [class]="campoVacio('currency') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'">
                         <option value="" disabled>Selecciona una opción</option>
                         <option value="MXN">MXN</option>
                         <option value="USD">USD</option>
@@ -120,31 +176,41 @@
                     }
                 </div>
                 <div>
-                    <label for="exchangeRate" class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.EXCHANGE_RATE' | translate}}<span class="text-red-500">*</span></label>
-                    <input id="exchangeRate" type="number" formControlName="exchangeRate" [class]="campoVacio('exchangeRate') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
+                    <label for="exchangeRate"
+                        class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.EXCHANGE_RATE' |
+                        translate}}<span class="text-red-500">*</span></label>
+                    <input id="exchangeRate" type="number" formControlName="exchangeRate"
+                        [class]="campoVacio('exchangeRate') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
                     @if (campoVacio('exchangeRate')) {
                     <span class="text-sm text-red-500">{{ getErrorMessage('exchangeRate') }}</span>
                     }
                 </div>
                 <div>
-                    <label for="amount" class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.AMOUNT' | translate}}<span class="text-red-500">*</span></label>
-                    <input id="amount" type="number" formControlName="amount" [class]="campoVacio('amount') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
+                    <label for="amount" class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.AMOUNT' |
+                        translate}}<span class="text-red-500">*</span></label>
+                    <input id="amount" type="number" formControlName="amount"
+                        [class]="campoVacio('amount') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
                     @if (campoVacio('amount')) {
                     <span class="text-sm text-red-500">{{ getErrorMessage('amount') }}</span>
                     }
                 </div>
                 <div class="flex flex-col justify-center">
                     <div class="flex items-center gap-3 mt-1">
-                        <input id="hasIva" type="checkbox" formControlName="hasIva" [class]="campoVacio('hasIva') ? 'w-5 h-5 border-red-500 text-blue-600 focus:ring-red-500 rounded' : 'w-5 h-5 rounded text-blue-600 focus:ring-blue-500'" />
-                        <label for="hasIva" class="font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.HAS_IVA' | translate}}<span class="text-red-500">*</span></label>
+                        <input id="hasIva" type="checkbox" formControlName="hasIva"
+                            [class]="campoVacio('hasIva') ? 'w-5 h-5 border-red-500 text-blue-600 focus:ring-red-500 rounded' : 'w-5 h-5 rounded text-blue-600 focus:ring-blue-500'" />
+                        <label for="hasIva" class="font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.HAS_IVA' |
+                            translate}}<span class="text-red-500">*</span></label>
                     </div>
                     @if (campoVacio('hasIva')) {
                     <span class="text-sm text-red-500">{{ getErrorMessage('hasIva') }}</span>
                     }
                 </div>
                 <div>
-                    <label for="totalAmount" class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.TOTAL_AMOUNT' | translate}}</label>
-                    <input id="totalAmount" type="text" formControlName="totalAmount" [class]="campoVacio('totalAmount') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
+                    <label for="totalAmount"
+                        class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.TOTAL_AMOUNT' |
+                        translate}}</label>
+                    <input id="totalAmount" type="text" formControlName="totalAmount"
+                        [class]="campoVacio('totalAmount') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
                     @if (campoVacio('totalAmount')) {
                     <span class="text-sm text-red-500">{{ getErrorMessage('totalAmount') }}</span>
                     }
@@ -155,24 +221,35 @@
         <app-tab titleT="Supports & Comments">
             <div class="grid grid-cols-4 gap-8">
                 <div class="col-span-2">
-                    <label for="attachSupports" class="block text-sm font-medium text-[#395f93]">{{'NEW_REQUEST_FORM.ATTACH_SUPPORTS' | translate}}<span class="text-red-500">*</span></label>
-                    <input type="file" id="attachSupports" multiple (change)="onAttachSupportsChange($event)" formControlName="attachSupports" [class]="campoVacio('attachSupports') ? ' mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-md file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100 border border-red-300 rounded-md' : 'mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-md file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 border border-gray-300 shadow-sm rounded-md'">
-                    <small *ngIf="campoVacio('attachSupports')" class="text-red-500 text-xs block mt-1">{{ getFieldError('attachSupports') }}</small>
+                    <label for="attachSupports"
+                        class="block text-sm font-medium text-[#395f93]">{{'NEW_REQUEST_FORM.ATTACH_SUPPORTS' |
+                        translate}}<span class="text-red-500">*</span></label>
+                    <input type="file" id="attachSupports" multiple (change)="onAttachSupportsChange($event)"
+                        formControlName="attachSupports"
+                        [class]="campoVacio('attachSupports') ? ' mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-md file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100 border border-red-300 rounded-md' : 'mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-md file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 border border-gray-300 shadow-sm rounded-md'">
+                    @if (campoVacio('attachSupports')) {
+                    <small class="text-red-500 text-xs block mt-1">{{ getFieldError('attachSupports') }}</small>
+                    }
 
                     @if (selectedSupportFiles().length > 0) {
                     <div class="mt-3 grid grid-cols-2 md:grid-cols-4 gap-2">
                         @for (file of selectedSupportFiles(); track file.name + file.size + $index) {
-                        <div class="group relative rounded-md border border-gray-200 bg-gray-50 px-3 py-3 flex flex-col items-center text-center gap-2">
-                            <button type="button" (click)="removeSupportFile($index)" class="hidden group-hover:flex absolute top-1 right-1 h-5 w-5 items-center justify-center rounded-md bg-red-100 border border-red-300 text-red-600 hover:text-red-600 hover:border-red-300 hover:cursor-pointer" aria-label="Eliminar archivo">
+                        <div
+                            class="group relative rounded-md border border-gray-200 bg-gray-50 px-3 py-3 flex flex-col items-center text-center gap-2">
+                            <button type="button" (click)="removeSupportFile($index)"
+                                class="hidden group-hover:flex absolute top-1 right-1 h-5 w-5 items-center justify-center rounded-md bg-red-100 border border-red-300 text-red-600 hover:text-red-600 hover:border-red-300 hover:cursor-pointer"
+                                aria-label="Eliminar archivo">
                                 <span class="text-xs leading-none">x</span>
                             </button>
                             <div class="w-8 h-8 rounded-md bg-blue-100 text-blue-700 flex items-center justify-center">
-                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" aria-hidden="true">
                                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                                     <polyline points="14 2 14 8 20 8"></polyline>
                                 </svg>
                             </div>
-                            <p class="text-xs font-medium text-gray-800 max-w-30 truncate" [title]="file.name">{{ file.name }}</p>
+                            <p class="text-xs font-medium text-gray-800 max-w-30 truncate" [title]="file.name">{{
+                                file.name }}</p>
                             <p class="text-[11px] text-gray-500">{{ formatFileSize(file.size) }}</p>
                         </div>
                         }
@@ -181,8 +258,10 @@
                 </div>
 
                 <div class="col-span-2">
-                    <label for="comments" class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.COMMENTS' | translate}}</label>
-                    <textarea id="comments" formControlName="comments" [class]="campoVacio('comments') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'"></textarea>
+                    <label for="comments" class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.COMMENTS'
+                        | translate}}</label>
+                    <textarea id="comments" formControlName="comments"
+                        [class]="campoVacio('comments') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'"></textarea>
                     @if (campoVacio('comments')) {
                     <span class="text-sm text-red-500">{{ getErrorMessage('comments') }}</span>
                     }
@@ -191,3 +270,4 @@
         </app-tab>
     </app-tabs-container>
 </form>
+}

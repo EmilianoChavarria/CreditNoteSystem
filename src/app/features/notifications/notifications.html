@@ -1,1 +1,49 @@
-<p>notifications works!</p>
+<section class="notifications-page">
+	<header class="notifications-header">
+		<h1>Laravel Reverb Notifications</h1>
+		<p>Canal: <strong>notifications.global</strong> · Evento: <strong>.socket.message.sent</strong></p>
+	</header>
+
+	<div class="status-panel">
+		<p><strong>Estado:</strong> {{ connectionState() }}</p>
+		@if (connectionError()) {
+			<p class="error">Error: {{ connectionError() }}</p>
+		}
+		@if (lastBatchFinished()) {
+			<p><strong>Ultimo batch finalizado:</strong> {{ lastBatchFinished()?.batch?.id ?? 'N/A' }}</p>
+			<p><strong>Status final:</strong> {{ lastBatchFinished()?.batch?.status ?? 'unknown' }}</p>
+		}
+		<div class="button-row">
+			<button type="button" (click)="connect()">Conectar</button>
+			<button type="button" (click)="disconnect()">Desconectar</button>
+		</div>
+	</div>
+
+	<form class="broadcast-form" [formGroup]="broadcastForm" (ngSubmit)="sendBroadcast()">
+		<label for="message">Mensaje para /api/socket/broadcast</label>
+		<input id="message" type="text" formControlName="message" placeholder="Escribe un mensaje" />
+
+		<label for="bearerToken">JWT Bearer (opcional en este demo)</label>
+		<input id="bearerToken" type="text" formControlName="bearerToken" placeholder="eyJ0eXAiOiJK..." />
+
+		<button type="submit" [disabled]="sending()">
+			{{ sending() ? 'Enviando...' : 'Emitir Mensaje' }}
+		</button>
+	</form>
+
+	<section class="messages-panel">
+		<h2>Mensajes Entrantes</h2>
+
+		@if (messages().length === 0) {
+			<p>No hay mensajes aún.</p>
+		} @else {
+			<ul>
+				@for (message of messages(); track $index) {
+					<li>
+						<pre>{{ message | json }}</pre>
+					</li>
+				}
+			</ul>
+		}
+	</section>
+</section>

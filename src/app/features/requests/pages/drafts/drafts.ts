@@ -1,155 +1,145 @@
-import { Component, signal } from '@angular/core';
-import { TabsContainer } from "../../../../shared/components/ui/tab/tab-container/tab-container";
-import { Tab } from "../../../../shared/components/ui/tab/tab";
-import { AccordeonContainer } from "../../../../shared/components/ui/accordeon/accordeon-container";
-import { AccordeonItem } from "../../../../shared/components/ui/accordeon/accordeon-item";
-import { LucideAngularModule } from "lucide-angular";
-import { Modal } from '../../../../shared/components/ui/modal/modal';
-import { Popover } from '../../../../shared/components/ui/popover/popover';
-
-interface UploadedFileRow {
-    name: string;
-    sizeLabel: string;
-    type: string;
-    uploadedAt: string;
-}
-
-interface BatchHistoryRow {
-    idBatch: string;
-    date: string;
-    requests: number;
-    emitted: number;
-    pending: number;
-    error: number;
-}
-
-type RequestStatus = 'emitted' | 'error';
-
-interface RequestHistoryRow {
-    requestNumber: string;
-    status: RequestStatus;
-    errorMessage?: string;
-}
+import { Component, inject, signal } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
+import { RequestService } from '../../../../core/services/request-service';
+import { Request } from '../../../../data/interfaces/Request';
+import { AccionPersonalizada, Column, Table } from "../../../../shared/components/ui/table/table";
+import { Spinner } from '../../../../shared/components/ui/spinner/spinner';
+import moment from 'moment';
+import { Badge } from "../../../../shared/components/ui/badge/badge";
+import { UpperCasePipe } from '@angular/common';
+import { finalize } from 'rxjs';
+import { Router } from '@angular/router';
 
 @Component({
     selector: 'app-drafts',
     templateUrl: './drafts.html',
     styleUrl: './drafts.css',
-    imports: [TabsContainer, Tab, AccordeonContainer, AccordeonItem, LucideAngularModule, Modal, Popover],
+    imports: [Table, Spinner],
 })
 export class Drafts {
 
-    public isDragOver = signal(false);
-    public uploadedFiles = signal<UploadedFileRow[]>([]);
-    public isBatchDetailModalOpen = signal(false);
-    public isRequestErrorModalOpen = signal(false);
-    public selectedBatch = signal<BatchHistoryRow | null>(null);
-    public selectedRequestError = signal<RequestHistoryRow | null>(null);
+    public drafts = signal<Request[]>([]);
+    public pageSize = signal<number>(10);
+    public currentPage = signal<number>(1);
+    public hasNextPage = signal<boolean>(false);
+    public hasPrevPage = signal<boolean>(false);
+    public isLoadingTable = signal<boolean>(true);
+    private nextCursor = signal<string | null>(null);
+    private prevCursor = signal<string | null>(null);
+    public isLoading = signal<boolean>(false);
 
-    public bulkHistoryRows = signal<BatchHistoryRow[]>([
-        { idBatch: 'BATCH-0001', date: '2026-02-20 09:12', requests: 10, emitted: 8, pending: 1, error: 1 },
-        { idBatch: 'BATCH-0002', date: '2026-02-21 14:37', requests: 7, emitted: 5, pending: 0, error: 2 },
-        { idBatch: 'BATCH-0003', date: '2026-02-22 11:05', requests: 12, emitted: 12, pending: 0, error: 0 }
-    ]);
+    public columns: Column<Request>[] = [
+        {
+            key: 'requestNumber',
+            label: 'Request Number',
+            sortable: true
+        },
+        {
+            key: 'request_type.name',
+            label: 'Request Type',
+            sortable: true,
+            render: (value, item) => item?.request_type?.name || '-'
+        },
+        {
+            key: 'status',
+            label: 'Status',
+            sortable: true,
+            render: () => 'Borrador'
+        },
+        {
+            key: 'createdAt',
+            label: 'Fecha de Creación',
+            sortable: true,
+            render: (value) => value ? moment(value).format('DD/MM/YYYY HH:mm:ss') : '-'
+        },
+        {
+            key: 'updatedAt',
+            label: 'Fecha de Actualización',
+            sortable: true,
+            render: (value) => value ? moment(value).format('DD/MM/YYYY HH:mm:ss') : '-'
+        },
+    ];
 
-    public batchRequestRows = signal<RequestHistoryRow[]>([]);
+    private readonly baseAcciones: AccionPersonalizada<Request>[] = [
+        {
+            key: 'edit',
+            icon: 'pencil',
+            label: 'Editar',
+            accion: (request) => this.editRequest(request)
+        }
+    ];
 
-    onDragOver(event: DragEvent): void {
-        event.preventDefault();
-        this.isDragOver.set(true);
+    public acciones = signal<AccionPersonalizada<Request>[]>(this.baseAcciones);
+
+    constructor(
+        private _requestsService: RequestService,
+        private readonly router: Router,
+    ) {
+        this.loadDrafts();
     }
 
-    onDragLeave(event: DragEvent): void {
-        event.preventDefault();
-        this.isDragOver.set(false);
+    private loadDrafts(cursor?: string | null): void {
+        this.isLoadingTable.set(true);
+
+        this._requestsService.getDraftsPaginated(this.pageSize(), cursor).pipe(
+            finalize(() => {
+                this.isLoadingTable.set(false);
+                this.isLoading.set(false);
+            })
+        ).subscribe({
+            next: (response) => {
+                this.drafts.set(response.data);
+                this.nextCursor.set(response.next_cursor ?? null);
+                this.prevCursor.set(response.prev_cursor ?? null);
+                this.hasNextPage.set(!!response.next_cursor || !!response.next_page_url);
+                this.hasPrevPage.set(!!response.prev_cursor || !!response.prev_page_url);
+            },
+            error: (error) => {
+                console.error('❌ Error al cargar borradores:', error);
+            }
+        });
     }
 
-    onDrop(event: DragEvent): void {
-        event.preventDefault();
-        this.isDragOver.set(false);
-        this.appendFiles(event.dataTransfer?.files ?? null);
-    }
-
-    onFileInputChange(event: Event): void {
-        const input = event.target as HTMLInputElement;
-        this.appendFiles(input.files);
-        input.value = '';
-    }
-
-    private appendFiles(fileList: FileList | null): void {
-        if (!fileList || fileList.length === 0) {
+    onNextPage(): void {
+        const cursor = this.nextCursor();
+        if (!cursor) {
             return;
         }
 
-        const now = new Date();
-        const nextRows: UploadedFileRow[] = Array.from(fileList).map(file => ({
-            name: file.name,
-            sizeLabel: this.formatBytes(file.size),
-            type: file.type || 'N/A',
-            uploadedAt: now.toLocaleString('es-MX')
-        }));
-
-        this.uploadedFiles.update(current => [...current, ...nextRows]);
+        this.currentPage.update((value) => value + 1);
+        this.loadDrafts(cursor);
     }
 
-    private formatBytes(size: number): string {
-        if (size < 1024) {
-            return `${size} B`;
+    onPrevPage(): void {
+        const cursor = this.prevCursor();
+        if (!cursor) {
+            return;
         }
 
-        if (size < 1024 * 1024) {
-            return `${(size / 1024).toFixed(1)} KB`;
+        this.currentPage.update((value) => Math.max(1, value - 1));
+        this.loadDrafts(cursor);
+    }
+
+    onPageSizeChange(size: number): void {
+        this.pageSize.set(size);
+        this.currentPage.set(1);
+        this.nextCursor.set(null);
+        this.prevCursor.set(null);
+        this.hasNextPage.set(false);
+        this.hasPrevPage.set(false);
+        this.loadDrafts();
+    }
+
+    editRequest(request: Request): void {
+        const requestTypeId = Number(request.requestTypeId);
+
+        if (!requestTypeId || Number.isNaN(requestTypeId)) {
+            return;
         }
 
-        return `${(size / (1024 * 1024)).toFixed(2)} MB`;
+        this.router.navigate(['/app/request/new-request'], {
+            queryParams: { requestTypeId },
+            state: { editRequest: request }
+        });
     }
-
-    public openBatchDetail(batch: BatchHistoryRow): void {
-        this.selectedBatch.set(batch);
-        this.batchRequestRows.set(this.buildRequestsForBatch(batch));
-        this.isBatchDetailModalOpen.set(true);
-    }
-
-    public closeBatchDetailModal(isOpen: boolean): void {
-        this.isBatchDetailModalOpen.set(isOpen);
-    }
-
-    public openRequestErrorModal(request: RequestHistoryRow): void {
-        this.selectedRequestError.set(request);
-        this.isRequestErrorModalOpen.set(true);
-    }
-
-    public closeRequestErrorModal(isOpen: boolean): void {
-        this.isRequestErrorModalOpen.set(isOpen);
-    }
-
-    public getStatusClass(status: RequestStatus): string {
-        return status === 'emitted'
-            ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
-            : 'bg-red-100 text-red-700 border border-red-200';
-    }
-
-
-    private buildRequestsForBatch(batch: BatchHistoryRow): RequestHistoryRow[] {
-        const rows: RequestHistoryRow[] = [];
-        const total = batch.requests;
-        const emittedCount = batch.emitted;
-
-        for (let index = 1; index <= total; index++) {
-            const requestNumber = `AC-${String(index).padStart(5, '0')}`;
-
-            if (index <= emittedCount) {
-                rows.push({ requestNumber, status: 'emitted' });
-            } else {
-                rows.push({
-                    requestNumber,
-                    status: 'error',
-                    errorMessage: `Error en validación de datos para ${requestNumber}.`
-                });
-            }
-        }
-
-        return rows;
-    }
-
 }

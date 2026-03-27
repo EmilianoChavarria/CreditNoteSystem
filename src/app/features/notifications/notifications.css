@@ -1,0 +1,78 @@
+.notifications-page {
+	display: grid;
+	gap: 1rem;
+	padding: 1.5rem;
+}
+
+.notifications-header h1 {
+	margin: 0;
+	color: #1f3f64;
+}
+
+.notifications-header p {
+	margin: 0.25rem 0 0;
+	color: #4b5563;
+}
+
+.status-panel,
+.broadcast-form,
+.messages-panel {
+	border: 1px solid #d1d5db;
+	border-radius: 0.5rem;
+	padding: 1rem;
+	background: #ffffff;
+}
+
+.button-row {
+	display: flex;
+	gap: 0.5rem;
+	margin-top: 0.75rem;
+}
+
+button {
+	padding: 0.5rem 0.9rem;
+	border-radius: 0.4rem;
+	border: 1px solid #0f4b8b;
+	background: #1f6fc2;
+	color: #ffffff;
+	cursor: pointer;
+}
+
+button[disabled] {
+	cursor: not-allowed;
+	opacity: 0.7;
+}
+
+.broadcast-form {
+	display: grid;
+	gap: 0.5rem;
+}
+
+input {
+	border: 1px solid #cbd5e1;
+	border-radius: 0.35rem;
+	padding: 0.55rem 0.65rem;
+}
+
+.messages-panel ul {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: grid;
+	gap: 0.75rem;
+}
+
+.messages-panel pre {
+	margin: 0;
+	white-space: pre-wrap;
+	word-break: break-word;
+	background: #f8fafc;
+	border-radius: 0.4rem;
+	padding: 0.75rem;
+	border: 1px solid #e2e8f0;
+}
+
+.error {
+	color: #b91c1c;
+	margin: 0.3rem 0 0;
+}

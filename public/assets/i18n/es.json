@@ -126,6 +126,7 @@
     "CUSTOMER": "Nombre del Cliente",
     "DELIVERY_NOTE": "Nota de Entrega",
     "INVOICE_NUMBER": "Número de Factura",
+    "INVOICE_DATE": "Fecha de Factura",
     "SAP_SCREEN": "Pantalla de SAP",
     "CURRENCY": "Moneda",
     "EXCHANGE_RATE": "Tipo de Cambio",

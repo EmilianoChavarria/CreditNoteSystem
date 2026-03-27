@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy, signal, ChangeDetectionStrategy, input, o
 import { CommonModule } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, switchMap, Subject, Observable, of } from 'rxjs';
+import { startWith, takeUntil } from 'rxjs/operators';
 import { Skeleton } from '../skeleton/skeleton';
 import { ClickOutsideDirective } from '../../../directives/click-outside.directive';
 
@@ -44,12 +45,7 @@ export class Autocomplete implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.setupSearch();
-    // Si el control tiene un valor inicial, mostrarlo
-    const control = this.control();
-    if (control.value && typeof control.value === 'object') {
-      this.selectedOption.set(control.value);
-      this.searchInput.setValue(this.displayFn()(control.value), { emitEvent: false });
-    }
+    this.syncFromControl();
   }
 
   ngOnDestroy() {
@@ -92,6 +88,32 @@ export class Autocomplete implements OnInit, OnDestroy {
           this.isOpen.set(false);
           this.options.set([]);
         }
+      });
+  }
+
+  private syncFromControl() {
+    const control = this.control();
+
+    control.valueChanges
+      .pipe(
+        startWith(control.value),
+        takeUntil(this.destroy$)
+      )
+      .subscribe((value) => {
+        if (value && typeof value === 'object') {
+          this.selectedOption.set(value as AutocompleteOption);
+          this.searchInput.setValue(this.displayFn()(value as AutocompleteOption), { emitEvent: false });
+          return;
+        }
+
+        if (typeof value === 'string' && value.trim().length > 0) {
+          this.selectedOption.set(null);
+          this.searchInput.setValue(value, { emitEvent: false });
+          return;
+        }
+
+        this.selectedOption.set(null);
+        this.searchInput.setValue('', { emitEvent: false });
       });
   }
 

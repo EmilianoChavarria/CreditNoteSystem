@@ -26,16 +26,6 @@
                     }
                 </div>
                 <div>
-                    <label for="creditNumber"
-                        class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.DEBIT_NUMBER' |
-                        translate}}</label>
-                    <input id="creditNumber" type="text" formControlName="creditNumber"
-                        [class]="campoVacio('creditNumber') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
-                    @if (campoVacio('creditNumber')) {
-                    <span class="text-sm text-red-500">{{ getErrorMessage('creditNumber') }}</span>
-                    }
-                </div>
-                <div>
                     <label for="requestDate"
                         class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.REQUEST_DATE' |
                         translate}}<span class="text-red-500">*</span></label>
@@ -217,11 +207,9 @@
                     <input type="file" id="attachSupports" multiple (change)="onAttachSupportsChange($event)"
                         formControlName="attachSupports"
                         [class]="campoVacio('attachSupports') ? ' mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-md file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100 border border-red-300 rounded-md' : 'mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-md file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 border border-gray-300 shadow-sm rounded-md'">
-
                     @if (campoVacio('attachSupports')) {
                     <small class="text-red-500 text-xs block mt-1">{{ getFieldError('attachSupports') }}</small>
                     }
-
                     @if (selectedSupportFiles().length > 0) {
                     <div class="mt-3 grid grid-cols-2 md:grid-cols-4 gap-2">
                         @for (file of selectedSupportFiles(); track file.name + file.size + $index) {

@@ -1,9 +1,20 @@
 import { Injectable } from '@angular/core';
 import { HttpService } from './http-service';
-import { catchError, map, Observable, tap, throwError } from 'rxjs';
+import { catchError, map, Observable, tap } from 'rxjs';
 import { Classification, Reason, Request, RequestType } from '../../data/interfaces/Request';
 import { ApiResponse } from '../../data/interfaces/ApiResponse-interface';
 import { CursorPagination } from './user-service';
+import { HttpClient } from '@angular/common/http';
+
+export interface PagePagination<T> {
+  data: T[];
+  current_page: number;
+  last_page: number;
+  per_page?: number;
+  total?: number;
+  next_page_url?: string | null;
+  prev_page_url?: string | null;
+}
 
 export interface RequestNumber {
   requestTypeId: number;
@@ -147,9 +158,22 @@ export interface RequestHistoryData {
 })
 export class RequestService {
 
+  private token = 'df86e3c71f798ed791afff85b7074abefeb34558903553b6e1aa37f0214aa0bb';
+
   constructor(
-    private _httpService: HttpService
+    private _httpService: HttpService,
+    private http: HttpClient
   ) { }
+
+  getExchangeRate(): Observable<string> {
+    return this.http.get(`https://www.banxico.org.mx/SieAPIRest/service/v1/series/SF43718/datos/oportuno?token=${this.token}`).pipe(
+      map((response: any) => response?.bmx?.series?.[0]?.datos?.[0]?.dato ?? ''),
+      catchError((error: any) => {
+        console.log(error);
+        throw error;
+      })
+    )
+  }
 
   getReasons(): Observable<Reason[]> {
     return this._httpService.get<Reason[]>('/requests/reasons').pipe(
@@ -166,10 +190,10 @@ export class RequestService {
     )
   }
 
-  getMyPendingRequests(): Observable<Request[]>{
+  getMyPendingRequests(): Observable<Request[]> {
     return this._httpService.get<Request[]>('requests/pending/1').pipe(
       tap((response: ApiResponse<Request[]>) => {
-        if(response.success){
+        if (response.success) {
 
         }
       }),
@@ -254,6 +278,57 @@ export class RequestService {
     );
   }
 
+  getRequestsByTypeWithPagePagination(id: number, perPage = 10, page = 1): Observable<PagePagination<Request>> {
+    const params = { per_page: perPage, page };
+
+    return this._httpService.get<PagePagination<Request>>(`/requests/${id}`, { params }).pipe(
+      map((response: ApiResponse<PagePagination<Request>>) => {
+        const payload = response.data;
+
+        return {
+          data: payload?.data ?? [],
+          current_page: payload?.current_page ?? 1,
+          last_page: payload?.last_page ?? 1,
+          per_page: payload?.per_page,
+          total: payload?.total,
+          next_page_url: payload?.next_page_url ?? null,
+          prev_page_url: payload?.prev_page_url ?? null,
+        };
+      }),
+      catchError(error => {
+        console.log(error);
+        throw error;
+      })
+    );
+  }
+
+  getDraftsPaginated(perPage = 10, cursor?: string | null): Observable<CursorPagination<Request>> {
+    const params: { perPage: number; cursor?: string } = { perPage };
+
+    if (cursor) {
+      params.cursor = cursor;
+    }
+
+    return this._httpService.get<CursorPagination<Request>>(`/requests/drafts`, { params }).pipe(
+      map((response: ApiResponse<CursorPagination<Request>>) => {
+        const payload = response.data;
+
+        return {
+          data: payload?.data ?? [],
+          per_page: payload?.per_page,
+          next_cursor: payload?.next_cursor ?? null,
+          next_page_url: payload?.next_page_url ?? null,
+          prev_cursor: payload?.prev_cursor ?? null,
+          prev_page_url: payload?.prev_page_url ?? null,
+        };
+      }),
+      catchError(error => {
+        console.log(error);
+        throw error;
+      })
+    );
+  }
+
   getNextRequestNumber(requestTypeId: number): Observable<RequestNumber> {
     return this._httpService.get<RequestNumber>(`/requests/next-number/${requestTypeId}`).pipe(
       tap((response: ApiResponse<RequestNumber>) => {
@@ -278,6 +353,20 @@ export class RequestService {
       tap((response) => {
         if (response.success) {
           console.log(response);
+        }
+      }),
+      catchError((error) => {
+        console.log(error);
+        throw error;
+      })
+    )
+  }
+
+  saveDraft(object: any) {
+    return this._httpService.post('/requests/draft', object).pipe(
+      tap((response) => {
+        if (response.success) {
+          console.log('Draft saved successfully', response);
         }
       }),
       catchError((error) => {

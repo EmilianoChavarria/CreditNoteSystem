@@ -17,17 +17,22 @@ import { CreditForm } from "../../components/credit-form/credit-form";
 import { AuthService } from '../../../../core/services/auth-service';
 import { PermissionAction, RequestTypePermissionRecord, RoleService } from '../../../../core/services/role-service';
 import { DebitForm } from "../../components/debit-form/debit-form";
+import { AuditorCreditForm } from "../../components/auditor-credit-form/auditor-credit-form";
+import { AuditorDebitForm } from "../../components/auditor-debit-form/auditor-debit-form";
+import { ActivatedRoute, Router } from '@angular/router';
+import { Request } from '../../../../data/interfaces/Request';
 
 @Component({
     selector: 'app-new-request',
     templateUrl: './new-request.html',
     styleUrl: './new-request.css',
-    imports: [ReactiveFormsModule, TranslatePipe, CommonModule, CreditForm, DebitForm],
+    imports: [ReactiveFormsModule, TranslatePipe, CommonModule, CreditForm, DebitForm, AuditorCreditForm, AuditorDebitForm],
 })
 export class NewRequest implements OnInit {
     public profileForm: FormGroup;
     public formConfig: any = formFieldsConfig;
     public selectedRequestType: string = '';
+    public selectedRequestTypeId: number | null = null;
     public currentTabs: any[] = [];
     public submitted: boolean = false;
     public isLoadingForm = signal<boolean>(false);
@@ -36,6 +41,7 @@ export class NewRequest implements OnInit {
     public reasons = signal<Reason[]>([]);
     public classifications = signal<Classification[]>([]);
     public availableRequestTypes = signal<RequestType[]>([]);
+    public editingRequestData = signal<Partial<Request> | null>(null);
     private computedSubscriptions: Subscription[] = [];
     private requestTypeActionPermissions = signal<Record<number, Record<string, boolean>>>({});
     private toastr = inject(ToastrService);
@@ -44,14 +50,48 @@ export class NewRequest implements OnInit {
     constructor(
         private fb: FormBuilder,
         private _requestService: RequestService,
-        private _customerService: CustomerService
+        private _customerService: CustomerService,
+        private readonly route: ActivatedRoute,
+        private readonly router: Router,
 
     ) {
         this.profileForm = this.fb.group({});
     }
 
     ngOnInit() {
+        this.applyIncomingEditState();
         this.loadAllowedRequestTypes();
+    }
+
+    private applyIncomingEditState(): void {
+        const requestTypeIdParam = this.route.snapshot.queryParamMap.get('requestTypeId');
+        const requestTypeId = Number(requestTypeIdParam);
+
+        if (!Number.isNaN(requestTypeId) && requestTypeId > 0) {
+            this.selectedRequestTypeId = requestTypeId;
+            this.selectedRequestType = this.resolveRequestTypeModuleKey(requestTypeId);
+        }
+
+        const navigationState = this.router.getCurrentNavigation()?.extras?.state as { editRequest?: Request } | undefined;
+        const browserState = history.state as { editRequest?: Request };
+        const editRequest = navigationState?.editRequest ?? browserState?.editRequest;
+
+        if (editRequest) {
+            this.editingRequestData.set(editRequest);
+        }
+    }
+
+    private resolveRequestTypeModuleKey(requestTypeId: number): string {
+        const moduleMap: Record<number, string> = {
+            1: 'credits',
+            2: 'debits',
+            3: 'auditor-credits',
+            4: 'auditor-debits',
+            5: 're-invoicing',
+            6: 'material-return',
+        };
+
+        return moduleMap[requestTypeId] ?? '';
     }
 
     private loadAllowedRequestTypes(): void {
@@ -171,22 +211,14 @@ export class NewRequest implements OnInit {
 
     onRequestTypeChange(event: any) {
         const value = event.target.value;
+        const numericRequestTypeId = Number(value);
         this.isLoadingForm.set(true);
         this.isRegisterRequestDisabled.set(false);
 
-        // Mapear el valor del select al key del JSON
-        const moduleMap: { [key: string]: string } = {
-            '1': 'credits',
-            '2': 'debits',
-            '3': 'auditor-credits',
-            '4': 'auditor-debits',
-            '5': 're-invoicing',
-            '6': 'material-return'
-        };
-
-        const moduleKey = moduleMap[value];
+        const moduleKey = this.resolveRequestTypeModuleKey(numericRequestTypeId);
         console.log(moduleKey);
         this.selectedRequestType = moduleKey;
+        this.selectedRequestTypeId = Number.isNaN(numericRequestTypeId) ? null : numericRequestTypeId;
         // if (moduleKey && this.formConfig[moduleKey]) {
         //     const requestTypeId = Number(this.selectedRequestType);
 
@@ -419,6 +451,39 @@ export class NewRequest implements OnInit {
         } else {
             this.toastr.error('Por favor, rellena los campos obligatorios', 'Error');
         }
+    }
+
+    saveDraft(object: any) {
+        this._requestService.saveDraft(object).subscribe({
+            next: (response) => {
+                this.toastr.success(response.message, 'Success');
+                this.submitted = false; // Resetear después de guardar como borrador
+            },
+            error: (error) => {
+                this.toastr.error('Error al guardar el borrador', 'Error');
+            }
+        })
+    }
+
+    handleSaveDraft() {
+        // No validar campos obligatorios - guardar como borrador
+        const formValue = this.profileForm.getRawValue();
+        delete formValue.sapScreen;
+        delete formValue.attachSupports;
+        delete formValue.reviewComments;
+        delete formValue.creditNumber;
+        delete formValue.orderNumber;
+        
+        const newObject = {
+            requestTypeId: this.selectedRequestType,
+            ...formValue,
+            customerId: formValue.customerId?.id || null,
+            totalAmount: formValue.totalAmount ? formValue.totalAmount.toFixed(2) : 0,
+            status: 'draft'
+        }
+        
+        this.saveDraft(newObject);
+        this.submitted = false;
     }
 
     searchCustomers(term: string): Observable<AutocompleteOption[]> {
