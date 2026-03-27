@@ -1,12 +1,5 @@
-import { Component, signal } from '@angular/core';
-import { AccionPersonalizada, Column, Table } from '../../../../shared/components/ui/table/table';
-import { RequestService } from '../../../../core/services/request-service';
-import { Request } from '../../../../data/interfaces/Request';
-import moment from 'moment';
-import { TranslatePipe } from '@ngx-translate/core';
-import { Spinner } from '../../../../shared/components/ui/spinner/spinner';
-import { UpperCasePipe } from '@angular/common';
-import { Badge } from '../../../../shared/components/ui/badge/badge';
+import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { JsonPipe } from '@angular/common';
 import { TabsContainer } from "../../../../shared/components/ui/tab/tab-container/tab-container";
 import { Tab } from "../../../../shared/components/ui/tab/tab";
 import { AccordeonContainer } from "../../../../shared/components/ui/accordeon/accordeon-container";
@@ -14,6 +7,12 @@ import { AccordeonItem } from "../../../../shared/components/ui/accordeon/accord
 import { LucideAngularModule } from "lucide-angular";
 import { Modal } from "../../../../shared/components/ui/modal/modal";
 import { Popover } from "../../../../shared/components/ui/popover/popover";
+import { Subscription } from 'rxjs';
+import { BatchErrorLog, BatchRequestItem, BatchService, BatchSummary } from '../../../../core/services/batch-service';
+import { BatchFinishedMessage, ReverbSocketService } from '../../../../core/services/reverb-socket-service';
+import { ToastService } from '../../../../core/services/toast-service';
+import { RequestService } from '../../../../core/services/request-service';
+import { RequestType } from '../../../../data/interfaces/Request';
 
 interface UploadedFileRow {
     name: string;
@@ -25,43 +24,76 @@ interface UploadedFileRow {
 interface BatchHistoryRow {
     idBatch: string;
     date: string;
+    status: string;
     requests: number;
     emitted: number;
     pending: number;
     error: number;
+    rawId: number | string;
 }
 
-type RequestStatus = 'emitted' | 'error';
+type RequestStatus = string;
 
 interface RequestHistoryRow {
     requestNumber: string;
     status: RequestStatus;
     errorMessage?: string;
+    rawItem?: BatchRequestItem;
 }
 
 @Component({
     selector: 'app-bulk-upload',
     templateUrl: './bulk-upload.html',
     styleUrl: './bulk-upload.css',
-    imports: [TabsContainer, Tab, AccordeonContainer, AccordeonItem, LucideAngularModule, Modal, Popover]
+    imports: [TabsContainer, Tab, AccordeonContainer, AccordeonItem, LucideAngularModule, Modal, Popover, JsonPipe]
 })
-export class BulkUpload {
+export class BulkUpload implements OnInit, OnDestroy {
+
+    private readonly batchService = inject(BatchService);
+    private readonly socketService = inject(ReverbSocketService);
+    private readonly toastService = inject(ToastService);
+    private readonly requestService = inject(RequestService);
+    private readonly subscriptions: Subscription[] = [];
+
+    private readonly historyPerPage = 15;
+    private readonly detailPerPage = 25;
 
 
     public isDragOver = signal(false);
+    public isCreatingBatch = signal(false);
     public uploadedFiles = signal<UploadedFileRow[]>([]);
+    public availableRequestTypes = signal<RequestType[]>([]);
+    public selectedRequestTypeId = signal<number | null>(null);
+    public selectedBatchFile = signal<File | null>(null);
     public isBatchDetailModalOpen = signal(false);
+    public isLoadingHistory = signal(false);
+    public isLoadingBatchDetail = signal(false);
     public isRequestErrorModalOpen = signal(false);
     public selectedBatch = signal<BatchHistoryRow | null>(null);
     public selectedRequestError = signal<RequestHistoryRow | null>(null);
+    public selectedBatchSummary = signal<BatchSummary | null>(null);
+    public selectedBatchErrors = signal<BatchErrorLog[]>([]);
 
-    public bulkHistoryRows = signal<BatchHistoryRow[]>([
-        { idBatch: 'BATCH-0001', date: '2026-02-20 09:12', requests: 10, emitted: 8, pending: 1, error: 1 },
-        { idBatch: 'BATCH-0002', date: '2026-02-21 14:37', requests: 7, emitted: 5, pending: 0, error: 2 },
-        { idBatch: 'BATCH-0003', date: '2026-02-22 11:05', requests: 12, emitted: 12, pending: 0, error: 0 }
-    ]);
+    public bulkHistoryRows = signal<BatchHistoryRow[]>([]);
 
     public batchRequestRows = signal<RequestHistoryRow[]>([]);
+
+    ngOnInit(): void {
+        this.loadRequestTypes();
+        this.loadBatches();
+        this.socketService.connectToGlobalNotifications();
+
+        const socketSub = this.socketService.batchFinished$.subscribe((message) => {
+            this.handleBatchFinishedEvent(message);
+        });
+
+        this.subscriptions.push(socketSub);
+    }
+
+    ngOnDestroy(): void {
+        this.subscriptions.forEach((subscription) => subscription.unsubscribe());
+        this.socketService.disconnect();
+    }
 
     onDragOver(event: DragEvent): void {
         event.preventDefault();
@@ -90,15 +122,85 @@ export class BulkUpload {
             return;
         }
 
-        const now = new Date();
-        const nextRows: UploadedFileRow[] = Array.from(fileList).map(file => ({
-            name: file.name,
-            sizeLabel: this.formatBytes(file.size),
-            type: file.type || 'N/A',
-            uploadedAt: now.toLocaleString('es-MX')
-        }));
+        const primaryFile = fileList[0];
+        this.selectedBatchFile.set(primaryFile);
 
-        this.uploadedFiles.update(current => [...current, ...nextRows]);
+        if (fileList.length > 1) {
+            this.toastService.warning('Solo se usara el primer archivo seleccionado para crear el batch.', 'Bulk Upload');
+        }
+
+        const now = new Date();
+        const nextRows: UploadedFileRow[] = [{
+            name: primaryFile.name,
+            sizeLabel: this.formatBytes(primaryFile.size),
+            type: primaryFile.type || 'N/A',
+            uploadedAt: now.toLocaleString('es-MX')
+        }];
+
+        this.uploadedFiles.set(nextRows);
+    }
+
+    onRequestTypeChange(event: Event): void {
+        const value = (event.target as HTMLSelectElement).value;
+        const parsedId = Number(value);
+
+        if (!value || Number.isNaN(parsedId) || parsedId <= 0) {
+            this.selectedRequestTypeId.set(null);
+            return;
+        }
+
+        this.selectedRequestTypeId.set(parsedId);
+    }
+
+    createBatchFromUpload(): void {
+        const selectedFile = this.selectedBatchFile();
+        const requestTypeId = this.selectedRequestTypeId();
+
+        if (!selectedFile) {
+            this.toastService.warning('Selecciona un archivo para crear el batch.', 'Bulk Upload');
+            return;
+        }
+
+        if (!requestTypeId) {
+            this.toastService.warning('Selecciona el Request Type.', 'Bulk Upload');
+            return;
+        }
+
+        this.isCreatingBatch.set(true);
+
+        const subscription = this.batchService.createBatch(selectedFile, 'newRequest', requestTypeId).subscribe({
+            next: (batch) => {
+                this.isCreatingBatch.set(false);
+                this.toastService.success(
+                    `Batch creado correctamente${batch?.id ? ` (ID: ${batch.id})` : ''}.`,
+                    'Bulk Upload'
+                );
+                this.uploadedFiles.set([]);
+                this.selectedBatchFile.set(null);
+                this.loadBatches();
+            },
+            error: (error) => {
+                this.isCreatingBatch.set(false);
+                const message = error?.error?.message ?? 'No se pudo crear el batch.';
+                this.toastService.error(message, 'Bulk Upload');
+            }
+        });
+
+        this.subscriptions.push(subscription);
+    }
+
+    removeUploadedFile(index: number): void {
+        const currentFiles = [...this.uploadedFiles()];
+        if (index < 0 || index >= currentFiles.length) {
+            return;
+        }
+
+        currentFiles.splice(index, 1);
+        this.uploadedFiles.set(currentFiles);
+
+        if (currentFiles.length === 0) {
+            this.selectedBatchFile.set(null);
+        }
     }
 
     private formatBytes(size: number): string {
@@ -115,12 +217,18 @@ export class BulkUpload {
 
     public openBatchDetail(batch: BatchHistoryRow): void {
         this.selectedBatch.set(batch);
-        this.batchRequestRows.set(this.buildRequestsForBatch(batch));
+        this.loadBatchDetail(batch.rawId);
+        this.loadBatchRequests(batch.rawId);
         this.isBatchDetailModalOpen.set(true);
     }
 
     public closeBatchDetailModal(isOpen: boolean): void {
         this.isBatchDetailModalOpen.set(isOpen);
+        if (!isOpen) {
+            this.selectedBatchSummary.set(null);
+            this.selectedBatchErrors.set([]);
+            this.batchRequestRows.set([]);
+        }
     }
 
     public openRequestErrorModal(request: RequestHistoryRow): void {
@@ -133,32 +241,163 @@ export class BulkUpload {
     }
 
     public getStatusClass(status: RequestStatus): string {
-        return status === 'emitted'
-            ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
-            : 'bg-red-100 text-red-700 border border-red-200';
+        const normalizedStatus = (status ?? '').toLowerCase();
+
+        if (normalizedStatus === 'success' || normalizedStatus === 'completed' || normalizedStatus === 'emitted' || normalizedStatus === 'processed') {
+            return 'bg-emerald-100 text-emerald-700 border border-emerald-200';
+        }
+
+        if (normalizedStatus === 'processing' || normalizedStatus === 'pending') {
+            return 'bg-amber-100 text-amber-700 border border-amber-200';
+        }
+
+        return 'bg-red-100 text-red-700 border border-red-200';
     }
 
+    private loadBatches(): void {
+        this.isLoadingHistory.set(true);
 
-    private buildRequestsForBatch(batch: BatchHistoryRow): RequestHistoryRow[] {
-        const rows: RequestHistoryRow[] = [];
-        const total = batch.requests;
-        const emittedCount = batch.emitted;
+        const subscription = this.batchService.getBatches(this.historyPerPage).subscribe({
+            next: (response) => {
+                this.bulkHistoryRows.set(response.data.map((batch) => this.mapBatchToHistoryRow(batch)));
+                this.isLoadingHistory.set(false);
+            },
+            error: (error) => {
+                this.isLoadingHistory.set(false);
+                console.error('Error loading batches:', error);
+                this.toastService.error('No se pudieron cargar los batches.', 'Bulk History');
+            }
+        });
 
-        for (let index = 1; index <= total; index++) {
-            const requestNumber = `AC-${String(index).padStart(5, '0')}`;
+        this.subscriptions.push(subscription);
+    }
 
-            if (index <= emittedCount) {
-                rows.push({ requestNumber, status: 'emitted' });
-            } else {
-                rows.push({
-                    requestNumber,
-                    status: 'error',
-                    errorMessage: `Error en validación de datos para ${requestNumber}.`
-                });
+    private loadRequestTypes(): void {
+        const subscription = this.requestService.getRequestTypes().subscribe({
+            next: (requestTypes) => {
+                this.availableRequestTypes.set(requestTypes);
+
+                if (requestTypes.length > 0 && !this.selectedRequestTypeId()) {
+                    this.selectedRequestTypeId.set(requestTypes[0].id);
+                }
+            },
+            error: (error) => {
+                console.error('Error loading request types:', error);
+                this.toastService.error('No se pudieron cargar los request types.', 'Bulk Upload');
+            }
+        });
+
+        this.subscriptions.push(subscription);
+    }
+
+    private loadBatchDetail(batchId: number | string): void {
+        this.isLoadingBatchDetail.set(true);
+
+        const subscription = this.batchService.getBatchDetail(batchId, this.detailPerPage).subscribe({
+            next: (response) => {
+                this.selectedBatchSummary.set(response.batch);
+                this.selectedBatchErrors.set(response.errors.data ?? []);
+                this.isLoadingBatchDetail.set(false);
+            },
+            error: (error) => {
+                this.isLoadingBatchDetail.set(false);
+                console.error(`Error loading batch detail ${String(batchId)}:`, error);
+                this.toastService.error('No se pudo cargar el detalle del batch.', 'Bulk History');
+            }
+        });
+
+        this.subscriptions.push(subscription);
+    }
+
+    private loadBatchRequests(batchId: number | string): void {
+        const subscription = this.batchService.getBatchRequests(batchId, this.detailPerPage).subscribe({
+            next: (response) => {
+                this.batchRequestRows.set(response.items.data.map((item) => this.mapRequestItemToHistoryRow(item)));
+            },
+            error: (error) => {
+                console.error(`Error loading batch requests ${String(batchId)}:`, error);
+                this.toastService.error('No se pudieron cargar las solicitudes del batch.', 'Bulk History');
+            }
+        });
+
+        this.subscriptions.push(subscription);
+    }
+
+    private mapBatchToHistoryRow(batch: BatchSummary): BatchHistoryRow {
+        return {
+            idBatch: `BATCH-${String(batch.id).padStart(4, '0')}`,
+            date: this.formatDate(batch.createdAt),
+            status: batch.status,
+            requests: batch.totalRecords,
+            emitted: batch.processedRecords,
+            pending: batch.processingRecords,
+            error: batch.errorRecords,
+            rawId: batch.id,
+        };
+    }
+
+    private mapRequestItemToHistoryRow(item: BatchRequestItem): RequestHistoryRow {
+        const request = (item.request ?? {}) as Record<string, unknown>;
+        const requestNumber = String(request['requestNumber'] ?? item.requestId ?? item.id ?? '-');
+
+        return {
+            requestNumber,
+            status: String(item.status ?? 'unknown'),
+            errorMessage: this.resolveErrorMessage(item.errorLog),
+            rawItem: item,
+        };
+    }
+
+    private resolveErrorMessage(errorLog: unknown): string {
+        if (!errorLog) {
+            return 'Sin detalle de error.';
+        }
+
+        if (typeof errorLog === 'string') {
+            return errorLog;
+        }
+
+        if (typeof errorLog === 'object') {
+            try {
+                return JSON.stringify(errorLog, null, 2);
+            } catch {
+                return 'No fue posible leer el detalle del error.';
             }
         }
 
-        return rows;
+        return String(errorLog);
+    }
+
+    private handleBatchFinishedEvent(message: BatchFinishedMessage): void {
+        const eventName = String(message.event ?? '');
+        if (eventName !== 'batch.finished') {
+            return;
+        }
+
+        this.toastService.info('Se recibio actualizacion de batch finalizado. Refrescando historial...', 'Bulk History');
+        this.loadBatches();
+
+        const selected = this.selectedBatch();
+        const selectedId = selected?.rawId;
+        const incomingId = message.batch?.id;
+
+        if (selectedId !== undefined && incomingId !== undefined && String(selectedId) === String(incomingId)) {
+            this.loadBatchDetail(selectedId);
+            this.loadBatchRequests(selectedId);
+        }
+    }
+
+    private formatDate(value: string): string {
+        if (!value) {
+            return '-';
+        }
+
+        const parsedDate = new Date(value);
+        if (Number.isNaN(parsedDate.getTime())) {
+            return value;
+        }
+
+        return parsedDate.toLocaleString('es-MX');
     }
 
 
