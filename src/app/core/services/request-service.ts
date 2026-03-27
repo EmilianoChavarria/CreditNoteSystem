@@ -6,6 +6,16 @@ import { ApiResponse } from '../../data/interfaces/ApiResponse-interface';
 import { CursorPagination } from './user-service';
 import { HttpClient } from '@angular/common/http';
 
+export interface PagePagination<T> {
+  data: T[];
+  current_page: number;
+  last_page: number;
+  per_page?: number;
+  total?: number;
+  next_page_url?: string | null;
+  prev_page_url?: string | null;
+}
+
 export interface RequestNumber {
   requestTypeId: number;
   requestNumber: string;
@@ -258,6 +268,30 @@ export class RequestService {
           next_cursor: payload?.next_cursor ?? null,
           next_page_url: payload?.next_page_url ?? null,
           prev_cursor: payload?.prev_cursor ?? null,
+          prev_page_url: payload?.prev_page_url ?? null,
+        };
+      }),
+      catchError(error => {
+        console.log(error);
+        throw error;
+      })
+    );
+  }
+
+  getRequestsByTypeWithPagePagination(id: number, perPage = 10, page = 1): Observable<PagePagination<Request>> {
+    const params = { per_page: perPage, page };
+
+    return this._httpService.get<PagePagination<Request>>(`/requests/${id}`, { params }).pipe(
+      map((response: ApiResponse<PagePagination<Request>>) => {
+        const payload = response.data;
+
+        return {
+          data: payload?.data ?? [],
+          current_page: payload?.current_page ?? 1,
+          last_page: payload?.last_page ?? 1,
+          per_page: payload?.per_page,
+          total: payload?.total,
+          next_page_url: payload?.next_page_url ?? null,
           prev_page_url: payload?.prev_page_url ?? null,
         };
       }),
