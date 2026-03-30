@@ -6,17 +6,19 @@ import { Popover } from '../ui/popover/popover';
 import { LucideAngularModule } from 'lucide-angular';
 import { map, Observable } from 'rxjs';
 import { AuthUser } from '../../../core/services/auth-service';
+import { RouterLink } from "@angular/router";
 
 @Component({
     selector: 'app-navbar',
     templateUrl: './navbar.html',
     styleUrl: './navbar.css',
     imports: [
-        Popover,
-        LucideAngularModule,
-        TranslatePipe,
-        AsyncPipe,
-    ],
+    Popover,
+    LucideAngularModule,
+    TranslatePipe,
+    AsyncPipe,
+    RouterLink
+],
 })
 export class Navbar {
   private readonly isBrowser: boolean;
