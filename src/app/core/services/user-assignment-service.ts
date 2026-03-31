@@ -23,6 +23,28 @@ export interface AssignUserPayload {
   assignedUserId: number;
 }
 
+export interface AssignUsersBatchPayload {
+  assignments: AssignUserPayload[];
+}
+
+export interface AssignmentBatchItemResult {
+  index: number;
+  leaderUserId: number;
+  assignedUserId: number;
+  status: 'created' | 'reactivated' | 'already_active' | 'error';
+  assignmentId?: number;
+  message?: string;
+}
+
+export interface AssignmentBatchSummary {
+  total: number;
+  created: number;
+  reactivated: number;
+  alreadyActive: number;
+  errors: number;
+  items: AssignmentBatchItemResult[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -50,8 +72,8 @@ export class UserAssignmentService {
     );
   }
 
-  assignUser(payload: AssignUserPayload): Observable<ApiResponse<unknown>> {
-    return this.httpService.post<unknown>('/users/assignments', payload, this.withBearer()).pipe(
+  assignUsersBatch(payload: AssignUsersBatchPayload): Observable<ApiResponse<AssignmentBatchSummary>> {
+    return this.httpService.put<AssignmentBatchSummary>('/users/assignments', payload, this.withBearer()).pipe(
       catchError((error) => throwError(() => error))
     );
   }
