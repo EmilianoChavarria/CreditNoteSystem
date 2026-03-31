@@ -24,6 +24,7 @@ import { ManageRoles } from './features/settings/pages/roles/pages/manage-roles/
 import { ReturnOrdersApproval } from './features/approvals/return-orders-approval/return-orders-approval';
 import { ActionGuard } from './core/guards/action.guard';
 import { Profile } from './features/profile/profile';
+import { AssignUser } from './features/settings/pages/assign-user/assign-user';
 
 
 export const routes: Routes = [
@@ -76,6 +77,7 @@ export const routes: Routes = [
       { path: 'settings/system-configuration', component: SysConfig },
       { path: 'settings/security-management', component: SecurityManage },
       { path: 'settings/workflows', component: Workflows },
+      { path: 'settings/assign-user', component: AssignUser },
       { path: '404', component: NotFound },
       { path: '**', component: NotFound },
     ]
