@@ -7,7 +7,7 @@
 }
 
 @if (!isLoadingSidebar) {
-<section [class]="(isOpen ? 'w-64 shadow-2xl' : 'w-20 shadow-none') + ' transition-all duration-300 ease-in-out bg-white h-full border-r-2 border-[#ff8200] p-4 flex flex-col '">
+<section [class]="(isOpen ? 'w-64 shadow-2xl/30' : 'w-20 shadow-none') + ' transition-all duration-300 ease-in-out bg-white h-full border-r-2 border-[#ff8200] p-4 flex flex-col '">
 
     <button (click)="onToggleSidebar()" class="mb-2 mx-auto hover:cursor-pointer">
         <lucide-icon [name]="isOpen ? 'panel-left-close' : 'panel-left-open'" size="42" strokeWidth="1.5" color="#326295" class="shrink-0"></lucide-icon>
