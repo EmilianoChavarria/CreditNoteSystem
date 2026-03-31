@@ -190,14 +190,32 @@ export class RequestService {
     )
   }
 
-  getMyPendingRequests(): Observable<Request[]> {
-    return this._httpService.get<Request[]>('requests/pending/1').pipe(
-      tap((response: ApiResponse<Request[]>) => {
+  getMyPendingRequests(requestTypeId: number, perPage = 10, page = 1): Observable<PagePagination<Request>> {
+    return this._httpService.get<PagePagination<Request>>('/requests/pending/me', {
+      params: {
+        requestTypeId,
+        perPage,
+        page,
+      }
+    }).pipe(
+      tap((response: ApiResponse<PagePagination<Request>>) => {
         if (response.success) {
 
         }
       }),
-      map((response: ApiResponse<Request[]>) => response.data ?? []),
+      map((response: ApiResponse<PagePagination<Request>>) => {
+        const payload = response.data;
+
+        return {
+          data: payload?.data ?? [],
+          current_page: payload?.current_page ?? 1,
+          last_page: payload?.last_page ?? 1,
+          per_page: payload?.per_page,
+          total: payload?.total,
+          next_page_url: payload?.next_page_url ?? null,
+          prev_page_url: payload?.prev_page_url ?? null,
+        };
+      }),
       catchError((error) => {
         console.log(error);
         throw error;
