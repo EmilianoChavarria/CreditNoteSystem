@@ -224,6 +224,7 @@ export class Sidebar {
       {
         iconName: 'settings', optionName: 'SIDEBAR.SETTINGS', url: '/app/settings', children: [
           { iconName: 'users', optionName: 'SIDEBAR.USER_MANAGEMENT', url: '/app/settings/users' },
+          { iconName: 'user-plus', optionName: 'SIDEBAR.ASSIGN_USER', url: '/app/settings/assign-user' },
           { iconName: 'building-2', optionName: 'SIDEBAR.CLIENT_MANAGEMENT', url: '/app/settings/customers' },
           { iconName: 'grid-3x2', optionName: 'SIDEBAR.ROLES', url: '/app/settings/roles' },
           { iconName: 'network', optionName: 'SIDEBAR.WORKFLOWS', url: '/app/settings/workflows' },
