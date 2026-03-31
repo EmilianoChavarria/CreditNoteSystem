@@ -154,6 +154,7 @@
     "SUPERVISOR": "Supervisor",
     "CREATED_AT": "Fecha de Creacion",
     "UPDATED_AT": "Ultima Actualizacion",
-    "ACCOUNT_STATUS": "Estado de la Cuenta"
+    "ACCOUNT_STATUS": "Estado de la Cuenta",
+    "PASSWORD": "Cambia tu Contraseña"
   }
 }
