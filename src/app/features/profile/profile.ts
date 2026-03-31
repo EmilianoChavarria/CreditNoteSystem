@@ -1,11 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { LucideAngularModule } from "lucide-angular";
+import { TranslateModule } from '@ngx-translate/core';
 import { UserService } from '../../core/services/user-service';
 import { User } from '../../data/interfaces/User';
 
 @Component({
   selector: 'app-profile',
-  imports: [LucideAngularModule],
+  imports: [LucideAngularModule, TranslateModule],
   templateUrl: './profile.html',
   styleUrl: './profile.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -32,11 +33,6 @@ export class Profile {
       .join('');
 
     return initials || 'NA';
-  });
-
-  readonly preferredLanguageLabel = computed(() => {
-    const preferredLanguage = this.profile()?.preferredLanguage?.toLowerCase();
-    return preferredLanguage === 'es' ? 'Español' : 'Inglés';
   });
 
   constructor() {
