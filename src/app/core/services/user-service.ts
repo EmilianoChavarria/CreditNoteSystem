@@ -96,6 +96,21 @@ export class UserService {
     );
   }
 
+  getAuthenticatedUserProfile(): Observable<User> {
+    return this._httpService.get<User>('/users/me').pipe(
+      tap((response: ApiResponse<User>) => {
+        if (response.success) {
+          // console.log(response);
+        }
+      }),
+      map((response: ApiResponse<User>) => response.data as User),
+      catchError(error => {
+        console.log(error);
+        throw error;
+      })
+    );
+  }
+
   saveUser(user: Partial<User>) {
     return this._httpService.post('/auth/register', user).pipe(
       tap(() => {
