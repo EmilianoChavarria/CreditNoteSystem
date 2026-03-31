@@ -27,7 +27,8 @@
     "ROLES": "Roles y Tipos de Solicitud",
     "WORKFLOWS": "Flujos de Aprobación",
     "SYS_CONFIG": "Configuración del Sistema",
-    "SEC_MANAGE": "Gestión de la Seguridad"
+    "SEC_MANAGE": "Gestión de la Seguridad",
+    "ASSIGN_USER": "Asignar Usuario"
   },
   "REQUEST_TYPES": {
     "DEFAULT": "Selecciona una opción",
