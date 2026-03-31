@@ -27,7 +27,11 @@
     } @else if (requests().length > 0) {
     <app-tabla-dinamica [datos]="requests()" [columnas]="columns" [accionesPersonalizadas]="acciones" actionMode="menu"
         [enableFilter]="true" filterField="workflow_current_step.assigned_role.roleName" addLabel="Request" addRoute="/app/settings/newUser" [canAdd]="false"
-        [registrosPorPagina]="pageSize()" [loading]="isLoadingTable()">
+        [registrosPorPagina]="pageSize()" [loading]="isLoadingTable()"
+        [serverPagination]="true" [paginaActualExterna]="currentPage()"
+        [hasNextPage]="hasNextPage()" [hasPrevPage]="hasPrevPage()"
+        (paginaSiguiente)="onNextPage()" (paginaAnterior)="onPrevPage()"
+        (registrosPorPaginaChange)="onPageSizeChange($event)">
 
         <ng-template #cellTemplate let-item let-column="column">
             @if (column.key === 'request_type.name') {

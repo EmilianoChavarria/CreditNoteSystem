@@ -38,8 +38,6 @@ export class MyApprovals {
     public hasNextPage = signal<boolean>(false);
     public hasPrevPage = signal<boolean>(false);
     public isLoadingTable = signal<boolean>(true);
-    private nextCursor = signal<string | null>(null);
-    private prevCursor = signal<string | null>(null);
     public isLoading = signal<boolean>(false);
     public form = new FormGroup({
         comments: new FormControl<string>('', Validators.required)
@@ -223,8 +221,6 @@ export class MyApprovals {
         this.selectedRequestType = value;
 
         this.currentPage.set(1);
-        this.nextCursor.set(null);
-        this.prevCursor.set(null);
         this.hasNextPage.set(false);
         this.hasPrevPage.set(false);
 
@@ -239,12 +235,22 @@ export class MyApprovals {
     }
 
     private loadMyPendingRequests(): void {
+        const requestTypeId = Number(this.selectedRequestType);
+        if (!Number.isFinite(requestTypeId) || requestTypeId <= 0) {
+            this.requests.set([]);
+            this.isLoadingTable.set(false);
+            this.isLoading.set(false);
+            return;
+        }
+
         this.isLoadingTable.set(true);
 
-        this._requestsService.getMyPendingRequests().subscribe({
+        this._requestsService.getMyPendingRequests(requestTypeId, this.pageSize(), this.currentPage()).subscribe({
             next: (response) => {
-                const filteredRequests = response.filter((request) => String(request.requestTypeId) === this.selectedRequestType);
-                this.requests.set(filteredRequests);
+                this.requests.set(response.data ?? []);
+                this.currentPage.set(response.current_page ?? 1);
+                this.hasNextPage.set(Boolean(response.next_page_url));
+                this.hasPrevPage.set(Boolean(response.prev_page_url));
                 this.isLoadingTable.set(false);
                 this.isLoading.set(false);
             },
@@ -262,6 +268,7 @@ export class MyApprovals {
         }
 
         this.currentPage.update((value) => value + 1);
+        this.loadMyPendingRequests();
     }
 
     onPrevPage(): void {
@@ -270,10 +277,18 @@ export class MyApprovals {
         }
 
         this.currentPage.update((value) => Math.max(1, value - 1));
+        this.loadMyPendingRequests();
     }
 
     onPageSizeChange(size: number): void {
         this.pageSize.set(size);
+        this.currentPage.set(1);
+        this.hasNextPage.set(false);
+        this.hasPrevPage.set(false);
+
+        if (this.selectedRequestType !== 'DE') {
+            this.loadMyPendingRequests();
+        }
     }
 
     onDeclineModalChange(isOpen: boolean = true, request?: Request): void {
