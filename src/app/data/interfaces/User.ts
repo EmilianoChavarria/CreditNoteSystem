@@ -6,10 +6,18 @@ export interface User {
   supervisorId: any;
   preferredLanguage: string;
   isActive: boolean;
+  clientId?: number | null;
   deletedAt: string;
   createdAt: string;
   updatedAt: string;
   role?: Role;
+  supervisor?: Supervisor | null;
+}
+
+export interface Supervisor {
+  id: number;
+  fullName: string;
+  email: string;
 }
 
 export interface Role {
