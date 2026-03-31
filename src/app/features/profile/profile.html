@@ -1,4 +1,17 @@
 <section class="max-w-5xl mx-auto flex flex-col h-full items-center justify-center">
+    @if (isLoading()) {
+    <div class="w-full bg-white rounded-xl shadow-lg p-8 text-center text-gray-600">
+        Cargando perfil...
+    </div>
+    }
+
+    @if (hasError()) {
+    <div class="w-full bg-red-50 border border-red-200 rounded-xl p-6 text-red-700 text-center">
+        Ocurrio un error al cargar el perfil.
+    </div>
+    }
+
+    @if (!isLoading() && !hasError() && profile(); as user) {
 
     <!-- Contenedor de arriba -->
     <div class="border border-gray-200 w-full bg-white rounded-xl shadow-lg">
@@ -8,21 +21,27 @@
             <div class="flex flex-row gap-x-4 items-center">
                 <div
                     class="-mt-10 h-30 w-30 rounded-full flex items-center justify-center text-white bg-[#ff8200] border-4 border-white shadow-sm">
-                    <span class="text-3xl font-bold">EC</span>
+                    <span class="text-3xl font-bold">{{ initials() }}</span>
                 </div>
                 <div class="flex flex-col">
                     <div class="flex flex-row items-center gap-x-2">
-                        <span class="text-2xl font-bold">Emiliano Chavarría</span>
-                        <div class="px-2 py-1 h-fit bg-green-100 text-green-500 text-xs w-fit rounded-lg flex gap-x-1">
+                        <span class="text-2xl font-bold">{{ user.fullName }}</span>
+                        <div class="px-2 py-1 h-fit text-xs w-fit rounded-lg flex gap-x-1"
+                            [class.bg-green-100]="user.isActive" [class.text-green-500]="user.isActive"
+                            [class.bg-red-100]="!user.isActive" [class.text-red-500]="!user.isActive">
                             <lucide-icon name="badge-check" size="15"></lucide-icon>
-                            <span>Activo</span>
+                            <span>{{ user.isActive ? 'Activo' : 'Inactivo' }}</span>
                         </div>
                     </div>
-                    <span class="text-md text-gray-600">aldrick@ittec.mx</span>
+                    <span class="text-md text-gray-600">{{ user.email }}</span>
                     <div
-                        class="px-1 py-1 bg-red-100 border border-red-500  text-red-500 text-xs w-fit rounded-lg flex gap-x-1">
+                        class="px-1 py-1 text-xs w-fit rounded-lg flex gap-x-1"
+                        [class.bg-green-100]="(user.role?.color || '').toUpperCase() === '#22C55E'"
+                        [class.text-green-700]="(user.role?.color || '').toUpperCase() === '#22C55E'"
+                        [class.bg-red-100]="(user.role?.color || '').toUpperCase() !== '#22C55E'"
+                        [class.text-red-500]="(user.role?.color || '').toUpperCase() !== '#22C55E'">
                         <lucide-icon name="shield" size="15"></lucide-icon>
-                        <span>ADMIN</span>
+                        <span>{{ user.role?.roleName || 'Sin rol' }}</span>
                     </div>
                 </div>
             </div>
@@ -46,7 +65,7 @@
                     </div>
                     <div class="flex flex-col">
                         <span class="text-sm text-gray-700">Nombre Completo</span>
-                        <span>Emiliano Chavarría</span>
+                        <span>{{ user.fullName }}</span>
                     </div>
                 </div>
                 <div class="flex flex-row gap-x-4 border-b border-gray-300 py-4">
@@ -55,7 +74,7 @@
                     </div>
                     <div class="flex flex-col">
                         <span class="text-sm text-gray-700">Correo Electrónico</span>
-                        <span>aldrick@ittec.mx</span>
+                        <span>{{ user.email }}</span>
                     </div>
                 </div>
                 <div class="flex flex-row gap-x-4 border-b border-gray-300 py-4">
@@ -64,7 +83,7 @@
                     </div>
                     <div class="flex flex-col">
                         <span class="text-sm text-gray-700">Idioma Preferido</span>
-                        <span>Español</span>
+                        <span>{{ preferredLanguageLabel() }}</span>
                     </div>
                 </div>
                 <div class="flex flex-row gap-x-4  py-4">
@@ -73,8 +92,12 @@
                     </div>
                     <div class="flex flex-col">
                         <span class="text-sm text-gray-700">Rol</span>
-                        <div class="px-1.5 py-1 bg-red-100 text-red-500 text-xs w-fit rounded-md flex ">
-                            <span>ADMIN</span>
+                        <div class="px-1.5 py-1 text-xs w-fit rounded-md flex"
+                            [class.bg-green-100]="(user.role?.color || '').toUpperCase() === '#22C55E'"
+                            [class.text-green-700]="(user.role?.color || '').toUpperCase() === '#22C55E'"
+                            [class.bg-red-100]="(user.role?.color || '').toUpperCase() !== '#22C55E'"
+                            [class.text-red-500]="(user.role?.color || '').toUpperCase() !== '#22C55E'">
+                            <span>{{ user.role?.roleName || 'Sin rol' }}</span>
                         </div>
                     </div>
                 </div>
@@ -95,7 +118,7 @@
                     </div>
                     <div class="flex flex-col">
                         <span class="text-sm text-gray-700">Supervisor</span>
-                        <span>Edgar Alegría</span>
+                        <span>{{ user.supervisor?.fullName || 'Sin supervisor asignado' }}</span>
                     </div>
                 </div>
                 <div class="flex flex-row gap-x-4 border-b border-gray-300 py-4">
@@ -104,7 +127,7 @@
                     </div>
                     <div class="flex flex-col">
                         <span class="text-sm text-gray-700">Fecha de Creación</span>
-                        <span>25/02/2026, 09:32 a.m.</span>
+                        <span>{{ formatDate(user.createdAt) }}</span>
                     </div>
                 </div>
                 <div class="flex flex-row gap-x-4 border-b border-gray-300 py-4">
@@ -113,7 +136,7 @@
                     </div>
                     <div class="flex flex-col">
                         <span class="text-sm text-gray-700">Última Actualización</span>
-                        <span>25/02/2026, 09:32 a.m.</span>
+                        <span>{{ formatDate(user.updatedAt) }}</span>
                     </div>
                 </div>
                 <div class="flex flex-row gap-x-4  py-4">
@@ -122,13 +145,16 @@
                     </div>
                     <div class="flex flex-col">
                         <span class="text-sm text-gray-700">Estado de la Cuenta</span>
-                        <div class="px-2 py-1 h-fit bg-green-100 text-green-500 text-xs w-fit rounded-lg flex gap-x-1">
+                        <div class="px-2 py-1 h-fit text-xs w-fit rounded-lg flex gap-x-1"
+                            [class.bg-green-100]="user.isActive" [class.text-green-500]="user.isActive"
+                            [class.bg-red-100]="!user.isActive" [class.text-red-500]="!user.isActive">
                             <lucide-icon name="badge-check" size="15"></lucide-icon>
-                            <span>Activo</span>
+                            <span>{{ user.isActive ? 'Activo' : 'Inactivo' }}</span>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    }
 </section>
