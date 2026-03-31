@@ -1,4 +1,5 @@
-<section class="max-w-5xl mx-auto flex flex-col h-full items-center justify-center">
+<section
+    [class]="`max-w-5xl mx-auto flex flex-col h-screen items-center justify-center ${passwordFormVisible() ? 'my-40' : ''}`">
     @if (isLoading()) {
     <div class="w-full bg-white rounded-xl shadow-lg p-8 text-center text-gray-600">
         {{ 'PROFILE.LOADING' | translate }}
@@ -30,12 +31,12 @@
                             [class.bg-green-100]="user.isActive" [class.text-green-500]="user.isActive"
                             [class.bg-red-100]="!user.isActive" [class.text-red-500]="!user.isActive">
                             <lucide-icon name="badge-check" size="15"></lucide-icon>
-                            <span>{{ user.isActive ? ('PROFILE.ACTIVE' | translate) : ('PROFILE.INACTIVE' | translate) }}</span>
+                            <span>{{ user.isActive ? ('PROFILE.ACTIVE' | translate) : ('PROFILE.INACTIVE' | translate)
+                                }}</span>
                         </div>
                     </div>
                     <span class="text-md text-gray-600">{{ user.email }}</span>
-                    <div
-                        class="px-1 py-1 text-xs w-fit rounded-lg flex gap-x-1"
+                    <div class="px-1 py-1 text-xs w-fit rounded-lg flex gap-x-1"
                         [class.bg-green-100]="(user.role?.color || '').toUpperCase() === '#22C55E'"
                         [class.text-green-700]="(user.role?.color || '').toUpperCase() === '#22C55E'"
                         [class.bg-red-100]="(user.role?.color || '').toUpperCase() !== '#22C55E'"
@@ -83,7 +84,8 @@
                     </div>
                     <div class="flex flex-col">
                         <span class="text-sm text-gray-700">{{ 'PROFILE.PREFERRED_LANGUAGE' | translate }}</span>
-                        <span>{{ user.preferredLanguage.toLowerCase() === 'es' ? ('USER_FORM.SPANISH' | translate) : ('USER_FORM.ENGLISH' | translate) }}</span>
+                        <span>{{ user.preferredLanguage.toLowerCase() === 'es' ? ('USER_FORM.SPANISH' | translate) :
+                            ('USER_FORM.ENGLISH' | translate) }}</span>
                     </div>
                 </div>
                 <div class="flex flex-row gap-x-4  py-4">
@@ -149,12 +151,131 @@
                             [class.bg-green-100]="user.isActive" [class.text-green-500]="user.isActive"
                             [class.bg-red-100]="!user.isActive" [class.text-red-500]="!user.isActive">
                             <lucide-icon name="badge-check" size="15"></lucide-icon>
-                            <span>{{ user.isActive ? ('PROFILE.ACTIVE' | translate) : ('PROFILE.INACTIVE' | translate) }}</span>
+                            <span>{{ user.isActive ? ('PROFILE.ACTIVE' | translate) : ('PROFILE.INACTIVE' | translate)
+                                }}</span>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Change Password Section -->
+    <div class="border border-gray-200 w-full bg-white rounded-xl shadow-lg mt-8">
+        <div class="w-full px-8 py-6 border-b border-gray-300 flex flex-row items-center justify-between">
+            <div class="flex flex-col gap-y-1">
+                <div class="text-[#ff8200] flex flex-row gap-x-2 font-semibold text-lg items-center">
+                    <lucide-icon name="shield-user" size="20"></lucide-icon>
+                    <span>{{ 'PROFILE.PASSWORD' | translate }}</span>
+                </div>
+                <span class="text-sm text-gray-600">{{ 'PROFILE.CHANGE_PASSWORD_DESC' | translate }}</span>
+            </div>
+            <button (click)="togglePasswordForm()" type="button"
+                class="px-4 py-2 bg-[#ff8200] text-white rounded-lg hover:bg-[#e67e00] transition-colors flex items-center gap-x-1">
+                <lucide-icon name="pencil" size="16"></lucide-icon>
+                <span class="text-sm font-semibold">{{ passwordFormVisible() ? ('PROFILE.CANCEL_BUTTON' | translate) :
+                    'Editar' }}</span>
+            </button>
+        </div>
+
+        @if (passwordFormVisible()) {
+        <form [formGroup]="changePasswordForm" (ngSubmit)="submitPasswordChange()"
+            class="w-full px-8 py-6 flex flex-col gap-y-6">
+            <!-- Current Password Field -->
+            <div class="flex flex-col gap-y-2">
+                <label class="text-sm font-semibold text-gray-700">{{ 'PROFILE.CURRENT_PASSWORD' | translate }}</label>
+                <div class="relative">
+                    <div class="absolute left-0 top-0 h-full flex items-center px-3 text-[#ff8200]">
+                        <lucide-icon name="lock" size="18"></lucide-icon>
+                    </div>
+                    <input type="password" formControlName="currentPassword" placeholder="Ingresa tu contraseña actual"
+                        class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#ff8200] focus:ring-1 focus:ring-[#ff8200]" />
+                </div>
+                @if (changePasswordForm.get('currentPassword')?.invalid &&
+                changePasswordForm.get('currentPassword')?.touched) {
+                <span class="text-xs text-red-500 flex items-center gap-x-1">
+                    <lucide-icon name="alert-circle" size="14"></lucide-icon>
+                    {{ 'PROFILE.PASSWORD_REQUIRED' | translate }}
+                </span>
+                }
+            </div>
+
+            <div class="flex flex-row gap-x-4">
+                <!-- New Password Field -->
+                <div class="flex flex-col gap-y-2 w-1/2">
+                    <label class="text-sm font-semibold text-gray-700">{{ 'PROFILE.NEW_PASSWORD' | translate }}</label>
+                    <div class="relative">
+                        <div class="absolute left-0 top-0 h-full flex items-center px-3 text-[#ff8200]">
+                            <lucide-icon name="lock" size="18"></lucide-icon>
+                        </div>
+                        <input type="password" formControlName="newPassword" placeholder="Ingresa tu nueva contraseña"
+                            class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#ff8200] focus:ring-1 focus:ring-[#ff8200]" />
+                    </div>
+                    @if (changePasswordForm.get('newPassword')?.invalid &&
+                    changePasswordForm.get('newPassword')?.touched) {
+                    <span class="text-xs text-red-500 flex items-center gap-x-1">
+                        <lucide-icon name="circle-alert" size="14"></lucide-icon>
+                        {{ 'PROFILE.PASSWORD_REQUIRED' | translate }}
+                    </span>
+                    }
+                </div>
+
+                <!-- Confirm Password Field -->
+                <div class="flex flex-col gap-y-2 w-1/2">
+                    <label class="text-sm font-semibold text-gray-700">{{ 'PROFILE.CONFIRM_PASSWORD' | translate
+                        }}</label>
+                    <div class="relative">
+                        <div class="absolute left-0 top-0 h-full flex items-center px-3"
+                            [class.text-[#ff8200]]="passwordsMatch()"
+                            [class.text-red-500]="!passwordsMatch() && changePasswordForm.get('confirmPassword')?.touched">
+                            <lucide-icon name="lock" size="18"></lucide-icon>
+                        </div>
+                        <input type="password" formControlName="confirmPassword"
+                            placeholder="Confirma tu nueva contraseña"
+                            class="w-full pl-10 pr-4 py-2 border rounded-md focus:outline-none transition-all"
+                            [class.border-gray-300]="!changePasswordForm.get('confirmPassword')?.touched || passwordsMatch()"
+                            [class.border-red-500]="!passwordsMatch() && changePasswordForm.get('confirmPassword')?.touched"
+                            [class.focus:border-[#ff8200]]="passwordsMatch()" [class.focus:ring-1]="passwordsMatch()"
+                            [class.focus:ring-[#ff8200]]="passwordsMatch()"
+                            [class.focus:border-red-500]="!passwordsMatch() && changePasswordForm.get('confirmPassword')?.touched"
+                            [class.focus:ring-red-500]="!passwordsMatch() && changePasswordForm.get('confirmPassword')?.touched" />
+                    </div>
+                    @if (!passwordsMatch() && changePasswordForm.get('confirmPassword')?.touched) {
+                    <span class="text-xs text-red-500 flex items-center gap-x-1">
+                        <lucide-icon name="circle-alert" size="14"></lucide-icon>
+                        {{ 'PROFILE.PASSWORDS_DONT_MATCH' | translate }}
+                    </span>
+                    }
+                    @if (passwordsMatch() && changePasswordForm.get('confirmPassword')?.touched) {
+                    <span class="text-xs text-green-500 flex items-center gap-x-1">
+                        <lucide-icon name="check-circle" size="14"></lucide-icon>
+                        Las contraseñas coinciden
+                    </span>
+                    }
+                </div>
+            </div>
+
+
+
+            <!-- Action Buttons -->
+            <div class="flex flex-row gap-x-3 pt-4 border-t border-gray-200">
+                <button type="submit"
+                    [disabled]="!changePasswordForm.valid || !passwordsMatch() || isChangingPassword()"
+                    class="flex-1 px-4 py-2 bg-[#ff8200] text-white rounded-lg font-semibold hover:bg-[#e67e00] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-x-2">
+                    @if (isChangingPassword()) {
+                    <lucide-icon name="loader-circle" size="16" class="animate-spin"></lucide-icon>
+                    } @else {
+                    <lucide-icon name="check" size="16"></lucide-icon>
+                    }
+                    {{ 'PROFILE.CHANGE_BUTTON' | translate }}
+                </button>
+                <button type="button" (click)="togglePasswordForm()" [disabled]="isChangingPassword()"
+                    class="flex-1 px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                    {{ 'PROFILE.CANCEL_BUTTON' | translate }}
+                </button>
+            </div>
+        </form>
+        }
     </div>
     }
 </section>
