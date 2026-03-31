@@ -155,6 +155,15 @@
     "CREATED_AT": "Creation Date",
     "UPDATED_AT": "Last Update",
     "ACCOUNT_STATUS": "Account Status",
-    "PASSWORD": "Change your Password"
+    "PASSWORD": "Change Password",
+    "CHANGE_PASSWORD_DESC": "Update your password regularly to keep your account secure",
+    "CURRENT_PASSWORD": "Current Password",
+    "NEW_PASSWORD": "New Password",
+    "CONFIRM_PASSWORD": "Confirm Password",
+    "CHANGE_BUTTON": "Change Password",
+    "PASSWORD_UPDATED": "Password updated successfully",
+    "PASSWORDS_DONT_MATCH": "Passwords do not match",
+    "PASSWORD_REQUIRED": "Password is required",
+    "CANCEL_BUTTON": "Cancel"
   }
 }

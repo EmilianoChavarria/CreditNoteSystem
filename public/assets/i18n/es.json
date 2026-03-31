@@ -155,6 +155,15 @@
     "CREATED_AT": "Fecha de Creacion",
     "UPDATED_AT": "Ultima Actualizacion",
     "ACCOUNT_STATUS": "Estado de la Cuenta",
-    "PASSWORD": "Cambia tu Contraseña"
+    "PASSWORD": "Cambiar Contraseña",
+    "CHANGE_PASSWORD_DESC": "Actualiza tu contraseña de acceso regularmente para mantener tu cuenta segura",
+    "CURRENT_PASSWORD": "Contraseña Actual",
+    "NEW_PASSWORD": "Nueva Contraseña",
+    "CONFIRM_PASSWORD": "Confirmar Contraseña",
+    "CHANGE_BUTTON": "Cambiar Contraseña",
+    "PASSWORD_UPDATED": "Contraseña actualizada exitosamente",
+    "PASSWORDS_DONT_MATCH": "Las contraseñas no coinciden",
+    "PASSWORD_REQUIRED": "La contraseña es requerida",
+    "CANCEL_BUTTON": "Cancelar"
   }
 }
