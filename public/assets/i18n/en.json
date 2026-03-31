@@ -166,5 +166,28 @@
     "PASSWORDS_DONT_MATCH": "Passwords do not match",
     "PASSWORD_REQUIRED": "Password is required",
     "CANCEL_BUTTON": "Cancel"
+  },
+  "ASSIGN_USER": {
+    "TITLE": "Leader User Assignment",
+    "DESCRIPTION": "Assign or unassign REQUESTER/PROCESSOR users to CS LEADER profiles",
+    "LOADING": "Loading assignment catalogs...",
+    "ASSIGNMENT_PANEL": "Assignment Panel",
+    "LEADER": "Leader (CS LEADER)",
+    "SELECT_LEADER": "Select a leader",
+    "ASSIGNABLE_USER": "Assignable User",
+    "SELECT_ASSIGNABLE": "Select a user",
+    "ASSIGN": "Assign",
+    "ASSIGNING": "Assigning...",
+    "ASSIGNED_LIST": "Assigned Users",
+    "PICK_LEADER_FIRST": "Select a leader to view their assignments.",
+    "LOADING_ASSIGNED": "Loading assigned users...",
+    "NO_ASSIGNED": "This leader has no assigned users yet.",
+    "USER": "User",
+    "ROLE": "Role",
+    "ACTIONS": "Actions",
+    "UNASSIGN": "Unassign",
+    "UNASSIGNING": "Processing...",
+    "UX_HINT_TITLE": "Tip",
+    "UX_HINT_DESC": "Candidates list automatically excludes users already assigned to the selected leader."
   }
 }

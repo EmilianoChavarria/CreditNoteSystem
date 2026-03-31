@@ -166,5 +166,28 @@
     "PASSWORDS_DONT_MATCH": "Las contraseñas no coinciden",
     "PASSWORD_REQUIRED": "La contraseña es requerida",
     "CANCEL_BUTTON": "Cancelar"
+  },
+  "ASSIGN_USER": {
+    "TITLE": "Asignacion de Usuarios por Lider",
+    "DESCRIPTION": "Asigna o desasigna usuarios REQUESTER/PROCESSOR a lideres CS LEADER",
+    "LOADING": "Cargando catalogos de asignacion...",
+    "ASSIGNMENT_PANEL": "Panel de Asignacion",
+    "LEADER": "Lider (CS LEADER)",
+    "SELECT_LEADER": "Selecciona un lider",
+    "ASSIGNABLE_USER": "Usuario Asignable",
+    "SELECT_ASSIGNABLE": "Selecciona un usuario",
+    "ASSIGN": "Asignar",
+    "ASSIGNING": "Asignando...",
+    "ASSIGNED_LIST": "Usuarios Asignados",
+    "PICK_LEADER_FIRST": "Selecciona un lider para ver sus asignaciones.",
+    "LOADING_ASSIGNED": "Cargando usuarios asignados...",
+    "NO_ASSIGNED": "Este lider aun no tiene usuarios asignados.",
+    "USER": "Usuario",
+    "ROLE": "Rol",
+    "ACTIONS": "Acciones",
+    "UNASSIGN": "Desasignar",
+    "UNASSIGNING": "Procesando...",
+    "UX_HINT_TITLE": "Tip",
+    "UX_HINT_DESC": "La lista de candidatos excluye automaticamente usuarios ya asignados al lider seleccionado."
   }
 }
