@@ -135,5 +135,25 @@
     "TOTAL_AMOUNT": "Total Amount",
     "ATTACH_SUPPORTS": "Attach Supports",
     "COMMENTS": "Comments"
+  },
+  "PROFILE": {
+    "LOADING": "Loading profile...",
+    "LOAD_ERROR": "An error occurred while loading the profile.",
+    "ACTIVE": "Active",
+    "INACTIVE": "Inactive",
+    "NO_ROLE": "No role",
+    "NO_SUPERVISOR": "No supervisor assigned",
+    "PERSONAL_INFO_TITLE": "Personal Information",
+    "PERSONAL_INFO_DESC": "Basic data from your user account",
+    "ACCOUNT_INFO_TITLE": "Account Information",
+    "ACCOUNT_INFO_DESC": "Account configuration and status details",
+    "FULL_NAME": "Full Name",
+    "EMAIL": "Email",
+    "PREFERRED_LANGUAGE": "Preferred Language",
+    "ROLE": "Role",
+    "SUPERVISOR": "Supervisor",
+    "CREATED_AT": "Creation Date",
+    "UPDATED_AT": "Last Update",
+    "ACCOUNT_STATUS": "Account Status"
   }
 }

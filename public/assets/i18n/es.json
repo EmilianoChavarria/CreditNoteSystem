@@ -135,5 +135,25 @@
     "TOTAL_AMOUNT": "Monto Total",
     "ATTACH_SUPPORTS": "Adjuntar Soportes",
     "COMMENTS": "Comentarios"
+  },
+  "PROFILE": {
+    "LOADING": "Cargando perfil...",
+    "LOAD_ERROR": "Ocurrio un error al cargar el perfil.",
+    "ACTIVE": "Activo",
+    "INACTIVE": "Inactivo",
+    "NO_ROLE": "Sin rol",
+    "NO_SUPERVISOR": "Sin supervisor asignado",
+    "PERSONAL_INFO_TITLE": "Informacion Personal",
+    "PERSONAL_INFO_DESC": "Datos basicos de tu cuenta de usuario",
+    "ACCOUNT_INFO_TITLE": "Informacion de Cuenta",
+    "ACCOUNT_INFO_DESC": "Detalles de configuracion y estado de la cuenta",
+    "FULL_NAME": "Nombre Completo",
+    "EMAIL": "Correo Electronico",
+    "PREFERRED_LANGUAGE": "Idioma Preferido",
+    "ROLE": "Rol",
+    "SUPERVISOR": "Supervisor",
+    "CREATED_AT": "Fecha de Creacion",
+    "UPDATED_AT": "Ultima Actualizacion",
+    "ACCOUNT_STATUS": "Estado de la Cuenta"
   }
 }
