@@ -34,7 +34,7 @@
             </div>
 
             <ul *ngIf="isOpen && option.children"
-                [class]="(openedOptionIndex === i ? 'max-h-80 opacity-100' : 'max-h-0 opacity-0') + ' overflow-hidden transition-all duration-300 pl-10 bg-orange-50 rounded-b-lg'">
+                [class]="(openedOptionIndex === i ? 'max-h-fit opacity-100' : 'max-h-0 opacity-0') + ' overflow-hidden transition-all duration-300 pl-10 bg-orange-50 rounded-b-lg'">
                 @for(suboption of option.children; track suboption.optionName){
                 <li (click)="navigate(suboption.url)"
                     [class]="'flex items-center gap-x-3 py-2 cursor-pointer transition-colors rounded-md px-2 ' + (suboption.active ? 'text-[#ff8200] font-semibold' : 'hover:text-orange-600')">
