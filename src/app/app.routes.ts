@@ -23,6 +23,7 @@ import { ClientOrders } from './features/clients/client-orders';
 import { ManageRoles } from './features/settings/pages/roles/pages/manage-roles/manage-roles';
 import { ReturnOrdersApproval } from './features/approvals/return-orders-approval/return-orders-approval';
 import { ActionGuard } from './core/guards/action.guard';
+import { Profile } from './features/profile/profile';
 
 
 export const routes: Routes = [
@@ -59,6 +60,7 @@ export const routes: Routes = [
         // data: { requiredAction: 'bulk_load' }
       },
       { path: 'my-approvals', component: MyApprovals },
+      { path: 'my-profile', component: Profile },
       { path: 'approvals/return-orders', component: ReturnOrdersApproval },
       { path: 'clients', component: Clients },
       { path: 'clients/orders', component: ClientOrders },
