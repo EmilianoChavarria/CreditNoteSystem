@@ -1,13 +1,13 @@
 <section class="max-w-5xl mx-auto flex flex-col h-full items-center justify-center">
     @if (isLoading()) {
     <div class="w-full bg-white rounded-xl shadow-lg p-8 text-center text-gray-600">
-        Cargando perfil...
+        {{ 'PROFILE.LOADING' | translate }}
     </div>
     }
 
     @if (hasError()) {
     <div class="w-full bg-red-50 border border-red-200 rounded-xl p-6 text-red-700 text-center">
-        Ocurrio un error al cargar el perfil.
+        {{ 'PROFILE.LOAD_ERROR' | translate }}
     </div>
     }
 
@@ -30,7 +30,7 @@
                             [class.bg-green-100]="user.isActive" [class.text-green-500]="user.isActive"
                             [class.bg-red-100]="!user.isActive" [class.text-red-500]="!user.isActive">
                             <lucide-icon name="badge-check" size="15"></lucide-icon>
-                            <span>{{ user.isActive ? 'Activo' : 'Inactivo' }}</span>
+                            <span>{{ user.isActive ? ('PROFILE.ACTIVE' | translate) : ('PROFILE.INACTIVE' | translate) }}</span>
                         </div>
                     </div>
                     <span class="text-md text-gray-600">{{ user.email }}</span>
@@ -41,7 +41,7 @@
                         [class.bg-red-100]="(user.role?.color || '').toUpperCase() !== '#22C55E'"
                         [class.text-red-500]="(user.role?.color || '').toUpperCase() !== '#22C55E'">
                         <lucide-icon name="shield" size="15"></lucide-icon>
-                        <span>{{ user.role?.roleName || 'Sin rol' }}</span>
+                        <span>{{ user.role?.roleName || ('PROFILE.NO_ROLE' | translate) }}</span>
                     </div>
                 </div>
             </div>
@@ -54,9 +54,9 @@
             <div class="w-full px-8 py-6 text border-b border-gray-300 flex flex-col">
                 <div class="text-[#ff8200] flex flex-row gap-x-2 font-semibold text-lg">
                     <lucide-icon name="user"></lucide-icon>
-                    <span>Información Personal</span>
+                    <span>{{ 'PROFILE.PERSONAL_INFO_TITLE' | translate }}</span>
                 </div>
-                <span class="text-sm text-gray-600">Datos básicos de tu cuenta de usuario</span>
+                <span class="text-sm text-gray-600">{{ 'PROFILE.PERSONAL_INFO_DESC' | translate }}</span>
             </div>
             <div class="w-full px-8 py-6 text flex flex-col">
                 <div class="flex flex-row gap-x-4 border-b border-gray-300 py-4">
@@ -64,7 +64,7 @@
                         <lucide-icon name="user"></lucide-icon>
                     </div>
                     <div class="flex flex-col">
-                        <span class="text-sm text-gray-700">Nombre Completo</span>
+                        <span class="text-sm text-gray-700">{{ 'PROFILE.FULL_NAME' | translate }}</span>
                         <span>{{ user.fullName }}</span>
                     </div>
                 </div>
@@ -73,7 +73,7 @@
                         <lucide-icon name="mail"></lucide-icon>
                     </div>
                     <div class="flex flex-col">
-                        <span class="text-sm text-gray-700">Correo Electrónico</span>
+                        <span class="text-sm text-gray-700">{{ 'PROFILE.EMAIL' | translate }}</span>
                         <span>{{ user.email }}</span>
                     </div>
                 </div>
@@ -82,8 +82,8 @@
                         <lucide-icon name="globe"></lucide-icon>
                     </div>
                     <div class="flex flex-col">
-                        <span class="text-sm text-gray-700">Idioma Preferido</span>
-                        <span>{{ preferredLanguageLabel() }}</span>
+                        <span class="text-sm text-gray-700">{{ 'PROFILE.PREFERRED_LANGUAGE' | translate }}</span>
+                        <span>{{ user.preferredLanguage.toLowerCase() === 'es' ? ('USER_FORM.SPANISH' | translate) : ('USER_FORM.ENGLISH' | translate) }}</span>
                     </div>
                 </div>
                 <div class="flex flex-row gap-x-4  py-4">
@@ -91,13 +91,13 @@
                         <lucide-icon name="shield"></lucide-icon>
                     </div>
                     <div class="flex flex-col">
-                        <span class="text-sm text-gray-700">Rol</span>
+                        <span class="text-sm text-gray-700">{{ 'PROFILE.ROLE' | translate }}</span>
                         <div class="px-1.5 py-1 text-xs w-fit rounded-md flex"
                             [class.bg-green-100]="(user.role?.color || '').toUpperCase() === '#22C55E'"
                             [class.text-green-700]="(user.role?.color || '').toUpperCase() === '#22C55E'"
                             [class.bg-red-100]="(user.role?.color || '').toUpperCase() !== '#22C55E'"
                             [class.text-red-500]="(user.role?.color || '').toUpperCase() !== '#22C55E'">
-                            <span>{{ user.role?.roleName || 'Sin rol' }}</span>
+                            <span>{{ user.role?.roleName || ('PROFILE.NO_ROLE' | translate) }}</span>
                         </div>
                     </div>
                 </div>
@@ -107,9 +107,9 @@
             <div class="w-full px-8 py-6 text border-b border-gray-300 flex flex-col">
                 <div class="text-[#ff8200] flex flex-row gap-x-2 font-semibold text-lg">
                     <lucide-icon name="user"></lucide-icon>
-                    <span>Información de Cuenta</span>
+                    <span>{{ 'PROFILE.ACCOUNT_INFO_TITLE' | translate }}</span>
                 </div>
-                <span class="text-sm text-gray-600">Detalles de configuración y estado de la cuenta</span>
+                <span class="text-sm text-gray-600">{{ 'PROFILE.ACCOUNT_INFO_DESC' | translate }}</span>
             </div>
             <div class="w-full px-8 py-6 text flex flex-col">
                 <div class="flex flex-row gap-x-4 border-b border-gray-300 py-4">
@@ -117,8 +117,8 @@
                         <lucide-icon name="user"></lucide-icon>
                     </div>
                     <div class="flex flex-col">
-                        <span class="text-sm text-gray-700">Supervisor</span>
-                        <span>{{ user.supervisor?.fullName || 'Sin supervisor asignado' }}</span>
+                        <span class="text-sm text-gray-700">{{ 'PROFILE.SUPERVISOR' | translate }}</span>
+                        <span>{{ user.supervisor?.fullName || ('PROFILE.NO_SUPERVISOR' | translate) }}</span>
                     </div>
                 </div>
                 <div class="flex flex-row gap-x-4 border-b border-gray-300 py-4">
@@ -126,7 +126,7 @@
                         <lucide-icon name="calendar"></lucide-icon>
                     </div>
                     <div class="flex flex-col">
-                        <span class="text-sm text-gray-700">Fecha de Creación</span>
+                        <span class="text-sm text-gray-700">{{ 'PROFILE.CREATED_AT' | translate }}</span>
                         <span>{{ formatDate(user.createdAt) }}</span>
                     </div>
                 </div>
@@ -135,7 +135,7 @@
                         <lucide-icon name="clock-4"></lucide-icon>
                     </div>
                     <div class="flex flex-col">
-                        <span class="text-sm text-gray-700">Última Actualización</span>
+                        <span class="text-sm text-gray-700">{{ 'PROFILE.UPDATED_AT' | translate }}</span>
                         <span>{{ formatDate(user.updatedAt) }}</span>
                     </div>
                 </div>
@@ -144,12 +144,12 @@
                         <lucide-icon name="badge-check"></lucide-icon>
                     </div>
                     <div class="flex flex-col">
-                        <span class="text-sm text-gray-700">Estado de la Cuenta</span>
+                        <span class="text-sm text-gray-700">{{ 'PROFILE.ACCOUNT_STATUS' | translate }}</span>
                         <div class="px-2 py-1 h-fit text-xs w-fit rounded-lg flex gap-x-1"
                             [class.bg-green-100]="user.isActive" [class.text-green-500]="user.isActive"
                             [class.bg-red-100]="!user.isActive" [class.text-red-500]="!user.isActive">
                             <lucide-icon name="badge-check" size="15"></lucide-icon>
-                            <span>{{ user.isActive ? 'Activo' : 'Inactivo' }}</span>
+                            <span>{{ user.isActive ? ('PROFILE.ACTIVE' | translate) : ('PROFILE.INACTIVE' | translate) }}</span>
                         </div>
                     </div>
                 </div>
