@@ -67,12 +67,6 @@ export class Navbar {
     });
   }
 
-  refreshNotifications(): void {
-    this.notificationService.refreshUnreadNotifications().subscribe({
-      error: (error) => console.error('[Navbar] Failed to refresh notifications:', error)
-    });
-  }
-
   markAsRead(notification: AppNotification): void {
     if (this.notificationService.isRead(notification)) {
       return;

@@ -7,23 +7,25 @@
 
   <div class="flex flex-row gap-x-10 items-center justify-center">
 
-    <div (click)="switchLang(translate.currentLang === 'en' ? 'es' : 'en')" class="flex flex-row border border-[#ff8200] rounded-md gap-x-0.5 py-1 px-3">
-      <button [class]="`${translate.currentLang === 'es' ? 'bg-[#ff8200] text-white rounded-md':''} px-1 transition-colors hover:cursor-pointer`">ES</button>
-      <button [class]="`${translate.currentLang === 'en' ? 'bg-[#ff8200] text-white rounded-md':''} px-1 transition-colors hover:cursor-pointer`">EN</button>
+    <div (click)="switchLang(translate.currentLang === 'en' ? 'es' : 'en')"
+      class="flex flex-row border border-[#ff8200] rounded-md gap-x-0.5 py-1 px-3">
+      <button
+        [class]="`${translate.currentLang === 'es' ? 'bg-[#ff8200] text-white rounded-md':''} px-1 transition-colors hover:cursor-pointer`">ES</button>
+      <button
+        [class]="`${translate.currentLang === 'en' ? 'bg-[#ff8200] text-white rounded-md':''} px-1 transition-colors hover:cursor-pointer`">EN</button>
     </div>
 
-    <app-popover position="bottom-center" width="380px">
+    <app-popover position="bottom-center" width="580px">
       <div trigger
-        (click)="refreshNotifications()"
         class="transition-colors flex flex-row gap-x-2 items-center justify-center hover:bg-gray-200 px-4 py-2 hover:cursor-pointer rounded-lg whitespace-nowrap">
         <span class="min-w-24">{{ 'NAV.NOTIFICATIONS' | translate }}</span>
         <div class="relative flex">
           <lucide-icon name="bell" size="24" strokeWidth="1.8" class="mr-1 mt-0.5"></lucide-icon>
           @if (unreadCount() > 0) {
-            <span
-              class="absolute inset-y-0 end-0 h-4 min-w-4 px-1 bg-[#ff8200] rounded-full flex items-center justify-center text-white text-[10px]">
-              {{ unreadCount() }}
-            </span>
+          <span
+            class="absolute inset-y-0 end-0 h-4 min-w-4 px-1 bg-[#ff8200] rounded-full flex items-center justify-center text-white text-[10px]">
+            {{ unreadCount() }}
+          </span>
           }
         </div>
       </div>
@@ -40,29 +42,33 @@
         </div>
 
         @if (unreadNotifications().length === 0) {
-          <div class="rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-5 text-sm text-gray-500">
-            No tienes notificaciones nuevas.
-          </div>
+        <div class="rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-5 text-sm text-gray-500">
+          No tienes notificaciones nuevas.
+        </div>
         } @else {
-          <div class="space-y-2 max-h-80 overflow-y-auto pr-1">
-            @for (notification of unreadNotifications(); track notification.id) {
-              <button
-                type="button"
-                (click)="markAsRead(notification)"
-                class="w-full text-left rounded-xl border border-gray-200 bg-white p-3 transition-colors hover:border-[#ff8200] hover:bg-orange-50/60">
-                <div class="flex items-start justify-between gap-3">
-                  <div class="min-w-0">
-                    <p class="font-medium text-sm text-gray-900 truncate">{{ notification.title }}</p>
-                    <p class="text-xs text-gray-500 mt-1 line-clamp-2">{{ notification.message }}</p>
-                  </div>
-                  <span class="shrink-0 rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-orange-700">
-                    Nuevo
-                  </span>
-                </div>
-                <p class="text-[11px] text-gray-400 mt-2">{{ formatNotificationDate(notification.createdAt) }}</p>
-              </button>
-            }
+        <div class="space-y-2 max-h-80 overflow-y-auto pr-1">
+          @for (notification of unreadNotifications(); track notification.id) {
+          <div
+            class="w-full text-left rounded-xl border border-gray-200 bg-white p-3 transition-colors hover:border-[#ff8200] ">
+            <div class="flex items-start justify-between gap-3">
+              <div class="min-w-0">
+                <p class="font-medium text-sm text-gray-900 truncate">{{ notification.title }}</p>
+                <p class="text-xs text-gray-500 mt-1 line-clamp-2">{{ notification.message }}</p>
+              </div>
+              <div class="flex flex-col items-center">
+                <span
+                  class="shrink-0 rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-orange-700">
+                  Nuevo
+                </span>
+                <button class="mt-6 text-orange-600 p-2 h-fit hover:bg-orange-100 rounded-md hover:cursor-pointer" type="button" (click)="markAsRead(notification)" title="Marcar como leído">
+                  <lucide-icon name="check"></lucide-icon>
+                </button>
+              </div>
+            </div>
+            <p class="text-[11px] text-gray-400 mt-2">{{ formatNotificationDate(notification.createdAt) }}</p>
           </div>
+          }
+        </div>
         }
       </div>
     </app-popover>
@@ -74,7 +80,8 @@
         </div>
         <div class="flex flex-col min-w-32">
           <span class="font-light truncate">{{ (user$ | async)?.fullName || 'Usuario' }}</span>
-          <span class="font-semibold text-xs uppercase">{{ (user$ | async)?.roleName || ('NAV.ADMIN' | translate) }}</span>
+          <span class="font-semibold text-xs uppercase">{{ (user$ | async)?.roleName || ('NAV.ADMIN' | translate)
+            }}</span>
         </div>
         <div class="transition-colors flex my-auto p-2 hover:bg-gray-200 rounded-lg shrink-0">
           <lucide-icon name="chevron-down" size="24" strokeWidth="1.8"></lucide-icon>
