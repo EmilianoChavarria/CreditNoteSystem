@@ -1,12 +1,14 @@
-import { Component, Inject, PLATFORM_ID } from '@angular/core'; // Añade Inject y PLATFORM_ID
-import { isPlatformBrowser, AsyncPipe } from '@angular/common'; // Añade isPlatformBrowser
+import { AsyncPipe, isPlatformBrowser } from '@angular/common';
+import { Component, Inject, PLATFORM_ID, inject } from '@angular/core';
 import { AuthService } from '../../../core/services/auth-service';
+import { NotificationService } from '../../../core/services/notification-service';
 import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 import { Popover } from '../ui/popover/popover';
 import { LucideAngularModule } from 'lucide-angular';
 import { map, Observable } from 'rxjs';
 import { AuthUser } from '../../../core/services/auth-service';
 import { RouterLink } from "@angular/router";
+import { AppNotification } from '../../../data/interfaces/Notification';
 
 @Component({
     selector: 'app-navbar',
@@ -21,9 +23,12 @@ import { RouterLink } from "@angular/router";
 ],
 })
 export class Navbar {
+  private readonly notificationService = inject(NotificationService);
   private readonly isBrowser: boolean;
   public user$: Observable<AuthUser | null>;
   public userInitials$: Observable<string>;
+  readonly unreadNotifications = this.notificationService.unreadNotifications;
+  readonly unreadCount = this.notificationService.unreadCount;
 
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object,
@@ -60,6 +65,39 @@ export class Navbar {
       next: (response: any) => console.log(response),
       error: (error: any) => console.log(error)
     });
+  }
+
+  refreshNotifications(): void {
+    this.notificationService.refreshUnreadNotifications().subscribe({
+      error: (error) => console.error('[Navbar] Failed to refresh notifications:', error)
+    });
+  }
+
+  markAsRead(notification: AppNotification): void {
+    if (this.notificationService.isRead(notification)) {
+      return;
+    }
+
+    this.notificationService.markAsRead(notification.id).subscribe({
+      error: (error) => console.error('[Navbar] Failed to mark notification as read:', error)
+    });
+  }
+
+  formatNotificationDate(value?: string | null): string {
+    if (!value) {
+      return 'Reciente';
+    }
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+      return value;
+    }
+
+    return new Intl.DateTimeFormat(this.translate.currentLang || 'es', {
+      dateStyle: 'short',
+      timeStyle: 'short'
+    }).format(date);
   }
 
   private getInitials(fullName?: string): string {

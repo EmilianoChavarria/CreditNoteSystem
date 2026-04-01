@@ -12,30 +12,58 @@
       <button [class]="`${translate.currentLang === 'en' ? 'bg-[#ff8200] text-white rounded-md':''} px-1 transition-colors hover:cursor-pointer`">EN</button>
     </div>
 
-    <app-popover position="bottom-center" width="350px">
+    <app-popover position="bottom-center" width="380px">
       <div trigger
+        (click)="refreshNotifications()"
         class="transition-colors flex flex-row gap-x-2 items-center justify-center hover:bg-gray-200 px-4 py-2 hover:cursor-pointer rounded-lg whitespace-nowrap">
         <span class="min-w-24">{{ 'NAV.NOTIFICATIONS' | translate }}</span>
         <div class="relative flex">
           <lucide-icon name="bell" size="24" strokeWidth="1.8" class="mr-1 mt-0.5"></lucide-icon>
-          <span
-            class="absolute inset-y-0 end-0 h-4 w-4 bg-[#ff8200] rounded-full flex items-center justify-center text-white text-[10px]">
-            2
-          </span>
+          @if (unreadCount() > 0) {
+            <span
+              class="absolute inset-y-0 end-0 h-4 min-w-4 px-1 bg-[#ff8200] rounded-full flex items-center justify-center text-white text-[10px]">
+              {{ unreadCount() }}
+            </span>
+          }
         </div>
       </div>
 
       <div content class="p-4">
-        <h3 class="font-semibold text-lg mb-3 border-b pb-2">{{ 'NAV.NOTIFICATIONS' | translate }}</h3>
-        <div class="space-y-3">
-          <div class="hover:bg-gray-50 p-3 rounded-lg cursor-pointer border-l-4 border-[#ff8200]">
-            <p class="font-medium text-sm">Nueva solicitud pendiente</p>
-            <p class="text-xs text-gray-500 mt-1">Hace 5 minutos</p>
+        <div class="flex items-start justify-between gap-4 border-b pb-3 mb-3">
+          <div>
+            <h3 class="font-semibold text-lg leading-6">{{ 'NAV.NOTIFICATIONS' | translate }}</h3>
+            <p class="text-xs text-gray-500 mt-1">{{ unreadCount() }} sin leer</p>
           </div>
+          <a routerLink="/app/notifications" class="text-sm text-orange-600 hover:text-orange-700 font-medium">
+            {{ 'NAV.SEE_ALL' | translate }}
+          </a>
         </div>
-        <button class="w-full mt-3 text-center text-sm text-orange-600 hover:text-orange-700 font-medium py-2">
-          {{ 'NAV.SEE_ALL' | translate }}
-        </button>
+
+        @if (unreadNotifications().length === 0) {
+          <div class="rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-5 text-sm text-gray-500">
+            No tienes notificaciones nuevas.
+          </div>
+        } @else {
+          <div class="space-y-2 max-h-80 overflow-y-auto pr-1">
+            @for (notification of unreadNotifications(); track notification.id) {
+              <button
+                type="button"
+                (click)="markAsRead(notification)"
+                class="w-full text-left rounded-xl border border-gray-200 bg-white p-3 transition-colors hover:border-[#ff8200] hover:bg-orange-50/60">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="min-w-0">
+                    <p class="font-medium text-sm text-gray-900 truncate">{{ notification.title }}</p>
+                    <p class="text-xs text-gray-500 mt-1 line-clamp-2">{{ notification.message }}</p>
+                  </div>
+                  <span class="shrink-0 rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-orange-700">
+                    Nuevo
+                  </span>
+                </div>
+                <p class="text-[11px] text-gray-400 mt-2">{{ formatNotificationDate(notification.createdAt) }}</p>
+              </button>
+            }
+          </div>
+        }
       </div>
     </app-popover>
 
