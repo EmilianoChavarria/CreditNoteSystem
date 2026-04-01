@@ -26,6 +26,7 @@ interface UploadedFileRow {
 interface BatchHistoryRow {
     idBatch: string;
     date: string;
+    batchType:string;
     status: string;
     requests: number;
     emitted: number;
@@ -507,6 +508,7 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
     private mapBatchToHistoryRow(batch: BatchSummary): BatchHistoryRow {
         return {
             idBatch: `BATCH-${String(batch.id).padStart(4, '0')}`,
+            batchType: batch.batchType,
             date: this.formatDate(batch.createdAt),
             status: batch.status,
             requests: batch.totalRecords,
