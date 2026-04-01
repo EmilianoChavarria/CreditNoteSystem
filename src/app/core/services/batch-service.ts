@@ -98,6 +98,48 @@ export class BatchService {
     );
   }
 
+  createUploadSupportBatch(
+    files: File[],
+    requestTypeId: number,
+    minRange: number,
+    maxRange: number,
+    bearerToken?: string,
+  ): Observable<BatchSummary | null> {
+    const resolvedBearer = bearerToken ?? this.resolveBearerToken();
+    const headers = resolvedBearer
+      ? new HttpHeaders({ Authorization: `Bearer ${resolvedBearer}` })
+      : undefined;
+
+    const formData = new FormData();
+    formData.append('batchType', 'uploadSupport');
+    formData.append('requestTypeId', String(requestTypeId));
+    formData.append('minRange', String(minRange));
+    formData.append('maxRange', String(maxRange));
+
+    files.forEach((file) => {
+      formData.append('file[]', file);
+    });
+
+    return this.httpClient.post<ApiResponse<unknown>>(
+      `${this.baseApiUrl}/batches`,
+      formData,
+      {
+        headers,
+        withCredentials: true,
+      }
+    ).pipe(
+      map((response) => {
+        const data = (response.data ?? {}) as Record<string, unknown>;
+        const batchCandidate = data['batch'] ?? data;
+        return this.toBatchSummary(batchCandidate);
+      }),
+      catchError((error) => {
+        console.error('Error creating uploadSupport batch', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
   getBatches(perPage = 15, page = 1, bearerToken?: string): Observable<PagePagination<BatchSummary>> {
     const options = this.buildOptions({ perPage, page }, bearerToken);
 
