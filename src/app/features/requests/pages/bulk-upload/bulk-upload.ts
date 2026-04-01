@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, inject, signal } from '@angular/core';
 import { JsonPipe } from '@angular/common';
 import { TabsContainer } from "../../../../shared/components/ui/tab/tab-container/tab-container";
 import { Tab } from "../../../../shared/components/ui/tab/tab";
@@ -14,6 +14,7 @@ import { BatchFinishedMessage, ReverbSocketService } from '../../../../core/serv
 import { ToastService } from '../../../../core/services/toast-service';
 import { RequestService } from '../../../../core/services/request-service';
 import { RequestType } from '../../../../data/interfaces/Request';
+import { ActivatedRoute } from '@angular/router';
 
 interface UploadedFileRow {
     name: string;
@@ -48,25 +49,36 @@ interface RequestHistoryRow {
     styleUrl: './bulk-upload.css',
     imports: [TabsContainer, Tab, AccordeonContainer, AccordeonItem, LucideAngularModule, Modal, Popover, JsonPipe]
 })
-export class BulkUpload implements OnInit, OnDestroy {
+export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
+
+    @ViewChild(TabsContainer) private tabsContainer?: TabsContainer;
 
     private readonly batchService = inject(BatchService);
     private readonly socketService = inject(ReverbSocketService);
     private readonly authService = inject(AuthService);
+    private readonly route = inject(ActivatedRoute);
     private readonly toastService = inject(ToastService);
     private readonly requestService = inject(RequestService);
     private readonly subscriptions: Subscription[] = [];
+    private pendingTabIndex: number | null = null;
 
     private readonly historyPerPage = 15;
     private readonly detailPerPage = 25;
 
 
     public isDragOver = signal(false);
+    public isSupportDragOver = signal(false);
+    public initialTabIndex = signal(0);
     public isCreatingBatch = signal(false);
+    public isCreatingSupportBatch = signal(false);
     public uploadedFiles = signal<UploadedFileRow[]>([]);
+    public supportUploadedFiles = signal<UploadedFileRow[]>([]);
     public availableRequestTypes = signal<RequestType[]>([]);
     public selectedRequestTypeId = signal<number | null>(null);
     public selectedBatchFile = signal<File | null>(null);
+    public supportFiles = signal<File[]>([]);
+    public supportMinRange = signal('');
+    public supportMaxRange = signal('');
     public isBatchDetailModalOpen = signal(false);
     public isLoadingHistory = signal(false);
     public isLoadingBatchDetail = signal(false);
@@ -85,11 +97,26 @@ export class BulkUpload implements OnInit, OnDestroy {
         this.loadBatches();
         this.socketService.connectToGlobalNotifications();
 
+        const routeSub = this.route.queryParamMap.subscribe((params) => {
+            const requestedTab = params.get('tab');
+            const nextTabIndex = requestedTab === 'bulk-history' ? 1 : 0;
+            this.applyTabIndex(nextTabIndex);
+        });
+
+        this.subscriptions.push(routeSub);
+
         const socketSub = this.socketService.batchFinished$.subscribe((message) => {
             this.handleBatchFinishedEvent(message);
         });
 
         this.subscriptions.push(socketSub);
+    }
+
+    ngAfterViewInit(): void {
+        if (this.pendingTabIndex !== null) {
+            this.tabsContainer?.selectTabByIndex(this.pendingTabIndex);
+            this.pendingTabIndex = null;
+        }
     }
 
     ngOnDestroy(): void {
@@ -112,9 +139,31 @@ export class BulkUpload implements OnInit, OnDestroy {
         this.appendFiles(event.dataTransfer?.files ?? null);
     }
 
+    onSupportDragOver(event: DragEvent): void {
+        event.preventDefault();
+        this.isSupportDragOver.set(true);
+    }
+
+    onSupportDragLeave(event: DragEvent): void {
+        event.preventDefault();
+        this.isSupportDragOver.set(false);
+    }
+
+    onSupportDrop(event: DragEvent): void {
+        event.preventDefault();
+        this.isSupportDragOver.set(false);
+        this.appendSupportFiles(event.dataTransfer?.files ?? null);
+    }
+
     onFileInputChange(event: Event): void {
         const input = event.target as HTMLInputElement;
         this.appendFiles(input.files);
+        input.value = '';
+    }
+
+    onSupportFileInputChange(event: Event): void {
+        const input = event.target as HTMLInputElement;
+        this.appendSupportFiles(input.files);
         input.value = '';
     }
 
@@ -141,6 +190,39 @@ export class BulkUpload implements OnInit, OnDestroy {
         this.uploadedFiles.set(nextRows);
     }
 
+    private appendSupportFiles(fileList: FileList | null): void {
+        if (!fileList || fileList.length === 0) {
+            return;
+        }
+
+        const currentFiles = [...this.supportFiles()];
+        const incomingFiles = Array.from(fileList);
+        const availableSlots = Math.max(0, 10 - currentFiles.length);
+
+        if (availableSlots === 0) {
+            this.toastService.warning('Solo se permiten hasta 10 archivos por batch de Upload Support.', 'Bulk Upload');
+            return;
+        }
+
+        const acceptedFiles = incomingFiles.slice(0, availableSlots);
+        const nextFiles = [...currentFiles, ...acceptedFiles];
+        this.supportFiles.set(nextFiles);
+
+        const nowLabel = new Date().toLocaleString('es-MX');
+        const nextRows = nextFiles.map((file) => ({
+            name: file.name,
+            sizeLabel: this.formatBytes(file.size),
+            type: file.type || 'N/A',
+            uploadedAt: nowLabel,
+        }));
+
+        this.supportUploadedFiles.set(nextRows);
+
+        if (incomingFiles.length > acceptedFiles.length) {
+            this.toastService.warning('Se agregaron solo 10 archivos maximo para Upload Support.', 'Bulk Upload');
+        }
+    }
+
     onRequestTypeChange(event: Event): void {
         const value = (event.target as HTMLSelectElement).value;
         const parsedId = Number(value);
@@ -151,6 +233,14 @@ export class BulkUpload implements OnInit, OnDestroy {
         }
 
         this.selectedRequestTypeId.set(parsedId);
+    }
+
+    onSupportMinRangeChange(event: Event): void {
+        this.supportMinRange.set((event.target as HTMLInputElement).value);
+    }
+
+    onSupportMaxRangeChange(event: Event): void {
+        this.supportMaxRange.set((event.target as HTMLInputElement).value);
     }
 
     createBatchFromUpload(): void {
@@ -190,6 +280,65 @@ export class BulkUpload implements OnInit, OnDestroy {
         this.subscriptions.push(subscription);
     }
 
+    createSupportBatchFromUpload(): void {
+        const requestTypeId = this.selectedRequestTypeId();
+        const minRange = Number(this.supportMinRange().trim());
+        const maxRange = Number(this.supportMaxRange().trim());
+        const files = this.supportFiles();
+
+        if (!requestTypeId) {
+            this.toastService.warning('Selecciona el Request Type.', 'Bulk Upload');
+            return;
+        }
+
+        if (!Number.isInteger(minRange) || !Number.isInteger(maxRange) || minRange <= 0 || maxRange <= 0) {
+            this.toastService.warning('Captura un rango valido (minRange y maxRange numericos).', 'Bulk Upload');
+            return;
+        }
+
+        if (minRange > maxRange) {
+            this.toastService.warning('El rango minimo no puede ser mayor al maximo.', 'Bulk Upload');
+            return;
+        }
+
+        if (files.length === 0) {
+            this.toastService.warning('Debes adjuntar al menos un archivo para Upload Support.', 'Bulk Upload');
+            return;
+        }
+
+        if (files.length > 10) {
+            this.toastService.warning('Solo se permiten hasta 10 archivos para Upload Support.', 'Bulk Upload');
+            return;
+        }
+
+        this.isCreatingSupportBatch.set(true);
+
+        const subscription = this.batchService
+            .createUploadSupportBatch(files, requestTypeId, minRange, maxRange)
+            .subscribe({
+                next: (batch) => {
+                    this.isCreatingSupportBatch.set(false);
+                    this.toastService.success(
+                        `Batch Upload Support creado correctamente${batch?.id ? ` (ID: ${batch.id})` : ''}.`,
+                        'Bulk Upload'
+                    );
+
+                    this.supportFiles.set([]);
+                    this.supportUploadedFiles.set([]);
+                    this.supportMinRange.set('');
+                    this.supportMaxRange.set('');
+                    this.loadBatches();
+                },
+                error: (error) => {
+                    this.isCreatingSupportBatch.set(false);
+                    const message = error?.error?.message ?? 'No se pudo crear el batch Upload Support.';
+                    this.toastService.error(message, 'Bulk Upload');
+                }
+            });
+
+        this.subscriptions.push(subscription);
+    }
+
     removeUploadedFile(index: number): void {
         const currentFiles = [...this.uploadedFiles()];
         if (index < 0 || index >= currentFiles.length) {
@@ -204,6 +353,25 @@ export class BulkUpload implements OnInit, OnDestroy {
         }
     }
 
+    removeSupportUploadedFile(index: number): void {
+        const currentFiles = [...this.supportFiles()];
+        if (index < 0 || index >= currentFiles.length) {
+            return;
+        }
+
+        currentFiles.splice(index, 1);
+        this.supportFiles.set(currentFiles);
+
+        const rows = currentFiles.map((file) => ({
+            name: file.name,
+            sizeLabel: this.formatBytes(file.size),
+            type: file.type || 'N/A',
+            uploadedAt: new Date().toLocaleString('es-MX')
+        }));
+
+        this.supportUploadedFiles.set(rows);
+    }
+
     private formatBytes(size: number): string {
         if (size < 1024) {
             return `${size} B`;
@@ -214,6 +382,18 @@ export class BulkUpload implements OnInit, OnDestroy {
         }
 
         return `${(size / (1024 * 1024)).toFixed(2)} MB`;
+    }
+
+    private applyTabIndex(index: number): void {
+        this.initialTabIndex.set(index);
+
+        if (this.tabsContainer) {
+            this.tabsContainer.selectTabByIndex(index);
+            this.pendingTabIndex = null;
+            return;
+        }
+
+        this.pendingTabIndex = index;
     }
 
     public openBatchDetail(batch: BatchHistoryRow): void {
