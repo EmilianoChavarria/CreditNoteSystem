@@ -7,7 +7,7 @@ import { Popover } from '../ui/popover/popover';
 import { LucideAngularModule } from 'lucide-angular';
 import { map, Observable } from 'rxjs';
 import { AuthUser } from '../../../core/services/auth-service';
-import { RouterLink } from "@angular/router";
+import { Router, RouterLink } from "@angular/router";
 import { AppNotification } from '../../../data/interfaces/Notification';
 
 @Component({
@@ -24,6 +24,7 @@ import { AppNotification } from '../../../data/interfaces/Notification';
 })
 export class Navbar {
   private readonly notificationService = inject(NotificationService);
+  private readonly router = inject(Router);
   private readonly isBrowser: boolean;
   public user$: Observable<AuthUser | null>;
   public userInitials$: Observable<string>;
@@ -67,7 +68,9 @@ export class Navbar {
     });
   }
 
-  markAsRead(notification: AppNotification): void {
+  markAsRead(notification: AppNotification, event?: Event): void {
+    event?.stopPropagation();
+
     if (this.notificationService.isRead(notification)) {
       return;
     }
@@ -75,6 +78,24 @@ export class Navbar {
     this.notificationService.markAsRead(notification.id).subscribe({
       error: (error) => console.error('[Navbar] Failed to mark notification as read:', error)
     });
+  }
+
+  openNotification(notification: AppNotification): void {
+    const routePath = this.isBulkUploadNotification(notification)
+      ? ['/app/request/bulk-upload']
+      : ['/app/notifications'];
+
+    const queryParams = this.isBulkUploadNotification(notification)
+      ? this.buildBulkHistoryQuery(notification)
+      : undefined;
+
+    this.router.navigate(routePath, { queryParams }).catch((error) => {
+      console.error('[Navbar] Notification navigation failed:', error);
+    });
+
+    if (!this.notificationService.isRead(notification)) {
+      this.markAsRead(notification);
+    }
   }
 
   formatNotificationDate(value?: string | null): string {
@@ -104,5 +125,38 @@ export class Navbar {
     const second = names[1]?.[0] ?? '';
 
     return `${first}${second}`.toUpperCase();
+  }
+
+  private isBulkUploadNotification(notification: AppNotification): boolean {
+    const raw = notification as Record<string, unknown>;
+    const composedText = [
+      String(notification.type ?? ''),
+      String(notification.title ?? ''),
+      String(notification.message ?? ''),
+      String(raw['event'] ?? ''),
+      String(raw['category'] ?? ''),
+    ].join(' ').toLowerCase();
+
+    return composedText.includes('batch') || composedText.includes('bulk');
+  }
+
+  private buildBulkHistoryQuery(notification: AppNotification): Record<string, string | number> {
+    const raw = notification as Record<string, unknown>;
+    const data = (raw['data'] ?? null) as Record<string, unknown> | null;
+    const batch = (raw['batch'] ?? null) as Record<string, unknown> | null;
+    const batchId = raw['batchId']
+      ?? raw['batch_id']
+      ?? data?.['batchId']
+      ?? data?.['batch_id']
+      ?? batch?.['id'];
+
+    if (batchId === undefined || batchId === null || String(batchId).length === 0) {
+      return { tab: 'bulk-history' };
+    }
+
+    return {
+      tab: 'bulk-history',
+      batchId: String(batchId),
+    };
   }
 }
