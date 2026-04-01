@@ -32,7 +32,7 @@
 					type="button"
 					class="notification-card"
 					[class.unread]="!notification.isRead"
-					(click)="markAsRead(notification)">
+					(click)="openNotification(notification)">
 					<div class="notification-card__header">
 						<div class="notification-card__title-group">
 							<h2>{{ notification.title }}</h2>

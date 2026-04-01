@@ -1,4 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { NotificationService } from '../../core/services/notification-service';
 import { AppNotification } from '../../data/interfaces/Notification';
 
@@ -8,6 +9,7 @@ import { AppNotification } from '../../data/interfaces/Notification';
     styleUrl: './notifications.css',
 })
 export class Notifications implements OnInit {
+    private readonly router = inject(Router);
     private readonly notificationService = inject(NotificationService);
 
     readonly notifications = this.notificationService.notifications;
@@ -35,6 +37,20 @@ export class Notifications implements OnInit {
         });
     }
 
+    openNotification(notification: AppNotification): void {
+        const isBulkNotification = this.isBulkUploadNotification(notification);
+        const routePath = isBulkNotification ? ['/app/request/bulk-upload'] : ['/app/notifications'];
+        const queryParams = isBulkNotification ? this.buildBulkHistoryQuery(notification) : undefined;
+
+        this.router.navigate(routePath, { queryParams }).catch((error) => {
+            console.error('[Notifications Component] Notification navigation failed:', error);
+        });
+
+        if (!this.notificationService.isRead(notification)) {
+            this.markAsRead(notification);
+        }
+    }
+
     trackByNotificationId(_: number, notification: AppNotification): string {
         return String(notification.id);
     }
@@ -54,6 +70,39 @@ export class Notifications implements OnInit {
             dateStyle: 'medium',
             timeStyle: 'short',
         }).format(date);
+    }
+
+    private isBulkUploadNotification(notification: AppNotification): boolean {
+        const raw = notification as Record<string, unknown>;
+        const composedText = [
+            String(notification.type ?? ''),
+            String(notification.title ?? ''),
+            String(notification.message ?? ''),
+            String(raw['event'] ?? ''),
+            String(raw['category'] ?? ''),
+        ].join(' ').toLowerCase();
+
+        return composedText.includes('batch') || composedText.includes('bulk');
+    }
+
+    private buildBulkHistoryQuery(notification: AppNotification): Record<string, string | number> {
+        const raw = notification as Record<string, unknown>;
+        const data = (raw['data'] ?? null) as Record<string, unknown> | null;
+        const batch = (raw['batch'] ?? null) as Record<string, unknown> | null;
+        const batchId = raw['batchId']
+            ?? raw['batch_id']
+            ?? data?.['batchId']
+            ?? data?.['batch_id']
+            ?? batch?.['id'];
+
+        if (batchId === undefined || batchId === null || String(batchId).length === 0) {
+            return { tab: 'bulk-history' };
+        }
+
+        return {
+            tab: 'bulk-history',
+            batchId: String(batchId),
+        };
     }
 
 }
