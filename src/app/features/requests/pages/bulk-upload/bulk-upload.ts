@@ -9,6 +9,7 @@ import { Modal } from "../../../../shared/components/ui/modal/modal";
 import { Popover } from "../../../../shared/components/ui/popover/popover";
 import { Subscription } from 'rxjs';
 import { BatchErrorLog, BatchRequestItem, BatchService, BatchSummary } from '../../../../core/services/batch-service';
+import { AuthService } from '../../../../core/services/auth-service';
 import { BatchFinishedMessage, ReverbSocketService } from '../../../../core/services/reverb-socket-service';
 import { ToastService } from '../../../../core/services/toast-service';
 import { RequestService } from '../../../../core/services/request-service';
@@ -51,6 +52,7 @@ export class BulkUpload implements OnInit, OnDestroy {
 
     private readonly batchService = inject(BatchService);
     private readonly socketService = inject(ReverbSocketService);
+    private readonly authService = inject(AuthService);
     private readonly toastService = inject(ToastService);
     private readonly requestService = inject(RequestService);
     private readonly subscriptions: Subscription[] = [];
@@ -92,7 +94,6 @@ export class BulkUpload implements OnInit, OnDestroy {
 
     ngOnDestroy(): void {
         this.subscriptions.forEach((subscription) => subscription.unsubscribe());
-        this.socketService.disconnect();
     }
 
     onDragOver(event: DragEvent): void {
@@ -369,8 +370,13 @@ export class BulkUpload implements OnInit, OnDestroy {
     }
 
     private handleBatchFinishedEvent(message: BatchFinishedMessage): void {
-        const eventName = String(message.event ?? '');
+        const eventName = this.resolveEventName(message);
         if (eventName !== 'batch.finished') {
+            return;
+        }
+
+        const currentUserId = this.authService.getCurrentUser()?.id;
+        if (!this.isTargetedToCurrentUser(message, currentUserId)) {
             return;
         }
 
@@ -385,6 +391,46 @@ export class BulkUpload implements OnInit, OnDestroy {
             this.loadBatchDetail(selectedId);
             this.loadBatchRequests(selectedId);
         }
+    }
+
+    private isTargetedToCurrentUser(message: BatchFinishedMessage, currentUserId?: number): boolean {
+        const payloadTarget = this.extractTargetUserId(message);
+
+        if (payloadTarget === undefined || payloadTarget === null || payloadTarget === '') {
+            // If backend emits global batch updates without target user, refresh anyway.
+            return true;
+        }
+
+        if (typeof currentUserId !== 'number') {
+            // Fail-open to avoid losing realtime updates when user state has not hydrated yet.
+            return true;
+        }
+
+        return String(payloadTarget) === String(currentUserId);
+    }
+
+    private extractTargetUserId(message: BatchFinishedMessage): unknown {
+        const recordMessage = message as Record<string, unknown>;
+        const data = (recordMessage['data'] ?? null) as Record<string, unknown> | null;
+        const batch = (recordMessage['batch'] ?? null) as Record<string, unknown> | null;
+
+        return message.targetUserId
+            ?? message.target_user_id
+            ?? data?.['targetUserId']
+            ?? data?.['target_user_id']
+            ?? batch?.['targetUserId']
+            ?? batch?.['target_user_id'];
+    }
+
+    private resolveEventName(message: BatchFinishedMessage): string {
+        const rootEvent = String(message.event ?? '');
+        if (rootEvent.length > 0) {
+            return rootEvent;
+        }
+
+        const recordMessage = message as Record<string, unknown>;
+        const data = (recordMessage['data'] ?? null) as Record<string, unknown> | null;
+        return String(data?.['event'] ?? '');
     }
 
     private formatDate(value: string): string {
