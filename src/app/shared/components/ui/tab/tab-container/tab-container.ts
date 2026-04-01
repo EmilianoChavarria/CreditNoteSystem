@@ -63,6 +63,7 @@ export class TabsContainer implements AfterContentInit, OnDestroy {
   readonly onSaveDraft = output<void>();
   readonly showBottomButtons = input<boolean>(true);
   readonly registerDisabled = input<boolean>(false);
+  readonly initialTabIndex = input<number>(0);
   selectedIndex: number = 0;
   private tabsSubscription?: Subscription;
 
@@ -84,8 +85,7 @@ export class TabsContainer implements AfterContentInit, OnDestroy {
 
   private initializeTabs() {
     if (this.tabs && this.tabs.length > 0) {
-      this.selectedIndex = 0;
-      this.selectTab(this.tabs.first, 0);
+      this.selectTabByIndex(this.initialTabIndex());
     }
   }
 
@@ -93,6 +93,16 @@ export class TabsContainer implements AfterContentInit, OnDestroy {
     this.tabs.toArray().forEach(t => t.active = false);
     tab.active = true;
     this.selectedIndex = index;
+  }
+
+  selectTabByIndex(index: number): void {
+    if (!this.tabs || this.tabs.length === 0) {
+      return;
+    }
+
+    const maxIndex = this.tabs.length - 1;
+    const resolvedIndex = Math.max(0, Math.min(index, maxIndex));
+    this.selectTab(this.tabs.toArray()[resolvedIndex], resolvedIndex);
   }
 
   next() {
