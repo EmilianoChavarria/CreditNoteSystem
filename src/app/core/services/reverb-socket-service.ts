@@ -29,6 +29,8 @@ export interface BatchFinishedMessage extends IncomingSocketMessage {
   title?: string;
   type?: string;
   batch?: BatchInfo;
+  targetUserId?: number | string;
+  target_user_id?: number | string;
 }
 
 export interface BroadcastPayload {
@@ -57,6 +59,8 @@ interface EchoChannelLike {
   stopListening(event: string): EchoChannelLike;
 }
 
+type UnknownRecord = Record<string, unknown>;
+
 @Injectable({
   providedIn: 'root'
 })
@@ -66,15 +70,19 @@ export class ReverbSocketService {
   private readonly wsHost = '192.168.2.52';
   private readonly wsPort = 8080;
   private readonly channelName = 'notifications.global';
-  private readonly eventName = '.socket.message.sent';
+  private readonly eventName = 'socket.message.sent';
+  private readonly legacyEventName = '.socket.message.sent';
+  private readonly notificationEventName = 'notification.created';
   private readonly broadcastEndpoint = 'http://192.168.2.52:8000/api/socket/broadcast';
 
   private echo: Echo<'reverb'> | null = null;
   private channel: EchoChannelLike | null = null;
   private readonly messagesSubject = new Subject<IncomingSocketMessage>();
+  private readonly notificationCreatedSubject = new Subject<IncomingSocketMessage>();
   private readonly batchFinishedSubject = new Subject<BatchFinishedMessage>();
 
   readonly messages$: Observable<IncomingSocketMessage> = this.messagesSubject.asObservable();
+  readonly notificationCreated$: Observable<IncomingSocketMessage> = this.notificationCreatedSubject.asObservable();
   readonly batchFinished$: Observable<BatchFinishedMessage> = this.batchFinishedSubject.asObservable();
   readonly messages = signal<IncomingSocketMessage[]>([]);
   readonly lastMessage = signal<IncomingSocketMessage | null>(null);
@@ -118,6 +126,8 @@ export class ReverbSocketService {
     try {
       if (this.channel) {
         this.channel.stopListening(this.eventName);
+        this.channel.stopListening(this.legacyEventName);
+        this.channel.stopListening(this.notificationEventName);
       }
 
       this.echo.leave(this.channelName);
@@ -156,7 +166,7 @@ export class ReverbSocketService {
     }
 
     this.channel = this.echo.channel(this.channelName) as unknown as EchoChannelLike;
-    this.channel.listen(this.eventName, (payload: IncomingSocketMessage) => {
+    const onSocketMessage = (payload: IncomingSocketMessage): void => {
       this.lastMessage.set(payload);
       this.messages.update((current) => [payload, ...current].slice(0, 50));
       this.messagesSubject.next(payload);
@@ -166,9 +176,17 @@ export class ReverbSocketService {
       }
 
       console.info('[Reverb] Incoming message:', payload);
+    };
+
+    this.channel.listen(this.eventName, onSocketMessage);
+    this.channel.listen(this.legacyEventName, onSocketMessage);
+
+    this.channel.listen(this.notificationEventName, (payload: IncomingSocketMessage) => {
+      this.notificationCreatedSubject.next(payload);
+      console.info('[Reverb] Incoming notification:', payload);
     });
 
-    console.info(`[Reverb] Listening ${this.channelName} :: ${this.eventName}`);
+    console.info(`[Reverb] Listening ${this.channelName} :: ${this.eventName} (+ legacy ${this.legacyEventName})`);
   }
 
   private bindConnectionEvents(): void {
@@ -220,6 +238,16 @@ export class ReverbSocketService {
   }
 
   private isBatchFinishedMessage(payload: IncomingSocketMessage): payload is BatchFinishedMessage {
-    return payload['event'] === 'batch.finished';
+    const rootEvent = String(payload['event'] ?? '');
+    if (rootEvent === 'batch.finished') {
+      return true;
+    }
+
+    const data = (payload as UnknownRecord)['data'];
+    if (!data || typeof data !== 'object') {
+      return false;
+    }
+
+    return String((data as UnknownRecord)['event'] ?? '') === 'batch.finished';
   }
 }
