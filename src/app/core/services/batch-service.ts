@@ -7,6 +7,8 @@ import { HttpService, RequestOptions } from './http-service';
 export interface BatchSummary {
   id: number | string;
   batchType: string;
+  requestTypeId?: number | null;
+  requestTypeName?: string | null;
   status: string;
   totalRecords: number;
   processedRecords: number;
@@ -140,8 +142,8 @@ export class BatchService {
     );
   }
 
-  getBatches(perPage = 15, page = 1, bearerToken?: string): Observable<PagePagination<BatchSummary>> {
-    const options = this.buildOptions({ perPage, page }, bearerToken);
+  getBatches(perPage = 15, page = 1, requestTypeId?: number, bearerToken?: string): Observable<PagePagination<BatchSummary>> {
+    const options = this.buildOptions({ perPage, page, requestTypeId }, bearerToken);
 
     return this.httpService.get<PagePagination<BatchSummary>>('/batches', options).pipe(
       map((response: ApiResponse<PagePagination<BatchSummary>>) => this.toPagination<BatchSummary>(response.data)),
@@ -188,12 +190,15 @@ export class BatchService {
     );
   }
 
-  private buildOptions(params: { perPage: number; page: number }, bearerToken?: string): RequestOptions {
+  private buildOptions(params: Record<string, string | number | boolean | null | undefined>, bearerToken?: string): RequestOptions {
     const resolvedBearer = bearerToken ?? this.resolveBearerToken();
     const headers = resolvedBearer ? { Authorization: `Bearer ${resolvedBearer}` } : undefined;
+    const sanitizedParams = Object.fromEntries(
+      Object.entries(params).filter(([, value]) => value !== undefined && value !== null && value !== '')
+    ) as Record<string, string | number | boolean>;
 
     return {
-      params,
+      params: sanitizedParams,
       headers,
     };
   }
@@ -234,6 +239,16 @@ export class BatchService {
     return {
       id: (raw['id'] as number | string) ?? '',
       batchType: String(raw['batchType'] ?? ''),
+      requestTypeId: raw['requestTypeId'] !== undefined
+        ? Number(raw['requestTypeId'])
+        : raw['request_type_id'] !== undefined
+          ? Number(raw['request_type_id'])
+          : null,
+      requestTypeName: raw['requestTypeName'] !== undefined
+        ? String(raw['requestTypeName'])
+        : raw['request_type_name'] !== undefined
+          ? String(raw['request_type_name'])
+          : null,
       status: String(raw['status'] ?? ''),
       totalRecords: Number(raw['totalRecords'] ?? 0),
       processedRecords: Number(raw['processedRecords'] ?? 0),
