@@ -153,6 +153,42 @@ export interface RequestHistoryData {
   };
 }
 
+export interface RequestAttachment {
+  id: number;
+  requestId?: number;
+  request_id?: number;
+  fileName?: string;
+  file_name?: string;
+  originalName?: string;
+  original_name?: string;
+  name?: string;
+  mimeType?: string;
+  mime_type?: string;
+  size?: number;
+  fileSize?: number;
+  file_size?: number;
+  url?: string;
+  fileUrl?: string;
+  file_url?: string;
+  path?: string;
+  createdAt?: string;
+  created_at?: string;
+}
+
+interface RequestAttachmentsPayload {
+  requestId?: number;
+  request_id?: number;
+  total?: number;
+  attachments?: RequestAttachment[];
+}
+
+interface RequestAttachmentFilePayload {
+  fileUrl?: string;
+  file_url?: string;
+  url?: string;
+  path?: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -435,6 +471,51 @@ export class RequestService {
         throw error;
       })
     )
+  }
+
+  getRequestAttachments(requestId: number): Observable<RequestAttachment[]> {
+    return this._httpService.get<RequestAttachment[] | RequestAttachmentsPayload>(`/requests/${requestId}/attachments`).pipe(
+      map((response: ApiResponse<RequestAttachment[] | RequestAttachmentsPayload>) => {
+        const payload = response.data;
+
+        if (Array.isArray(payload)) {
+          return payload;
+        }
+
+        if (payload?.attachments && Array.isArray(payload.attachments)) {
+          return payload.attachments;
+        }
+
+        return [];
+      }),
+      catchError((error) => {
+        console.log(error);
+        throw error;
+      })
+    );
+  }
+
+  getRequestAttachmentFileUrl(attachmentId: number): Observable<string | null> {
+    return this._httpService.get<RequestAttachmentFilePayload>(`/requests/attachments/${attachmentId}`).pipe(
+      map((response: ApiResponse<RequestAttachmentFilePayload>) => {
+        const payload = response.data;
+        return payload?.fileUrl ?? payload?.file_url ?? payload?.url ?? payload?.path ?? null;
+      }),
+      catchError((error) => {
+        console.log(error);
+        throw error;
+      })
+    );
+  }
+
+  deleteRequestAttachment(requestId: number, attachmentId: number): Observable<boolean> {
+    return this._httpService.delete<boolean>(`/requests/${requestId}/attachments/${attachmentId}`).pipe(
+      map((response: ApiResponse<boolean>) => Boolean(response.success)),
+      catchError((error) => {
+        console.log(error);
+        throw error;
+      })
+    );
   }
 
 }
