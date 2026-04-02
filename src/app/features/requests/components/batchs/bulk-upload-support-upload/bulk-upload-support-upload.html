@@ -1,0 +1,90 @@
+<accordeon-item titleM="Upload support" description="Adjunta 1 a 10 archivos a solicitudes por rango/consecutivo">
+    <div class="w-full flex flex-col p-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+
+            <div class="flex flex-col gap-1">
+                <span class="text-sm font-medium text-[#395f93]">Min range <span class="text-red-500">*</span></span>
+                <input
+                    type="number"
+                    min="1"
+                    placeholder="10"
+                    class="h-10 border border-gray-300 rounded-md px-2"
+                    [value]="minRange()"
+                    (input)="onMinRangeChange($event)" />
+            </div>
+
+            <div class="flex flex-col gap-1">
+                <span class="text-sm font-medium text-[#395f93]">Max range <span class="text-red-500">*</span></span>
+                <input
+                    type="number"
+                    min="1"
+                    placeholder="20"
+                    class="h-10 border border-gray-300 rounded-md px-2"
+                    [value]="maxRange()"
+                    (input)="onMaxRangeChange($event)" />
+            </div>
+
+            <button
+                type="button"
+                (click)="createBatch()"
+                [disabled]="isCreatingBatch()"
+                class="bg-[#395f93] text-white rounded-md px-4 py-2 hover:cursor-pointer hover:bg-[#4d6ea5] disabled:opacity-70 disabled:cursor-not-allowed">
+                {{ isCreatingBatch() ? 'Enviando...' : 'Procesar Upload Support' }}
+            </button>
+        </div>
+
+        <p class="text-xs text-gray-500 mt-3">Se enviara como <strong>batchType=uploadSupport</strong> usando <strong>file[]</strong> (maximo 10 archivos).</p>
+
+        <div class="flex items-center justify-center w-full mt-4">
+            <label for="dropzone-file-support"
+                class="flex flex-col items-center justify-center w-full h-56 bg-blue-50 border border-dashed bg-cover border-default-strong border-blue-600 rounded-md cursor-pointer hover:bg-neutral-tertiary-medium"
+                [class.bg-blue-100]="isDragOver()" [class.border-[#ff8200]]="isDragOver()"
+                (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)"
+                (drop)="onDrop($event)">
+                <div class="flex flex-col items-center justify-center text-body pt-5 pb-6">
+                    <img src="assets/svg/cloud.svg" alt="Logo" class="h-24 my-4">
+                    <p class="mb-2 text-base">
+                        Drag and drop files here or
+                        <span class="font-semibold text-[#ff8200]">Click to upload</span>
+                    </p>
+                </div>
+                <input id="dropzone-file-support" type="file" class="hidden" multiple
+                    (change)="onFileInputChange($event)" />
+            </label>
+        </div>
+
+        @if (uploadedFiles().length > 0) {
+        <div class="w-full mt-4 overflow-x-auto rounded-md border border-gray-200">
+            <table class="w-full min-w-175 border-collapse">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="border-b border-gray-200 px-4 py-2 text-left text-xs font-semibold text-gray-600">Nombre del archivo</th>
+                        <th class="border-b border-gray-200 px-4 py-2 text-left text-xs font-semibold text-gray-600">Tamaño</th>
+                        <th class="border-b border-gray-200 px-4 py-2 text-left text-xs font-semibold text-gray-600">Tipo</th>
+                        <th class="border-b border-gray-200 px-4 py-2 text-left text-xs font-semibold text-gray-600">Subido el</th>
+                        <th class="border-b border-gray-200 px-4 py-2 text-left text-xs font-semibold text-gray-600">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (file of uploadedFiles(); track file.name + file.uploadedAt + file.sizeLabel) {
+                    <tr class="hover:bg-gray-50">
+                        <td class="border-b border-gray-100 px-4 py-2 text-sm text-gray-700">{{ file.name }}</td>
+                        <td class="border-b border-gray-100 px-4 py-2 text-sm text-gray-700">{{ file.sizeLabel }}</td>
+                        <td class="border-b border-gray-100 px-4 py-2 text-sm text-gray-700">{{ file.type }}</td>
+                        <td class="border-b border-gray-100 px-4 py-2 text-sm text-gray-700">{{ file.uploadedAt }}</td>
+                        <td class="border-b border-gray-100 px-4 py-2 text-gray-700">
+                            <button
+                                type="button"
+                                (click)="removeUploadedFile($index)"
+                                class="p-1 text-[#fb2c36] bg-[#fb2c361a] rounded-md hover:cursor-pointer">
+                                <lucide-icon name="trash" size="18"></lucide-icon>
+                            </button>
+                        </td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        }
+    </div>
+</accordeon-item>
