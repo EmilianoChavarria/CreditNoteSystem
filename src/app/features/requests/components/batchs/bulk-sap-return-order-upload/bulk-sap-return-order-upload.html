@@ -1,0 +1,92 @@
+@if (isAllowed()) {
+<accordeon-item titleM="Upload SAP Return Order" description="Carga masiva de archivos de SAP Return Order (imágenes, Word, PDF)">
+    <div class="w-full flex flex-col p-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+            <div class="flex flex-col gap-1 min-w-44">
+                <span class="text-sm font-medium text-[#395f93]">Batch Type</span>
+                <input
+                    type="text"
+                    value="sapReturnOrder"
+                    disabled
+                    class="h-10 border border-gray-200 rounded-md px-2 bg-gray-100 text-gray-600" />
+            </div>
+
+            <div class="flex flex-col gap-1">
+                <span class="text-sm font-medium text-[#395f93]">Formatos</span>
+                <input
+                    type="text"
+                    value="Imágenes, Word, PDF"
+                    disabled
+                    class="h-10 border border-gray-200 rounded-md px-2 bg-gray-100 text-gray-600" />
+            </div>
+
+            <button
+                type="button"
+                (click)="createBatch()"
+                [disabled]="isCreatingBatch() || isPollingBatch()"
+                class="h-10 bg-[#395f93] text-white rounded-md px-4 py-2 hover:cursor-pointer hover:bg-[#4d6ea5] disabled:opacity-70 disabled:cursor-not-allowed">
+                {{ isCreatingBatch() || isPollingBatch() ? 'Procesando...' : 'Procesar Archivos' }}
+            </button>
+        </div>
+
+        <p class="text-xs text-gray-500 mt-3">
+            Se enviaran archivos como <strong>batchType=sapReturnOrder</strong> con el archivo y el
+            <strong>requestTypeId</strong> seleccionado. Se leerá el nombre del archivo para asignar a la solicitud correspondiente.
+        </p>
+
+        <div class="flex items-center justify-center w-full mt-4">
+            <label for="dropzone-file-sap-return-order"
+                class="flex flex-col items-center justify-center w-full h-56 bg-blue-50 border border-dashed bg-cover border-default-strong border-blue-600 rounded-md cursor-pointer hover:bg-neutral-tertiary-medium"
+                [class.bg-blue-100]="isDragOver()" [class.border-[#ff8200]]="isDragOver()"
+                (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)"
+                (drop)="onDrop($event)">
+                <div class="flex flex-col items-center justify-center text-body pt-5 pb-6">
+                    <img src="assets/svg/cloud.svg" alt="Logo" class="h-24 my-4">
+                    <p class="mb-2 text-base">
+                        Drag and drop files here or
+                        <span class="font-semibold text-[#ff8200]">Click to upload</span>
+                    </p>
+                    <p class="text-xs text-gray-500">Sin límite de archivos. Formatos: JPG, PNG, GIF, WebP, BMP, SVG, DOC, DOCX, PDF</p>
+                </div>
+                <input id="dropzone-file-sap-return-order" type="file" class="hidden" multiple
+                    accept=".jpg,.jpeg,.png,.gif,.webp,.bmp,.svg,.doc,.docx,.pdf,image/jpeg,image/png,image/gif,image/webp,image/bmp,image/svg+xml,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/pdf"
+                    (change)="onFileInputChange($event)" />
+            </label>
+        </div>
+
+        @if (uploadedFiles().length > 0) {
+        <div class="w-full mt-4 overflow-x-auto rounded-md border border-gray-200">
+            <table class="w-full min-w-175 border-collapse">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="border-b border-gray-200 px-4 py-2 text-left text-xs font-semibold text-gray-600">Nombre del archivo</th>
+                        <th class="border-b border-gray-200 px-4 py-2 text-left text-xs font-semibold text-gray-600">Tamaño</th>
+                        <th class="border-b border-gray-200 px-4 py-2 text-left text-xs font-semibold text-gray-600">Tipo</th>
+                        <th class="border-b border-gray-200 px-4 py-2 text-left text-xs font-semibold text-gray-600">Subido el</th>
+                        <th class="border-b border-gray-200 px-4 py-2 text-left text-xs font-semibold text-gray-600">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (file of uploadedFiles(); track file.name + file.uploadedAt + file.sizeLabel) {
+                    <tr class="hover:bg-gray-50">
+                        <td class="border-b border-gray-100 px-4 py-2 text-sm text-gray-700">{{ file.name }}</td>
+                        <td class="border-b border-gray-100 px-4 py-2 text-sm text-gray-700">{{ file.sizeLabel }}</td>
+                        <td class="border-b border-gray-100 px-4 py-2 text-sm text-gray-700">{{ file.type }}</td>
+                        <td class="border-b border-gray-100 px-4 py-2 text-sm text-gray-700">{{ file.uploadedAt }}</td>
+                        <td class="border-b border-gray-100 px-4 py-2 text-gray-700">
+                            <button
+                                type="button"
+                                (click)="removeUploadedFile($index)"
+                                class="p-1 text-[#fb2c36] bg-[#fb2c361a] rounded-md hover:cursor-pointer">
+                                <lucide-icon name="trash" size="18"></lucide-icon>
+                            </button>
+                        </td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        }
+    </div>
+</accordeon-item>
+}
