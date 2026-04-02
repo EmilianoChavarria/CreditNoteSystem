@@ -1,13 +1,8 @@
 import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, inject, signal } from '@angular/core';
-import { JsonPipe } from '@angular/common';
 import { TabsContainer } from "../../../../shared/components/ui/tab/tab-container/tab-container";
 import { Tab } from "../../../../shared/components/ui/tab/tab";
 import { AccordeonContainer } from "../../../../shared/components/ui/accordeon/accordeon-container";
-import { AccordeonItem } from "../../../../shared/components/ui/accordeon/accordeon-item";
-import { LucideAngularModule } from "lucide-angular";
-import { Modal } from "../../../../shared/components/ui/modal/modal";
-import { Popover } from "../../../../shared/components/ui/popover/popover";
-import { Subscription, switchMap, takeWhile, timer } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { BatchErrorLog, BatchRequestItem, BatchService, BatchSummary } from '../../../../core/services/batch-service';
 import { AuthService } from '../../../../core/services/auth-service';
 import { BatchFinishedMessage, ReverbSocketService } from '../../../../core/services/reverb-socket-service';
@@ -15,13 +10,14 @@ import { ToastService } from '../../../../core/services/toast-service';
 import { RequestService } from '../../../../core/services/request-service';
 import { RequestType } from '../../../../data/interfaces/Request';
 import { ActivatedRoute } from '@angular/router';
-
-interface UploadedFileRow {
-    name: string;
-    sizeLabel: string;
-    type: string;
-    uploadedAt: string;
-}
+import { BulkNewRequestsUpload } from '../../components/batchs/bulk-new-requests-upload/bulk-new-requests-upload';
+import { BulkUploadSupportUpload } from '../../components/batchs/bulk-upload-support-upload/bulk-upload-support-upload';
+import { BulkCreditsDataUpload } from '../../components/batchs/bulk-credits-data-upload/bulk-credits-data-upload';
+import { BulkOrderNumbersUpload } from '../../components/batchs/bulk-order-numbers-upload/bulk-order-numbers-upload';
+import { BulkSapReturnOrderUpload } from '../../components/batchs/bulk-sap-return-order-upload/bulk-sap-return-order-upload';
+import { BulkHistoryTab } from '../../components/batchs/bulk-history-tab/bulk-history-tab';
+import { BatchRequestsModal } from '../../components/batchs/batch-requests-modal/batch-requests-modal';
+import { RequestErrorModal } from '../../components/batchs/request-error-modal/request-error-modal';
 
 interface BatchHistoryRow {
     idBatch: string;
@@ -37,11 +33,9 @@ interface BatchHistoryRow {
     rawId: number | string;
 }
 
-type RequestStatus = string;
-
 interface RequestHistoryRow {
     requestNumber: string;
-    status: RequestStatus;
+    status: string;
     errorMessage?: string;
     rawItem?: BatchRequestItem;
 }
@@ -50,7 +44,19 @@ interface RequestHistoryRow {
     selector: 'app-bulk-upload',
     templateUrl: './bulk-upload.html',
     styleUrl: './bulk-upload.css',
-    imports: [TabsContainer, Tab, AccordeonContainer, AccordeonItem, LucideAngularModule, Modal, Popover, JsonPipe]
+    imports: [
+        TabsContainer,
+        Tab,
+        AccordeonContainer,
+        BulkNewRequestsUpload,
+        BulkUploadSupportUpload,
+        BulkCreditsDataUpload,
+        BulkOrderNumbersUpload,
+        BulkSapReturnOrderUpload,
+        BulkHistoryTab,
+        BatchRequestsModal,
+        RequestErrorModal,
+    ]
 })
 export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
 
@@ -68,33 +74,9 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
     private readonly detailErrorsPerPage = 25;
 
 
-    public isDragOver = signal(false);
-    public isSupportDragOver = signal(false);
-    public isOrderNumbersDragOver = signal(false);
-    public isSapReturnOrderDragOver = signal(false);
-    public isCreditsDataDragOver = signal(false);
     public initialTabIndex = signal(0);
-    public isCreatingBatch = signal(false);
-    public isCreatingSupportBatch = signal(false);
-    public isCreatingOrderNumbersBatch = signal(false);
-    public isCreatingSapReturnOrderBatch = signal(false);
-    public isCreatingCreditsDataBatch = signal(false);
-    public isPollingOrderNumbersBatch = signal(false);
-    public isPollingsSapReturnOrderBatch = signal(false);
-    public uploadedFiles = signal<UploadedFileRow[]>([]);
-    public supportUploadedFiles = signal<UploadedFileRow[]>([]);
-    public orderNumbersUploadedFiles = signal<UploadedFileRow[]>([]);
-    public sapReturnOrderUploadedFiles = signal<UploadedFileRow[]>([]);
-    public creditsDataUploadedFiles = signal<UploadedFileRow[]>([]);
     public availableRequestTypes = signal<RequestType[]>([]);
     public selectedRequestTypeId = signal<number | null>(null);
-    public selectedBatchFile = signal<File | null>(null);
-    public selectedOrderNumbersFile = signal<File | null>(null);
-    public selectedCreditsDataFile = signal<File | null>(null);
-    public supportFiles = signal<File[]>([]);
-    public sapReturnOrderFiles = signal<File[]>([]);
-    public supportMinRange = signal('');
-    public supportMaxRange = signal('');
     public isBatchDetailModalOpen = signal(false);
     public isLoadingHistory = signal(false);
     public isLoadingBatchDetail = signal(false);
@@ -120,14 +102,6 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
     public bulkHistoryRows = signal<BatchHistoryRow[]>([]);
 
     public batchRequestRows = signal<RequestHistoryRow[]>([]);
-    private orderNumbersPollingSubscription: Subscription | null = null;
-    private sapReturnOrderPollingSubscription: Subscription | null = null;
-
-    // Request types that allow SAP Return Order batch uploads
-    private readonly SAP_RETURN_ORDER_ALLOWED_TYPES = ['credits', 'debits', 'auditor-credits', 'auditor-debits'];
-
-    // Request types that allow creditsData batch uploads
-    private readonly CREDITS_DATA_ALLOWED_TYPES = ['credits', 'debits'];
 
     ngOnInit(): void {
         this.loadRequestTypes();
@@ -157,205 +131,7 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
     }
 
     ngOnDestroy(): void {
-        this.orderNumbersPollingSubscription?.unsubscribe();
-        this.sapReturnOrderPollingSubscription?.unsubscribe();
         this.subscriptions.forEach((subscription) => subscription.unsubscribe());
-    }
-
-    onDragOver(event: DragEvent): void {
-        event.preventDefault();
-        this.isDragOver.set(true);
-    }
-
-    onDragLeave(event: DragEvent): void {
-        event.preventDefault();
-        this.isDragOver.set(false);
-    }
-
-    onDrop(event: DragEvent): void {
-        event.preventDefault();
-        this.isDragOver.set(false);
-        this.appendFiles(event.dataTransfer?.files ?? null);
-    }
-
-    onSupportDragOver(event: DragEvent): void {
-        event.preventDefault();
-        this.isSupportDragOver.set(true);
-    }
-
-    onSupportDragLeave(event: DragEvent): void {
-        event.preventDefault();
-        this.isSupportDragOver.set(false);
-    }
-
-    onSupportDrop(event: DragEvent): void {
-        event.preventDefault();
-        this.isSupportDragOver.set(false);
-        this.appendSupportFiles(event.dataTransfer?.files ?? null);
-    }
-
-    onOrderNumbersDragOver(event: DragEvent): void {
-        event.preventDefault();
-        this.isOrderNumbersDragOver.set(true);
-    }
-
-    onOrderNumbersDragLeave(event: DragEvent): void {
-        event.preventDefault();
-        this.isOrderNumbersDragOver.set(false);
-    }
-
-    onOrderNumbersDrop(event: DragEvent): void {
-        event.preventDefault();
-        this.isOrderNumbersDragOver.set(false);
-        this.appendOrderNumbersFile(event.dataTransfer?.files ?? null);
-    }
-
-    onCreditsDataDragOver(event: DragEvent): void {
-        event.preventDefault();
-        this.isCreditsDataDragOver.set(true);
-    }
-
-    onCreditsDataDragLeave(event: DragEvent): void {
-        event.preventDefault();
-        this.isCreditsDataDragOver.set(false);
-    }
-
-    onCreditsDataDrop(event: DragEvent): void {
-        event.preventDefault();
-        this.isCreditsDataDragOver.set(false);
-        this.appendCreditsDataFile(event.dataTransfer?.files ?? null);
-    }
-
-    onFileInputChange(event: Event): void {
-        const input = event.target as HTMLInputElement;
-        this.appendFiles(input.files);
-        input.value = '';
-    }
-
-    onSupportFileInputChange(event: Event): void {
-        const input = event.target as HTMLInputElement;
-        this.appendSupportFiles(input.files);
-        input.value = '';
-    }
-
-    onOrderNumbersFileInputChange(event: Event): void {
-        const input = event.target as HTMLInputElement;
-        this.appendOrderNumbersFile(input.files);
-        input.value = '';
-    }
-
-    onCreditsDataFileInputChange(event: Event): void {
-        const input = event.target as HTMLInputElement;
-        this.appendCreditsDataFile(input.files);
-        input.value = '';
-    }
-
-    private appendFiles(fileList: FileList | null): void {
-        if (!fileList || fileList.length === 0) {
-            return;
-        }
-
-        const primaryFile = fileList[0];
-        this.selectedBatchFile.set(primaryFile);
-
-        if (fileList.length > 1) {
-            this.toastService.warning('Solo se usara el primer archivo seleccionado para crear el batch.', 'Bulk Upload');
-        }
-
-        const now = new Date();
-        const nextRows: UploadedFileRow[] = [{
-            name: primaryFile.name,
-            sizeLabel: this.formatBytes(primaryFile.size),
-            type: primaryFile.type || 'N/A',
-            uploadedAt: now.toLocaleString('es-MX')
-        }];
-
-        this.uploadedFiles.set(nextRows);
-    }
-
-    private appendSupportFiles(fileList: FileList | null): void {
-        if (!fileList || fileList.length === 0) {
-            return;
-        }
-
-        const currentFiles = [...this.supportFiles()];
-        const incomingFiles = Array.from(fileList);
-        const availableSlots = Math.max(0, 10 - currentFiles.length);
-
-        if (availableSlots === 0) {
-            this.toastService.warning('Solo se permiten hasta 10 archivos por batch de Upload Support.', 'Bulk Upload');
-            return;
-        }
-
-        const acceptedFiles = incomingFiles.slice(0, availableSlots);
-        const nextFiles = [...currentFiles, ...acceptedFiles];
-        this.supportFiles.set(nextFiles);
-
-        const nowLabel = new Date().toLocaleString('es-MX');
-        const nextRows = nextFiles.map((file) => ({
-            name: file.name,
-            sizeLabel: this.formatBytes(file.size),
-            type: file.type || 'N/A',
-            uploadedAt: nowLabel,
-        }));
-
-        this.supportUploadedFiles.set(nextRows);
-
-        if (incomingFiles.length > acceptedFiles.length) {
-            this.toastService.warning('Se agregaron solo 10 archivos maximo para Upload Support.', 'Bulk Upload');
-        }
-    }
-
-    private appendOrderNumbersFile(fileList: FileList | null): void {
-        if (!fileList || fileList.length === 0) {
-            return;
-        }
-
-        const primaryFile = fileList[0];
-        this.selectedOrderNumbersFile.set(primaryFile);
-
-        if (fileList.length > 1) {
-            this.toastService.warning('Solo se usara el primer archivo CSV para Order Numbers.', 'Bulk Upload');
-        }
-
-        const now = new Date();
-        const nextRows: UploadedFileRow[] = [{
-            name: primaryFile.name,
-            sizeLabel: this.formatBytes(primaryFile.size),
-            type: primaryFile.type || 'N/A',
-            uploadedAt: now.toLocaleString('es-MX')
-        }];
-
-        this.orderNumbersUploadedFiles.set(nextRows);
-    }
-
-    private appendCreditsDataFile(fileList: FileList | null): void {
-        if (!fileList || fileList.length === 0) {
-            return;
-        }
-
-        const primaryFile = fileList[0];
-
-        if (!this.isValidCreditsDataFile(primaryFile)) {
-            this.toastService.warning('Solo se permite un archivo CSV o XLSX para Credits Data.', 'Bulk Upload');
-            return;
-        }
-
-        this.selectedCreditsDataFile.set(primaryFile);
-
-        if (fileList.length > 1) {
-            this.toastService.warning('Solo se usara el primer archivo para Credits Data.', 'Bulk Upload');
-        }
-
-        const now = new Date();
-        const nextRows: UploadedFileRow[] = [{
-            name: primaryFile.name,
-            sizeLabel: this.formatBytes(primaryFile.size),
-            type: primaryFile.type || 'N/A',
-            uploadedAt: now.toLocaleString('es-MX')
-        }];
-
-        this.creditsDataUploadedFiles.set(nextRows);
     }
 
     onRequestTypeChange(event: Event): void {
@@ -368,305 +144,6 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
         }
 
         this.selectedRequestTypeId.set(parsedId);
-    }
-
-    onSupportMinRangeChange(event: Event): void {
-        this.supportMinRange.set((event.target as HTMLInputElement).value);
-    }
-
-    onSupportMaxRangeChange(event: Event): void {
-        this.supportMaxRange.set((event.target as HTMLInputElement).value);
-    }
-
-    createBatchFromUpload(): void {
-        const selectedFile = this.selectedBatchFile();
-        const requestTypeId = this.selectedRequestTypeId();
-
-        if (!selectedFile) {
-            this.toastService.warning('Selecciona un archivo para crear el batch.', 'Bulk Upload');
-            return;
-        }
-
-        if (!requestTypeId) {
-            this.toastService.warning('Selecciona el Request Type.', 'Bulk Upload');
-            return;
-        }
-
-        this.isCreatingBatch.set(true);
-
-        const subscription = this.batchService.createBatch(selectedFile, 'newRequest', requestTypeId).subscribe({
-            next: (batch) => {
-                this.isCreatingBatch.set(false);
-                this.toastService.success(
-                    `Batch creado correctamente${batch?.id ? ` (ID: ${batch.id})` : ''}.`,
-                    'Bulk Upload'
-                );
-                this.uploadedFiles.set([]);
-                this.selectedBatchFile.set(null);
-                this.loadBatches();
-            },
-            error: (error) => {
-                this.isCreatingBatch.set(false);
-                const message = error?.error?.message ?? 'No se pudo crear el batch.';
-                this.toastService.error(message, 'Bulk Upload');
-            }
-        });
-
-        this.subscriptions.push(subscription);
-    }
-
-    createSupportBatchFromUpload(): void {
-        const requestTypeId = this.selectedRequestTypeId();
-        const minRange = Number(this.supportMinRange().trim());
-        const maxRange = Number(this.supportMaxRange().trim());
-        const files = this.supportFiles();
-
-        if (!requestTypeId) {
-            this.toastService.warning('Selecciona el Request Type.', 'Bulk Upload');
-            return;
-        }
-
-        if (!Number.isInteger(minRange) || !Number.isInteger(maxRange) || minRange <= 0 || maxRange <= 0) {
-            this.toastService.warning('Captura un rango valido (minRange y maxRange numericos).', 'Bulk Upload');
-            return;
-        }
-
-        if (minRange > maxRange) {
-            this.toastService.warning('El rango minimo no puede ser mayor al maximo.', 'Bulk Upload');
-            return;
-        }
-
-        if (files.length === 0) {
-            this.toastService.warning('Debes adjuntar al menos un archivo para Upload Support.', 'Bulk Upload');
-            return;
-        }
-
-        if (files.length > 10) {
-            this.toastService.warning('Solo se permiten hasta 10 archivos para Upload Support.', 'Bulk Upload');
-            return;
-        }
-
-        this.isCreatingSupportBatch.set(true);
-
-        const subscription = this.batchService
-            .createUploadSupportBatch(files, requestTypeId, minRange, maxRange)
-            .subscribe({
-                next: (batch) => {
-                    this.isCreatingSupportBatch.set(false);
-                    this.toastService.success(
-                        `Batch Upload Support creado correctamente${batch?.id ? ` (ID: ${batch.id})` : ''}.`,
-                        'Bulk Upload'
-                    );
-
-                    this.supportFiles.set([]);
-                    this.supportUploadedFiles.set([]);
-                    this.supportMinRange.set('');
-                    this.supportMaxRange.set('');
-                    this.loadBatches();
-                },
-                error: (error) => {
-                    this.isCreatingSupportBatch.set(false);
-                    const message = error?.error?.message ?? 'No se pudo crear el batch Upload Support.';
-                    this.toastService.error(message, 'Bulk Upload');
-                }
-            });
-
-        this.subscriptions.push(subscription);
-    }
-
-    createOrderNumbersBatchFromUpload(): void {
-        const selectedFile = this.selectedOrderNumbersFile();
-        const requestTypeId = this.selectedRequestTypeId();
-
-        if (!selectedFile) {
-            this.toastService.warning('Selecciona un archivo CSV para Order Numbers.', 'Bulk Upload');
-            return;
-        }
-
-        if (!requestTypeId) {
-            this.toastService.warning('Selecciona el Request Type.', 'Bulk Upload');
-            return;
-        }
-
-        this.isCreatingOrderNumbersBatch.set(true);
-
-        const subscription = this.batchService.createBatch(selectedFile, 'orderNumbers', requestTypeId).subscribe({
-            next: (batch) => {
-                this.isCreatingOrderNumbersBatch.set(false);
-                this.orderNumbersUploadedFiles.set([]);
-                this.selectedOrderNumbersFile.set(null);
-
-                const batchId = batch?.id;
-                this.toastService.success(
-                    `Batch Order Numbers creado correctamente${batchId ? ` (ID: ${batchId})` : ''}.`,
-                    'Bulk Upload'
-                );
-
-                if (batchId !== undefined && batchId !== null && batchId !== '') {
-                    this.startOrderNumbersBatchPolling(batchId);
-                } else {
-                    this.loadBatches();
-                }
-            },
-            error: (error) => {
-                this.isCreatingOrderNumbersBatch.set(false);
-                const message = error?.error?.message ?? 'No se pudo crear el batch Order Numbers.';
-                this.toastService.error(message, 'Bulk Upload');
-            }
-        });
-
-        this.subscriptions.push(subscription);
-    }
-
-    createCreditsDataBatchFromUpload(): void {
-        const selectedFile = this.selectedCreditsDataFile();
-
-        if (!selectedFile) {
-            this.toastService.warning('Selecciona un archivo CSV o XLSX para Credits Data.', 'Bulk Upload');
-            return;
-        }
-
-        if (!this.isCreditsDataAllowed()) {
-            this.toastService.warning('Esta carga solo aplica para Request Type Credits o Debits.', 'Bulk Upload');
-            return;
-        }
-
-        this.isCreatingCreditsDataBatch.set(true);
-
-        const subscription = this.batchService.createCreditsDataBatch(selectedFile).subscribe({
-            next: (batch) => {
-                this.isCreatingCreditsDataBatch.set(false);
-                this.creditsDataUploadedFiles.set([]);
-                this.selectedCreditsDataFile.set(null);
-
-                this.toastService.success(
-                    `Batch Credits Data creado correctamente${batch?.id ? ` (ID: ${batch.id})` : ''}.`,
-                    'Bulk Upload'
-                );
-
-                this.loadBatches();
-            },
-            error: (error) => {
-                this.isCreatingCreditsDataBatch.set(false);
-                const message = error?.error?.message ?? 'No se pudo crear el batch Credits Data.';
-                this.toastService.error(message, 'Bulk Upload');
-            }
-        });
-
-        this.subscriptions.push(subscription);
-    }
-
-    removeUploadedFile(index: number): void {
-        const currentFiles = [...this.uploadedFiles()];
-        if (index < 0 || index >= currentFiles.length) {
-            return;
-        }
-
-        currentFiles.splice(index, 1);
-        this.uploadedFiles.set(currentFiles);
-
-        if (currentFiles.length === 0) {
-            this.selectedBatchFile.set(null);
-        }
-    }
-
-    removeSupportUploadedFile(index: number): void {
-        const currentFiles = [...this.supportFiles()];
-        if (index < 0 || index >= currentFiles.length) {
-            return;
-        }
-
-        currentFiles.splice(index, 1);
-        this.supportFiles.set(currentFiles);
-
-        const rows = currentFiles.map((file) => ({
-            name: file.name,
-            sizeLabel: this.formatBytes(file.size),
-            type: file.type || 'N/A',
-            uploadedAt: new Date().toLocaleString('es-MX')
-        }));
-
-        this.supportUploadedFiles.set(rows);
-    }
-
-    removeOrderNumbersUploadedFile(index: number): void {
-        const currentFiles = [...this.orderNumbersUploadedFiles()];
-        if (index < 0 || index >= currentFiles.length) {
-            return;
-        }
-
-        currentFiles.splice(index, 1);
-        this.orderNumbersUploadedFiles.set(currentFiles);
-
-        if (currentFiles.length === 0) {
-            this.selectedOrderNumbersFile.set(null);
-        }
-    }
-
-    removeCreditsDataUploadedFile(index: number): void {
-        const currentFiles = [...this.creditsDataUploadedFiles()];
-        if (index < 0 || index >= currentFiles.length) {
-            return;
-        }
-
-        currentFiles.splice(index, 1);
-        this.creditsDataUploadedFiles.set(currentFiles);
-
-        if (currentFiles.length === 0) {
-            this.selectedCreditsDataFile.set(null);
-        }
-    }
-
-    private startOrderNumbersBatchPolling(batchId: number | string): void {
-        this.orderNumbersPollingSubscription?.unsubscribe();
-        this.isPollingOrderNumbersBatch.set(true);
-
-        const pollingSubscription = timer(0, 3000).pipe(
-            switchMap(() => this.batchService.getBatchDetail(batchId, 1, 1)),
-            takeWhile((response) => {
-                const status = String(response.batch?.status ?? '').toLowerCase();
-                return status !== 'completed' && status !== 'failed';
-            }, true)
-        ).subscribe({
-            next: (response) => {
-                const status = String(response.batch?.status ?? '').toLowerCase();
-
-                if (status === 'completed') {
-                    this.isPollingOrderNumbersBatch.set(false);
-                    this.toastService.success('Carga masiva de Order Numbers completada.', 'Bulk Upload');
-                    this.loadBatches();
-                }
-
-                if (status === 'failed') {
-                    this.isPollingOrderNumbersBatch.set(false);
-                    this.toastService.error('La carga masiva de Order Numbers fallo.', 'Bulk Upload');
-                    this.loadBatches();
-                }
-            },
-            error: () => {
-                this.isPollingOrderNumbersBatch.set(false);
-                this.toastService.warning('No se pudo continuar el polling del batch Order Numbers.', 'Bulk Upload');
-                this.loadBatches();
-            },
-            complete: () => {
-                this.isPollingOrderNumbersBatch.set(false);
-            }
-        });
-
-        this.orderNumbersPollingSubscription = pollingSubscription;
-        this.subscriptions.push(pollingSubscription);
-    }
-
-    private formatBytes(size: number): string {
-        if (size < 1024) {
-            return `${size} B`;
-        }
-
-        if (size < 1024 * 1024) {
-            return `${(size / 1024).toFixed(1)} KB`;
-        }
-
-        return `${(size / (1024 * 1024)).toFixed(2)} MB`;
     }
 
     private applyTabIndex(index: number): void {
@@ -710,20 +187,6 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
 
     public closeRequestErrorModal(isOpen: boolean): void {
         this.isRequestErrorModalOpen.set(isOpen);
-    }
-
-    public getStatusClass(status: RequestStatus): string {
-        const normalizedStatus = (status ?? '').toLowerCase();
-
-        if (normalizedStatus === 'success' || normalizedStatus === 'completed' || normalizedStatus === 'emitted' || normalizedStatus === 'processed') {
-            return 'bg-emerald-100 text-emerald-700 border border-emerald-200';
-        }
-
-        if (normalizedStatus === 'processing' || normalizedStatus === 'pending') {
-            return 'bg-amber-100 text-amber-700 border border-amber-200';
-        }
-
-        return 'bg-red-100 text-red-700 border border-red-200';
     }
 
     private loadBatches(): void {
@@ -968,6 +431,16 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
         this.loadBatchesByPage(1);
     }
 
+    public onHistoryPageSizeChangeValue(value: number): void {
+        if (![5, 10, 20].includes(value)) {
+            return;
+        }
+
+        this.historyPageSize.set(value);
+        this.historyCurrentPage.set(1);
+        this.loadBatchesByPage(1);
+    }
+
     public onBatchRequestsPageSizeChange(event: Event): void {
         const selected = this.selectedBatch();
         if (!selected) {
@@ -975,6 +448,21 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
         }
 
         const value = Number((event.target as HTMLSelectElement).value);
+        if (![5, 10, 20].includes(value)) {
+            return;
+        }
+
+        this.batchRequestsPageSize.set(value);
+        this.batchRequestsCurrentPage.set(1);
+        this.loadBatchRequests(selected.rawId, 1);
+    }
+
+    public onBatchRequestsPageSizeChangeValue(value: number): void {
+        const selected = this.selectedBatch();
+        if (!selected) {
+            return;
+        }
+
         if (![5, 10, 20].includes(value)) {
             return;
         }
@@ -1063,242 +551,8 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
         return parsedDate.toLocaleString('es-MX');
     }
 
-    // SAP Return Order Methods
-    public isSapReturnOrderAllowed(): boolean {
-        const requestTypeId = this.selectedRequestTypeId();
-        if (!requestTypeId) {
-            return false;
-        }
-
-        const selectedType = this.availableRequestTypes().find(t => t.id === requestTypeId);
-        if (!selectedType) {
-            return false;
-        }
-
-        const typeName = selectedType.name.toLowerCase();
-        return this.SAP_RETURN_ORDER_ALLOWED_TYPES.includes(typeName);
-    }
-
-    public isCreditsDataAllowed(): boolean {
-        const requestTypeId = this.selectedRequestTypeId();
-        if (!requestTypeId) {
-            return false;
-        }
-
-        const selectedType = this.availableRequestTypes().find((t) => t.id === requestTypeId);
-        if (!selectedType) {
-            return false;
-        }
-
-        const typeName = selectedType.name.toLowerCase();
-        return this.CREDITS_DATA_ALLOWED_TYPES.includes(typeName);
-    }
-
-    public isDebitsRequestTypeSelected(): boolean {
-        const requestTypeId = this.selectedRequestTypeId();
-        if (!requestTypeId) {
-            return false;
-        }
-
-        const selectedType = this.availableRequestTypes().find((t) => t.id === requestTypeId);
-        if (!selectedType) {
-            return false;
-        }
-
-        return selectedType.name.toLowerCase() === 'debits';
-    }
-
-    private isValidCreditsDataFile(file: File): boolean {
-        const fileName = file.name.toLowerCase();
-        return fileName.endsWith('.csv') || fileName.endsWith('.xlsx');
-    }
-
-    public onSapReturnOrderDragOver(event: DragEvent): void {
-        event.preventDefault();
-        this.isSapReturnOrderDragOver.set(true);
-    }
-
-    public onSapReturnOrderDragLeave(event: DragEvent): void {
-        event.preventDefault();
-        this.isSapReturnOrderDragOver.set(false);
-    }
-
-    public onSapReturnOrderDrop(event: DragEvent): void {
-        event.preventDefault();
-        this.isSapReturnOrderDragOver.set(false);
-
-        const files = event.dataTransfer?.files;
-        if (files) {
-            this.onSapReturnOrderFileInputChange({ target: { files } } as unknown as Event);
-        }
-    }
-
-    public onSapReturnOrderFileInputChange(event: Event): void {
-        const fileList = (event.target as HTMLInputElement).files;
-        if (fileList && fileList.length > 0) {
-            this.appendSapReturnOrderFiles(fileList);
-        }
-    }
-
-    private appendSapReturnOrderFiles(fileList: FileList): void {
-        const currentFiles = [...this.sapReturnOrderFiles()];
-        const currentUploadedFiles = [...this.sapReturnOrderUploadedFiles()];
-
-        for (let i = 0; i < fileList.length; i++) {
-            const file = fileList[i];
-
-            // Validate file type
-            if (!this.isValidSapReturnOrderFile(file)) {
-                this.toastService.warning(
-                    `Archivo "${file.name}" no permitido. Solo imágenes, Word y PDF son permitidos.`,
-                    'SAP Return Order'
-                );
-                continue;
-            }
-
-            currentFiles.push(file);
-            currentUploadedFiles.push({
-                name: file.name,
-                sizeLabel: this.formatBytes(file.size),
-                type: file.type || 'unknown',
-                uploadedAt: new Date().toLocaleString('es-MX')
-            });
-        }
-
-        this.sapReturnOrderFiles.set(currentFiles);
-        this.sapReturnOrderUploadedFiles.set(currentUploadedFiles);
-    }
-
-    private isValidSapReturnOrderFile(file: File): boolean {
-        const validMimes = [
-            // Images
-            'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/bmp', 'image/svg+xml',
-            // Word
-            'application/msword',
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            // PDF
-            'application/pdf'
-        ];
-
-        const validExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg', '.doc', '.docx', '.pdf'];
-
-        const mimeValid = validMimes.includes(file.type);
-        const ext = '.' + file.name.split('.').pop()?.toLowerCase();
-        const extValid = validExtensions.includes(ext);
-
-        return mimeValid || extValid;
-    }
-
-    public removeSapReturnOrderUploadedFile(index: number): void {
-        const currentFiles = [...this.sapReturnOrderFiles()];
-        const currentUploadedFiles = [...this.sapReturnOrderUploadedFiles()];
-
-        if (index < 0 || index >= currentFiles.length) {
-            return;
-        }
-
-        currentFiles.splice(index, 1);
-        currentUploadedFiles.splice(index, 1);
-
-        this.sapReturnOrderFiles.set(currentFiles);
-        this.sapReturnOrderUploadedFiles.set(currentUploadedFiles);
-    }
-
-    public createSapReturnOrderBatchFromUpload(): void {
-        const files = this.sapReturnOrderFiles();
-        const requestTypeId = this.selectedRequestTypeId();
-
-        if (files.length === 0) {
-            this.toastService.warning('Selecciona al menos un archivo para SAP Return Order.', 'SAP Return Order');
-            return;
-        }
-
-        if (!requestTypeId) {
-            this.toastService.warning('Selecciona el Request Type.', 'SAP Return Order');
-            return;
-        }
-
-        if (!this.isSapReturnOrderAllowed()) {
-            this.toastService.warning('El Request Type seleccionado no permite SAP Return Order.', 'SAP Return Order');
-            return;
-        }
-
-        this.isCreatingSapReturnOrderBatch.set(true);
-
-        const formData = new FormData();
-        formData.append('batchType', 'sapScreen');
-        formData.append('requestTypeId', String(requestTypeId));
-
-        files.forEach((file) => {
-            formData.append('file[]', file);
-        });
-
-        const subscription = this.batchService.createSapReturnOrderBatch(formData).subscribe({
-            next: (batch) => {
-                this.isCreatingSapReturnOrderBatch.set(false);
-                this.sapReturnOrderFiles.set([]);
-                this.sapReturnOrderUploadedFiles.set([]);
-
-                const batchId = batch?.id;
-                this.toastService.success(
-                    `Batch SAP Return Order creado correctamente${batchId ? ` (ID: ${batchId})` : ''}.`,
-                    'SAP Return Order'
-                );
-
-                if (batchId !== undefined && batchId !== null && batchId !== '') {
-                    this.startSapReturnOrderBatchPolling(batchId);
-                } else {
-                    this.loadBatches();
-                }
-            },
-            error: (error) => {
-                this.isCreatingSapReturnOrderBatch.set(false);
-                const message = error?.error?.message ?? 'No se pudo crear el batch SAP Return Order.';
-                this.toastService.error(message, 'SAP Return Order');
-            }
-        });
-
-        this.subscriptions.push(subscription);
-    }
-
-    private startSapReturnOrderBatchPolling(batchId: number | string): void {
-        this.sapReturnOrderPollingSubscription?.unsubscribe();
-        this.isPollingsSapReturnOrderBatch.set(true);
-
-        const pollingSubscription = timer(0, 3000).pipe(
-            switchMap(() => this.batchService.getBatchDetail(batchId, 1, 1)),
-            takeWhile((response) => {
-                const status = String(response.batch?.status ?? '').toLowerCase();
-                return status !== 'completed' && status !== 'failed';
-            }, true)
-        ).subscribe({
-            next: (response) => {
-                const status = String(response.batch?.status ?? '').toLowerCase();
-
-                if (status === 'completed') {
-                    this.isPollingsSapReturnOrderBatch.set(false);
-                    this.toastService.success('Carga masiva de SAP Return Order completada.', 'SAP Return Order');
-                    this.loadBatches();
-                }
-
-                if (status === 'failed') {
-                    this.isPollingsSapReturnOrderBatch.set(false);
-                    this.toastService.error('La carga masiva de SAP Return Order fallo.', 'SAP Return Order');
-                    this.loadBatches();
-                }
-            },
-            error: () => {
-                this.isPollingsSapReturnOrderBatch.set(false);
-                this.toastService.warning('No se pudo continuar el polling del batch SAP Return Order.', 'SAP Return Order');
-                this.loadBatches();
-            },
-            complete: () => {
-                this.isPollingsSapReturnOrderBatch.set(false);
-            }
-        });
-
-        this.sapReturnOrderPollingSubscription = pollingSubscription;
-        this.subscriptions.push(pollingSubscription);
+    public onUploadBatchCreated(): void {
+        this.loadBatches();
     }
 
 }
