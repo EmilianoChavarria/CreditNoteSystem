@@ -508,9 +508,9 @@ export class RequestService {
     );
   }
 
-  deleteRequestAttachment(requestId: number, attachmentId: number): Observable<boolean> {
+  deleteRequestAttachment(requestId: number, attachmentId: number): Observable<ApiResponse<boolean>> {
     return this._httpService.delete<boolean>(`/requests/${requestId}/attachments/${attachmentId}`).pipe(
-      map((response: ApiResponse<boolean>) => Boolean(response.success)),
+      map((response: ApiResponse<boolean>) => response),
       catchError((error) => {
         console.log(error);
         throw error;
