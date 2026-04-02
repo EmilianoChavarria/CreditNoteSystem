@@ -168,6 +168,36 @@ export class BatchService {
     );
   }
 
+  createCreditsDataBatch(file: File, bearerToken?: string): Observable<BatchSummary | null> {
+    const resolvedBearer = bearerToken ?? this.resolveBearerToken();
+    const headers = resolvedBearer
+      ? new HttpHeaders({ Authorization: `Bearer ${resolvedBearer}` })
+      : undefined;
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('batchType', 'creditsData');
+
+    return this.httpClient.post<ApiResponse<unknown>>(
+      `${this.baseApiUrl}/batches`,
+      formData,
+      {
+        headers,
+        withCredentials: true,
+      }
+    ).pipe(
+      map((response) => {
+        const data = (response.data ?? {}) as Record<string, unknown>;
+        const batchCandidate = data['batch'] ?? data;
+        return this.toBatchSummary(batchCandidate);
+      }),
+      catchError((error) => {
+        console.error('Error creating creditsData batch', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
   getBatches(perPage = 15, page = 1, requestTypeId?: number, bearerToken?: string): Observable<PagePagination<BatchSummary>> {
     const options = this.buildOptions({ perPage, page, requestTypeId }, bearerToken);
 
