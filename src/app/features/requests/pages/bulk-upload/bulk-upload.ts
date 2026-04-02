@@ -120,7 +120,7 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
     private sapReturnOrderPollingSubscription: Subscription | null = null;
 
     // Request types that allow SAP Return Order batch uploads
-    private readonly SAP_RETURN_ORDER_ALLOWED_TYPES = ['credits', 'debits', 'auditor-credits', 'auditor-debits', 're-invoicing'];
+    private readonly SAP_RETURN_ORDER_ALLOWED_TYPES = ['credits', 'debits', 'auditor-credits', 'auditor-debits'];
 
     ngOnInit(): void {
         this.loadRequestTypes();
