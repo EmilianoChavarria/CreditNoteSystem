@@ -1,0 +1,12 @@
+<app-modal size="md" titleM="Detalle del error" [open]="open()" closeText="Cerrar"
+    [showPrimaryButton]="false" (openChange)="openChange.emit($event)">
+    <div class="flex flex-col gap-3">
+        <div class="text-sm text-gray-700">
+            <span class="font-semibold">Request:</span>
+            <span class="ml-2">{{ selectedRequestError()?.requestNumber || '-' }}</span>
+        </div>
+        <div class="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+            {{ selectedRequestError()?.errorMessage || 'Sin detalle de error.' }}
+        </div>
+    </div>
+</app-modal>
