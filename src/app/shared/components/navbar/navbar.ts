@@ -1,5 +1,5 @@
 import { AsyncPipe, isPlatformBrowser } from '@angular/common';
-import { Component, Inject, PLATFORM_ID, inject } from '@angular/core';
+import { Component, Inject, PLATFORM_ID, computed, inject } from '@angular/core';
 import { AuthService } from '../../../core/services/auth-service';
 import { NotificationService } from '../../../core/services/notification-service';
 import { TranslateService, TranslatePipe } from '@ngx-translate/core';
@@ -30,6 +30,7 @@ export class Navbar {
   public userInitials$: Observable<string>;
   readonly unreadNotifications = this.notificationService.unreadNotifications;
   readonly unreadCount = this.notificationService.unreadCount;
+  readonly recentUnreadNotifications = computed(() => this.unreadNotifications().slice(0, 3));
 
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object,
@@ -93,9 +94,9 @@ export class Navbar {
       console.error('[Navbar] Notification navigation failed:', error);
     });
 
-    if (!this.notificationService.isRead(notification)) {
-      this.markAsRead(notification);
-    }
+    // if (!this.notificationService.isRead(notification)) {
+    //   this.markAsRead(notification);
+    // }
   }
 
   formatNotificationDate(value?: string | null): string {
