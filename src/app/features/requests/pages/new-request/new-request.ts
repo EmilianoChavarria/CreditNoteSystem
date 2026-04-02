@@ -13,15 +13,15 @@ import { Observable, of, forkJoin, combineLatest, Subscription } from 'rxjs';
 import { map, catchError, startWith } from 'rxjs/operators';
 import { Classification, Reason, RequestType } from '../../../../data/interfaces/Request';
 import { ToastrService } from 'ngx-toastr';
-import { CreditForm } from "../../components/credit-form/credit-form";
+import { CreditForm } from "../../components/forms/credit-form/credit-form";
 import { AuthService } from '../../../../core/services/auth-service';
 import { PermissionAction, RequestTypePermissionRecord, RoleService } from '../../../../core/services/role-service';
-import { DebitForm } from "../../components/debit-form/debit-form";
-import { AuditorCreditForm } from "../../components/auditor-credit-form/auditor-credit-form";
-import { AuditorDebitForm } from "../../components/auditor-debit-form/auditor-debit-form";
+import { DebitForm } from "../../components/forms/debit-form/debit-form";
+import { AuditorCreditForm } from "../../components/forms/auditor-credit-form/auditor-credit-form";
+import { AuditorDebitForm } from "../../components/forms/auditor-debit-form/auditor-debit-form";
 import { ActivatedRoute, Router } from '@angular/router';
 import { Request } from '../../../../data/interfaces/Request';
-import { MaterialReturnForm } from "../../components/material-return-form/material-return-form";
+import { MaterialReturnForm } from "../../components/forms/material-return-form/material-return-form";
 
 @Component({
     selector: 'app-new-request',
