@@ -7,7 +7,7 @@ import { AccordeonItem } from "../../../../shared/components/ui/accordeon/accord
 import { LucideAngularModule } from "lucide-angular";
 import { Modal } from "../../../../shared/components/ui/modal/modal";
 import { Popover } from "../../../../shared/components/ui/popover/popover";
-import { Subscription } from 'rxjs';
+import { Subscription, switchMap, takeWhile, timer } from 'rxjs';
 import { BatchErrorLog, BatchRequestItem, BatchService, BatchSummary } from '../../../../core/services/batch-service';
 import { AuthService } from '../../../../core/services/auth-service';
 import { BatchFinishedMessage, ReverbSocketService } from '../../../../core/services/reverb-socket-service';
@@ -27,6 +27,8 @@ interface BatchHistoryRow {
     idBatch: string;
     date: string;
     batchType:string;
+    requestTypeId?: number | null;
+    requestTypeName?: string | null;
     status: string;
     requests: number;
     emitted: number;
@@ -68,15 +70,25 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
 
     public isDragOver = signal(false);
     public isSupportDragOver = signal(false);
+    public isOrderNumbersDragOver = signal(false);
+    public isSapReturnOrderDragOver = signal(false);
     public initialTabIndex = signal(0);
     public isCreatingBatch = signal(false);
     public isCreatingSupportBatch = signal(false);
+    public isCreatingOrderNumbersBatch = signal(false);
+    public isCreatingSapReturnOrderBatch = signal(false);
+    public isPollingOrderNumbersBatch = signal(false);
+    public isPollingsSapReturnOrderBatch = signal(false);
     public uploadedFiles = signal<UploadedFileRow[]>([]);
     public supportUploadedFiles = signal<UploadedFileRow[]>([]);
+    public orderNumbersUploadedFiles = signal<UploadedFileRow[]>([]);
+    public sapReturnOrderUploadedFiles = signal<UploadedFileRow[]>([]);
     public availableRequestTypes = signal<RequestType[]>([]);
     public selectedRequestTypeId = signal<number | null>(null);
     public selectedBatchFile = signal<File | null>(null);
+    public selectedOrderNumbersFile = signal<File | null>(null);
     public supportFiles = signal<File[]>([]);
+    public sapReturnOrderFiles = signal<File[]>([]);
     public supportMinRange = signal('');
     public supportMaxRange = signal('');
     public isBatchDetailModalOpen = signal(false);
@@ -104,6 +116,11 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
     public bulkHistoryRows = signal<BatchHistoryRow[]>([]);
 
     public batchRequestRows = signal<RequestHistoryRow[]>([]);
+    private orderNumbersPollingSubscription: Subscription | null = null;
+    private sapReturnOrderPollingSubscription: Subscription | null = null;
+
+    // Request types that allow SAP Return Order batch uploads
+    private readonly SAP_RETURN_ORDER_ALLOWED_TYPES = ['credits', 'debits', 'auditor-credits', 'auditor-debits', 're-invoicing'];
 
     ngOnInit(): void {
         this.loadRequestTypes();
@@ -133,6 +150,8 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
     }
 
     ngOnDestroy(): void {
+        this.orderNumbersPollingSubscription?.unsubscribe();
+        this.sapReturnOrderPollingSubscription?.unsubscribe();
         this.subscriptions.forEach((subscription) => subscription.unsubscribe());
     }
 
@@ -168,6 +187,22 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
         this.appendSupportFiles(event.dataTransfer?.files ?? null);
     }
 
+    onOrderNumbersDragOver(event: DragEvent): void {
+        event.preventDefault();
+        this.isOrderNumbersDragOver.set(true);
+    }
+
+    onOrderNumbersDragLeave(event: DragEvent): void {
+        event.preventDefault();
+        this.isOrderNumbersDragOver.set(false);
+    }
+
+    onOrderNumbersDrop(event: DragEvent): void {
+        event.preventDefault();
+        this.isOrderNumbersDragOver.set(false);
+        this.appendOrderNumbersFile(event.dataTransfer?.files ?? null);
+    }
+
     onFileInputChange(event: Event): void {
         const input = event.target as HTMLInputElement;
         this.appendFiles(input.files);
@@ -177,6 +212,12 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
     onSupportFileInputChange(event: Event): void {
         const input = event.target as HTMLInputElement;
         this.appendSupportFiles(input.files);
+        input.value = '';
+    }
+
+    onOrderNumbersFileInputChange(event: Event): void {
+        const input = event.target as HTMLInputElement;
+        this.appendOrderNumbersFile(input.files);
         input.value = '';
     }
 
@@ -234,6 +275,29 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
         if (incomingFiles.length > acceptedFiles.length) {
             this.toastService.warning('Se agregaron solo 10 archivos maximo para Upload Support.', 'Bulk Upload');
         }
+    }
+
+    private appendOrderNumbersFile(fileList: FileList | null): void {
+        if (!fileList || fileList.length === 0) {
+            return;
+        }
+
+        const primaryFile = fileList[0];
+        this.selectedOrderNumbersFile.set(primaryFile);
+
+        if (fileList.length > 1) {
+            this.toastService.warning('Solo se usara el primer archivo CSV para Order Numbers.', 'Bulk Upload');
+        }
+
+        const now = new Date();
+        const nextRows: UploadedFileRow[] = [{
+            name: primaryFile.name,
+            sizeLabel: this.formatBytes(primaryFile.size),
+            type: primaryFile.type || 'N/A',
+            uploadedAt: now.toLocaleString('es-MX')
+        }];
+
+        this.orderNumbersUploadedFiles.set(nextRows);
     }
 
     onRequestTypeChange(event: Event): void {
@@ -352,6 +416,50 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
         this.subscriptions.push(subscription);
     }
 
+    createOrderNumbersBatchFromUpload(): void {
+        const selectedFile = this.selectedOrderNumbersFile();
+        const requestTypeId = this.selectedRequestTypeId();
+
+        if (!selectedFile) {
+            this.toastService.warning('Selecciona un archivo CSV para Order Numbers.', 'Bulk Upload');
+            return;
+        }
+
+        if (!requestTypeId) {
+            this.toastService.warning('Selecciona el Request Type.', 'Bulk Upload');
+            return;
+        }
+
+        this.isCreatingOrderNumbersBatch.set(true);
+
+        const subscription = this.batchService.createBatch(selectedFile, 'orderNumbers', requestTypeId).subscribe({
+            next: (batch) => {
+                this.isCreatingOrderNumbersBatch.set(false);
+                this.orderNumbersUploadedFiles.set([]);
+                this.selectedOrderNumbersFile.set(null);
+
+                const batchId = batch?.id;
+                this.toastService.success(
+                    `Batch Order Numbers creado correctamente${batchId ? ` (ID: ${batchId})` : ''}.`,
+                    'Bulk Upload'
+                );
+
+                if (batchId !== undefined && batchId !== null && batchId !== '') {
+                    this.startOrderNumbersBatchPolling(batchId);
+                } else {
+                    this.loadBatches();
+                }
+            },
+            error: (error) => {
+                this.isCreatingOrderNumbersBatch.set(false);
+                const message = error?.error?.message ?? 'No se pudo crear el batch Order Numbers.';
+                this.toastService.error(message, 'Bulk Upload');
+            }
+        });
+
+        this.subscriptions.push(subscription);
+    }
+
     removeUploadedFile(index: number): void {
         const currentFiles = [...this.uploadedFiles()];
         if (index < 0 || index >= currentFiles.length) {
@@ -383,6 +491,60 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
         }));
 
         this.supportUploadedFiles.set(rows);
+    }
+
+    removeOrderNumbersUploadedFile(index: number): void {
+        const currentFiles = [...this.orderNumbersUploadedFiles()];
+        if (index < 0 || index >= currentFiles.length) {
+            return;
+        }
+
+        currentFiles.splice(index, 1);
+        this.orderNumbersUploadedFiles.set(currentFiles);
+
+        if (currentFiles.length === 0) {
+            this.selectedOrderNumbersFile.set(null);
+        }
+    }
+
+    private startOrderNumbersBatchPolling(batchId: number | string): void {
+        this.orderNumbersPollingSubscription?.unsubscribe();
+        this.isPollingOrderNumbersBatch.set(true);
+
+        const pollingSubscription = timer(0, 3000).pipe(
+            switchMap(() => this.batchService.getBatchDetail(batchId, 1, 1)),
+            takeWhile((response) => {
+                const status = String(response.batch?.status ?? '').toLowerCase();
+                return status !== 'completed' && status !== 'failed';
+            }, true)
+        ).subscribe({
+            next: (response) => {
+                const status = String(response.batch?.status ?? '').toLowerCase();
+
+                if (status === 'completed') {
+                    this.isPollingOrderNumbersBatch.set(false);
+                    this.toastService.success('Carga masiva de Order Numbers completada.', 'Bulk Upload');
+                    this.loadBatches();
+                }
+
+                if (status === 'failed') {
+                    this.isPollingOrderNumbersBatch.set(false);
+                    this.toastService.error('La carga masiva de Order Numbers fallo.', 'Bulk Upload');
+                    this.loadBatches();
+                }
+            },
+            error: () => {
+                this.isPollingOrderNumbersBatch.set(false);
+                this.toastService.warning('No se pudo continuar el polling del batch Order Numbers.', 'Bulk Upload');
+                this.loadBatches();
+            },
+            complete: () => {
+                this.isPollingOrderNumbersBatch.set(false);
+            }
+        });
+
+        this.orderNumbersPollingSubscription = pollingSubscription;
+        this.subscriptions.push(pollingSubscription);
     }
 
     private formatBytes(size: number): string {
@@ -547,6 +709,8 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
         return {
             idBatch: `BATCH-${String(batch.id).padStart(4, '0')}`,
             batchType: batch.batchType,
+            requestTypeId: batch.requestTypeId ?? null,
+            requestTypeName: batch.requestTypeName ?? null,
             date: this.formatDate(batch.createdAt),
             status: batch.status,
             requests: batch.totalRecords,
@@ -789,6 +953,208 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
         return parsedDate.toLocaleString('es-MX');
     }
 
+    // SAP Return Order Methods
+    public isSapReturnOrderAllowed(): boolean {
+        const requestTypeId = this.selectedRequestTypeId();
+        if (!requestTypeId) {
+            return false;
+        }
 
+        const selectedType = this.availableRequestTypes().find(t => t.id === requestTypeId);
+        if (!selectedType) {
+            return false;
+        }
+
+        const typeName = selectedType.name.toLowerCase();
+        return this.SAP_RETURN_ORDER_ALLOWED_TYPES.includes(typeName);
+    }
+
+    public onSapReturnOrderDragOver(event: DragEvent): void {
+        event.preventDefault();
+        this.isSapReturnOrderDragOver.set(true);
+    }
+
+    public onSapReturnOrderDragLeave(event: DragEvent): void {
+        event.preventDefault();
+        this.isSapReturnOrderDragOver.set(false);
+    }
+
+    public onSapReturnOrderDrop(event: DragEvent): void {
+        event.preventDefault();
+        this.isSapReturnOrderDragOver.set(false);
+
+        const files = event.dataTransfer?.files;
+        if (files) {
+            this.onSapReturnOrderFileInputChange({ target: { files } } as unknown as Event);
+        }
+    }
+
+    public onSapReturnOrderFileInputChange(event: Event): void {
+        const fileList = (event.target as HTMLInputElement).files;
+        if (fileList && fileList.length > 0) {
+            this.appendSapReturnOrderFiles(fileList);
+        }
+    }
+
+    private appendSapReturnOrderFiles(fileList: FileList): void {
+        const currentFiles = [...this.sapReturnOrderFiles()];
+        const currentUploadedFiles = [...this.sapReturnOrderUploadedFiles()];
+
+        for (let i = 0; i < fileList.length; i++) {
+            const file = fileList[i];
+
+            // Validate file type
+            if (!this.isValidSapReturnOrderFile(file)) {
+                this.toastService.warning(
+                    `Archivo "${file.name}" no permitido. Solo imágenes, Word y PDF son permitidos.`,
+                    'SAP Return Order'
+                );
+                continue;
+            }
+
+            currentFiles.push(file);
+            currentUploadedFiles.push({
+                name: file.name,
+                sizeLabel: this.formatBytes(file.size),
+                type: file.type || 'unknown',
+                uploadedAt: new Date().toLocaleString('es-MX')
+            });
+        }
+
+        this.sapReturnOrderFiles.set(currentFiles);
+        this.sapReturnOrderUploadedFiles.set(currentUploadedFiles);
+    }
+
+    private isValidSapReturnOrderFile(file: File): boolean {
+        const validMimes = [
+            // Images
+            'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/bmp', 'image/svg+xml',
+            // Word
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            // PDF
+            'application/pdf'
+        ];
+
+        const validExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg', '.doc', '.docx', '.pdf'];
+
+        const mimeValid = validMimes.includes(file.type);
+        const ext = '.' + file.name.split('.').pop()?.toLowerCase();
+        const extValid = validExtensions.includes(ext);
+
+        return mimeValid || extValid;
+    }
+
+    public removeSapReturnOrderUploadedFile(index: number): void {
+        const currentFiles = [...this.sapReturnOrderFiles()];
+        const currentUploadedFiles = [...this.sapReturnOrderUploadedFiles()];
+
+        if (index < 0 || index >= currentFiles.length) {
+            return;
+        }
+
+        currentFiles.splice(index, 1);
+        currentUploadedFiles.splice(index, 1);
+
+        this.sapReturnOrderFiles.set(currentFiles);
+        this.sapReturnOrderUploadedFiles.set(currentUploadedFiles);
+    }
+
+    public createSapReturnOrderBatchFromUpload(): void {
+        const files = this.sapReturnOrderFiles();
+        const requestTypeId = this.selectedRequestTypeId();
+
+        if (files.length === 0) {
+            this.toastService.warning('Selecciona al menos un archivo para SAP Return Order.', 'SAP Return Order');
+            return;
+        }
+
+        if (!requestTypeId) {
+            this.toastService.warning('Selecciona el Request Type.', 'SAP Return Order');
+            return;
+        }
+
+        if (!this.isSapReturnOrderAllowed()) {
+            this.toastService.warning('El Request Type seleccionado no permite SAP Return Order.', 'SAP Return Order');
+            return;
+        }
+
+        this.isCreatingSapReturnOrderBatch.set(true);
+
+        const formData = new FormData();
+        formData.append('batchType', 'sapScreen');
+        formData.append('requestTypeId', String(requestTypeId));
+
+        files.forEach((file) => {
+            formData.append('file[]', file);
+        });
+
+        const subscription = this.batchService.createSapReturnOrderBatch(formData).subscribe({
+            next: (batch) => {
+                this.isCreatingSapReturnOrderBatch.set(false);
+                this.sapReturnOrderFiles.set([]);
+                this.sapReturnOrderUploadedFiles.set([]);
+
+                const batchId = batch?.id;
+                this.toastService.success(
+                    `Batch SAP Return Order creado correctamente${batchId ? ` (ID: ${batchId})` : ''}.`,
+                    'SAP Return Order'
+                );
+
+                if (batchId !== undefined && batchId !== null && batchId !== '') {
+                    this.startSapReturnOrderBatchPolling(batchId);
+                } else {
+                    this.loadBatches();
+                }
+            },
+            error: (error) => {
+                this.isCreatingSapReturnOrderBatch.set(false);
+                const message = error?.error?.message ?? 'No se pudo crear el batch SAP Return Order.';
+                this.toastService.error(message, 'SAP Return Order');
+            }
+        });
+
+        this.subscriptions.push(subscription);
+    }
+
+    private startSapReturnOrderBatchPolling(batchId: number | string): void {
+        this.sapReturnOrderPollingSubscription?.unsubscribe();
+        this.isPollingsSapReturnOrderBatch.set(true);
+
+        const pollingSubscription = timer(0, 3000).pipe(
+            switchMap(() => this.batchService.getBatchDetail(batchId, 1, 1)),
+            takeWhile((response) => {
+                const status = String(response.batch?.status ?? '').toLowerCase();
+                return status !== 'completed' && status !== 'failed';
+            }, true)
+        ).subscribe({
+            next: (response) => {
+                const status = String(response.batch?.status ?? '').toLowerCase();
+
+                if (status === 'completed') {
+                    this.isPollingsSapReturnOrderBatch.set(false);
+                    this.toastService.success('Carga masiva de SAP Return Order completada.', 'SAP Return Order');
+                    this.loadBatches();
+                }
+
+                if (status === 'failed') {
+                    this.isPollingsSapReturnOrderBatch.set(false);
+                    this.toastService.error('La carga masiva de SAP Return Order fallo.', 'SAP Return Order');
+                    this.loadBatches();
+                }
+            },
+            error: () => {
+                this.isPollingsSapReturnOrderBatch.set(false);
+                this.toastService.warning('No se pudo continuar el polling del batch SAP Return Order.', 'SAP Return Order');
+                this.loadBatches();
+            },
+            complete: () => {
+                this.isPollingsSapReturnOrderBatch.set(false);
+            }
+        });
+
+        this.sapReturnOrderPollingSubscription = pollingSubscription;
+        this.subscriptions.push(pollingSubscription);
+    }
 
 }
