@@ -66,4 +66,11 @@
         </div>
 
     </app-modal>
+
+    <app-pending-attachments-modal
+        [open]="showAttachmentsModal()"
+        [requestId]="selectedRequestForAttachments()?.id ?? null"
+        [canDelete]="canDeleteSelectedAttachments()"
+        (openChange)="onAttachmentsModalChange($event)">
+    </app-pending-attachments-modal>
 </div>

@@ -20,6 +20,7 @@ import { PermissionAction, RequestTypePermissionRecord, RoleService } from '../.
 import { RequestType } from '../../data/interfaces/Request';
 import { getPermissionSlugsForCustomAction } from '../../core/constants/action-permission-map';
 import { Router } from '@angular/router';
+import { PendingAttachmentsModal } from './components/pending-attachments-modal/pending-attachments-modal';
 
 // 👇 Accede al default export real
 const pdf: any = (pdfMake as any).default ?? pdfMake;
@@ -30,7 +31,7 @@ pdf.vfs = (pdfFonts as any).default?.vfs ?? (pdfFonts as any).vfs;
     selector: 'app-pending',
     templateUrl: './pending.html',
     styleUrl: './pending.css',
-    imports: [TranslatePipe, Table, Spinner, Badge, UpperCasePipe, Modal, WorkflowHistoryDrawer]
+    imports: [TranslatePipe, Table, Spinner, Badge, UpperCasePipe, Modal, WorkflowHistoryDrawer, PendingAttachmentsModal]
 })
 export class Pending {
 
@@ -116,6 +117,12 @@ export class Pending {
             accion: (request) => this.logAction(request)
         },
         {
+            key: 'see_attachments',
+            icon: 'eye',
+            label: 'See attachments',
+            accion: (request) => this.openAttachmentsModal(request)
+        },
+        {
             key: 'delete',
             icon: 'trash',
             label: 'Eliminar',
@@ -127,6 +134,9 @@ export class Pending {
 
     public showHistoryDrawer = signal<boolean>(false);
     public workflowDetail: WorkflowDetail | null = null;
+    public showAttachmentsModal = signal<boolean>(false);
+    public selectedRequestForAttachments = signal<Request | null>(null);
+    public canDeleteSelectedAttachments = signal<boolean>(false);
 
     closeHistoryDrawer(): void {
         this.showHistoryDrawer.set(false);
@@ -382,6 +392,15 @@ export class Pending {
 
     }
 
+    onAttachmentsModalChange(isOpen: boolean): void {
+        this.showAttachmentsModal.set(isOpen);
+
+        if (!isOpen) {
+            this.selectedRequestForAttachments.set(null);
+            this.canDeleteSelectedAttachments.set(false);
+        }
+    }
+
     campoVacio(controlName: string): boolean {
         const control = this.form.get(controlName);
         if (!control) return false;
@@ -419,6 +438,24 @@ export class Pending {
     logAction(request: Request) {
         console.log(request);
         this.openHistoryDrawer(request);
+    }
+
+    openAttachmentsModal(request: Request): void {
+        if (!request.id) {
+            return;
+        }
+
+        const requestTypeId = Number(request.requestTypeId);
+        const canDeleteAttachments = this.hasRequestTypePermission(requestTypeId, [
+            'delete_attachments',
+            'delete_attachment',
+            'delete_atachments',
+            'delete_atachment'
+        ]);
+
+        this.selectedRequestForAttachments.set(request);
+        this.canDeleteSelectedAttachments.set(canDeleteAttachments);
+        this.showAttachmentsModal.set(true);
     }
 
     // =============================
@@ -769,5 +806,15 @@ export class Pending {
         }
 
         return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+    }
+
+    private hasRequestTypePermission(requestTypeId: number, slugCandidates: string[]): boolean {
+        if (!requestTypeId || Number.isNaN(requestTypeId)) {
+            return false;
+        }
+
+        const permissionsBySlug = this.requestTypeActionPermissions()[requestTypeId] ?? {};
+
+        return slugCandidates.some((slug) => Boolean(permissionsBySlug[slug]));
     }
 }
