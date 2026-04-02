@@ -63,8 +63,7 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
     private readonly subscriptions: Subscription[] = [];
     private pendingTabIndex: number | null = null;
 
-    private readonly historyPerPage = 15;
-    private readonly detailPerPage = 25;
+    private readonly detailErrorsPerPage = 25;
 
 
     public isDragOver = signal(false);
@@ -83,11 +82,24 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
     public isBatchDetailModalOpen = signal(false);
     public isLoadingHistory = signal(false);
     public isLoadingBatchDetail = signal(false);
+    public isLoadingBatchRequests = signal(false);
     public isRequestErrorModalOpen = signal(false);
     public selectedBatch = signal<BatchHistoryRow | null>(null);
     public selectedRequestError = signal<RequestHistoryRow | null>(null);
     public selectedBatchSummary = signal<BatchSummary | null>(null);
     public selectedBatchErrors = signal<BatchErrorLog[]>([]);
+    public historyCurrentPage = signal(1);
+    public historyPageSize = signal(10);
+    public historyLastPage = signal(1);
+    public historyTotal = signal(0);
+    public historyHasNextPage = signal(false);
+    public historyHasPrevPage = signal(false);
+    public batchRequestsCurrentPage = signal(1);
+    public batchRequestsPageSize = signal(10);
+    public batchRequestsLastPage = signal(1);
+    public batchRequestsTotal = signal(0);
+    public batchRequestsHasNextPage = signal(false);
+    public batchRequestsHasPrevPage = signal(false);
 
     public bulkHistoryRows = signal<BatchHistoryRow[]>([]);
 
@@ -399,8 +411,9 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
 
     public openBatchDetail(batch: BatchHistoryRow): void {
         this.selectedBatch.set(batch);
+        this.batchRequestsCurrentPage.set(1);
         this.loadBatchDetail(batch.rawId);
-        this.loadBatchRequests(batch.rawId);
+        this.loadBatchRequests(batch.rawId, 1);
         this.isBatchDetailModalOpen.set(true);
     }
 
@@ -410,6 +423,11 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
             this.selectedBatchSummary.set(null);
             this.selectedBatchErrors.set([]);
             this.batchRequestRows.set([]);
+            this.batchRequestsCurrentPage.set(1);
+            this.batchRequestsLastPage.set(1);
+            this.batchRequestsTotal.set(0);
+            this.batchRequestsHasNextPage.set(false);
+            this.batchRequestsHasPrevPage.set(false);
         }
     }
 
@@ -437,11 +455,21 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
     }
 
     private loadBatches(): void {
+        this.loadBatchesByPage(this.historyCurrentPage());
+    }
+
+    private loadBatchesByPage(page: number): void {
+        const safePage = Math.max(1, page);
         this.isLoadingHistory.set(true);
 
-        const subscription = this.batchService.getBatches(this.historyPerPage).subscribe({
+        const subscription = this.batchService.getBatches(this.historyPageSize(), safePage).subscribe({
             next: (response) => {
                 this.bulkHistoryRows.set(response.data.map((batch) => this.mapBatchToHistoryRow(batch)));
+                this.historyCurrentPage.set(response.current_page || safePage);
+                this.historyLastPage.set(response.last_page || 1);
+                this.historyTotal.set(response.total ?? response.data.length);
+                this.historyHasNextPage.set(Boolean(response.next_page_url));
+                this.historyHasPrevPage.set(Boolean(response.prev_page_url));
                 this.isLoadingHistory.set(false);
             },
             error: (error) => {
@@ -475,7 +503,7 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
     private loadBatchDetail(batchId: number | string): void {
         this.isLoadingBatchDetail.set(true);
 
-        const subscription = this.batchService.getBatchDetail(batchId, this.detailPerPage).subscribe({
+        const subscription = this.batchService.getBatchDetail(batchId, this.detailErrorsPerPage).subscribe({
             next: (response) => {
                 this.selectedBatchSummary.set(response.batch);
                 this.selectedBatchErrors.set(response.errors.data ?? []);
@@ -491,12 +519,22 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
         this.subscriptions.push(subscription);
     }
 
-    private loadBatchRequests(batchId: number | string): void {
-        const subscription = this.batchService.getBatchRequests(batchId, this.detailPerPage).subscribe({
+    private loadBatchRequests(batchId: number | string, page?: number): void {
+        const safePage = Math.max(1, page ?? this.batchRequestsCurrentPage());
+        this.isLoadingBatchRequests.set(true);
+
+        const subscription = this.batchService.getBatchRequests(batchId, this.batchRequestsPageSize(), safePage).subscribe({
             next: (response) => {
                 this.batchRequestRows.set(response.items.data.map((item) => this.mapRequestItemToHistoryRow(item)));
+                this.batchRequestsCurrentPage.set(response.items.current_page || safePage);
+                this.batchRequestsLastPage.set(response.items.last_page || 1);
+                this.batchRequestsTotal.set(response.items.total ?? response.items.data.length);
+                this.batchRequestsHasNextPage.set(Boolean(response.items.next_page_url));
+                this.batchRequestsHasPrevPage.set(Boolean(response.items.prev_page_url));
+                this.isLoadingBatchRequests.set(false);
             },
             error: (error) => {
+                this.isLoadingBatchRequests.set(false);
                 console.error(`Error loading batch requests ${String(batchId)}:`, error);
                 this.toastService.error('No se pudieron cargar las solicitudes del batch.', 'Bulk History');
             }
@@ -573,6 +611,129 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
             this.loadBatchDetail(selectedId);
             this.loadBatchRequests(selectedId);
         }
+    }
+
+    public onHistoryNextPage(): void {
+        if (!this.historyHasNextPage()) {
+            return;
+        }
+
+        this.loadBatchesByPage(this.historyCurrentPage() + 1);
+    }
+
+    public onHistoryPrevPage(): void {
+        if (!this.historyHasPrevPage()) {
+            return;
+        }
+
+        this.loadBatchesByPage(this.historyCurrentPage() - 1);
+    }
+
+    public onHistoryFirstPage(): void {
+        if (this.historyCurrentPage() === 1) {
+            return;
+        }
+
+        this.loadBatchesByPage(1);
+    }
+
+    public onHistoryLastPage(): void {
+        const lastPage = this.historyLastPage();
+        if (this.historyCurrentPage() === lastPage) {
+            return;
+        }
+
+        this.loadBatchesByPage(lastPage);
+    }
+
+    public onBatchRequestsNextPage(): void {
+        const selected = this.selectedBatch();
+        if (!selected || !this.batchRequestsHasNextPage()) {
+            return;
+        }
+
+        this.loadBatchRequests(selected.rawId, this.batchRequestsCurrentPage() + 1);
+    }
+
+    public onBatchRequestsPrevPage(): void {
+        const selected = this.selectedBatch();
+        if (!selected || !this.batchRequestsHasPrevPage()) {
+            return;
+        }
+
+        this.loadBatchRequests(selected.rawId, this.batchRequestsCurrentPage() - 1);
+    }
+
+    public onBatchRequestsFirstPage(): void {
+        const selected = this.selectedBatch();
+        if (!selected || this.batchRequestsCurrentPage() === 1) {
+            return;
+        }
+
+        this.loadBatchRequests(selected.rawId, 1);
+    }
+
+    public onBatchRequestsLastPage(): void {
+        const selected = this.selectedBatch();
+        const lastPage = this.batchRequestsLastPage();
+        if (!selected || this.batchRequestsCurrentPage() === lastPage) {
+            return;
+        }
+
+        this.loadBatchRequests(selected.rawId, lastPage);
+    }
+
+    public onHistoryPageSizeChange(event: Event): void {
+        const value = Number((event.target as HTMLSelectElement).value);
+        if (![5, 10, 20].includes(value)) {
+            return;
+        }
+
+        this.historyPageSize.set(value);
+        this.historyCurrentPage.set(1);
+        this.loadBatchesByPage(1);
+    }
+
+    public onBatchRequestsPageSizeChange(event: Event): void {
+        const selected = this.selectedBatch();
+        if (!selected) {
+            return;
+        }
+
+        const value = Number((event.target as HTMLSelectElement).value);
+        if (![5, 10, 20].includes(value)) {
+            return;
+        }
+
+        this.batchRequestsPageSize.set(value);
+        this.batchRequestsCurrentPage.set(1);
+        this.loadBatchRequests(selected.rawId, 1);
+    }
+
+    public historyFrom(): number {
+        const total = this.historyTotal();
+        if (total === 0) {
+            return 0;
+        }
+
+        return (this.historyCurrentPage() - 1) * this.historyPageSize() + 1;
+    }
+
+    public historyTo(): number {
+        return Math.min(this.historyCurrentPage() * this.historyPageSize(), this.historyTotal());
+    }
+
+    public batchRequestsFrom(): number {
+        const total = this.batchRequestsTotal();
+        if (total === 0) {
+            return 0;
+        }
+
+        return (this.batchRequestsCurrentPage() - 1) * this.batchRequestsPageSize() + 1;
+    }
+
+    public batchRequestsTo(): number {
+        return Math.min(this.batchRequestsCurrentPage() * this.batchRequestsPageSize(), this.batchRequestsTotal());
     }
 
     private isTargetedToCurrentUser(message: BatchFinishedMessage, currentUserId?: number): boolean {
