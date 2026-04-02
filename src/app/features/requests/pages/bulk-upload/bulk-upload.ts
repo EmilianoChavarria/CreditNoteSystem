@@ -72,21 +72,25 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
     public isSupportDragOver = signal(false);
     public isOrderNumbersDragOver = signal(false);
     public isSapReturnOrderDragOver = signal(false);
+    public isCreditsDataDragOver = signal(false);
     public initialTabIndex = signal(0);
     public isCreatingBatch = signal(false);
     public isCreatingSupportBatch = signal(false);
     public isCreatingOrderNumbersBatch = signal(false);
     public isCreatingSapReturnOrderBatch = signal(false);
+    public isCreatingCreditsDataBatch = signal(false);
     public isPollingOrderNumbersBatch = signal(false);
     public isPollingsSapReturnOrderBatch = signal(false);
     public uploadedFiles = signal<UploadedFileRow[]>([]);
     public supportUploadedFiles = signal<UploadedFileRow[]>([]);
     public orderNumbersUploadedFiles = signal<UploadedFileRow[]>([]);
     public sapReturnOrderUploadedFiles = signal<UploadedFileRow[]>([]);
+    public creditsDataUploadedFiles = signal<UploadedFileRow[]>([]);
     public availableRequestTypes = signal<RequestType[]>([]);
     public selectedRequestTypeId = signal<number | null>(null);
     public selectedBatchFile = signal<File | null>(null);
     public selectedOrderNumbersFile = signal<File | null>(null);
+    public selectedCreditsDataFile = signal<File | null>(null);
     public supportFiles = signal<File[]>([]);
     public sapReturnOrderFiles = signal<File[]>([]);
     public supportMinRange = signal('');
@@ -121,6 +125,9 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
 
     // Request types that allow SAP Return Order batch uploads
     private readonly SAP_RETURN_ORDER_ALLOWED_TYPES = ['credits', 'debits', 'auditor-credits', 'auditor-debits'];
+
+    // Request types that allow creditsData batch uploads
+    private readonly CREDITS_DATA_ALLOWED_TYPES = ['credits', 'debits'];
 
     ngOnInit(): void {
         this.loadRequestTypes();
@@ -203,6 +210,22 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
         this.appendOrderNumbersFile(event.dataTransfer?.files ?? null);
     }
 
+    onCreditsDataDragOver(event: DragEvent): void {
+        event.preventDefault();
+        this.isCreditsDataDragOver.set(true);
+    }
+
+    onCreditsDataDragLeave(event: DragEvent): void {
+        event.preventDefault();
+        this.isCreditsDataDragOver.set(false);
+    }
+
+    onCreditsDataDrop(event: DragEvent): void {
+        event.preventDefault();
+        this.isCreditsDataDragOver.set(false);
+        this.appendCreditsDataFile(event.dataTransfer?.files ?? null);
+    }
+
     onFileInputChange(event: Event): void {
         const input = event.target as HTMLInputElement;
         this.appendFiles(input.files);
@@ -218,6 +241,12 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
     onOrderNumbersFileInputChange(event: Event): void {
         const input = event.target as HTMLInputElement;
         this.appendOrderNumbersFile(input.files);
+        input.value = '';
+    }
+
+    onCreditsDataFileInputChange(event: Event): void {
+        const input = event.target as HTMLInputElement;
+        this.appendCreditsDataFile(input.files);
         input.value = '';
     }
 
@@ -298,6 +327,35 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
         }];
 
         this.orderNumbersUploadedFiles.set(nextRows);
+    }
+
+    private appendCreditsDataFile(fileList: FileList | null): void {
+        if (!fileList || fileList.length === 0) {
+            return;
+        }
+
+        const primaryFile = fileList[0];
+
+        if (!this.isValidCreditsDataFile(primaryFile)) {
+            this.toastService.warning('Solo se permite un archivo CSV o XLSX para Credits Data.', 'Bulk Upload');
+            return;
+        }
+
+        this.selectedCreditsDataFile.set(primaryFile);
+
+        if (fileList.length > 1) {
+            this.toastService.warning('Solo se usara el primer archivo para Credits Data.', 'Bulk Upload');
+        }
+
+        const now = new Date();
+        const nextRows: UploadedFileRow[] = [{
+            name: primaryFile.name,
+            sizeLabel: this.formatBytes(primaryFile.size),
+            type: primaryFile.type || 'N/A',
+            uploadedAt: now.toLocaleString('es-MX')
+        }];
+
+        this.creditsDataUploadedFiles.set(nextRows);
     }
 
     onRequestTypeChange(event: Event): void {
@@ -460,6 +518,44 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
         this.subscriptions.push(subscription);
     }
 
+    createCreditsDataBatchFromUpload(): void {
+        const selectedFile = this.selectedCreditsDataFile();
+
+        if (!selectedFile) {
+            this.toastService.warning('Selecciona un archivo CSV o XLSX para Credits Data.', 'Bulk Upload');
+            return;
+        }
+
+        if (!this.isCreditsDataAllowed()) {
+            this.toastService.warning('Esta carga solo aplica para Request Type Credits o Debits.', 'Bulk Upload');
+            return;
+        }
+
+        this.isCreatingCreditsDataBatch.set(true);
+
+        const subscription = this.batchService.createCreditsDataBatch(selectedFile).subscribe({
+            next: (batch) => {
+                this.isCreatingCreditsDataBatch.set(false);
+                this.creditsDataUploadedFiles.set([]);
+                this.selectedCreditsDataFile.set(null);
+
+                this.toastService.success(
+                    `Batch Credits Data creado correctamente${batch?.id ? ` (ID: ${batch.id})` : ''}.`,
+                    'Bulk Upload'
+                );
+
+                this.loadBatches();
+            },
+            error: (error) => {
+                this.isCreatingCreditsDataBatch.set(false);
+                const message = error?.error?.message ?? 'No se pudo crear el batch Credits Data.';
+                this.toastService.error(message, 'Bulk Upload');
+            }
+        });
+
+        this.subscriptions.push(subscription);
+    }
+
     removeUploadedFile(index: number): void {
         const currentFiles = [...this.uploadedFiles()];
         if (index < 0 || index >= currentFiles.length) {
@@ -504,6 +600,20 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
 
         if (currentFiles.length === 0) {
             this.selectedOrderNumbersFile.set(null);
+        }
+    }
+
+    removeCreditsDataUploadedFile(index: number): void {
+        const currentFiles = [...this.creditsDataUploadedFiles()];
+        if (index < 0 || index >= currentFiles.length) {
+            return;
+        }
+
+        currentFiles.splice(index, 1);
+        this.creditsDataUploadedFiles.set(currentFiles);
+
+        if (currentFiles.length === 0) {
+            this.selectedCreditsDataFile.set(null);
         }
     }
 
@@ -967,6 +1077,40 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
 
         const typeName = selectedType.name.toLowerCase();
         return this.SAP_RETURN_ORDER_ALLOWED_TYPES.includes(typeName);
+    }
+
+    public isCreditsDataAllowed(): boolean {
+        const requestTypeId = this.selectedRequestTypeId();
+        if (!requestTypeId) {
+            return false;
+        }
+
+        const selectedType = this.availableRequestTypes().find((t) => t.id === requestTypeId);
+        if (!selectedType) {
+            return false;
+        }
+
+        const typeName = selectedType.name.toLowerCase();
+        return this.CREDITS_DATA_ALLOWED_TYPES.includes(typeName);
+    }
+
+    public isDebitsRequestTypeSelected(): boolean {
+        const requestTypeId = this.selectedRequestTypeId();
+        if (!requestTypeId) {
+            return false;
+        }
+
+        const selectedType = this.availableRequestTypes().find((t) => t.id === requestTypeId);
+        if (!selectedType) {
+            return false;
+        }
+
+        return selectedType.name.toLowerCase() === 'debits';
+    }
+
+    private isValidCreditsDataFile(file: File): boolean {
+        const fileName = file.name.toLowerCase();
+        return fileName.endsWith('.csv') || fileName.endsWith('.xlsx');
     }
 
     public onSapReturnOrderDragOver(event: DragEvent): void {

@@ -288,6 +288,99 @@
                     </div>
                 </accordeon-item>
 
+                @if (isCreditsDataAllowed()) {
+                <accordeon-item
+                    [titleM]="isDebitsRequestTypeSelected() ? 'Upload Debits Data' : 'Upload Credits Data'"
+                    description="Carga masiva para Credits y Debits por CSV o XLSX">
+                    <div class="w-full flex flex-col p-4">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                            <div class="flex flex-col gap-1 min-w-44">
+                                <span class="text-sm font-medium text-[#395f93]">Batch Type</span>
+                                <input
+                                    type="text"
+                                    value="creditsData"
+                                    disabled
+                                    class="h-10 border border-gray-200 rounded-md px-2 bg-gray-100 text-gray-600" />
+                            </div>
+
+                            <div class="flex flex-col gap-1">
+                                <span class="text-sm font-medium text-[#395f93]">Formato</span>
+                                <input
+                                    type="text"
+                                    value="CSV o XLSX"
+                                    disabled
+                                    class="h-10 border border-gray-200 rounded-md px-2 bg-gray-100 text-gray-600" />
+                            </div>
+
+                            <button
+                                type="button"
+                                (click)="createCreditsDataBatchFromUpload()"
+                                [disabled]="isCreatingCreditsDataBatch()"
+                                class="h-10 bg-[#395f93] text-white rounded-md px-4 py-2 hover:cursor-pointer hover:bg-[#4d6ea5] disabled:opacity-70 disabled:cursor-not-allowed">
+                                {{ isCreatingCreditsDataBatch() ? 'Procesando...' : (isDebitsRequestTypeSelected() ? 'Procesar Debits Data' : 'Procesar Credits Data') }}
+                            </button>
+                        </div>
+
+                        <p class="text-xs text-gray-500 mt-3">
+                            Se enviara como <strong>batchType=creditsData</strong> usando <strong>file</strong>.
+                            Solo un archivo por carga.
+                        </p>
+
+                        <div class="flex items-center justify-center w-full mt-4">
+                            <label for="dropzone-file-credits-data"
+                                class="flex flex-col items-center justify-center w-full h-56 bg-blue-50 border border-dashed bg-cover border-default-strong border-blue-600 rounded-md cursor-pointer hover:bg-neutral-tertiary-medium"
+                                [class.bg-blue-100]="isCreditsDataDragOver()" [class.border-[#ff8200]]="isCreditsDataDragOver()"
+                                (dragover)="onCreditsDataDragOver($event)" (dragleave)="onCreditsDataDragLeave($event)"
+                                (drop)="onCreditsDataDrop($event)">
+                                <div class="flex flex-col items-center justify-center text-body pt-5 pb-6">
+                                    <img src="assets/svg/cloud.svg" alt="Logo" class="h-24 my-4">
+                                    <p class="mb-2 text-base">
+                                        Drag and drop CSV/XLSX here or
+                                        <span class="font-semibold text-[#ff8200]">Click to upload</span>
+                                    </p>
+                                </div>
+                                <input id="dropzone-file-credits-data" type="file" class="hidden" accept=".csv,.xlsx"
+                                    (change)="onCreditsDataFileInputChange($event)" />
+                            </label>
+                        </div>
+
+                        @if (creditsDataUploadedFiles().length > 0) {
+                        <div class="w-full mt-4 overflow-x-auto rounded-md border border-gray-200">
+                            <table class="w-full min-w-175 border-collapse">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="border-b border-gray-200 px-4 py-2 text-left text-xs font-semibold text-gray-600">Nombre del archivo</th>
+                                        <th class="border-b border-gray-200 px-4 py-2 text-left text-xs font-semibold text-gray-600">Tamaño</th>
+                                        <th class="border-b border-gray-200 px-4 py-2 text-left text-xs font-semibold text-gray-600">Tipo</th>
+                                        <th class="border-b border-gray-200 px-4 py-2 text-left text-xs font-semibold text-gray-600">Subido el</th>
+                                        <th class="border-b border-gray-200 px-4 py-2 text-left text-xs font-semibold text-gray-600">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @for (file of creditsDataUploadedFiles(); track file.name + file.uploadedAt + file.sizeLabel) {
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="border-b border-gray-100 px-4 py-2 text-sm text-gray-700">{{ file.name }}</td>
+                                        <td class="border-b border-gray-100 px-4 py-2 text-sm text-gray-700">{{ file.sizeLabel }}</td>
+                                        <td class="border-b border-gray-100 px-4 py-2 text-sm text-gray-700">{{ file.type }}</td>
+                                        <td class="border-b border-gray-100 px-4 py-2 text-sm text-gray-700">{{ file.uploadedAt }}</td>
+                                        <td class="border-b border-gray-100 px-4 py-2 text-gray-700">
+                                            <button
+                                                type="button"
+                                                (click)="removeCreditsDataUploadedFile($index)"
+                                                class="p-1 text-[#fb2c36] bg-[#fb2c361a] rounded-md hover:cursor-pointer">
+                                                <lucide-icon name="trash" size="18"></lucide-icon>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                        }
+                    </div>
+                </accordeon-item>
+                }
+
                 @if (isSapReturnOrderAllowed()) {
                 <accordeon-item titleM="Upload SAP Return Order" description="Carga masiva de archivos de SAP Return Order (imágenes, Word, PDF)">
                     <div class="w-full flex flex-col p-4">
