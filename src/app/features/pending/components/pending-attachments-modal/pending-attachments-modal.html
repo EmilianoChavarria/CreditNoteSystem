@@ -1,0 +1,87 @@
+<app-modal
+  size="lg"
+  titleM="See attachments"
+  [open]="open()"
+  closeText="Close"
+  [showPrimaryButton]="false"
+  (openChange)="onOpenChange($event)"
+>
+  @if (isLoading()) {
+    <div class="py-10 flex items-center justify-center">
+      <app-spinner></app-spinner>
+    </div>
+  } @else if (attachments().length === 0) {
+    <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
+      <p class="text-slate-700 font-medium">No active attachments found for this request.</p>
+    </div>
+  } @else {
+    <ul class="space-y-3">
+      @for (attachment of attachments(); track attachment.id) {
+        <li class="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div class="min-w-0">
+            <p class="truncate text-sm font-semibold text-slate-800">{{ getAttachmentName(attachment) }}</p>
+            <p class="text-xs text-slate-500">Created: {{ getAttachmentDate(attachment) }}</p>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button
+              type="button"
+              class="inline-flex items-center rounded-lg border border-slate-200 bg-white p-2 text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+              [disabled]="isOpening(attachment.id)"
+              (click)="openAttachment(attachment)"
+              aria-label="Open attachment"
+              title="Open attachment"
+            >
+              <lucide-icon name="eye" size="16"></lucide-icon>
+            </button>
+
+            @if (canDelete()) {
+              <button
+                type="button"
+                class="inline-flex items-center rounded-lg border border-red-200 bg-red-50 p-2 text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
+                [disabled]="isDeleting(attachment.id)"
+                (click)="requestDeleteAttachment(attachment)"
+                aria-label="Delete attachment"
+                title="Delete attachment"
+              >
+                <lucide-icon name="trash" size="16"></lucide-icon>
+              </button>
+            }
+          </div>
+        </li>
+      }
+    </ul>
+  }
+</app-modal>
+
+<app-modal
+  size="sm"
+  titleM="Confirm deletion"
+  [open]="showDeleteConfirmModal()"
+  [showCloseButton]="false"
+  [showPrimaryButton]="false"
+  (openChange)="onDeleteConfirmModalChange($event)"
+>
+  <p class="text-sm text-slate-700">
+    Are you sure you want to delete
+    <span class="font-semibold">{{ getPendingDeletionAttachmentName() }}</span>?
+  </p>
+
+  <div modal-actions class="flex items-center gap-2">
+    <button
+      type="button"
+      class="rounded-md border border-slate-300 bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-200"
+      (click)="onDeleteConfirmModalChange(false)"
+    >
+      Cancel
+    </button>
+
+    <button
+      type="button"
+      class="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700"
+      (click)="confirmDeleteAttachment()"
+    >
+      Delete
+    </button>
+  </div>
+</app-modal>
