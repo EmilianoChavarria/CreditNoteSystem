@@ -3,7 +3,9 @@ import { LucideAngularModule } from 'lucide-angular';
 import { finalize } from 'rxjs';
 import { Modal } from '../../../../shared/components/ui/modal/modal';
 import { Spinner } from '../../../../shared/components/ui/spinner/spinner';
+import { ApiResponse } from '../../../../data/interfaces/ApiResponse-interface';
 import { RequestAttachment, RequestService } from '../../../../core/services/request-service';
+import { ToastService } from '../../../../core/services/toast-service';
 
 @Component({
   selector: 'app-pending-attachments-modal',
@@ -28,7 +30,9 @@ export class PendingAttachmentsModal {
 
   private readonly requestsService = inject(RequestService);
 
-  constructor() {
+  constructor(
+    private _toastService: ToastService
+  ) {
     effect(() => {
       const isOpen = this.open();
       const requestId = this.requestId();
@@ -159,8 +163,9 @@ export class PendingAttachmentsModal {
         this.deletingAttachmentIds.update((ids) => ids.filter((id) => id !== attachment.id));
       })
     ).subscribe({
-      next: () => {
+      next: (response: ApiResponse<boolean>) => {
         this.attachments.update((items) => items.filter((item) => item.id !== attachment.id));
+        this._toastService.success(response.message ?? 'Archivo eliminado correctamente', 'Éxito');
       },
       error: (error) => {
         console.error('Error deleting attachment', error);
