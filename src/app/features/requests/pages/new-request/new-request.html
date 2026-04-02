@@ -30,6 +30,10 @@
             <app-auditor-debit-form [requestTypeId]="selectedRequestTypeId"
                 [initialRequestData]="editingRequestData()"></app-auditor-debit-form>
         }
+        @case ('material-return') {
+            <app-material-return-form [requestTypeId]="selectedRequestTypeId"
+                [initialRequestData]="editingRequestData()"></app-material-return-form>
+        }
     }
 
 
