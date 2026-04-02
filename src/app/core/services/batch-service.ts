@@ -142,6 +142,32 @@ export class BatchService {
     );
   }
 
+  createSapReturnOrderBatch(formData: FormData, bearerToken?: string): Observable<BatchSummary | null> {
+    const resolvedBearer = bearerToken ?? this.resolveBearerToken();
+    const headers = resolvedBearer
+      ? new HttpHeaders({ Authorization: `Bearer ${resolvedBearer}` })
+      : undefined;
+
+    return this.httpClient.post<ApiResponse<unknown>>(
+      `${this.baseApiUrl}/batches`,
+      formData,
+      {
+        headers,
+        withCredentials: true,
+      }
+    ).pipe(
+      map((response) => {
+        const data = (response.data ?? {}) as Record<string, unknown>;
+        const batchCandidate = data['batch'] ?? data;
+        return this.toBatchSummary(batchCandidate);
+      }),
+      catchError((error) => {
+        console.error('Error creating sapReturnOrder batch', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
   getBatches(perPage = 15, page = 1, requestTypeId?: number, bearerToken?: string): Observable<PagePagination<BatchSummary>> {
     const options = this.buildOptions({ perPage, page, requestTypeId }, bearerToken);
 
