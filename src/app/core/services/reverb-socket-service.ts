@@ -3,6 +3,7 @@ import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
 import { Observable, Subject, catchError, tap, throwError } from 'rxjs';
 import { HttpService } from './http-service';
+import { runtimeConfig } from '../config/runtime-config';
 
 export type SocketConnectionState =
   | 'idle'
@@ -66,14 +67,14 @@ type UnknownRecord = Record<string, unknown>;
 })
 export class ReverbSocketService {
   private readonly reverbKey = 'bfxplq8qmwryrdoi38pw';
-//   private readonly wsHost = 'localhost';
-  private readonly wsHost = '192.168.2.52';
-  private readonly wsPort = 8080;
+  private readonly wsHost = runtimeConfig.socketHost;
+  private readonly wsPort = runtimeConfig.socketPort;
+  private readonly wsProtocol = runtimeConfig.socketProtocol;
   private readonly channelName = 'notifications.global';
   private readonly eventName = 'socket.message.sent';
   private readonly legacyEventName = '.socket.message.sent';
   private readonly notificationEventName = 'notification.created';
-  private readonly broadcastEndpoint = 'http://192.168.2.52:8000/api/socket/broadcast';
+  private readonly broadcastEndpoint = runtimeConfig.broadcastEndpoint;
 
   private echo: Echo<'reverb'> | null = null;
   private channel: EchoChannelLike | null = null;
@@ -99,7 +100,7 @@ export class ReverbSocketService {
 
     this.connectionState.set('connecting');
     this.connectionError.set(null);
-    console.info(`[Reverb] Connecting to ws://${this.wsHost}:${this.wsPort} ...`);
+    console.info(`[Reverb] Connecting to ${this.wsProtocol}://${this.wsHost}:${this.wsPort} ...`);
 
     (window as unknown as { Pusher: typeof Pusher }).Pusher = Pusher;
 
@@ -109,7 +110,7 @@ export class ReverbSocketService {
       wsHost: this.wsHost,
       wsPort: this.wsPort,
       wssPort: this.wsPort,
-      forceTLS: false,
+      forceTLS: this.wsProtocol === 'wss',
       enabledTransports: ['ws', 'wss'],
       disableStats: true,
     });
