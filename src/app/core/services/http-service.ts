@@ -2,22 +2,21 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable, timeout } from 'rxjs';
 import { ApiResponse } from '../../data/interfaces/ApiResponse-interface';
+import { runtimeConfig } from '../config/runtime-config';
 
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 
 export interface RequestOptions {
   params?: { [key: string]: string | number | boolean };
   headers?: { [key: string]: string };
+  timeoutMs?: number;
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class HttpService {
-  // private readonly baseURL = 'http://192.168.2.29:8000/api';
-  private readonly baseURL = 'http://192.168.2.52:8000/api';
-  // private readonly baseURL = 'http://127.0.0.1:8000/api';
-  // private readonly baseURL = 'http://localhost:8000/api';
+  private readonly baseURL = runtimeConfig.apiBaseUrl;
   private readonly defaultTimeout = 10000;
   private readonly defaultHeaders = {
     'Content-Type': 'application/json'
@@ -64,7 +63,7 @@ export class HttpService {
         throw new Error(`Método HTTP no soportado: ${method}`);
     }
 
-    return request$.pipe(timeout(this.defaultTimeout));
+    return request$.pipe(timeout(options?.timeoutMs ?? this.defaultTimeout));
   }
 
   /**
