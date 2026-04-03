@@ -98,7 +98,7 @@ export class NotificationService {
   }
 
   private loadNotifications(endpoint: string): Observable<AppNotification[]> {
-    return this.httpService.get<AppNotification[]>(endpoint).pipe(
+    return this.httpService.get<AppNotification[]>(endpoint, { timeoutMs: 30000 }).pipe(
       tap(() => {
         this.lastError.set(null);
       }),
