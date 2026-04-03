@@ -3,6 +3,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { catchError, map, Observable, throwError } from 'rxjs';
 import { ApiResponse } from '../../data/interfaces/ApiResponse-interface';
 import { HttpService, RequestOptions } from './http-service';
+import { runtimeConfig } from '../config/runtime-config';
 
 export interface BatchSummary {
   id: number | string;
@@ -62,7 +63,7 @@ export interface BatchRequestsResponse {
   providedIn: 'root'
 })
 export class BatchService {
-  private readonly baseApiUrl = 'http://192.168.2.52:8000/api';
+  private readonly baseApiUrl = runtimeConfig.apiBaseUrl;
 
   constructor(
     private readonly httpService: HttpService,
