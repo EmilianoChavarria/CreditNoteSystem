@@ -5,6 +5,7 @@ import { AccordeonItem } from '../../../../../shared/components/ui/accordeon/acc
 import { BatchService } from '../../../../../core/services/batch-service';
 import { ToastService } from '../../../../../core/services/toast-service';
 import { RequestType } from '../../../../../data/interfaces/Request';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 interface UploadedFileRow {
   name: string;
@@ -15,12 +16,13 @@ interface UploadedFileRow {
 
 @Component({
   selector: 'app-bulk-credits-data-upload',
-  imports: [AccordeonItem, LucideAngularModule],
+  imports: [AccordeonItem, LucideAngularModule, TranslatePipe],
   templateUrl: './bulk-credits-data-upload.html',
 })
 export class BulkCreditsDataUpload {
   private readonly batchService = inject(BatchService);
   private readonly toastService = inject(ToastService);
+  private readonly translateService = inject(TranslateService);
   private readonly destroyRef = inject(DestroyRef);
 
   requestTypes = input.required<RequestType[]>();
@@ -74,12 +76,12 @@ export class BulkCreditsDataUpload {
     const file = this.selectedFile();
 
     if (!file) {
-      this.toastService.warning('Selecciona un archivo CSV o XLSX para Credits Data.', 'Bulk Upload');
+      this.toastService.warning(this.translateService.instant('BULK.TOAST.CREDITS_SELECT_FILE'), this.translateService.instant('BULK.TABS.UPLOAD'));
       return;
     }
 
     if (!this.isAllowed()) {
-      this.toastService.warning('Esta carga solo aplica para Request Type Credits o Debits.', 'Bulk Upload');
+      this.toastService.warning(this.translateService.instant('BULK.TOAST.CREDITS_ALLOWED_ONLY'), this.translateService.instant('BULK.TABS.UPLOAD'));
       return;
     }
 
@@ -94,16 +96,16 @@ export class BulkCreditsDataUpload {
           this.selectedFile.set(null);
 
           this.toastService.success(
-            `Batch Credits Data creado correctamente${batch?.id ? ` (ID: ${batch.id})` : ''}.`,
-            'Bulk Upload'
+            this.translateService.instant('BULK.TOAST.CREDITS_CREATED', { id: batch?.id ?? '' }),
+            this.translateService.instant('BULK.TABS.UPLOAD')
           );
 
           this.batchCreated.emit();
         },
         error: (error) => {
           this.isCreatingBatch.set(false);
-          const message = error?.error?.message ?? 'No se pudo crear el batch Credits Data.';
-          this.toastService.error(message, 'Bulk Upload');
+          const message = error?.error?.message ?? this.translateService.instant('BULK.TOAST.CREDITS_CREATE_ERROR');
+          this.toastService.error(message, this.translateService.instant('BULK.TABS.UPLOAD'));
         }
       });
   }
@@ -130,14 +132,14 @@ export class BulkCreditsDataUpload {
     const primaryFile = fileList[0];
 
     if (!this.isValidFile(primaryFile)) {
-      this.toastService.warning('Solo se permite un archivo CSV o XLSX para Credits Data.', 'Bulk Upload');
+      this.toastService.warning(this.translateService.instant('BULK.TOAST.CREDITS_ONLY_CSV_XLSX'), this.translateService.instant('BULK.TABS.UPLOAD'));
       return;
     }
 
     this.selectedFile.set(primaryFile);
 
     if (fileList.length > 1) {
-      this.toastService.warning('Solo se usara el primer archivo para Credits Data.', 'Bulk Upload');
+      this.toastService.warning(this.translateService.instant('BULK.TOAST.CREDITS_ONLY_FIRST_FILE'), this.translateService.instant('BULK.TABS.UPLOAD'));
     }
 
     this.uploadedFiles.set([{
