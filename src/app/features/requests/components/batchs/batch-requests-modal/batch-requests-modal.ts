@@ -3,6 +3,7 @@ import { JsonPipe } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
 import { Modal } from '../../../../../shared/components/ui/modal/modal';
 import { Popover } from '../../../../../shared/components/ui/popover/popover';
+import { TranslatePipe } from '@ngx-translate/core';
 
 interface BatchSummaryView {
   id?: number | string;
@@ -24,7 +25,7 @@ interface RequestHistoryRow {
 
 @Component({
   selector: 'app-batch-requests-modal',
-  imports: [Modal, Popover, LucideAngularModule, JsonPipe],
+  imports: [Modal, Popover, LucideAngularModule, JsonPipe, TranslatePipe],
   templateUrl: './batch-requests-modal.html',
 })
 export class BatchRequestsModal {

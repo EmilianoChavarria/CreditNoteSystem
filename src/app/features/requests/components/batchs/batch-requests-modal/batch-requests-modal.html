@@ -1,18 +1,18 @@
-<app-modal size="xl" titleM="Batch Requests" [open]="open()" closeText="Cerrar"
+<app-modal size="xl" [titleM]="'BULK.BATCH_REQUESTS.TITLE' | translate" [open]="open()" [closeText]="'BULK.CLOSE' | translate"
     [showPrimaryButton]="false" (openChange)="openChange.emit($event)">
     <div class="mb-4 text-sm text-gray-600">
         @if (selectedBatchSummary()) {
-        <span class="font-semibold text-gray-800">Batch {{ selectedBatchSummary()?.id }}</span>
+        <span class="font-semibold text-gray-800">{{ 'BULK.BATCH_REQUESTS.BATCH' | translate }} {{ selectedBatchSummary()?.id }}</span>
         <span class="mx-2">•</span>
         <span class="capitalize">{{ selectedBatchSummary()?.status }}</span>
         <span class="mx-2">•</span>
-        <span>Progreso {{ selectedBatchSummary()?.progressPercent }}%</span>
+        <span>{{ 'BULK.BATCH_REQUESTS.PROGRESS' | translate }} {{ selectedBatchSummary()?.progressPercent }}%</span>
         }
     </div>
 
     @if (selectedBatchErrors().length > 0) {
     <div class="mb-4 rounded-md border border-red-200 bg-red-50 p-3">
-        <p class="text-sm font-semibold text-red-700 mb-2">Errores del batch</p>
+        <p class="text-sm font-semibold text-red-700 mb-2">{{ 'BULK.BATCH_REQUESTS.BATCH_ERRORS' | translate }}</p>
         <ul class="space-y-1 max-h-36 overflow-y-auto">
             @for (error of selectedBatchErrors(); track $index) {
             <li class="text-xs text-red-700">{{ error.message || error.detail || (error | json) }}</li>
@@ -25,9 +25,9 @@
         <table class="w-full min-w-150 border-collapse">
             <thead class="bg-gray-50">
                 <tr>
-                    <th class="border-b border-gray-200 px-4 py-2 text-left text-xs font-semibold text-gray-600">Request</th>
-                    <th class="border-b border-gray-200 px-4 py-2 text-left text-xs font-semibold text-gray-600">Status</th>
-                    <th class="border-b border-gray-200 px-4 py-2 text-left text-xs font-semibold text-gray-600">Actions</th>
+                    <th class="border-b border-gray-200 px-4 py-2 text-left text-xs font-semibold text-gray-600">{{ 'BULK.BATCH_REQUESTS.REQUEST' | translate }}</th>
+                    <th class="border-b border-gray-200 px-4 py-2 text-left text-xs font-semibold text-gray-600">{{ 'BULK.BATCH_REQUESTS.STATUS' | translate }}</th>
+                    <th class="border-b border-gray-200 px-4 py-2 text-left text-xs font-semibold text-gray-600">{{ 'BULK.BATCH_REQUESTS.ACTIONS' | translate }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -72,7 +72,7 @@
                                 <button type="button" (click)="onOpenRequestError(request)"
                                     class="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-gray-100 transition text-red-600">
                                     <lucide-icon name="circle-x" size="16"></lucide-icon>
-                                    <span>Ver error</span>
+                                    <span>{{ 'BULK.BATCH_REQUESTS.VIEW_ERROR' | translate }}</span>
                                 </button>
                                 }
                             </div>
@@ -86,10 +86,10 @@
     </div>
     <div class="mt-3 flex flex-wrap items-center justify-between gap-3">
         <span class="text-xs text-gray-600">
-            Mostrando {{ batchRequestsFrom() }} - {{ batchRequestsTo() }} de {{ batchRequestsTotal() }} solicitudes
+            {{ 'BULK.HISTORY.SHOWING' | translate }} {{ batchRequestsFrom() }} - {{ batchRequestsTo() }} {{ 'BULK.HISTORY.OF' | translate }} {{ batchRequestsTotal() }} {{ 'BULK.BATCH_REQUESTS.REQUESTS' | translate }}
         </span>
         <div class="flex items-center gap-2">
-            <label class="text-xs text-gray-600">Tamaño</label>
+            <label class="text-xs text-gray-600">{{ 'BULK.HISTORY.SIZE' | translate }}</label>
             <select
                 class="h-8 rounded-md border border-gray-300 bg-white px-2 text-xs text-gray-700"
                 [value]="batchRequestsPageSize()"
@@ -113,7 +113,7 @@
                 ‹
             </button>
             <span class="px-2 text-xs text-gray-600">
-                Pagina {{ batchRequestsCurrentPage() }} de {{ batchRequestsLastPage() }}
+                {{ 'BULK.HISTORY.PAGE' | translate }} {{ batchRequestsCurrentPage() }} {{ 'BULK.HISTORY.OF' | translate }} {{ batchRequestsLastPage() }}
             </span>
             <button
                 type="button"
