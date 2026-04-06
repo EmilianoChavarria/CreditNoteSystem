@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpService } from './http-service';
-import { catchError, map, Observable, tap } from 'rxjs';
-import { ChartDataS } from '../../features/dashboard/pages/dashboard/dashboard';
+import { catchError, map, Observable, throwError } from 'rxjs';
 import { ApiResponse } from '../../data/interfaces/ApiResponse-interface';
+import { DashboardChartQueryParams, DashboardChartResponse } from '../../data/interfaces/DashboardChart';
 
 @Injectable({
   providedIn: 'root'
@@ -13,19 +13,33 @@ export class DashboardService {
     private _httpService: HttpService
   ) { }
 
-  public getDaysChart(): Observable<ChartDataS[]> {
-    return this._httpService.get<ChartDataS[]>('/dashboard').pipe(
-      tap((response: ApiResponse<ChartDataS[]>) => {
-        if (response.success) {
+  public getDaysChart(params?: DashboardChartQueryParams): Observable<DashboardChartResponse | null> {
+    const requestParams = this.toRequestParams(params);
 
-        }
-      }),
-      map((response: ApiResponse<ChartDataS[]>) => response.data ?? []),
+    return this._httpService.get<DashboardChartResponse>('/dashboard', { params: requestParams }).pipe(
+      map((response: ApiResponse<DashboardChartResponse>) => response.data),
       catchError((error) => {
         console.log(error);
-        throw (error);
+        return throwError(() => error);
       })
     )
+  }
+
+  private toRequestParams(params?: DashboardChartQueryParams): { [key: string]: string | number | boolean } | undefined {
+    if (!params) {
+      return undefined;
+    }
+
+    const entries = Object.entries(params).filter((entry): entry is [string, string | number | boolean] => {
+      const [, value] = entry;
+      return value !== undefined;
+    });
+
+    if (entries.length === 0) {
+      return undefined;
+    }
+
+    return Object.fromEntries(entries);
   }
 
 }
