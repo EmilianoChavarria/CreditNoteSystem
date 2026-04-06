@@ -21,9 +21,9 @@ declare global {
   }
 }
 
-const DEFAULT_API_HOST = '192.168.100.10';
+const DEFAULT_API_HOST = '192.168.2.52';
 const DEFAULT_API_PORT = 8000;
-const DEFAULT_SOCKET_HOST = '192.168.100.10';
+const DEFAULT_SOCKET_HOST = '192.168.2.52';
 const DEFAULT_SOCKET_PORT = 8080;
 
 function getLocationHost(): string {
