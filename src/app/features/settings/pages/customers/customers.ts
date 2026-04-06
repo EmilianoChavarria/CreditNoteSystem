@@ -76,7 +76,7 @@ export class Customers {
         },
         {
             key: 'customerServiceManagerId',
-            label: 'CUSTOMERS_PAGE.CS_MANAGER',
+            label: 'Customer Service Manager',
             sortable: true,
             render: (value, item) => item.customer?.customerServiceManager?.fullName ?? '-'
         },
