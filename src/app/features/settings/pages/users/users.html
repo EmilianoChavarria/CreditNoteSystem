@@ -7,7 +7,7 @@
     </header>
     <app-tabla-dinamica [datos]="users()" [columnas]="columns" [accionesPersonalizadas]="acciones" actionMode="menu"
         [enableFilter]="true" filterField="role.roleName" [canAdd]="true"
-        [addLabel]="'User'"
+        [addLabel]="'USERS_PAGE.USER'"
         [registrosPorPagina]="pageSize()" [serverPagination]="true" [paginaActualExterna]="currentPage()"
         [hasNextPage]="hasNextPage()" [hasPrevPage]="hasPrevPage()" [loading]="isLoadingTable()"
         (paginaSiguiente)="onNextPage()" (paginaAnterior)="onPrevPage()"
@@ -16,17 +16,17 @@
         
         <ng-template #cellTemplate let-item let-column="column">
             @if (column.key === 'isActive') {
-                <app-badge [color]="item.isActive ? 'green' : 'red'" [text]="item.isActive ? 'Activo' : 'Inactivo'" />
+                <app-badge [color]="item.isActive ? 'green' : 'red'" [text]="item.isActive ? ('USERS_PAGE.ACTIVE' | translate) : ('USERS_PAGE.INACTIVE' | translate)" />
             }
         </ng-template>
     </app-tabla-dinamica>
 
     <app-modal
         size="lg"
-        [titleM]="isEditMode() ? 'Editar usuario' : 'Nuevo usuario'"
+        [titleM]="isEditMode() ? ('USERS_PAGE.EDIT_USER' | translate) : ('USERS_PAGE.NEW_USER' | translate)"
         [open]="showUserModal()"
-        closeText="Cancelar"
-        [primaryText]="isSavingUser() ? 'Guardando...' : (isEditMode() ? 'Actualizar' : 'Guardar')"
+        [closeText]="'USERS_PAGE.CANCEL' | translate"
+        [primaryText]="isSavingUser() ? ('USERS_PAGE.SAVING' | translate) : (isEditMode() ? ('USERS_PAGE.UPDATE' | translate) : ('USERS_PAGE.SAVE' | translate))"
         [showPrimaryButton]="!isUserModalLoading()"
         (openChange)="onUserModalChange($event)"
         (primaryAction)="saveUserFromModal()"
@@ -38,10 +38,10 @@
         } @else {
             <form [formGroup]="userForm" (ngSubmit)="saveUserFromModal()" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label class="block font-medium text-[#395f93] text-sm">Nombre completo <span class="text-red-500">*</span></label>
+                    <label class="block font-medium text-[#395f93] text-sm">{{ 'USERS_PAGE.FULL_NAME' | translate }} <span class="text-red-500">*</span></label>
                     <input
                         type="text"
-                        placeholder="Juan Perez"
+                        [placeholder]="'USERS_PAGE.FULL_NAME_PLACEHOLDER' | translate"
                         formControlName="fullName"
                         [class]="campoVacio('fullName') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'"
                     />
@@ -51,7 +51,7 @@
                 </div>
 
                 <div>
-                    <label class="block font-medium text-[#395f93] text-sm">Correo <span class="text-red-500">*</span></label>
+                    <label class="block font-medium text-[#395f93] text-sm">{{ 'USERS_PAGE.EMAIL' | translate }} <span class="text-red-500">*</span></label>
                     <input
                         type="text"
                         placeholder="example@email.com"
@@ -65,7 +65,7 @@
 
                 @if (!isEditMode()) {
                     <div class="md:col-span-2">
-                        <label class="block font-medium text-[#395f93] text-sm">Password <span class="text-red-500">*</span></label>
+                        <label class="block font-medium text-[#395f93] text-sm">{{ 'USERS_PAGE.PASSWORD' | translate }} <span class="text-red-500">*</span></label>
                         <div class="relative mt-2">
                             <input
                                 [type]="showPassword() ? 'text' : 'password'"
@@ -78,7 +78,7 @@
                                 (click)="togglePassword()"
                                 class="absolute inset-y-0 end-0 flex items-center px-3 text-xs text-slate-600"
                             >
-                                {{ showPassword() ? 'Ocultar' : 'Mostrar' }}
+                                {{ showPassword() ? ('USERS_PAGE.HIDE' | translate) : ('USERS_PAGE.SHOW' | translate) }}
                             </button>
                         </div>
 
@@ -95,13 +95,13 @@
                 }
 
                 <div>
-                    <label class="block font-medium text-[#395f93] text-sm">Rol <span class="text-red-500">*</span></label>
+                    <label class="block font-medium text-[#395f93] text-sm">{{ 'USERS_PAGE.ROLE' | translate }} <span class="text-red-500">*</span></label>
                     <select
                         formControlName="roleId"
                         (change)="onRoleChange()"
                         [class]="campoVacio('roleId') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'"
                     >
-                        <option [ngValue]="0">Selecciona un rol</option>
+                        <option [ngValue]="0">{{ 'USERS_PAGE.SELECT_ROLE' | translate }}</option>
                         @for (item of roles(); track item.id) {
                             <option [ngValue]="item.id">{{ item.roleName }}</option>
                         }
@@ -114,8 +114,8 @@
                 <div [class.hidden]="!isCustomerRoleSelected()">
                     <app-autocomplete
                         [control]="$any(userForm.get('customerId'))"
-                        label="Cliente"
-                        placeholder="Buscar cliente"
+                        [label]="'USERS_PAGE.CUSTOMER' | translate"
+                        [placeholder]="'USERS_PAGE.SEARCH_CUSTOMER' | translate"
                         [isRequired]="isCustomerRoleSelected()"
                         [searchFn]="searchCustomers.bind(this)"
                         [displayFn]="displayCustomer.bind(this)"
@@ -131,12 +131,12 @@
                 </div>
 
                 <div>
-                    <label class="block font-medium text-[#395f93] text-sm">Supervisor <span class="text-red-500">*</span></label>
+                    <label class="block font-medium text-[#395f93] text-sm">{{ 'USERS_PAGE.SUPERVISOR' | translate }} <span class="text-red-500">*</span></label>
                     <select
                         formControlName="supervisorId"
                         [class]="campoVacio('supervisorId') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'"
                     >
-                        <option [ngValue]="0">Selecciona un supervisor</option>
+                        <option [ngValue]="0">{{ 'USERS_PAGE.SELECT_SUPERVISOR' | translate }}</option>
                         @for (item of supervisors(); track item.id) {
                             <option [ngValue]="item.id">{{ item.fullName }} ({{ item.role.roleName }})</option>
                         }
@@ -147,14 +147,14 @@
                 </div>
 
                 <div class="md:col-span-2">
-                    <label class="block font-medium text-[#395f93] text-sm">Idioma preferido <span class="text-red-500">*</span></label>
+                    <label class="block font-medium text-[#395f93] text-sm">{{ 'USERS_PAGE.PREFERRED_LANGUAGE' | translate }} <span class="text-red-500">*</span></label>
                     <select
                         formControlName="preferredLanguage"
                         [class]="campoVacio('preferredLanguage') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'"
                     >
-                        <option value="DEF">Selecciona un idioma</option>
-                        <option value="es">Espanol</option>
-                        <option value="en">Ingles</option>
+                        <option value="DEF">{{ 'USERS_PAGE.SELECT_LANGUAGE' | translate }}</option>
+                        <option value="es">{{ 'USERS_PAGE.SPANISH' | translate }}</option>
+                        <option value="en">{{ 'USERS_PAGE.ENGLISH' | translate }}</option>
                     </select>
                     @if (campoVacio('preferredLanguage')) {
                         <span class="text-sm text-red-500">{{ getErrorMessage('preferredLanguage') }}</span>
@@ -168,15 +168,15 @@
 
     <app-modal
         size="md"
-        titleM="Eliminar usuario"
+        [titleM]="'USERS_PAGE.DELETE_USER' | translate"
         [open]="showDeleteModal()"
-        closeText="Cancelar"
-        primaryText="Eliminar"
+        [closeText]="'USERS_PAGE.CANCEL' | translate"
+        [primaryText]="'USERS_PAGE.DELETE' | translate"
         (openChange)="onDeleteModalChange($event)"
         (primaryAction)="confirmDelete()"
     >
         <p class="text-slate-700">
-            ¿Seguro que quieres eliminar a
+            {{ 'USERS_PAGE.CONFIRM_DELETE' | translate }}
             <span class="font-semibold">{{ selectedUserToDelete()?.fullName }}</span>?
         </p>
 

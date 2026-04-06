@@ -7,7 +7,7 @@ import { Modal } from '../../../../shared/components/ui/modal/modal';
 import { ToastrService } from 'ngx-toastr';
 import { Badge } from '../../../../shared/components/ui/badge/badge';
 import moment from 'moment';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { catchError, debounceTime, distinctUntilChanged, finalize, forkJoin, map, Observable, of, switchMap } from 'rxjs';
 import { RoleService } from '../../../../core/services/role-service';
 import { SecurityService } from '../../../../core/services/security-service';
@@ -29,6 +29,7 @@ interface UserData {
 })
 export class Users implements OnInit {
     toastr = inject(ToastrService);
+    private readonly _translateService = inject(TranslateService);
     public users = signal<User[]>([]);
     public pageSize = signal<number>(10);
     public currentPage = signal<number>(1);
@@ -72,34 +73,34 @@ export class Users implements OnInit {
     public columns: Column<User>[] = [
         {
             key: 'fullName',
-            label: 'Nombre',
+            label: 'USERS_PAGE.NAME',
             sortable: true
         },
         {
             key: 'email',
-            label: 'Email',
+            label: 'USERS_PAGE.EMAIL_LABEL',
             sortable: true
         },
         {
             key: 'preferredLanguage',
-            label: 'Preferred Language',
+            label: 'USERS_PAGE.PREFERRED_LANGUAGE_LABEL',
             sortable: true
         },
         {
             key: 'role',
-            label: 'Rol',
+            label: 'USERS_PAGE.ROLE_LABEL',
             sortable: false,
-            render: (value, item) => item.role?.roleName ?? 'Sin rol'
+            render: (value, item) => item.role?.roleName ?? this._translateService.instant('USERS_PAGE.NO_ROLE')
         },
         {
             key: 'isActive',
-            label: 'Status',
+            label: 'USERS_PAGE.STATUS',
             sortable: true,
             customTemplate: true
         },
         {
             key: 'createdAt',
-            label: 'Fecha de Creación',
+            label: 'USERS_PAGE.CREATED_AT',
             sortable: true,
             render: (value) => value ? moment(value).format('DD/MM/YYYY HH:mm:ss') : '-'
         }
@@ -109,19 +110,19 @@ export class Users implements OnInit {
         {
             key: 'reset',
             icon: 'rotate-ccw',
-            label: 'Reset password',
+            label: 'USERS_PAGE.RESET_PASSWORD',
             accion: (user) => this.resetPassword(user)
         },
         {
             key: 'edit',
             icon: 'pencil',
-            label: 'Editar',
+            label: 'USERS_PAGE.EDIT',
             accion: (user) => this.openUserModalForEdit(user)
         },
         {
             key: 'delete',
             icon: 'trash',
-            label: 'Eliminar',
+            label: 'USERS_PAGE.DELETE',
             accion: (user) => this.openDeleteModal(user)
         }
     ];
@@ -185,11 +186,11 @@ export class Users implements OnInit {
         }
 
         if (control.errors['required']) {
-            return 'Este campo es obligatorio';
+            return this._translateService.instant('USERS_PAGE.REQUIRED_FIELD');
         }
 
         if (control.errors['email']) {
-            return 'Ingresa un correo valido';
+            return this._translateService.instant('USERS_PAGE.INVALID_EMAIL');
         }
 
         if (control.errors['passwordInvalid']) {
@@ -197,14 +198,14 @@ export class Users implements OnInit {
         }
 
         if (control.errors['min']) {
-            return 'Selecciona una opcion valida';
+            return this._translateService.instant('USERS_PAGE.INVALID_OPTION');
         }
 
         if (control.errors['pattern']) {
-            return 'Selecciona un idioma valido';
+            return this._translateService.instant('USERS_PAGE.INVALID_LANGUAGE');
         }
 
-        return 'Valor no valido';
+        return this._translateService.instant('USERS_PAGE.INVALID_VALUE');
     }
 
     saveUserFromModal(): void {
@@ -222,12 +223,18 @@ export class Users implements OnInit {
                 finalize(() => this.isSavingUser.set(false))
             ).subscribe({
                 next: (response: any) => {
-                    this.toastr.success(response.message ?? 'Usuario actualizado', 'Exito');
+                    this.toastr.success(
+                        response.message ?? this._translateService.instant('USERS_PAGE.USER_UPDATED'),
+                        this._translateService.instant('USERS_PAGE.SUCCESS')
+                    );
                     this.closeUserModal();
                     this.getUsers();
                 },
                 error: (error) => {
-                    this.toastr.error(error?.error?.message ?? 'Error al actualizar usuario', 'Error');
+                    this.toastr.error(
+                        error?.error?.message ?? this._translateService.instant('USERS_PAGE.ERROR_UPDATING_USER'),
+                        this._translateService.instant('USERS_PAGE.ERROR')
+                    );
                 }
             });
 
@@ -238,12 +245,18 @@ export class Users implements OnInit {
             finalize(() => this.isSavingUser.set(false))
         ).subscribe({
             next: (response: any) => {
-                this.toastr.success(response.message ?? 'Usuario creado', 'Exito');
+                this.toastr.success(
+                    response.message ?? this._translateService.instant('USERS_PAGE.USER_CREATED'),
+                    this._translateService.instant('USERS_PAGE.SUCCESS')
+                );
                 this.closeUserModal();
                 this.getUsers();
             },
             error: (error) => {
-                this.toastr.error(error?.error?.message ?? 'Error al crear usuario', 'Error');
+                this.toastr.error(
+                    error?.error?.message ?? this._translateService.instant('USERS_PAGE.ERROR_CREATING_USER'),
+                    this._translateService.instant('USERS_PAGE.ERROR')
+                );
             }
         });
     }
@@ -274,11 +287,17 @@ export class Users implements OnInit {
         console.log('Delete', user.fullName);
         this._userService.deleteUser(user.id).subscribe(
             (response) => {
-                this.toastr.success(response.message ?? 'Usuario eliminado', 'Exito');
+                this.toastr.success(
+                    response.message ?? this._translateService.instant('USERS_PAGE.USER_DELETED'),
+                    this._translateService.instant('USERS_PAGE.SUCCESS')
+                );
                 this.getUsers();
             },
             (error) => {
-                this.toastr.error(error.message ?? 'Error al eliminar', 'Error');
+                this.toastr.error(
+                    error.message ?? this._translateService.instant('USERS_PAGE.ERROR_DELETING_USER'),
+                    this._translateService.instant('USERS_PAGE.ERROR')
+                );
             }
         )
         this.cancelDelete();
@@ -373,7 +392,10 @@ export class Users implements OnInit {
                 this.updateCustomerControlState();
             },
             error: () => {
-                this.toastr.error('No fue posible cargar los datos del formulario', 'Error');
+                this.toastr.error(
+                    this._translateService.instant('USERS_PAGE.ERROR_LOADING_FORM_DATA'),
+                    this._translateService.instant('USERS_PAGE.ERROR')
+                );
             }
         });
     }
@@ -459,7 +481,7 @@ export class Users implements OnInit {
                             if (error?.error?.errors?.errors) {
                                 this.passwordErrors.set(error.error.errors.errors);
                             } else {
-                                this.passwordErrors.set(['Error al validar la contrasena']);
+                                this.passwordErrors.set([this._translateService.instant('USERS_PAGE.ERROR_VALIDATING_PASSWORD')]);
                             }
 
                             return of({ passwordInvalid: true });
