@@ -18,6 +18,7 @@ import { BulkSapReturnOrderUpload } from '../../components/batchs/bulk-sap-retur
 import { BulkHistoryTab } from '../../components/batchs/bulk-history-tab/bulk-history-tab';
 import { BatchRequestsModal } from '../../components/batchs/batch-requests-modal/batch-requests-modal';
 import { RequestErrorModal } from '../../components/batchs/request-error-modal/request-error-modal';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 interface BatchHistoryRow {
     idBatch: string;
@@ -56,6 +57,7 @@ interface RequestHistoryRow {
         BulkHistoryTab,
         BatchRequestsModal,
         RequestErrorModal,
+        TranslatePipe
     ]
 })
 export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
@@ -68,6 +70,7 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
     private readonly route = inject(ActivatedRoute);
     private readonly toastService = inject(ToastService);
     private readonly requestService = inject(RequestService);
+    private readonly translateService = inject(TranslateService);
     private readonly subscriptions: Subscription[] = [];
     private pendingTabIndex: number | null = null;
 
@@ -210,7 +213,10 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
             error: (error) => {
                 this.isLoadingHistory.set(false);
                 console.error('Error loading batches:', error);
-                this.toastService.error('No se pudieron cargar los batches.', 'Bulk History');
+                this.toastService.error(
+                    this.translateService.instant('BULK.TOAST.LOAD_BATCHES_ERROR'),
+                    this.translateService.instant('BULK.TABS.HISTORY')
+                );
             }
         });
 
@@ -228,7 +234,10 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
             },
             error: (error) => {
                 console.error('Error loading request types:', error);
-                this.toastService.error('No se pudieron cargar los request types.', 'Bulk Upload');
+                this.toastService.error(
+                    this.translateService.instant('BULK.TOAST.LOAD_REQUEST_TYPES_ERROR'),
+                    this.translateService.instant('BULK.TABS.UPLOAD')
+                );
             }
         });
 
@@ -247,7 +256,10 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
             error: (error) => {
                 this.isLoadingBatchDetail.set(false);
                 console.error(`Error loading batch detail ${String(batchId)}:`, error);
-                this.toastService.error('No se pudo cargar el detalle del batch.', 'Bulk History');
+                this.toastService.error(
+                    this.translateService.instant('BULK.TOAST.LOAD_BATCH_DETAIL_ERROR'),
+                    this.translateService.instant('BULK.TABS.HISTORY')
+                );
             }
         });
 
@@ -271,7 +283,10 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
             error: (error) => {
                 this.isLoadingBatchRequests.set(false);
                 console.error(`Error loading batch requests ${String(batchId)}:`, error);
-                this.toastService.error('No se pudieron cargar las solicitudes del batch.', 'Bulk History');
+                this.toastService.error(
+                    this.translateService.instant('BULK.TOAST.LOAD_BATCH_REQUESTS_ERROR'),
+                    this.translateService.instant('BULK.TABS.HISTORY')
+                );
             }
         });
 
@@ -308,7 +323,7 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
 
     private resolveErrorMessage(errorLog: unknown): string {
         if (!errorLog) {
-            return 'Sin detalle de error.';
+            return this.translateService.instant('BULK.REQUEST_ERROR.NO_DETAIL');
         }
 
         if (typeof errorLog === 'string') {
@@ -319,7 +334,7 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
             try {
                 return JSON.stringify(errorLog, null, 2);
             } catch {
-                return 'No fue posible leer el detalle del error.';
+                return this.translateService.instant('BULK.REQUEST_ERROR.PARSE_ERROR');
             }
         }
 
@@ -337,7 +352,10 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
             return;
         }
 
-        this.toastService.info('Se recibio actualizacion de batch finalizado. Refrescando historial...', 'Bulk History');
+        this.toastService.info(
+            this.translateService.instant('BULK.TOAST.BATCH_FINISHED_REFRESH'),
+            this.translateService.instant('BULK.TABS.HISTORY')
+        );
         this.loadBatches();
 
         const selected = this.selectedBatch();

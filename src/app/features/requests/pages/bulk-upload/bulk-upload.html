@@ -1,15 +1,15 @@
 <div class="w-full">
-    
+
     <app-tabs-container #bulkTabs [showBottomButtons]="false" [initialTabIndex]="initialTabIndex()">
-        <app-tab titleT="Bulk Upload">
+        <app-tab [titleT]="'BULK.TABS.UPLOAD' | translate">
             <div class="p-4 pb-0">
                 <div class="flex flex-col gap-1 min-w-64 max-w-md">
-                    <span class="text-sm font-medium text-[#395f93]">Request Type <span class="text-red-500">*</span></span>
+                    <span class="text-sm font-medium text-[#395f93]">{{ 'BULK.REQUEST_TYPE' | translate }} <span class="text-red-500">*</span></span>
                     <select
                         class="h-10 border border-gray-300 rounded-md px-2"
                         [value]="selectedRequestTypeId() || ''"
                         (change)="onRequestTypeChange($event)">
-                        <option value="" disabled>Selecciona un request type</option>
+                        <option value="" disabled>{{ 'BULK.REQUEST_TYPE_PLACEHOLDER' | translate }}</option>
                         @for (type of availableRequestTypes(); track type.id) {
                         <option [value]="type.id">{{ type.name }}</option>
                         }
@@ -38,10 +38,10 @@
                     [requestTypes]="availableRequestTypes()"
                     [selectedRequestTypeId]="selectedRequestTypeId()"
                     (batchCreated)="onUploadBatchCreated()"></app-bulk-sap-return-order-upload>
-                
+
             </accordeon-container>
         </app-tab>
-        <app-tab titleT="Bulk History">
+        <app-tab [titleT]="'BULK.TABS.HISTORY' | translate">
             <app-bulk-history-tab
                 [isLoadingHistory]="isLoadingHistory()"
                 [bulkHistoryRows]="bulkHistoryRows()"
