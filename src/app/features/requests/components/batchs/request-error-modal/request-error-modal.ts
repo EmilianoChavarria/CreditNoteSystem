@@ -1,5 +1,6 @@
 import { Component, input, output } from '@angular/core';
 import { Modal } from '../../../../../shared/components/ui/modal/modal';
+import { TranslatePipe } from '@ngx-translate/core';
 
 interface RequestHistoryRow {
   requestNumber: string;
@@ -9,7 +10,7 @@ interface RequestHistoryRow {
 
 @Component({
   selector: 'app-request-error-modal',
-  imports: [Modal],
+  imports: [Modal, TranslatePipe],
   templateUrl: './request-error-modal.html',
 })
 export class RequestErrorModal {
