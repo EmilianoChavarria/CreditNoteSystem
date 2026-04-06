@@ -56,6 +56,10 @@
     "REG_PER_PAGE": "Registers per page",
     "PAGE": "Page",
     "OF": "of",
+    "ALL": "All",
+    "ACTIONS": "Actions",
+    "SEARCH": "Search...",
+    "NO_RECORDS": "No records",
     "ZIP_BUTTON": "Export to ZIP",
     "EXCEL_BUTTON": "Export to Excel",
     "BULK_BUTTON": "Bulk Upload",
@@ -91,7 +95,15 @@
   },
   "DRAFTS": {
     "TITLE": "Drafts",
-    "DESCRIPTION": "See your drafts and continue editing"
+    "DESCRIPTION": "See your drafts and continue editing",
+    "REQUEST_NUMBER": "Request Number",
+    "REQUEST_TYPE": "Request Type",
+    "STATUS": "Status",
+    "STATUS_DRAFT": "Draft",
+    "CREATED_AT": "Created At",
+    "UPDATED_AT": "Updated At",
+    "EDIT": "Edit",
+    "NO_DRAFTS": "No drafts found"
   },
   "USER_FORM": {
     "FULLNAME": "Full Name",

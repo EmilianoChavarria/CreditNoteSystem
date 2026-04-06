@@ -45,6 +45,10 @@
     "REG_PER_PAGE": "Registros por página",
     "PAGE": "Página",
     "OF": "de",
+    "ALL": "Todos",
+    "ACTIONS": "Acciones",
+    "SEARCH": "Buscar...",
+    "NO_RECORDS": "Sin registros",
     "ZIP_BUTTON": "Extraer a ZIP",
     "EXCEL_BUTTON": "Extraer a Excel",
     "BULK_BUTTON": "Carga Masiva",
@@ -91,7 +95,15 @@
   },
   "DRAFTS": {
     "TITLE": "Borradores",
-    "DESCRIPTION": "Visualiza tus borradores y sigue editando"
+    "DESCRIPTION": "Visualiza tus borradores y sigue editando",
+    "REQUEST_NUMBER": "Número de Solicitud",
+    "REQUEST_TYPE": "Tipo de Solicitud",
+    "STATUS": "Estado",
+    "STATUS_DRAFT": "Borrador",
+    "CREATED_AT": "Fecha de Creación",
+    "UPDATED_AT": "Fecha de Actualización",
+    "EDIT": "Editar",
+    "NO_DRAFTS": "No hay borradores"
   },
   "USER_FORM": {
     "FULLNAME": "Nombre Completo",
