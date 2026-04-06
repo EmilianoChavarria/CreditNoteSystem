@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AccionPersonalizada, Column, Table } from '../../../shared/components/ui/table/table';
 import { Request, RequestType } from '../../../data/interfaces/Request';
 import { WorkflowDetail, WorkflowHistoryDrawer } from '../../history/components/workflow-history-drawer/workflow-history-drawer';
@@ -45,34 +45,34 @@ export class MyApprovals {
     public columns: Column<Request>[] = [
         {
             key: 'requestNumber',
-            label: 'Request Number',
+            label: 'MY_APPROVALS.REQUEST_NUMBER',
             sortable: true
         },
         {
             key: 'request_type.name',
-            label: 'Request Type',
+            label: 'MY_APPROVALS.REQUEST_TYPE',
             sortable: true,
             customTemplate: true
         },
         {
             key: 'area',
-            label: 'Area',
+            label: 'MY_APPROVALS.AREA',
             sortable: false,
         },
         {
             key: 'classification.name',
-            label: 'Classification',
+            label: 'MY_APPROVALS.CLASSIFICATION',
             sortable: true,
         },
         {
             key: 'status',
-            label: 'Status',
+            label: 'MY_APPROVALS.STATUS',
             sortable: true,
             customTemplate: true
         },
         {
             key: 'createdAt',
-            label: 'Fecha de Creación',
+            label: 'MY_APPROVALS.CREATED_AT',
             sortable: true,
             render: (value) => value ? moment(value).format('DD/MM/YYYY HH:mm:ss') : '-'
         }
@@ -82,37 +82,37 @@ export class MyApprovals {
         {
             key: 'approve',
             icon: 'check',
-            label: 'Approve',
+            label: 'MY_APPROVALS.APPROVE',
             accion: (request) => this.approveRequest(request)
         },
         {
             key: 'decline',
             icon: 'x',
-            label: 'Decline',
+            label: 'MY_APPROVALS.DECLINE',
             accion: (request) => this.onDeclineModalChange(true, request)
         },
         {
             key: 'pdf',
             icon: 'file-text',
-            label: 'PDF',
+            label: 'MY_APPROVALS.PDF',
             accion: (request) => this.generatePdf(request)
         },
         {
             key: 'edit',
             icon: 'pencil',
-            label: 'Editar',
+            label: 'MY_APPROVALS.EDIT',
             accion: (request) => this.logAction(request)
         },
         {
             key: 'history',
             icon: 'history',
-            label: 'See history',
+            label: 'MY_APPROVALS.SEE_HISTORY',
             accion: (request) => this.logAction(request)
         },
         {
             key: 'delete',
             icon: 'trash',
-            label: 'Eliminar',
+            label: 'MY_APPROVALS.DELETE',
             accion: (request) => this.logAction(request)
         }
     ];
@@ -131,6 +131,7 @@ export class MyApprovals {
     private readonly requestTypeActionPermissions = signal<Record<number, Record<string, boolean>>>({});
     private readonly authService = inject(AuthService);
     private readonly roleService = inject(RoleService);
+    private readonly translateService = inject(TranslateService);
 
     constructor(
         private _requestsService: RequestService,
@@ -316,10 +317,10 @@ export class MyApprovals {
         if (!control || !control.errors) return '';
 
         if (control.errors['required']) {
-            return 'Este campo es obligatorio';
+            return this.translateService.instant('MY_APPROVALS.REQUIRED_FIELD');
         }
 
-        return 'Valor no válido';
+        return this.translateService.instant('MY_APPROVALS.INVALID_VALUE');
     }
 
     declineRequest(request: Request) {
@@ -331,12 +332,18 @@ export class MyApprovals {
         
         this._requestsService.rejectRequest(request.id, comments).subscribe({
             next: () => {
-                this._toastService.success('Request rejected successfully', 'Success');
+                this._toastService.success(
+                    this.translateService.instant('MY_APPROVALS.TOAST.REQUEST_REJECTED_SUCCESS'),
+                    this.translateService.instant('MY_APPROVALS.TOAST.SUCCESS')
+                );
                 this.onDeclineModalChange(false);
                 this.loadMyPendingRequests();
             },
             error: (error) => {
-                this._toastService.error('Error rejecting request', 'Error');
+                this._toastService.error(
+                    this.translateService.instant('MY_APPROVALS.TOAST.REQUEST_REJECTED_ERROR'),
+                    this.translateService.instant('MY_APPROVALS.TOAST.ERROR')
+                );
                 console.error('Error rejecting request:', error);
             }
         });
@@ -349,11 +356,17 @@ export class MyApprovals {
 
         this._requestsService.approveRequest(request.id).subscribe({
             next: () => {
-                this._toastService.success('Request approved successfully', 'Success');
+                this._toastService.success(
+                    this.translateService.instant('MY_APPROVALS.TOAST.REQUEST_APPROVED_SUCCESS'),
+                    this.translateService.instant('MY_APPROVALS.TOAST.SUCCESS')
+                );
                 this.loadMyPendingRequests();
             },
             error: (error) => {
-                this._toastService.error('Error approving request', 'Error');
+                this._toastService.error(
+                    this.translateService.instant('MY_APPROVALS.TOAST.REQUEST_APPROVED_ERROR'),
+                    this.translateService.instant('MY_APPROVALS.TOAST.ERROR')
+                );
                 console.error('Error approving request:', error);
             }
         });
@@ -568,12 +581,12 @@ export class MyApprovals {
 
         return {
             code: `${request.requestNumber ?? '-'}`,
-            company: request.customer?.customerName ?? 'Sin cliente',
+            company: request.customer?.customerName ?? this.translateService.instant('MY_APPROVALS.NO_CLIENT'),
             amount,
-            classification: request.classification?.name ?? 'Sin clasificación',
+            classification: request.classification?.name ?? this.translateService.instant('MY_APPROVALS.NO_CLASSIFICATION'),
             flow: `Flujo: ${request.request_type?.name?.toUpperCase() ?? 'N/A'} (${request.area ?? 'N/A'})`,
             createdDate: request.createdAt ? moment(request.createdAt).format('DD MMM YYYY') : '-',
-            progressText: 'Paso 9 de 11',
+            progressText: this.translateService.instant('MY_APPROVALS.STEP_OF', { current: 9, total: 11 }),
             statusLabel: this.toTitleCase(request.status),
             steps: [],
             commentsHistory: []
@@ -635,12 +648,15 @@ export class MyApprovals {
 
         return {
             code: `${request.requestNumber ?? '-'}`,
-            company: request.customer?.customerName ?? 'Sin cliente',
+            company: request.customer?.customerName ?? this.translateService.instant('MY_APPROVALS.NO_CLIENT'),
             amount,
-            classification: request.classification?.name ?? 'Sin clasificación',
+            classification: request.classification?.name ?? this.translateService.instant('MY_APPROVALS.NO_CLASSIFICATION'),
             flow: `Flujo: ${request.request_type?.name?.toUpperCase() ?? 'N/A'} (${request.area ?? 'N/A'})`,
             createdDate: request.createdAt ? moment(request.createdAt).format('DD MMM YYYY') : '-',
-            progressText: `Paso ${data.progress.currentStepOrder} de ${data.progress.totalSteps}`,
+            progressText: this.translateService.instant('MY_APPROVALS.STEP_OF', {
+                current: data.progress.currentStepOrder,
+                total: data.progress.totalSteps
+            }),
             statusLabel: this.toTitleCase(request.status),
             steps: timelineSteps.length > 0 ? timelineSteps : fallbackSteps,
             commentsHistory: data.history.map((historyItem) => {
@@ -650,7 +666,7 @@ export class MyApprovals {
                     id: historyItem.id,
                     author: historyItem.action_user?.fullName ?? '-',
                     role: historyItem.workflow_step?.stepName ?? '-',
-                    comment: historyItem.comments ?? 'Sin comentarios',
+                    comment: historyItem.comments ?? this.translateService.instant('MY_APPROVALS.NO_COMMENTS'),
                     status: this.mapHistoryStatus(historyItem.actionType),
                     date: createdAt.format('DD MMM YYYY'),
                     time: createdAt.format('hh:mm a')
@@ -663,34 +679,34 @@ export class MyApprovals {
         const normalized = (status ?? '').toLowerCase();
 
         if (normalized === 'created') {
-            return 'Creado';
+            return this.translateService.instant('MY_APPROVALS.STATUS_CREATED');
         }
 
         if (normalized === 'processed') {
-            return 'Procesado';
+            return this.translateService.instant('MY_APPROVALS.STATUS_PROCESSED');
         }
 
         if (normalized === 'rejected') {
-            return 'Rechazado';
+            return this.translateService.instant('MY_APPROVALS.STATUS_REJECTED');
         }
 
         if (normalized === 'returned') {
-            return 'Devuelto';
+            return this.translateService.instant('MY_APPROVALS.STATUS_RETURNED');
         }
 
         if (normalized === 'routed') {
-            return 'Procesado';
+            return this.translateService.instant('MY_APPROVALS.STATUS_PROCESSED');
         }
 
         if (normalized === 'routed_back' || normalized === 'returned') {
-            return 'Devuelto';
+            return this.translateService.instant('MY_APPROVALS.STATUS_RETURNED');
         }
 
         if (normalized === 'pending') {
-            return 'Procesado';
+            return this.translateService.instant('MY_APPROVALS.STATUS_PROCESSED');
         }
 
-        return 'Aprobado';
+        return this.translateService.instant('MY_APPROVALS.STATUS_APPROVED');
     }
 
     private formatAmount(currency: string | undefined, amountValue: number | string | undefined): string {
@@ -706,7 +722,7 @@ export class MyApprovals {
 
     private toTitleCase(value: string | undefined): string {
         if (!value) {
-            return 'Sin estado';
+            return this.translateService.instant('MY_APPROVALS.NO_STATUS');
         }
 
         return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
