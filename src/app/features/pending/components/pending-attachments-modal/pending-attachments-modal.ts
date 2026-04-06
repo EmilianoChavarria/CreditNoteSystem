@@ -6,10 +6,11 @@ import { Spinner } from '../../../../shared/components/ui/spinner/spinner';
 import { ApiResponse } from '../../../../data/interfaces/ApiResponse-interface';
 import { RequestAttachment, RequestService } from '../../../../core/services/request-service';
 import { ToastService } from '../../../../core/services/toast-service';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-pending-attachments-modal',
-  imports: [Modal, Spinner, LucideAngularModule],
+  imports: [Modal, Spinner, LucideAngularModule, TranslatePipe],
   templateUrl: './pending-attachments-modal.html',
   styleUrl: './pending-attachments-modal.css',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -29,6 +30,7 @@ export class PendingAttachmentsModal {
   readonly attachmentPendingDeletion = signal<RequestAttachment | null>(null);
 
   private readonly requestsService = inject(RequestService);
+  private readonly translateService = inject(TranslateService);
 
   constructor(
     private _toastService: ToastService
@@ -81,14 +83,15 @@ export class PendingAttachmentsModal {
       return rawDate;
     }
 
-    return date.toLocaleString('es-MX');
+    const locale = this.translateService.currentLang?.toLowerCase().startsWith('en') ? 'en-US' : 'es-MX';
+    return date.toLocaleString(locale);
   }
 
   getPendingDeletionAttachmentName(): string {
     const attachment = this.attachmentPendingDeletion();
 
     if (!attachment) {
-      return 'this file';
+      return this.translateService.instant('PENDING_ATTACHMENTS.THIS_FILE');
     }
 
     return this.getAttachmentName(attachment);
@@ -165,7 +168,10 @@ export class PendingAttachmentsModal {
     ).subscribe({
       next: (response: ApiResponse<boolean>) => {
         this.attachments.update((items) => items.filter((item) => item.id !== attachment.id));
-        this._toastService.success(response.message ?? 'Archivo eliminado correctamente', 'Éxito');
+        this._toastService.success(
+          response.message ?? this.translateService.instant('PENDING_ATTACHMENTS.DELETE_SUCCESS'),
+          this.translateService.instant('PENDING_ATTACHMENTS.SUCCESS')
+        );
       },
       error: (error) => {
         console.error('Error deleting attachment', error);
