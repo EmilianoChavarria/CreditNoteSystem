@@ -7,14 +7,15 @@
                 <label for="days" class="font-semibold text-[#ff8200]">{{'DASHBOARD.REQ_FILTER'| translate}}</label>
                 <div class="flex flex-row items-center">
                     <select name="request_type" id="request_type"
-                        class="h-11 border border-gray-300 rounded-lg w-64 pl-2 pr-4">
+                        class="h-11 border border-gray-300 rounded-lg w-64 pl-2 pr-4"
+                        [value]="selectedRequestType()" (change)="onRequestTypeChange($event)">
                         <option value="1">{{'REQUEST_TYPES.CREDIT'| translate}}</option>
                         <option value="2">{{'REQUEST_TYPES.DEBIT'| translate}}</option>
                         <option value="3">{{'REQUEST_TYPES.AUDITOR_CREDIT'| translate}}</option>
                         <option value="4">{{'REQUEST_TYPES.AUDITOR_DEBIT'| translate}}</option>
                         <option value="5">{{'REQUEST_TYPES.RE_INVOICING'| translate}}</option>
                         <option value="6">{{'REQUEST_TYPES.MATERIAL_RETURN'| translate}}</option>
-                        <option value="7">{{'REQUEST_TYPES.ALL_TYPES'| translate}}</option>
+                        <option value="todas">{{'REQUEST_TYPES.ALL_TYPES'| translate}}</option>
                     </select>
                 </div>
             </div>
@@ -97,7 +98,7 @@
     </section>
     <section class="bg-white border border-gray-300 shadow-sm rounded-md mt-4 p-4 flex flex-col w-full">
         <span class="text-center text-3xl text-gray-700 font-light">
-            Orders by Month
+            {{ chartHeader() }}
         </span>
         <div class="w-full h-125 flex items-center justify-center mx-auto">
             @if(isLoadingChart()){
