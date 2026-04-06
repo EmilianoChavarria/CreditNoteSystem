@@ -1,10 +1,10 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { AccionPersonalizada, Column, Table } from "../../../../shared/components/ui/table/table";
 import { Customer } from '../../../../data/interfaces/Customer';
 import { CustomerService } from '../../../../core/services/customer-service';
 import { LucideAngularModule } from "lucide-angular";
 import { finalize } from 'rxjs';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AssignManagersPayload, AssignModal } from "./components/assign-modal/assign-modal";
 
 @Component({
@@ -14,6 +14,7 @@ import { AssignManagersPayload, AssignModal } from "./components/assign-modal/as
     imports: [Table, LucideAngularModule, TranslatePipe, AssignModal],
 })
 export class Customers {
+    private readonly _translateService = inject(TranslateService);
 
     public pageSize = signal<number>(10);
     public currentPage = signal<number>(1);
@@ -29,7 +30,7 @@ export class Customers {
     public columns: Column<Customer>[] = [
         {
             key: 'razonSocial',
-            label: 'Customer Name',
+            label: 'CUSTOMERS_PAGE.CUSTOMER_NAME',
             sortable: true
         },
         // {
@@ -45,51 +46,53 @@ export class Customers {
         },
         {
             key: 'area',
-            label: 'Area',
+            label: 'CUSTOMERS_PAGE.AREA',
             sortable: true,
             render: (value, item) => item.customer?.area ?? '-'
         },
         {
             key: 'salesEngineerId',
-            label: 'Sales Engineer',
+            label: 'CUSTOMERS_PAGE.SALES_ENGINEER',
             sortable: true,
             render: (value, item) => item.customer?.salesEngineer?.fullName ?? '-'
         },
         {
             key: 'salesManagerId',
-            label: 'Sales Manager',
+            label: 'CUSTOMERS_PAGE.SALES_MANAGER',
             sortable: true,
             render: (value, item) => item.customer?.salesManager?.fullName ?? '-'
         },
         {
             key: 'financeManagerId',
-            label: 'Finance Manager',
+            label: 'CUSTOMERS_PAGE.FINANCE_MANAGER',
             sortable: true,
             render: (value, item) => item.customer?.financeManager?.fullName ?? '-'
         },
         {
             key: 'marketingManagerId',
-            label: 'Marketing Manager',
+            label: 'CUSTOMERS_PAGE.MARKETING_MANAGER',
             sortable: true,
             render: (value, item) => item.customer?.marketingManager?.fullName ?? '-'
         },
         {
             key: 'customerServiceManagerId',
-            label: 'CS Manager',
+            label: 'CUSTOMERS_PAGE.CS_MANAGER',
             sortable: true,
             render: (value, item) => item.customer?.customerServiceManager?.fullName ?? '-'
         },
         {
             key: 'estatus',
-            label: 'Activo',
+            label: 'CUSTOMERS_PAGE.STATUS',
             sortable: true,
-            render: (value) => value ? 'Activo' : 'Inactivo'
+            render: (value) => value
+                ? this._translateService.instant('CUSTOMERS_PAGE.ACTIVE')
+                : this._translateService.instant('CUSTOMERS_PAGE.INACTIVE')
         }
     ];
 
     headerButtons = [
         {
-            label: 'Asignar Manager',
+            label: 'CUSTOMERS_PAGE.ASSIGN_MANAGER',
             icon: 'plus',
             className: 'bg-[#0f766e]',
             accion: () => this.toggleUser(),
@@ -101,7 +104,7 @@ export class Customers {
         {
             key: 'reset',
             icon: 'user-plus',
-            label: 'See Info',
+            label: 'CUSTOMERS_PAGE.SEE_INFO',
             accion: (user) => this.openModal(user)
         }
     ];
