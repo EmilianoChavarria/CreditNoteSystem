@@ -2,15 +2,18 @@ import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { NotificationService } from '../../core/services/notification-service';
 import { AppNotification } from '../../data/interfaces/Notification';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 @Component({
     selector: 'app-notifications',
     templateUrl: './notifications.html',
     styleUrl: './notifications.css',
+    imports: [TranslatePipe],
 })
 export class Notifications implements OnInit {
     private readonly router = inject(Router);
     private readonly notificationService = inject(NotificationService);
+    private readonly translateService = inject(TranslateService);
 
     readonly notifications = this.notificationService.notifications;
     readonly unreadNotifications = this.notificationService.unreadNotifications;
@@ -57,7 +60,7 @@ export class Notifications implements OnInit {
 
     formatNotificationDate(value?: string | null): string {
         if (!value) {
-            return 'Reciente';
+            return this.translateService.instant('NOTIFICATIONS.RECENT');
         }
 
         const date = new Date(value);
@@ -66,7 +69,9 @@ export class Notifications implements OnInit {
             return value;
         }
 
-        return new Intl.DateTimeFormat('es', {
+        const locale = this.translateService.currentLang?.toLowerCase().startsWith('en') ? 'en' : 'es';
+
+        return new Intl.DateTimeFormat(locale, {
             dateStyle: 'medium',
             timeStyle: 'short',
         }).format(date);

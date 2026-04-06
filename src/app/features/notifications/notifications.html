@@ -1,17 +1,17 @@
 <section class="notifications-page">
 	<header class="notifications-header">
 		<div>
-			<p class="eyebrow">Centro de notificaciones</p>
-			<h1>Notificaciones</h1>
+			<p class="eyebrow">{{ 'NOTIFICATIONS.CENTER' | translate }}</p>
+			<h1>{{ 'NOTIFICATIONS.TITLE' | translate }}</h1>
 			<!-- <p>Se sincronizan con <strong>/api/notifications</strong> y <strong>/api/notifications/unread</strong>.</p> -->
 		</div>
 
 		<div class="header-actions">
 			<div class="count-card">
 				<span class="count-value">{{ unreadCount() }}</span>
-				<span class="count-label">sin leer</span>
+				<span class="count-label">{{ 'NOTIFICATIONS.UNREAD' | translate }}</span>
 			</div>
-			<button type="button" (click)="refresh()">Actualizar</button>
+			<button type="button" (click)="refresh()">{{ 'NOTIFICATIONS.REFRESH' | translate }}</button>
 		</div>
 	</header>
 
@@ -24,7 +24,7 @@
 	<section class="notifications-list">
 		@if (notifications().length === 0) {
 			<div class="empty-state">
-				<p>No hay notificaciones para mostrar.</p>
+				<p>{{ 'NOTIFICATIONS.EMPTY' | translate }}</p>
 			</div>
 		} @else {
 			@for (notification of notifications(); track trackByNotificationId($index, notification)) {
@@ -38,7 +38,7 @@
 							<h2>{{ notification.title }}</h2>
 							<p>{{ notification.message }}</p>
 						</div>
-						<span class="notification-status">{{ notification.isRead ? 'Leída' : 'Nueva' }}</span>
+						<span class="notification-status">{{ notification.isRead ? ('NOTIFICATIONS.READ' | translate) : ('NOTIFICATIONS.NEW' | translate) }}</span>
 					</div>
 
 					<div class="notification-card__footer">
