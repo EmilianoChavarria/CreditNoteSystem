@@ -5,6 +5,7 @@ import { switchMap, takeWhile, timer } from 'rxjs';
 import { AccordeonItem } from '../../../../../shared/components/ui/accordeon/accordeon-item';
 import { BatchService } from '../../../../../core/services/batch-service';
 import { ToastService } from '../../../../../core/services/toast-service';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 interface UploadedFileRow {
   name: string;
@@ -15,12 +16,13 @@ interface UploadedFileRow {
 
 @Component({
   selector: 'app-bulk-order-numbers-upload',
-  imports: [AccordeonItem, LucideAngularModule],
+  imports: [AccordeonItem, LucideAngularModule, TranslatePipe],
   templateUrl: './bulk-order-numbers-upload.html',
 })
 export class BulkOrderNumbersUpload {
   private readonly batchService = inject(BatchService);
   private readonly toastService = inject(ToastService);
+  private readonly translateService = inject(TranslateService);
   private readonly destroyRef = inject(DestroyRef);
 
   selectedRequestTypeId = input<number | null>(null);
@@ -59,12 +61,12 @@ export class BulkOrderNumbersUpload {
     const requestTypeId = this.selectedRequestTypeId();
 
     if (!selectedFile) {
-      this.toastService.warning('Selecciona un archivo CSV para Order Numbers.', 'Bulk Upload');
+      this.toastService.warning(this.translateService.instant('BULK.TOAST.ORDER_SELECT_FILE'), this.translateService.instant('BULK.TABS.UPLOAD'));
       return;
     }
 
     if (!requestTypeId) {
-      this.toastService.warning('Selecciona el Request Type.', 'Bulk Upload');
+      this.toastService.warning(this.translateService.instant('BULK.TOAST.SELECT_REQUEST_TYPE'), this.translateService.instant('BULK.TABS.UPLOAD'));
       return;
     }
 
@@ -80,8 +82,8 @@ export class BulkOrderNumbersUpload {
 
           const batchId = batch?.id;
           this.toastService.success(
-            `Batch Order Numbers creado correctamente${batchId ? ` (ID: ${batchId})` : ''}.`,
-            'Bulk Upload'
+            this.translateService.instant('BULK.TOAST.ORDER_CREATED', { id: batchId ?? '' }),
+            this.translateService.instant('BULK.TABS.UPLOAD')
           );
 
           if (batchId !== undefined && batchId !== null && batchId !== '') {
@@ -92,8 +94,8 @@ export class BulkOrderNumbersUpload {
         },
         error: (error) => {
           this.isCreatingBatch.set(false);
-          const message = error?.error?.message ?? 'No se pudo crear el batch Order Numbers.';
-          this.toastService.error(message, 'Bulk Upload');
+          const message = error?.error?.message ?? this.translateService.instant('BULK.TOAST.ORDER_CREATE_ERROR');
+          this.toastService.error(message, this.translateService.instant('BULK.TABS.UPLOAD'));
         }
       });
   }
@@ -121,7 +123,7 @@ export class BulkOrderNumbersUpload {
     this.selectedFile.set(primaryFile);
 
     if (fileList.length > 1) {
-      this.toastService.warning('Solo se usara el primer archivo CSV para Order Numbers.', 'Bulk Upload');
+      this.toastService.warning(this.translateService.instant('BULK.TOAST.ORDER_ONLY_FIRST_FILE'), this.translateService.instant('BULK.TABS.UPLOAD'));
     }
 
     this.uploadedFiles.set([{
@@ -148,19 +150,19 @@ export class BulkOrderNumbersUpload {
 
         if (status === 'completed') {
           this.isPollingBatch.set(false);
-          this.toastService.success('Carga masiva de Order Numbers completada.', 'Bulk Upload');
+          this.toastService.success(this.translateService.instant('BULK.TOAST.ORDER_COMPLETED'), this.translateService.instant('BULK.TABS.UPLOAD'));
           this.batchCreated.emit();
         }
 
         if (status === 'failed') {
           this.isPollingBatch.set(false);
-          this.toastService.error('La carga masiva de Order Numbers fallo.', 'Bulk Upload');
+          this.toastService.error(this.translateService.instant('BULK.TOAST.ORDER_FAILED'), this.translateService.instant('BULK.TABS.UPLOAD'));
           this.batchCreated.emit();
         }
       },
       error: () => {
         this.isPollingBatch.set(false);
-        this.toastService.warning('No se pudo continuar el polling del batch Order Numbers.', 'Bulk Upload');
+        this.toastService.warning(this.translateService.instant('BULK.TOAST.ORDER_POLLING_WARNING'), this.translateService.instant('BULK.TABS.UPLOAD'));
         this.batchCreated.emit();
       },
       complete: () => {
