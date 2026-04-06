@@ -4,6 +4,7 @@ import { LucideAngularModule } from 'lucide-angular';
 import { AccordeonItem } from '../../../../../shared/components/ui/accordeon/accordeon-item';
 import { BatchService } from '../../../../../core/services/batch-service';
 import { ToastService } from '../../../../../core/services/toast-service';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 interface UploadedFileRow {
   name: string;
@@ -14,12 +15,13 @@ interface UploadedFileRow {
 
 @Component({
   selector: 'app-bulk-new-requests-upload',
-  imports: [AccordeonItem, LucideAngularModule],
+  imports: [AccordeonItem, LucideAngularModule, TranslatePipe],
   templateUrl: './bulk-new-requests-upload.html',
 })
 export class BulkNewRequestsUpload {
   private readonly batchService = inject(BatchService);
   private readonly toastService = inject(ToastService);
+  private readonly translateService = inject(TranslateService);
   private readonly destroyRef = inject(DestroyRef);
 
   selectedRequestTypeId = input<number | null>(null);
@@ -57,12 +59,12 @@ export class BulkNewRequestsUpload {
     const requestTypeId = this.selectedRequestTypeId();
 
     if (!selectedFile) {
-      this.toastService.warning('Selecciona un archivo para crear el batch.', 'Bulk Upload');
+      this.toastService.warning(this.translateService.instant('BULK.TOAST.SELECT_FILE_NEW_REQUEST'), this.translateService.instant('BULK.TABS.UPLOAD'));
       return;
     }
 
     if (!requestTypeId) {
-      this.toastService.warning('Selecciona el Request Type.', 'Bulk Upload');
+      this.toastService.warning(this.translateService.instant('BULK.TOAST.SELECT_REQUEST_TYPE'), this.translateService.instant('BULK.TABS.UPLOAD'));
       return;
     }
 
@@ -74,8 +76,8 @@ export class BulkNewRequestsUpload {
         next: (batch) => {
           this.isCreatingBatch.set(false);
           this.toastService.success(
-            `Batch creado correctamente${batch?.id ? ` (ID: ${batch.id})` : ''}.`,
-            'Bulk Upload'
+            this.translateService.instant('BULK.TOAST.BATCH_CREATED_NEW_REQUEST', { id: batch?.id ?? '' }),
+            this.translateService.instant('BULK.TABS.UPLOAD')
           );
           this.uploadedFiles.set([]);
           this.selectedFile.set(null);
@@ -83,8 +85,8 @@ export class BulkNewRequestsUpload {
         },
         error: (error) => {
           this.isCreatingBatch.set(false);
-          const message = error?.error?.message ?? 'No se pudo crear el batch.';
-          this.toastService.error(message, 'Bulk Upload');
+          const message = error?.error?.message ?? this.translateService.instant('BULK.TOAST.BATCH_CREATE_NEW_REQUEST_ERROR');
+          this.toastService.error(message, this.translateService.instant('BULK.TABS.UPLOAD'));
         }
       });
   }
@@ -112,7 +114,7 @@ export class BulkNewRequestsUpload {
     this.selectedFile.set(primaryFile);
 
     if (fileList.length > 1) {
-      this.toastService.warning('Solo se usara el primer archivo seleccionado para crear el batch.', 'Bulk Upload');
+      this.toastService.warning(this.translateService.instant('BULK.TOAST.ONLY_FIRST_FILE_NEW_REQUEST'), this.translateService.instant('BULK.TABS.UPLOAD'));
     }
 
     const now = new Date();

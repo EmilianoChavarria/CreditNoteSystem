@@ -1,8 +1,9 @@
-<accordeon-item titleM="Upload New Requests" description="Upload csv with requests info">
+<accordeon-item [titleM]="'BULK.NEW_REQUESTS.TITLE' | translate" [description]="'BULK.NEW_REQUESTS.DESCRIPTION' | translate"
+    [openButtonText]="'BULK.OPEN' | translate" [closeButtonText]="'BULK.CLOSE' | translate">
     <div class="w-full flex flex-col p-4">
         <div class="flex flex-wrap items-end justify-start gap-4">
             <div class="flex flex-col gap-1 min-w-44">
-                <span class="text-sm font-medium text-[#395f93]">Batch Type</span>
+                <span class="text-sm font-medium text-[#395f93]">{{ 'BULK.COMMON.BATCH_TYPE' | translate }}</span>
                 <input
                     type="text"
                     value="newRequest"
@@ -10,14 +11,14 @@
                     class="h-10 border border-gray-200 rounded-md px-2 bg-gray-100 text-gray-600" />
             </div>
 
-            <button class="bg-[#ff8200] text-white rounded-md px-2 hover:cursor-pointer hover:bg-[#fc9629]">Template</button>
+            <button class="bg-[#ff8200] text-white rounded-md px-2 hover:cursor-pointer hover:bg-[#fc9629]">{{ 'BULK.NEW_REQUESTS.TEMPLATE' | translate }}</button>
 
             <button
                 type="button"
                 (click)="createBatch()"
                 [disabled]="isCreatingBatch()"
                 class="bg-[#395f93] text-white rounded-md px-4 py-2 hover:cursor-pointer hover:bg-[#4d6ea5] disabled:opacity-70 disabled:cursor-not-allowed">
-                {{ isCreatingBatch() ? 'Enviando...' : 'Procesar Batch' }}
+                {{ isCreatingBatch() ? ('BULK.COMMON.PROCESSING' | translate) : ('BULK.NEW_REQUESTS.PROCESS_BUTTON' | translate) }}
             </button>
         </div>
         <div class="flex items-center justify-center w-full mt-4">
@@ -29,9 +30,9 @@
                 <div class="flex flex-col items-center justify-center text-body pt-5 pb-6">
                     <img src="assets/svg/cloud.svg" alt="Logo" class="h-32 my-6">
                     <p class="mb-2 text-xl">
-                        Drag and drop file here or
+                        {{ 'BULK.NEW_REQUESTS.DROP_HINT' | translate }}
                         <span class="font-semibold text-[#ff8200]">
-                            Click to upload
+                            {{ 'BULK.COMMON.CLICK_UPLOAD' | translate }}
                         </span>
                     </p>
                 </div>
@@ -47,19 +48,19 @@
                     <tr>
                         <th
                             class="border-b border-gray-200 px-4 py-2 text-left text-xs font-semibold text-gray-600">
-                            Nombre del archivo</th>
+                            {{ 'BULK.COMMON.FILE_NAME' | translate }}</th>
                         <th
                             class="border-b border-gray-200 px-4 py-2 text-left text-xs font-semibold text-gray-600">
-                            Tamaño</th>
+                            {{ 'BULK.COMMON.SIZE' | translate }}</th>
                         <th
                             class="border-b border-gray-200 px-4 py-2 text-left text-xs font-semibold text-gray-600">
-                            Tipo</th>
+                            {{ 'BULK.COMMON.TYPE' | translate }}</th>
                         <th
                             class="border-b border-gray-200 px-4 py-2 text-left text-xs font-semibold text-gray-600">
-                            Subido el</th>
+                            {{ 'BULK.COMMON.UPLOADED_AT' | translate }}</th>
                         <th
                             class="border-b border-gray-200 px-4 py-2 text-left text-xs font-semibold text-gray-600">
-                            Accciones</th>
+                            {{ 'BULK.COMMON.ACTIONS' | translate }}</th>
                     </tr>
                 </thead>
                 <tbody>
