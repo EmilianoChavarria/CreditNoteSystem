@@ -4,6 +4,7 @@ import { LucideAngularModule } from 'lucide-angular';
 import { AccordeonItem } from '../../../../../shared/components/ui/accordeon/accordeon-item';
 import { BatchService } from '../../../../../core/services/batch-service';
 import { ToastService } from '../../../../../core/services/toast-service';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 interface UploadedFileRow {
   name: string;
@@ -14,12 +15,13 @@ interface UploadedFileRow {
 
 @Component({
   selector: 'app-bulk-upload-support-upload',
-  imports: [AccordeonItem, LucideAngularModule],
+  imports: [AccordeonItem, LucideAngularModule, TranslatePipe],
   templateUrl: './bulk-upload-support-upload.html',
 })
 export class BulkUploadSupportUpload {
   private readonly batchService = inject(BatchService);
   private readonly toastService = inject(ToastService);
+  private readonly translateService = inject(TranslateService);
   private readonly destroyRef = inject(DestroyRef);
 
   selectedRequestTypeId = input<number | null>(null);
@@ -69,27 +71,27 @@ export class BulkUploadSupportUpload {
     const files = this.files();
 
     if (!requestTypeId) {
-      this.toastService.warning('Selecciona el Request Type.', 'Bulk Upload');
+      this.toastService.warning(this.translateService.instant('BULK.TOAST.SELECT_REQUEST_TYPE'), this.translateService.instant('BULK.TABS.UPLOAD'));
       return;
     }
 
     if (!Number.isInteger(minRange) || !Number.isInteger(maxRange) || minRange <= 0 || maxRange <= 0) {
-      this.toastService.warning('Captura un rango valido (minRange y maxRange numericos).', 'Bulk Upload');
+      this.toastService.warning(this.translateService.instant('BULK.TOAST.INVALID_RANGE'), this.translateService.instant('BULK.TABS.UPLOAD'));
       return;
     }
 
     if (minRange > maxRange) {
-      this.toastService.warning('El rango minimo no puede ser mayor al maximo.', 'Bulk Upload');
+      this.toastService.warning(this.translateService.instant('BULK.TOAST.MIN_GREATER_THAN_MAX'), this.translateService.instant('BULK.TABS.UPLOAD'));
       return;
     }
 
     if (files.length === 0) {
-      this.toastService.warning('Debes adjuntar al menos un archivo para Upload Support.', 'Bulk Upload');
+      this.toastService.warning(this.translateService.instant('BULK.TOAST.SUPPORT_AT_LEAST_ONE_FILE'), this.translateService.instant('BULK.TABS.UPLOAD'));
       return;
     }
 
     if (files.length > 10) {
-      this.toastService.warning('Solo se permiten hasta 10 archivos para Upload Support.', 'Bulk Upload');
+      this.toastService.warning(this.translateService.instant('BULK.TOAST.SUPPORT_MAX_10_FILES'), this.translateService.instant('BULK.TABS.UPLOAD'));
       return;
     }
 
@@ -102,8 +104,8 @@ export class BulkUploadSupportUpload {
         next: (batch) => {
           this.isCreatingBatch.set(false);
           this.toastService.success(
-            `Batch Upload Support creado correctamente${batch?.id ? ` (ID: ${batch.id})` : ''}.`,
-            'Bulk Upload'
+            this.translateService.instant('BULK.TOAST.SUPPORT_CREATED', { id: batch?.id ?? '' }),
+            this.translateService.instant('BULK.TABS.UPLOAD')
           );
 
           this.files.set([]);
@@ -114,8 +116,8 @@ export class BulkUploadSupportUpload {
         },
         error: (error) => {
           this.isCreatingBatch.set(false);
-          const message = error?.error?.message ?? 'No se pudo crear el batch Upload Support.';
-          this.toastService.error(message, 'Bulk Upload');
+          const message = error?.error?.message ?? this.translateService.instant('BULK.TOAST.SUPPORT_CREATE_ERROR');
+          this.toastService.error(message, this.translateService.instant('BULK.TABS.UPLOAD'));
         }
       });
   }
@@ -149,7 +151,7 @@ export class BulkUploadSupportUpload {
     const availableSlots = Math.max(0, 10 - currentFiles.length);
 
     if (availableSlots === 0) {
-      this.toastService.warning('Solo se permiten hasta 10 archivos por batch de Upload Support.', 'Bulk Upload');
+      this.toastService.warning(this.translateService.instant('BULK.TOAST.SUPPORT_MAX_10_PER_BATCH'), this.translateService.instant('BULK.TABS.UPLOAD'));
       return;
     }
 
@@ -168,7 +170,7 @@ export class BulkUploadSupportUpload {
     this.uploadedFiles.set(nextRows);
 
     if (incomingFiles.length > acceptedFiles.length) {
-      this.toastService.warning('Se agregaron solo 10 archivos maximo para Upload Support.', 'Bulk Upload');
+      this.toastService.warning(this.translateService.instant('BULK.TOAST.SUPPORT_ONLY_10_ADDED'), this.translateService.instant('BULK.TABS.UPLOAD'));
     }
   }
 
