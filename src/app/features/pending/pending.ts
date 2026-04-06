@@ -1,5 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { RequestService } from '../../core/services/request-service';
 import { Request } from '../../data/interfaces/Request';
 import { AccionPersonalizada, Column, Table } from "../../shared/components/ui/table/table";
@@ -11,7 +11,7 @@ import * as pdfFonts from 'pdfmake/build/vfs_fonts';
 import { Badge } from "../../shared/components/ui/badge/badge";
 import { UpperCasePipe } from '@angular/common';
 import { Modal } from "../../shared/components/ui/modal/modal";
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { WorkflowDetail, WorkflowHistoryDrawer } from '../history/components/workflow-history-drawer/workflow-history-drawer';
 import { finalize, forkJoin } from 'rxjs';
 import { RequestHistoryData, RequestHistoryLog } from '../../core/services/request-service';
@@ -31,7 +31,7 @@ pdf.vfs = (pdfFonts as any).default?.vfs ?? (pdfFonts as any).vfs;
     selector: 'app-pending',
     templateUrl: './pending.html',
     styleUrl: './pending.css',
-    imports: [TranslatePipe, Table, Spinner, Badge, UpperCasePipe, Modal, WorkflowHistoryDrawer, PendingAttachmentsModal]
+    imports: [TranslatePipe, Table, Spinner, Badge, UpperCasePipe, Modal, WorkflowHistoryDrawer, PendingAttachmentsModal, ReactiveFormsModule]
 })
 export class Pending {
 
@@ -52,34 +52,34 @@ export class Pending {
     public columns: Column<Request>[] = [
         {
             key: 'requestNumber',
-            label: 'Request Number',
+            label: 'PENDING_PAGE.REQUEST_NUMBER',
             sortable: true
         },
         {
             key: 'request_type.name',
-            label: 'Request Type',
+            label: 'PENDING_PAGE.REQUEST_TYPE',
             sortable: true,
             customTemplate: true
         },
         {
             key: 'area',
-            label: 'Area',
+            label: 'PENDING_PAGE.AREA',
             sortable: false,
         },
         {
             key: 'classification.name',
-            label: 'Classification',
+            label: 'PENDING_PAGE.CLASSIFICATION',
             sortable: true,
         },
         {
             key: 'status',
-            label: 'Status',
+            label: 'PENDING_PAGE.STATUS',
             sortable: true,
             customTemplate: true
         },
         {
             key: 'createdAt',
-            label: 'Fecha de Creación',
+            label: 'PENDING_PAGE.CREATED_AT',
             sortable: true,
             render: (value) => value ? moment(value).format('DD/MM/YYYY HH:mm:ss') : '-'
         }
@@ -89,43 +89,43 @@ export class Pending {
         {
             key: 'approve',
             icon: 'check',
-            label: 'Approve',
+            label: 'PENDING_PAGE.APPROVE',
             accion: (request) => this.logAction(request)
         },
         {
             key: 'decline',
             icon: 'x',
-            label: 'Decline',
+            label: 'PENDING_PAGE.DECLINE',
             accion: (request) => this.onDeclineModalChange(true, request)
         },
         {
             key: 'pdf',
             icon: 'file-text',
-            label: 'PDF',
+            label: 'PENDING_PAGE.PDF',
             accion: (request) => this.generatePdf(request)
         },
         {
             key: 'edit',
             icon: 'pencil',
-            label: 'Editar',
+            label: 'PENDING_PAGE.EDIT',
             accion: (request) => this.editRequest(request)
         },
         {
             key: 'see_history',
             icon: 'history',
-            label: 'See history',
+            label: 'PENDING_PAGE.SEE_HISTORY',
             accion: (request) => this.logAction(request)
         },
         {
             key: 'see_attachments',
             icon: 'eye',
-            label: 'See attachments',
+            label: 'PENDING_PAGE.SEE_ATTACHMENTS',
             accion: (request) => this.openAttachmentsModal(request)
         },
         {
             key: 'delete',
             icon: 'trash',
-            label: 'Eliminar',
+            label: 'PENDING_PAGE.DELETE',
             accion: (request) => this.logAction(request)
         }
     ];
@@ -150,6 +150,7 @@ export class Pending {
 
     private readonly _roleService = inject(RoleService);
     private readonly _authService = inject(AuthService);
+    private readonly _translateService = inject(TranslateService);
 
     constructor(
         private _requestsService: RequestService,
@@ -412,10 +413,10 @@ export class Pending {
         if (!control || !control.errors) return '';
 
         if (control.errors['required']) {
-            return 'Este campo es obligatorio';
+            return this._translateService.instant('PENDING_PAGE.REQUIRED_FIELD');
         }
 
-        return 'Valor no válido';
+        return this._translateService.instant('PENDING_PAGE.INVALID_VALUE');
     }
 
     declineRequest(request: Request) {
@@ -663,12 +664,12 @@ export class Pending {
 
         return {
             code: `${request.requestNumber ?? '-'}`,
-            company: request.customer?.customerName ?? 'Sin cliente',
+            company: request.customer?.customerName ?? this._translateService.instant('PENDING_PAGE.NO_CLIENT'),
             amount,
-            classification: request.classification?.name ?? 'Sin clasificación',
-            flow: `Flujo: ${request.request_type?.name?.toUpperCase() ?? 'N/A'} (${request.area ?? 'N/A'})`,
+            classification: request.classification?.name ?? this._translateService.instant('PENDING_PAGE.NO_CLASSIFICATION'),
+            flow: `${this._translateService.instant('PENDING_PAGE.FLOW_LABEL')}: ${request.request_type?.name?.toUpperCase() ?? 'N/A'} (${request.area ?? 'N/A'})`,
             createdDate: request.createdAt ? moment(request.createdAt).format('DD MMM YYYY') : '-',
-            progressText: 'Paso 9 de 11',
+            progressText: this._translateService.instant('PENDING_PAGE.STEP_OF', { current: 9, total: 11 }),
             statusLabel: this.toTitleCase(request.status),
             steps: [],
             commentsHistory: []
@@ -691,7 +692,7 @@ export class Pending {
 
                 return {
                     number: item.step.order,
-                    title: `Paso ${item.step.order}`,
+                    title: `${this._translateService.instant('PENDING_PAGE.STEP')} ${item.step.order}`,
                     status: this.mapHistoryStatus(item.actionType),
                     role: roleNameByStepId.get(item.step.id) ?? item.step.name,
                     user: item.actionUser?.fullName ?? '-',
@@ -719,7 +720,7 @@ export class Pending {
 
                 return {
                     number: historyItem.workflow_step.stepOrder,
-                    title: `Paso ${historyItem.workflow_step.stepOrder}`,
+                    title: `${this._translateService.instant('PENDING_PAGE.STEP')} ${historyItem.workflow_step.stepOrder}`,
                     status: this.mapHistoryStatus(historyItem.request_step?.status ?? historyItem.actionType),
                     role: historyItem.workflow_step?.stepName ?? '-',
                     user: historyItem.action_user?.fullName ?? '-',
@@ -731,12 +732,15 @@ export class Pending {
 
         return {
             code: `${request.requestNumber ?? '-'}`,
-            company: request.customer?.customerName ?? 'Sin cliente',
+            company: request.customer?.customerName ?? this._translateService.instant('PENDING_PAGE.NO_CLIENT'),
             amount,
-            classification: request.classification?.name ?? 'Sin clasificación',
-            flow: `Flujo: ${request.request_type?.name?.toUpperCase() ?? 'N/A'} (${request.area ?? 'N/A'})`,
+            classification: request.classification?.name ?? this._translateService.instant('PENDING_PAGE.NO_CLASSIFICATION'),
+            flow: `${this._translateService.instant('PENDING_PAGE.FLOW_LABEL')}: ${request.request_type?.name?.toUpperCase() ?? 'N/A'} (${request.area ?? 'N/A'})`,
             createdDate: request.createdAt ? moment(request.createdAt).format('DD MMM YYYY') : '-',
-            progressText: `Paso ${data.progress.currentStepOrder} de ${data.progress.totalSteps}`,
+            progressText: this._translateService.instant('PENDING_PAGE.STEP_OF', {
+                current: data.progress.currentStepOrder,
+                total: data.progress.totalSteps
+            }),
             statusLabel: this.toTitleCase(request.status),
             steps: timelineSteps.length > 0 ? timelineSteps : fallbackSteps,
             commentsHistory: data.history.map((historyItem) => {
@@ -746,7 +750,7 @@ export class Pending {
                     id: historyItem.id,
                     author: historyItem.action_user?.fullName ?? '-',
                     role: historyItem.workflow_step?.stepName ?? '-',
-                    comment: historyItem.comments ?? 'Sin comentarios',
+                    comment: historyItem.comments ?? this._translateService.instant('PENDING_PAGE.NO_COMMENTS'),
                     status: this.mapHistoryStatus(historyItem.actionType),
                     date: createdAt.format('DD MMM YYYY'),
                     time: createdAt.format('hh:mm a')
@@ -759,34 +763,34 @@ export class Pending {
         const normalized = (status ?? '').toLowerCase();
 
         if (normalized === 'created') {
-            return 'Creado';
+            return this._translateService.instant('PENDING_PAGE.STATUS_CREATED');
         }
 
         if (normalized === 'processed') {
-            return 'Procesado';
+            return this._translateService.instant('PENDING_PAGE.STATUS_PROCESSED');
         }
 
         if (normalized === 'rejected') {
-            return 'Rechazado';
+            return this._translateService.instant('PENDING_PAGE.STATUS_REJECTED');
         }
 
         if (normalized === 'returned') {
-            return 'Devuelto';
+            return this._translateService.instant('PENDING_PAGE.STATUS_RETURNED');
         }
 
         if (normalized === 'routed') {
-            return 'Procesado';
+            return this._translateService.instant('PENDING_PAGE.STATUS_PROCESSED');
         }
 
         if (normalized === 'routed_back' || normalized === 'returned') {
-            return 'Devuelto';
+            return this._translateService.instant('PENDING_PAGE.STATUS_RETURNED');
         }
 
         if (normalized === 'pending') {
-            return 'Procesado';
+            return this._translateService.instant('PENDING_PAGE.STATUS_PROCESSED');
         }
 
-        return 'Aprobado';
+        return this._translateService.instant('PENDING_PAGE.STATUS_APPROVED');
     }
 
     private formatAmount(currency: string | undefined, amountValue: number | string | undefined): string {
@@ -802,7 +806,7 @@ export class Pending {
 
     private toTitleCase(value: string | undefined): string {
         if (!value) {
-            return 'Sin estado';
+            return this._translateService.instant('PENDING_PAGE.NO_STATUS');
         }
 
         return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
