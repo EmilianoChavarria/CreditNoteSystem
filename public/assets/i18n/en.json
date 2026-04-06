@@ -409,6 +409,21 @@
     "SUCCESS": "Success",
     "ERROR": "Error"
   },
+  "CUSTOMERS_PAGE": {
+    "CUSTOMER": "Customer",
+    "CUSTOMER_NAME": "Customer Name",
+    "AREA": "Area",
+    "SALES_ENGINEER": "Sales Engineer",
+    "SALES_MANAGER": "Sales Manager",
+    "FINANCE_MANAGER": "Finance Manager",
+    "MARKETING_MANAGER": "Marketing Manager",
+    "CS_MANAGER": "Customer Service Manager",
+    "STATUS": "Status",
+    "ACTIVE": "Active",
+    "INACTIVE": "Inactive",
+    "ASSIGN_MANAGER": "Assign Manager",
+    "SEE_INFO": "See info"
+  },
   "ROLE_FORM": {
     "ROLENAME": "Role Name",
     "SELECT_COLOR": "Select a Color",
