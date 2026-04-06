@@ -6,6 +6,7 @@ import { AccordeonItem } from '../../../../../shared/components/ui/accordeon/acc
 import { BatchService } from '../../../../../core/services/batch-service';
 import { ToastService } from '../../../../../core/services/toast-service';
 import { RequestType } from '../../../../../data/interfaces/Request';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 interface UploadedFileRow {
   name: string;
@@ -16,12 +17,13 @@ interface UploadedFileRow {
 
 @Component({
   selector: 'app-bulk-sap-return-order-upload',
-  imports: [AccordeonItem, LucideAngularModule],
+  imports: [AccordeonItem, LucideAngularModule, TranslatePipe],
   templateUrl: './bulk-sap-return-order-upload.html',
 })
 export class BulkSapReturnOrderUpload {
   private readonly batchService = inject(BatchService);
   private readonly toastService = inject(ToastService);
+  private readonly translateService = inject(TranslateService);
   private readonly destroyRef = inject(DestroyRef);
 
   requestTypes = input.required<RequestType[]>();
@@ -73,17 +75,17 @@ export class BulkSapReturnOrderUpload {
     const requestTypeId = this.selectedRequestTypeId();
 
     if (selectedFiles.length === 0) {
-      this.toastService.warning('Selecciona al menos un archivo para SAP Return Order.', 'SAP Return Order');
+      this.toastService.warning(this.translateService.instant('BULK.TOAST.SAP_SELECT_AT_LEAST_ONE'), this.translateService.instant('BULK.SAP.TITLE'));
       return;
     }
 
     if (!requestTypeId) {
-      this.toastService.warning('Selecciona el Request Type.', 'SAP Return Order');
+      this.toastService.warning(this.translateService.instant('BULK.TOAST.SELECT_REQUEST_TYPE'), this.translateService.instant('BULK.SAP.TITLE'));
       return;
     }
 
     if (!this.isAllowed()) {
-      this.toastService.warning('El Request Type seleccionado no permite SAP Return Order.', 'SAP Return Order');
+      this.toastService.warning(this.translateService.instant('BULK.TOAST.SAP_REQUEST_TYPE_NOT_ALLOWED'), this.translateService.instant('BULK.SAP.TITLE'));
       return;
     }
 
@@ -107,8 +109,8 @@ export class BulkSapReturnOrderUpload {
 
           const batchId = batch?.id;
           this.toastService.success(
-            `Batch SAP Return Order creado correctamente${batchId ? ` (ID: ${batchId})` : ''}.`,
-            'SAP Return Order'
+            this.translateService.instant('BULK.TOAST.SAP_CREATED', { id: batchId ?? '' }),
+            this.translateService.instant('BULK.SAP.TITLE')
           );
 
           if (batchId !== undefined && batchId !== null && batchId !== '') {
@@ -119,8 +121,8 @@ export class BulkSapReturnOrderUpload {
         },
         error: (error) => {
           this.isCreatingBatch.set(false);
-          const message = error?.error?.message ?? 'No se pudo crear el batch SAP Return Order.';
-          this.toastService.error(message, 'SAP Return Order');
+          const message = error?.error?.message ?? this.translateService.instant('BULK.TOAST.SAP_CREATE_ERROR');
+          this.toastService.error(message, this.translateService.instant('BULK.SAP.TITLE'));
         }
       });
   }
@@ -153,8 +155,8 @@ export class BulkSapReturnOrderUpload {
 
       if (!this.isValidFile(file)) {
         this.toastService.warning(
-          `Archivo "${file.name}" no permitido. Solo imágenes, Word y PDF son permitidos.`,
-          'SAP Return Order'
+          this.translateService.instant('BULK.TOAST.SAP_FILE_NOT_ALLOWED', { fileName: file.name }),
+          this.translateService.instant('BULK.SAP.TITLE')
         );
         continue;
       }
@@ -188,19 +190,19 @@ export class BulkSapReturnOrderUpload {
 
         if (status === 'completed') {
           this.isPollingBatch.set(false);
-          this.toastService.success('Carga masiva de SAP Return Order completada.', 'SAP Return Order');
+          this.toastService.success(this.translateService.instant('BULK.TOAST.SAP_COMPLETED'), this.translateService.instant('BULK.SAP.TITLE'));
           this.batchCreated.emit();
         }
 
         if (status === 'failed') {
           this.isPollingBatch.set(false);
-          this.toastService.error('La carga masiva de SAP Return Order fallo.', 'SAP Return Order');
+          this.toastService.error(this.translateService.instant('BULK.TOAST.SAP_FAILED'), this.translateService.instant('BULK.SAP.TITLE'));
           this.batchCreated.emit();
         }
       },
       error: () => {
         this.isPollingBatch.set(false);
-        this.toastService.warning('No se pudo continuar el polling del batch SAP Return Order.', 'SAP Return Order');
+        this.toastService.warning(this.translateService.instant('BULK.TOAST.SAP_POLLING_WARNING'), this.translateService.instant('BULK.SAP.TITLE'));
         this.batchCreated.emit();
       },
       complete: () => {
