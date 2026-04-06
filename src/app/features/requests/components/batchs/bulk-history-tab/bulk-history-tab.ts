@@ -1,5 +1,6 @@
 import { Component, input, output } from '@angular/core';
 import { LucideAngularModule } from 'lucide-angular';
+import { TranslatePipe } from '@ngx-translate/core';
 
 interface BatchHistoryRow {
   idBatch: string;
@@ -17,7 +18,7 @@ interface BatchHistoryRow {
 
 @Component({
   selector: 'app-bulk-history-tab',
-  imports: [LucideAngularModule],
+  imports: [LucideAngularModule, TranslatePipe],
   templateUrl: './bulk-history-tab.html',
 })
 export class BulkHistoryTab {
