@@ -506,5 +506,41 @@
     "UNASSIGNING": "Procesando...",
     "UX_HINT_TITLE": "Tip",
     "UX_HINT_DESC": "La lista de candidatos excluye automaticamente usuarios ya asignados al lider seleccionado."
+  },
+  "SYS_CONFIG": {
+    "TITLE": "Configuracion del Sistema",
+    "DESCRIPTION": "Politicas de contrasena, sesiones y ajustes de autenticacion",
+    "LOADING": "Cargando configuracion de seguridad...",
+    "PASSWORD_SECTION_TITLE": "Requisitos de Seguridad de Contrasena",
+    "PASSWORD_SECTION_DESC": "Define los requisitos minimos de seguridad para la contrasena de usuario.",
+    "MIN_LENGTH_LABEL": "Longitud minima de contrasena",
+    "MIN_LENGTH_HELP": "La contrasena debe tener al menos {{min}} caracteres para una seguridad optima.",
+    "REQUIRE_UPPERCASE_LABEL": "Requerir mayusculas",
+    "REQUIRE_UPPERCASE_HELP": "La contrasena debe contener al menos una mayuscula (A-Z)",
+    "REQUIRE_LOWERCASE_LABEL": "Requerir minusculas",
+    "REQUIRE_LOWERCASE_HELP": "La contrasena debe contener al menos una minuscula (a-z)",
+    "REQUIRE_NUMBERS_LABEL": "Requerir numeros",
+    "REQUIRE_NUMBERS_HELP": "La contrasena debe contener al menos un numero (0-9)",
+    "REQUIRE_SPECIAL_LABEL": "Requerir caracteres especiales",
+    "REQUIRE_SPECIAL_HELP": "La contrasena debe contener al menos uno de: {{chars}}",
+    "ALLOWED_SPECIAL_LABEL": "Caracteres especiales permitidos",
+    "ALLOWED_SPECIAL_PLACEHOLDER": "!@#$%^&*:,.?",
+    "ALLOWED_SPECIAL_INLINE": "Caracteres especiales permitidos: {{chars}}",
+    "SESSION_SECTION_TITLE": "Sesiones y Autenticacion",
+    "SESSION_SECTION_DESC": "Configura el tiempo de sesion y los limites de intentos fallidos.",
+    "INACTIVITY_LABEL": "Tiempo de inactividad (min)",
+    "INACTIVITY_HELP": "{{minutes}} minutos de inactividad",
+    "MAX_AUTH_USER_LABEL": "Max. intentos fallidos (usuario)",
+    "MAX_AUTH_USER_HELP": "Por usuario en 24 horas",
+    "MAX_AUTH_IP_LABEL": "Max. intentos fallidos (IP)",
+    "MAX_AUTH_IP_HELP": "Por direccion IP en 24 horas",
+    "SAVE": "Guardar cambios",
+    "SAVING": "Guardando...",
+    "TOAST": {
+      "SUCCESS": "Exito",
+      "ERROR": "Error",
+      "SAVE_SUCCESS": "La configuracion de seguridad se guardo correctamente",
+      "SAVE_ERROR": "No se pudo guardar la configuracion de seguridad"
+    }
   }
 }

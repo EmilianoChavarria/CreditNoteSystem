@@ -506,5 +506,41 @@
     "UNASSIGNING": "Processing...",
     "UX_HINT_TITLE": "Tip",
     "UX_HINT_DESC": "Candidates list automatically excludes users already assigned to the selected leader."
+  },
+  "SYS_CONFIG": {
+    "TITLE": "System Configuration",
+    "DESCRIPTION": "Password policies, sessions and auth settings",
+    "LOADING": "Loading security settings...",
+    "PASSWORD_SECTION_TITLE": "Password Security Requirements",
+    "PASSWORD_SECTION_DESC": "Define the Minimum Security Requirements for User Password.",
+    "MIN_LENGTH_LABEL": "Minimum Password Length",
+    "MIN_LENGTH_HELP": "Must be at least {{min}} characters long for optimal security.",
+    "REQUIRE_UPPERCASE_LABEL": "Require Uppercase Letters",
+    "REQUIRE_UPPERCASE_HELP": "Password must contain at least one uppercase letter (A-Z)",
+    "REQUIRE_LOWERCASE_LABEL": "Require Lowercase Letters",
+    "REQUIRE_LOWERCASE_HELP": "Password must contain at least one lowercase letter (a-z)",
+    "REQUIRE_NUMBERS_LABEL": "Require Numbers",
+    "REQUIRE_NUMBERS_HELP": "Password must contain at least one number (0-9)",
+    "REQUIRE_SPECIAL_LABEL": "Require Special Characters",
+    "REQUIRE_SPECIAL_HELP": "Password must contain at least one of: {{chars}}",
+    "ALLOWED_SPECIAL_LABEL": "Allowed special characters",
+    "ALLOWED_SPECIAL_PLACEHOLDER": "!@#$%^&*:,.?",
+    "ALLOWED_SPECIAL_INLINE": "Allowed special characters: {{chars}}",
+    "SESSION_SECTION_TITLE": "Sessions & Authentication",
+    "SESSION_SECTION_DESC": "Configure Session Timeout and Authentication Failure Limits.",
+    "INACTIVITY_LABEL": "Inactivity Timeout (Min)",
+    "INACTIVITY_HELP": "{{minutes}} Minutes of Inactivity",
+    "MAX_AUTH_USER_LABEL": "Max Auth Failures (User)",
+    "MAX_AUTH_USER_HELP": "Per User in 24 Hours",
+    "MAX_AUTH_IP_LABEL": "Max Auth Failures (IP)",
+    "MAX_AUTH_IP_HELP": "Per IP Address in 24 Hours",
+    "SAVE": "Save Changes",
+    "SAVING": "Saving...",
+    "TOAST": {
+      "SUCCESS": "Success",
+      "ERROR": "Error",
+      "SAVE_SUCCESS": "Security settings saved successfully",
+      "SAVE_ERROR": "Unable to save security settings"
+    }
   }
 }
