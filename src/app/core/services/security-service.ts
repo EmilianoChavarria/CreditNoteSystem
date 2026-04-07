@@ -17,6 +17,45 @@ export interface PasswordValidationResponse {
   };
 }
 
+export interface PasswordRequirementField {
+  label: string;
+  value: string | number | boolean;
+  description: string;
+  allowedChars?: string;
+}
+
+export interface PasswordRequirementsFormatted {
+  minLength: PasswordRequirementField;
+  requireUppercase: PasswordRequirementField;
+  requireLowercase: PasswordRequirementField;
+  requireNumbers: PasswordRequirementField;
+  requireSpecialChars: PasswordRequirementField;
+}
+
+export interface LoginAttemptSettings {
+  id: number;
+  maxUserAttempts: number;
+  maxIpAttempts: number;
+  sessionTimeoutMinutes: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UpdateLoginAttemptSettingsPayload {
+  maxUserAttempts: number;
+  maxIpAttempts: number;
+  sessionTimeoutMinutes: number;
+}
+
+export interface UpdatePasswordRequirementsPayload {
+  minLength: number;
+  requireUppercase: boolean;
+  requireLowercase: boolean;
+  requireNumbers: boolean;
+  requireSpecialChars: boolean;
+  allowedSpecialChars: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -30,6 +69,30 @@ export class SecurityService {
     return this._httpService.post<PasswordValidationResponse>('password-requirements/validate', { password }).pipe(
       map(response => response.data)
     )
+  }
+
+  getFormattedPasswordRequirements() {
+    return this._httpService.get<PasswordRequirementsFormatted>('password-requirements/formatted').pipe(
+      map(response => response.data)
+    );
+  }
+
+  getLoginAttemptSettings() {
+    return this._httpService.get<LoginAttemptSettings>('security/login-attempt-settings').pipe(
+      map(response => response.data)
+    );
+  }
+
+  updateLoginAttemptSettings(payload: UpdateLoginAttemptSettingsPayload) {
+    return this._httpService.put<LoginAttemptSettings>('security/login-attempt-settings', payload).pipe(
+      map(response => response.data)
+    );
+  }
+
+  updatePasswordRequirements(payload: UpdatePasswordRequirementsPayload) {
+    return this._httpService.put('password-requirements', payload).pipe(
+      map(response => response.data)
+    );
   }
 
 }
