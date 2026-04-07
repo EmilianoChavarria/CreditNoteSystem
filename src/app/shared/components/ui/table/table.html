@@ -10,7 +10,7 @@
                 </div>
                 <input type="text" [placeholder]="'TABLE.SEARCH' | translate"
                     class="w-full text-sm pl-10 pr-4 py-2 border border-gray-300 rounded-lg"
-                    (input)="busqueda.set($any($event.target).value); paginaActual.set(1)" />
+                    (input)="onSearchInput($any($event.target).value)" />
             </div>
 
             <!-- FILTRO -->
@@ -173,7 +173,7 @@
                 <tr *ngIf="!loading() && datosPaginados().length === 0">
                     <td [attr.colspan]="columnasInterno().length + (sinAcciones() ? 0 : 1)"
                         class="px-6 py-8 text-center text-gray-500 italic">
-                        {{ 'TABLE.NO_RECORDS' | translate }}
+                        {{ emptyMessageKey() | translate }}
                     </td>
                 </tr>
             </tbody>

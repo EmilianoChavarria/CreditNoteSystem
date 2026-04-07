@@ -63,6 +63,7 @@ export class Table<T extends Record<string, any>>
   readonly hasNextPage = input(false);
   readonly hasPrevPage = input(false);
   readonly loading = input(false);
+  readonly emptyMessageKey = input('TABLE.NO_RECORDS');
 
   readonly enableFilter = input<boolean>(false);
   readonly filterField = input<string>(); // Permite propiedades anidadas como "role.roleName"
@@ -85,6 +86,7 @@ export class Table<T extends Record<string, any>>
   readonly paginaPrimera = output<void>();
   readonly paginaUltima = output<void>();
   readonly registrosPorPaginaChange = output<number>();
+  readonly searchChange = output<string>();
   readonly addClick = output<void>();
 
   // Template personalizado para celdas
@@ -162,13 +164,15 @@ export class Table<T extends Record<string, any>>
     }
 
     // BUSQUEDA
-    resultado = resultado.filter(item =>
-      Object.values(item).some(v =>
-        String(v ?? '')
-          .toLowerCase()
-          .includes(this.busqueda().toLowerCase())
-      )
-    );
+    if (!this.serverPagination()) {
+      resultado = resultado.filter(item =>
+        Object.values(item).some(v =>
+          String(v ?? '')
+            .toLowerCase()
+            .includes(this.busqueda().toLowerCase())
+        )
+      );
+    }
 
     // ORDENAMIENTO
     if (this.ordenarPor()) {
@@ -240,6 +244,15 @@ export class Table<T extends Record<string, any>>
     }
 
     this.paginaActual.set(1);
+  }
+
+  onSearchInput(value: string): void {
+    this.busqueda.set(value);
+    this.paginaActual.set(1);
+
+    if (this.serverPagination()) {
+      this.searchChange.emit(value.trim());
+    }
   }
 
   irPaginaAnterior() {
