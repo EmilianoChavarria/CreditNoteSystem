@@ -24,7 +24,7 @@
     <div class="py-20 flex justify-center">
         <app-spinner></app-spinner>
     </div>
-    } @else if (requests().length > 0) {
+    } @else if (selectedRequestType !== 'DE' && selectedRequestType) {
     <app-tabla-dinamica [datos]="requests()" [columnas]="columns" [accionesPersonalizadas]="acciones()" actionMode="menu"
         [enableFilter]="true" filterField="status" addLabel="PENDING_PAGE.REQUEST" addRoute="/app/settings/newUser" [canAdd]="false"
         [registrosPorPagina]="pageSize()" [serverPagination]="true" [paginaActualExterna]="currentPage()"
@@ -32,7 +32,8 @@
         [hasNextPage]="hasNextPage()" [hasPrevPage]="hasPrevPage()" [loading]="isLoadingTable()"
         (paginaSiguiente)="onNextPage()" (paginaAnterior)="onPrevPage()"
         (paginaPrimera)="onFirstPage()" (paginaUltima)="onLastPage()"
-        (registrosPorPaginaChange)="onPageSizeChange($event)">
+        (registrosPorPaginaChange)="onPageSizeChange($event)"
+        (searchChange)="onSearch($event)">
 
         <ng-template #cellTemplate let-item let-column="column">
             @if (column.key === 'request_type.name') {

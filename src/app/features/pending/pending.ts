@@ -46,6 +46,8 @@ export class Pending {
     public hasPrevPage = signal<boolean>(false);
     public isLoadingTable = signal<boolean>(true);
     public isLoading = signal<boolean>(false);
+    public searchTerm = signal<string>('');
+    private searchDebounceTimeout: ReturnType<typeof setTimeout> | null = null;
     public form = new FormGroup({
         reason: new FormControl<string>('', Validators.required)
     })
@@ -308,7 +310,7 @@ export class Pending {
 
         this.isLoadingTable.set(true);
 
-        this._requestsService.getRequestsByTypeWithPagePagination(requestTypeId, this.pageSize(), this.currentPage()).pipe(
+        this._requestsService.getRequestsByTypeWithPagePagination(requestTypeId, this.pageSize(), this.currentPage(), this.searchTerm()).pipe(
             finalize(() => {
                 this.isLoadingTable.set(false);
                 this.isLoading.set(false);
@@ -382,6 +384,31 @@ export class Pending {
         this.hasNextPage.set(false);
         this.hasPrevPage.set(false);
         this.loadRequestsPaginated();
+    }
+
+    onSearch(term: string): void {
+        if (this.selectedRequestType === 'DE' || !this.selectedRequestType) {
+            return;
+        }
+
+        if (this.searchDebounceTimeout) {
+            clearTimeout(this.searchDebounceTimeout);
+        }
+
+        this.searchDebounceTimeout = setTimeout(() => {
+            const normalizedTerm = term.trim();
+
+            if (normalizedTerm === this.searchTerm()) {
+                return;
+            }
+
+            this.searchTerm.set(normalizedTerm);
+            this.currentPage.set(1);
+            this.totalPages.set(1);
+            this.hasNextPage.set(false);
+            this.hasPrevPage.set(false);
+            this.loadRequestsPaginated();
+        }, 350);
     }
 
     onDeclineModalChange(isOpen: boolean = true, request?: Request): void {
