@@ -255,6 +255,14 @@ export class Table<T extends Record<string, any>>
     }
   }
 
+  clearSearch(): void {
+    if (!this.busqueda()) {
+      return;
+    }
+
+    this.onSearchInput('');
+  }
+
   irPaginaAnterior() {
     if (this.serverPagination()) {
       if (this.hasPrevPage()) {
