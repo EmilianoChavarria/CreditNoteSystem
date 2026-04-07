@@ -24,6 +24,8 @@ export class Customers {
     public isLoadingTable = signal<boolean>(true);
     public customers = signal<Customer[]>([]);
     public customer?: Customer;
+    public searchTerm = signal<string>('');
+    private searchDebounceTimeout: ReturnType<typeof setTimeout> | null = null;
 
     public isOpenModal = signal<boolean>(false);
 
@@ -207,10 +209,31 @@ export class Customers {
         this.getUsers(1);
     }
 
+    onSearch(term: string): void {
+        if (this.searchDebounceTimeout) {
+            clearTimeout(this.searchDebounceTimeout);
+        }
+
+        this.searchDebounceTimeout = setTimeout(() => {
+            const normalizedTerm = term.trim();
+
+            if (normalizedTerm === this.searchTerm()) {
+                return;
+            }
+
+            this.searchTerm.set(normalizedTerm);
+            this.currentPage.set(1);
+            this.hasNextPage.set(false);
+            this.hasPrevPage.set(false);
+            this.totalPages.set(1);
+            this.getUsers(1);
+        }, 350);
+    }
+
     getUsers(page = 1): void {
         this.isLoadingTable.set(true);
 
-        this._customerService.getCustomersPaginated(this.pageSize(), page).pipe(
+        this._customerService.getCustomersPaginated(this.pageSize(), page, this.searchTerm()).pipe(
             finalize(() => this.isLoadingTable.set(false))
         ).subscribe({
             next: (response) => {

@@ -14,6 +14,7 @@
         (paginaSiguiente)="onNextPage()" (paginaAnterior)="onPrevPage()"
         (paginaPrimera)="onFirstPage()" (paginaUltima)="onLastPage()"
         (registrosPorPaginaChange)="onPageSizeChange($event)"
+        (searchChange)="onSearch($event)"
         >
         <!-- <ng-template #headerButtonTemplate let-button let-execute="execute">
             <button type="button" class="rounded-md bg-black text-white px-3 py-1 flex items-center gap-2 text-nowrap"
