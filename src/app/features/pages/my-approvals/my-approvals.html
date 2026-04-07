@@ -24,9 +24,10 @@
     <div class="py-20 flex justify-center">
         <app-spinner></app-spinner>
     </div>
-    } @else if (requests().length > 0) {
+    } @else if (selectedRequestType !== 'DE' && selectedRequestType) {
     <app-tabla-dinamica [datos]="requests()" [columnas]="columns" [accionesPersonalizadas]="acciones" actionMode="menu"
         [enableFilter]="true" filterField="workflow_current_step.assigned_role.roleName" addLabel="MY_APPROVALS.REQUEST" addRoute="/app/settings/newUser" [canAdd]="false"
+        [emptyMessageKey]="'MY_APPROVALS.NO_PENDING_APPROVALS'"
         [registrosPorPagina]="pageSize()" [loading]="isLoadingTable()"
         [serverPagination]="true" [paginaActualExterna]="currentPage()"
         [hasNextPage]="hasNextPage()" [hasPrevPage]="hasPrevPage()"
