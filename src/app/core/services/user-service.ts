@@ -54,11 +54,15 @@ export class UserService {
     )
   }
 
-  getUsersPaginated(perPage = 10, cursor?: string | null): Observable<CursorPagination<User>> {
-    const params: { perPage: number; cursor?: string } = { perPage };
+  getUsersPaginated(perPage = 10, cursor?: string | null, search?: string): Observable<CursorPagination<User>> {
+    const params: { perPage: number; cursor?: string; search?: string } = { perPage };
 
     if (cursor) {
       params.cursor = cursor;
+    }
+
+    if (search && search.trim().length > 0) {
+      params.search = search.trim();
     }
 
     return this._httpService.get<CursorPagination<User>>('/usersPag', { params }).pipe(

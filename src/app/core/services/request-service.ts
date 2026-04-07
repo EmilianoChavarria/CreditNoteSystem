@@ -332,8 +332,12 @@ export class RequestService {
     );
   }
 
-  getRequestsByTypeWithPagePagination(id: number, perPage = 10, page = 1): Observable<PagePagination<Request>> {
-    const params = { per_page: perPage, page };
+  getRequestsByTypeWithPagePagination(id: number, perPage = 10, page = 1, search?: string): Observable<PagePagination<Request>> {
+    const params: { per_page: number; page: number; search?: string } = { per_page: perPage, page };
+
+    if (search && search.trim().length > 0) {
+      params.search = search.trim();
+    }
 
     return this._httpService.get<PagePagination<Request>>(`/requests/${id}`, { params }).pipe(
       map((response: ApiResponse<PagePagination<Request>>) => {

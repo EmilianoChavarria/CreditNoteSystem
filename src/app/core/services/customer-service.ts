@@ -43,8 +43,12 @@ export class CustomerService {
     );
   }
 
-  getCustomersPaginated(perPage = 10, page = 1): Observable<PagePagination<Customer>> {
-    const params = { per_page: perPage, page };
+  getCustomersPaginated(perPage = 10, page = 1, search?: string): Observable<PagePagination<Customer>> {
+    const params: { per_page: number; page: number; search?: string } = { per_page: perPage, page };
+
+    if (search && search.trim().length > 0) {
+      params.search = search.trim();
+    }
 
     return this._httpService.get<PagePagination<Customer>>('/customers', { params }).pipe(
       map((response: ApiResponse<PagePagination<Customer>>) => {
