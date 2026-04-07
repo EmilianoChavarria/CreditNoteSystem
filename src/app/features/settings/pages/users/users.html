@@ -12,6 +12,7 @@
         [hasNextPage]="hasNextPage()" [hasPrevPage]="hasPrevPage()" [loading]="isLoadingTable()"
         (paginaSiguiente)="onNextPage()" (paginaAnterior)="onPrevPage()"
         (registrosPorPaginaChange)="onPageSizeChange($event)"
+        (searchChange)="onSearch($event)"
         (addClick)="openUserModalForCreate()">
         
         <ng-template #cellTemplate let-item let-column="column">

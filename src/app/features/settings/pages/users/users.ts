@@ -50,6 +50,8 @@ export class Users implements OnInit {
     public isSavingUser = signal<boolean>(false);
     public roles = signal<Role[]>([]);
     public supervisors = signal<UserData[]>([]);
+    public searchTerm = signal<string>('');
+    private searchDebounceTimeout: ReturnType<typeof setTimeout> | null = null;
 
     // public headerButtons = [
     //     {
@@ -317,7 +319,7 @@ export class Users implements OnInit {
     getUsers(cursor?: string | null): void {
         this.isLoadingTable.set(true);
 
-        this._userService.getUsersPaginated(this.pageSize(), cursor).pipe(
+        this._userService.getUsersPaginated(this.pageSize(), cursor, this.searchTerm()).pipe(
             finalize(() => this.isLoadingTable.set(false))
         ).subscribe({
             next: (response) => {
@@ -332,6 +334,28 @@ export class Users implements OnInit {
                 console.error('❌ Error al cargar usuarios:', error);
             }
         });
+    }
+
+    onSearch(term: string): void {
+        if (this.searchDebounceTimeout) {
+            clearTimeout(this.searchDebounceTimeout);
+        }
+
+        this.searchDebounceTimeout = setTimeout(() => {
+            const normalizedTerm = term.trim();
+
+            if (normalizedTerm === this.searchTerm()) {
+                return;
+            }
+
+            this.searchTerm.set(normalizedTerm);
+            this.currentPage.set(1);
+            this.nextCursor.set(null);
+            this.prevCursor.set(null);
+            this.hasNextPage.set(false);
+            this.hasPrevPage.set(false);
+            this.getUsers();
+        }, 350);
     }
 
     onNextPage(): void {
