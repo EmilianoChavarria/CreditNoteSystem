@@ -74,7 +74,7 @@
     "DESCRIPTION": "Mira la lista de clientes y asigna sus gerentes"
   },
   "ROLE_MANAGE": {
-    "TITLE": "Roles y Permisos por Tipos de Solicitud",
+    "TITLE": "Gestión de Roles",
     "DESCRIPTION": "Configurar Permisos de Roles Para Tipos de Solicitud"
   },
   "WORKFLOWS_MANAGE": {
@@ -289,6 +289,7 @@
     "STATUS_RETURNED": "Devuelto",
     "STATUS_APPROVED": "Aprobado",
     "NO_STATUS": "Sin estado",
+    "NO_PENDING_APPROVALS": "No hay aprobaciones pendientes",
     "TOAST": {
       "SUCCESS": "Éxito",
       "ERROR": "Error",
