@@ -1,12 +1,12 @@
-<main class="h-screen w-full flex flex-col gap-y-10 items-center justify-center">
-    <img src="assets/svg/LTM.svg" alt="Logo Timken" class="h-20" style="fill: white !important;">
-    <form class="shadow-2xl w-1/4 flex flex-col p-8 gap-y-6 rounded-lg" [formGroup]="form" (ngSubmit)="onSubmit()">
+<main class="min-h-screen w-full flex flex-col items-center justify-center gap-y-8 px-4 py-8 sm:px-6 md:gap-y-10 md:px-8">
+    <img src="assets/svg/LTM.svg" alt="Logo Timken" class="h-14 w-auto sm:h-16 md:h-20" style="fill: white !important;">
+    <form class="shadow-2xl w-full max-w-sm sm:max-w-md lg:max-w-lg flex flex-col rounded-lg p-5 gap-y-5 sm:p-7 sm:gap-y-6 md:p-8" [formGroup]="form" (ngSubmit)="onSubmit()">
         <span class="text-center w-full text-[#ff8200] font-semibold text-2xl">
             Sign In
         </span>
 
         @if (errorMessage !== '') {
-        <div class="w-full rounded-md bg-red-200 h-fit flex items-center justify-start p-4 text-red-800 gap-x-4">
+        <div class="w-full rounded-md bg-red-200 h-fit flex items-center justify-start p-3 text-red-800 gap-x-3 sm:p-4 sm:gap-x-4">
             <lucide-icon name="circle-x"></lucide-icon>
             <span class="">{{errorMessage}}</span>
         </div>
@@ -31,7 +31,7 @@
                 </button>
             </div>
         </div>
-        <button class="bg-[#ff8200] text-white py-2 rounded-md hover:bg-[#e67300] transition-colors hover:cursor-pointer"
+        <button class="bg-[#ff8200] text-white py-2.5 rounded-md hover:bg-[#e67300] transition-colors hover:cursor-pointer"
             [disabled]="isLoading">
             @if (isLoading) {
             <app-spinner size="small" class="text-white"></app-spinner>
