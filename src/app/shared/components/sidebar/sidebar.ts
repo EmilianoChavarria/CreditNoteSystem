@@ -46,7 +46,7 @@ export class Sidebar {
     private _toastService: ToastService,
   ) {
     if (typeof window !== 'undefined') {
-      this.syncSidebarViewport(window.innerWidth);
+      this.applySidebarViewport(window.innerWidth);
       fromEvent(window, 'resize')
         .pipe(takeUntilDestroyed())
         .subscribe(() => this.syncSidebarViewport(window.innerWidth));
@@ -90,12 +90,8 @@ export class Sidebar {
     this.loadSidebarOptions(this._authService.getCurrentUser());
   }
 
-  private syncSidebarViewport(viewportWidth: number): void {
+  private applySidebarViewport(viewportWidth: number): void {
     const mobile = viewportWidth < this.collapseBreakpoint;
-
-    if (this.isMobileView === mobile) {
-      return;
-    }
 
     this.isMobileView = mobile;
 
@@ -105,6 +101,16 @@ export class Sidebar {
       this.layoutShellService.closeMobileSidebar();
     } else {
       this.isOpen = true;
+    }
+  }
+
+  private syncSidebarViewport(viewportWidth: number): void {
+    const previousMobileView = this.isMobileView;
+
+    this.applySidebarViewport(viewportWidth);
+
+    if (previousMobileView === this.isMobileView) {
+      return;
     }
 
     this._cdr.detectChanges();
