@@ -35,6 +35,7 @@ export class MyApprovals {
     public availableRequestTypes = signal<RequestType[]>([]);
     public pageSize = signal<number>(10);
     public currentPage = signal<number>(1);
+    public totalPages = signal<number>(1);
     public hasNextPage = signal<boolean>(false);
     public hasPrevPage = signal<boolean>(false);
     public isLoadingTable = signal<boolean>(true);
@@ -222,6 +223,7 @@ export class MyApprovals {
         this.selectedRequestType = value;
 
         this.currentPage.set(1);
+        this.totalPages.set(1);
         this.hasNextPage.set(false);
         this.hasPrevPage.set(false);
 
@@ -250,6 +252,7 @@ export class MyApprovals {
             next: (response) => {
                 this.requests.set(response.data ?? []);
                 this.currentPage.set(response.current_page ?? 1);
+                this.totalPages.set(response.last_page ?? 1);
                 this.hasNextPage.set(Boolean(response.next_page_url));
                 this.hasPrevPage.set(Boolean(response.prev_page_url));
                 this.isLoadingTable.set(false);
@@ -284,12 +287,33 @@ export class MyApprovals {
     onPageSizeChange(size: number): void {
         this.pageSize.set(size);
         this.currentPage.set(1);
+        this.totalPages.set(1);
         this.hasNextPage.set(false);
         this.hasPrevPage.set(false);
 
         if (this.selectedRequestType !== 'DE') {
             this.loadMyPendingRequests();
         }
+    }
+
+    onFirstPage(): void {
+        if (this.currentPage() === 1) {
+            return;
+        }
+
+        this.currentPage.set(1);
+        this.loadMyPendingRequests();
+    }
+
+    onLastPage(): void {
+        const lastPage = this.totalPages();
+
+        if (this.currentPage() === lastPage) {
+            return;
+        }
+
+        this.currentPage.set(lastPage);
+        this.loadMyPendingRequests();
     }
 
     onDeclineModalChange(isOpen: boolean = true, request?: Request): void {

@@ -30,8 +30,10 @@
         [emptyMessageKey]="'MY_APPROVALS.NO_PENDING_APPROVALS'"
         [registrosPorPagina]="pageSize()" [loading]="isLoadingTable()"
         [serverPagination]="true" [paginaActualExterna]="currentPage()"
+        [totalPaginasExterno]="totalPages()"
         [hasNextPage]="hasNextPage()" [hasPrevPage]="hasPrevPage()"
         (paginaSiguiente)="onNextPage()" (paginaAnterior)="onPrevPage()"
+        (paginaPrimera)="onFirstPage()" (paginaUltima)="onLastPage()"
         (registrosPorPaginaChange)="onPageSizeChange($event)">
 
         <ng-template #cellTemplate let-item let-column="column">
