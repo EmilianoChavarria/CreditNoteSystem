@@ -1,7 +1,7 @@
-import { Component, ContentChildren, QueryList, AfterContentInit, OnDestroy, input, output } from '@angular/core';
+import { Component, ContentChildren, QueryList, AfterContentInit, AfterViewInit, OnDestroy, ViewChild, ElementRef, input, output } from '@angular/core';
 import { Tab } from '../tab';
 import { CommonModule } from '@angular/common';
-import { Subscription } from 'rxjs';
+import { fromEvent, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-tabs-container',
@@ -9,16 +9,22 @@ import { Subscription } from 'rxjs';
   imports: [CommonModule],
   template: `
     <div class="w-full mx-auto shadow-lg rounded-lg overflow-visible">
-      <div class="flex border-b border-gray-200 bg-gray-50">
+      <div class="relative border-b border-gray-200 bg-gray-50">
+        <div *ngIf="showLeftFade" class="pointer-events-none absolute inset-y-0 left-0 z-10 w-6 bg-linear-to-r from-gray-50 to-transparent md:hidden"></div>
+        <div *ngIf="showRightFade" class="pointer-events-none absolute inset-y-0 right-0 z-10 w-6 bg-linear-to-l from-gray-50 to-transparent md:hidden"></div>
+        <div #tabsScroll class="overflow-x-auto overscroll-x-contain" (scroll)="updateFadeIndicators()">
+        <div class="flex min-w-max">
         <button *ngFor="let tab of tabs; let i = index" 
                 (click)="selectTab(tab, i)"
                 [ngClass]="{
                   'bg-orange-100 border-orange-400 text-orange-400': tab.active,
                   'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-100': !tab.active
                 }"
-                class="  px-0 md:px-20 py-3 text-sm font-medium rounded-t-lg border-2 transition-colors duration-200 focus:outline-none">
+                class="px-3 sm:px-4 md:px-20 py-3 text-sm font-medium rounded-t-lg border-2 transition-colors duration-200 focus:outline-none whitespace-nowrap shrink-0 min-w-28 sm:min-w-32 text-center">
           {{ tab.titleT() }}
         </button>
+        </div>
+        </div>
       </div>
 
       <div class="bg-white">
@@ -57,15 +63,19 @@ import { Subscription } from 'rxjs';
     </div>
   `
 })
-export class TabsContainer implements AfterContentInit, OnDestroy {
+export class TabsContainer implements AfterContentInit, AfterViewInit, OnDestroy {
   @ContentChildren(Tab) tabs!: QueryList<Tab>;
+  @ViewChild('tabsScroll', { static: false }) tabsScrollContainer?: ElementRef<HTMLElement>;
   readonly onSave = output<void>();
   readonly onSaveDraft = output<void>();
   readonly showBottomButtons = input<boolean>(true);
   readonly registerDisabled = input<boolean>(false);
   readonly initialTabIndex = input<number>(0);
   selectedIndex: number = 0;
+  showLeftFade = false;
+  showRightFade = false;
   private tabsSubscription?: Subscription;
+  private resizeSubscription?: Subscription;
 
   ngAfterContentInit() {
     // Inicializar tabs
@@ -74,12 +84,27 @@ export class TabsContainer implements AfterContentInit, OnDestroy {
     // Suscribirse a los cambios en los tabs
     this.tabsSubscription = this.tabs.changes.subscribe(() => {
       this.initializeTabs();
+      this.scheduleFadeIndicatorsUpdate();
     });
+  }
+
+  ngAfterViewInit() {
+    this.scheduleFadeIndicatorsUpdate();
+
+    if (typeof window !== 'undefined') {
+      this.resizeSubscription = fromEvent(window, 'resize').subscribe(() => {
+        this.scheduleFadeIndicatorsUpdate();
+      });
+    }
   }
 
   ngOnDestroy() {
     if (this.tabsSubscription) {
       this.tabsSubscription.unsubscribe();
+    }
+
+    if (this.resizeSubscription) {
+      this.resizeSubscription.unsubscribe();
     }
   }
 
@@ -89,10 +114,33 @@ export class TabsContainer implements AfterContentInit, OnDestroy {
     }
   }
 
+  updateFadeIndicators(): void {
+    const container = this.tabsScrollContainer?.nativeElement;
+    if (!container) {
+      this.showLeftFade = false;
+      this.showRightFade = false;
+      return;
+    }
+
+    const epsilon = 1;
+    const maxScrollLeft = container.scrollWidth - container.clientWidth;
+    const hasHorizontalOverflow = maxScrollLeft > epsilon;
+
+    this.showLeftFade = hasHorizontalOverflow && container.scrollLeft > epsilon;
+    this.showRightFade = hasHorizontalOverflow && container.scrollLeft < (maxScrollLeft - epsilon);
+  }
+
+  private scheduleFadeIndicatorsUpdate(): void {
+    requestAnimationFrame(() => {
+      this.updateFadeIndicators();
+    });
+  }
+
   selectTab(tab: Tab, index: number) {
     this.tabs.toArray().forEach(t => t.active = false);
     tab.active = true;
     this.selectedIndex = index;
+    this.scheduleFadeIndicatorsUpdate();
   }
 
   selectTabByIndex(index: number): void {
