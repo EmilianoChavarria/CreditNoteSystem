@@ -69,6 +69,54 @@
     "TITLE": "Gestión de Usuarios",
     "DESCRIPTION": "Crea, Edita y Gestiona las Cuentas de Usuarios"
   },
+  "SECURITY_MANAGE": {
+    "TITLE": "Gestión de Seguridad",
+    "DESCRIPTION": "Gestión de usuarios e IPs bloqueadas",
+    "CARDS": {
+      "BLOCKED_USERS": "Usuarios Bloqueados",
+      "BLOCKED_IPS": "IPs Bloqueadas"
+    },
+    "TABS": {
+      "BLOCKED_USERS": "Usuarios Bloqueados",
+      "BLOCKED_IPS": "IPs Bloqueadas"
+    },
+    "TABLE": {
+      "USER": "USUARIO",
+      "EMAIL": "EMAIL",
+      "IP_ADDRESS": "DIRECCION IP",
+      "BLOCKED_AT": "BLOQUEADO EN",
+      "REASON": "MOTIVO",
+      "ATTEMPTS": "INTENTOS",
+      "ACTIONS": "ACCIONES"
+    },
+    "ACTIONS": {
+      "UNBLOCK": "Desbloquear",
+      "REFRESH": "Actualizar"
+    },
+    "MODAL": {
+      "UNLOCK_USER_TITLE": "Confirmar desbloqueo de usuario",
+      "UNLOCK_IP_TITLE": "Confirmar desbloqueo de IP",
+      "UNLOCK_USER_MESSAGE": "Estas seguro de desbloquear al usuario {{user}}?",
+      "UNLOCK_IP_MESSAGE": "Estas seguro de desbloquear la IP {{ip}}?",
+      "UNLOCK_USER": "Desbloquear usuario",
+      "UNLOCK_IP": "Desbloquear IP",
+      "UNLOCKING": "Desbloqueando...",
+      "CANCEL": "Cancelar"
+    },
+    "TOAST": {
+      "SUCCESS": "Exito",
+      "ERROR": "Error",
+      "USER_UNLOCK_SUCCESS": "Usuario desbloqueado correctamente",
+      "USER_UNLOCK_ERROR": "No se pudo desbloquear el usuario",
+      "IP_UNLOCK_SUCCESS": "IP desbloqueada correctamente",
+      "IP_UNLOCK_ERROR": "No se pudo desbloquear la IP"
+    },
+    "FALLBACK": {
+      "USER_REASON": "Usuario bloqueado",
+      "PERMANENT_BLOCK": "Bloqueo permanente",
+      "TEMPORARY_BLOCK": "Bloqueo temporal"
+    }
+  },
   "CUSTOMER_VIEW": {
     "TITLE": "Lista de Clientes",
     "DESCRIPTION": "Mira la lista de clientes y asigna sus gerentes"

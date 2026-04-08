@@ -69,6 +69,54 @@
     "TITLE": "User Management",
     "DESCRIPTION": "Create, Edit and Manage User Accounts"
   },
+  "SECURITY_MANAGE": {
+    "TITLE": "Security Management",
+    "DESCRIPTION": "Blocked users and IP management",
+    "CARDS": {
+      "BLOCKED_USERS": "Blocked Users",
+      "BLOCKED_IPS": "Blocked IPs"
+    },
+    "TABS": {
+      "BLOCKED_USERS": "Blocked Users",
+      "BLOCKED_IPS": "Blocked IPs"
+    },
+    "TABLE": {
+      "USER": "USER",
+      "EMAIL": "EMAIL",
+      "IP_ADDRESS": "IP ADDRESS",
+      "BLOCKED_AT": "BLOCKED AT",
+      "REASON": "REASON",
+      "ATTEMPTS": "ATTEMPTS",
+      "ACTIONS": "ACTIONS"
+    },
+    "ACTIONS": {
+      "UNBLOCK": "Unblock",
+      "REFRESH": "Refresh"
+    },
+    "MODAL": {
+      "UNLOCK_USER_TITLE": "Confirm user unlock",
+      "UNLOCK_IP_TITLE": "Confirm IP unlock",
+      "UNLOCK_USER_MESSAGE": "Are you sure you want to unblock user {{user}}?",
+      "UNLOCK_IP_MESSAGE": "Are you sure you want to unblock IP {{ip}}?",
+      "UNLOCK_USER": "Unlock user",
+      "UNLOCK_IP": "Unlock IP",
+      "UNLOCKING": "Unlocking...",
+      "CANCEL": "Cancel"
+    },
+    "TOAST": {
+      "SUCCESS": "Success",
+      "ERROR": "Error",
+      "USER_UNLOCK_SUCCESS": "User unlocked successfully",
+      "USER_UNLOCK_ERROR": "Failed to unlock user",
+      "IP_UNLOCK_SUCCESS": "IP unlocked successfully",
+      "IP_UNLOCK_ERROR": "Failed to unlock IP"
+    },
+    "FALLBACK": {
+      "USER_REASON": "Blocked user",
+      "PERMANENT_BLOCK": "Permanently blocked",
+      "TEMPORARY_BLOCK": "Temporary block"
+    }
+  },
   "CUSTOMER_VIEW": {
     "TITLE": "Customer List",
     "DESCRIPTION": "See the customers list and Assign their Managers"
