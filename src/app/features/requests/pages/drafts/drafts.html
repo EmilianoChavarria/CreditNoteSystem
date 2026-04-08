@@ -1,5 +1,5 @@
-<div class="p-8 flex flex-col">
-    <header class="w-full flex items-center justify-end">
+<div class="p-2 md:p-8 flex flex-col">
+    <header class="w-full flex items-start justify-end">
         <div class="flex flex-col">
             <span class="text-4xl tracking-wider text-[#ff8200] font-semibold">{{'DRAFTS.TITLE' |
                 translate}}</span>
@@ -17,10 +17,10 @@
     </app-tabla-dinamica>
     }
 
-    @if (!isLoadingTable() && drafts().length === 0) {
+    <!-- @if (!isLoadingTable() && drafts().length === 0) {
     <div class="text-center py-20 text-gray-500">
         <p class="text-2xl text-[#3c6194] font-semibold">{{ 'DRAFTS.NO_DRAFTS' | translate }}</p>
     </div>
-    }
+    } -->
 
 </div>
