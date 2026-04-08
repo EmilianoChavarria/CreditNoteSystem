@@ -1,6 +1,6 @@
 <app-modal size="xl" [titleM]="'BULK.BATCH_REQUESTS.TITLE' | translate" [open]="open()" [closeText]="'BULK.CLOSE' | translate"
     [showPrimaryButton]="false" (openChange)="openChange.emit($event)">
-    <div class="mb-4 text-sm text-gray-600">
+    <div class="mb-4 text-sm text-gray-600 leading-snug">
         @if (selectedBatchSummary()) {
         <span class="font-semibold text-gray-800">{{ 'BULK.BATCH_REQUESTS.BATCH' | translate }} {{ selectedBatchSummary()?.id }}</span>
         <span class="mx-2">•</span>
@@ -84,11 +84,11 @@
             </tbody>
         </table>
     </div>
-    <div class="mt-3 flex flex-wrap items-center justify-between gap-3">
-        <span class="text-xs text-gray-600">
+    <div class="mt-3 flex flex-col sm:flex-row flex-wrap items-start sm:items-center justify-between gap-2 sm:gap-3">
+        <span class="text-xs text-gray-600 leading-snug">
             {{ 'BULK.HISTORY.SHOWING' | translate }} {{ batchRequestsFrom() }} - {{ batchRequestsTo() }} {{ 'BULK.HISTORY.OF' | translate }} {{ batchRequestsTotal() }} {{ 'BULK.BATCH_REQUESTS.REQUESTS' | translate }}
         </span>
-        <div class="flex items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2">
             <label class="text-xs text-gray-600">{{ 'BULK.HISTORY.SIZE' | translate }}</label>
             <select
                 class="h-8 rounded-md border border-gray-300 bg-white px-2 text-xs text-gray-700"
@@ -112,7 +112,7 @@
                 class="h-8 min-w-8 rounded-md border border-gray-300 bg-white px-2 text-sm text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50">
                 ‹
             </button>
-            <span class="px-2 text-xs text-gray-600">
+            <span class="px-1 sm:px-2 text-xs text-gray-600">
                 {{ 'BULK.HISTORY.PAGE' | translate }} {{ batchRequestsCurrentPage() }} {{ 'BULK.HISTORY.OF' | translate }} {{ batchRequestsLastPage() }}
             </span>
             <button
