@@ -92,16 +92,6 @@ export class Customers {
         }
     ];
 
-    headerButtons = [
-        {
-            label: 'CUSTOMERS_PAGE.ASSIGN_MANAGER',
-            icon: 'plus',
-            className: 'bg-[#0f766e]',
-            accion: () => this.toggleUser(),
-            useTemplate: true
-        }
-    ];
-
     acciones: AccionPersonalizada<Customer>[] = [
         {
             key: 'reset',

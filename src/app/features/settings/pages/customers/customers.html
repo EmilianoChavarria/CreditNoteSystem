@@ -1,21 +1,18 @@
 <section class="flex flex-col w-full">
     <header class="w-full flex items-center justify-end">
         <div class="flex flex-col">
-            <span class="text-4xl tracking-wider text-[#ff8200] font-semibold">{{'CUSTOMER_VIEW.TITLE' | translate}}</span>
+            <span class="text-4xl tracking-wider text-[#ff8200] font-semibold">{{'CUSTOMER_VIEW.TITLE' |
+                translate}}</span>
             <span class="text-orange-400">{{'CUSTOMER_VIEW.DESCRIPTION' | translate}}</span>
         </div>
     </header>
     <app-tabla-dinamica [datos]="customers()" [columnas]="columns" [accionesPersonalizadas]="acciones" actionMode="menu"
         [enableFilter]="true" filterField="area" addLabel="CUSTOMERS_PAGE.CUSTOMER" addRoute="/app/settings/newCustomer"
-        [canAdd]="false" [botonesCabeceraPersonalizados]="headerButtons"
-        [registrosPorPagina]="pageSize()" [serverPagination]="true" [paginaActualExterna]="currentPage()"
-        [totalPaginasExterno]="totalPages()"
-        [hasNextPage]="hasNextPage()" [hasPrevPage]="hasPrevPage()" [loading]="isLoadingTable()"
-        (paginaSiguiente)="onNextPage()" (paginaAnterior)="onPrevPage()"
-        (paginaPrimera)="onFirstPage()" (paginaUltima)="onLastPage()"
-        (registrosPorPaginaChange)="onPageSizeChange($event)"
-        (searchChange)="onSearch($event)"
-        >
+        [canAdd]="false" [registrosPorPagina]="pageSize()" [serverPagination]="true"
+        [paginaActualExterna]="currentPage()" [totalPaginasExterno]="totalPages()" [hasNextPage]="hasNextPage()"
+        [hasPrevPage]="hasPrevPage()" [loading]="isLoadingTable()" (paginaSiguiente)="onNextPage()"
+        (paginaAnterior)="onPrevPage()" (paginaPrimera)="onFirstPage()" (paginaUltima)="onLastPage()"
+        (registrosPorPaginaChange)="onPageSizeChange($event)" (searchChange)="onSearch($event)">
         <!-- <ng-template #headerButtonTemplate let-button let-execute="execute">
             <button type="button" class="rounded-md bg-black text-white px-3 py-1 flex items-center gap-2 text-nowrap"
                 (click)="execute(button)">
@@ -27,6 +24,6 @@
         </ng-template> -->
     </app-tabla-dinamica>
 
-    <app-assign-modal [open]="isOpenModal()" 
-        (openChange)="showModal($event)" (primaryAction)="assignManagers($event)"/>
+    <app-assign-modal [open]="isOpenModal()" (openChange)="showModal($event)"
+        (primaryAction)="assignManagers($event)" />
 </section>
