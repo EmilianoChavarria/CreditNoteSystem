@@ -1,4 +1,4 @@
-import { Component, inject, NgZone, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, NgZone, ChangeDetectorRef, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
 import { NavigationEnd, Router } from '@angular/router';
@@ -9,6 +9,7 @@ import { SidebarItem, SidebarService } from '../../../core/services/sidebar.serv
 import { ToastService } from '../../../core/services/toast-service';
 import { filter } from 'rxjs/operators';
 import { fromEvent } from 'rxjs';
+import { LayoutShellService } from '../../../core/services/layout-shell-service';
 
 interface SidebarOptions {
   iconName: string,
@@ -32,9 +33,11 @@ export class Sidebar {
   public openedOptionIndex: number | null = null;
   public hoveredOptionIndexOnCollapse: number | null = null;
   public sidebarOptions: SidebarOptions[] = [];
+  public isMobileView = false;
   private _sidebarService = inject(SidebarService);
   private _ngZone = inject(NgZone);
   private _cdr = inject(ChangeDetectorRef);
+  private readonly layoutShellService = inject(LayoutShellService);
   private readonly collapseBreakpoint = 1024;
 
   constructor(
@@ -48,6 +51,17 @@ export class Sidebar {
         .pipe(takeUntilDestroyed())
         .subscribe(() => this.syncSidebarViewport(window.innerWidth));
     }
+
+    effect(() => {
+      const isMobileSidebarOpen = this.layoutShellService.isMobileSidebarOpen();
+
+      if (!this.isMobileView) {
+        return;
+      }
+
+      this.isOpen = isMobileSidebarOpen;
+      this._cdr.detectChanges();
+    });
 
     this._authService.user$
       .pipe(takeUntilDestroyed())
@@ -63,6 +77,12 @@ export class Sidebar {
       .subscribe(event => {
         this._ngZone.runOutsideAngular(() => {
           this.setActiveOption(event.urlAfterRedirects);
+
+          if (this.isMobileView) {
+            this.layoutShellService.closeMobileSidebar();
+            this.isOpen = false;
+          }
+
           this._cdr.detectChanges();
         });
       });
@@ -71,17 +91,35 @@ export class Sidebar {
   }
 
   private syncSidebarViewport(viewportWidth: number): void {
-    if (viewportWidth < this.collapseBreakpoint && this.isOpen) {
+    const mobile = viewportWidth < this.collapseBreakpoint;
+
+    if (this.isMobileView === mobile) {
+      return;
+    }
+
+    this.isMobileView = mobile;
+
+    if (this.isMobileView) {
       this.isOpen = false;
       this.openedOptionIndex = null;
-      this._cdr.detectChanges();
+      this.layoutShellService.closeMobileSidebar();
+    } else {
+      this.isOpen = true;
     }
+
+    this._cdr.detectChanges();
   }
 
 
 
 
   onToggleSidebar() {
+    if (this.isMobileView) {
+      this.layoutShellService.toggleMobileSidebar();
+      this.isOpen = this.layoutShellService.isMobileSidebarOpen();
+      return;
+    }
+
     this.isOpen = !this.isOpen;
     if (!this.isOpen) {
       this.openedOptionIndex = null;
@@ -92,11 +130,20 @@ export class Sidebar {
     // Run all state mutations outside Angular zone to avoid change detection errors
     this._ngZone.runOutsideAngular(() => {
       if (!this.isOpen) {
+        if (this.isMobileView) {
+          this.layoutShellService.openMobileSidebar();
+        }
+
         this.isOpen = true;
         this.openedOptionIndex = index;
         if (!hasChildren) {
           this.setActiveOption(route);
           this.router.navigate([route]);
+
+          if (this.isMobileView) {
+            this.layoutShellService.closeMobileSidebar();
+            this.isOpen = false;
+          }
         }
         // Force change detection explicitly
         this._cdr.detectChanges();
@@ -105,6 +152,11 @@ export class Sidebar {
       if (!hasChildren) {
         this.setActiveOption(route);
         this.router.navigate([route]);
+
+        if (this.isMobileView) {
+          this.layoutShellService.closeMobileSidebar();
+          this.isOpen = false;
+        }
       } else {
         this.openedOptionIndex = this.openedOptionIndex === index ? null : index;
       }
@@ -335,9 +387,25 @@ export class Sidebar {
     this._ngZone.runOutsideAngular(() => {
       this.setActiveOption(route);
       this.router.navigate([route]);
+
+      if (this.isMobileView) {
+        this.layoutShellService.closeMobileSidebar();
+        this.isOpen = false;
+      }
+
       // Force change detection explicitly
       this._cdr.detectChanges();
     });
+  }
+
+  closeMobileSidebar(): void {
+    if (!this.isMobileView) {
+      return;
+    }
+
+    this.layoutShellService.closeMobileSidebar();
+    this.isOpen = false;
+    this.openedOptionIndex = null;
   }
 
 }

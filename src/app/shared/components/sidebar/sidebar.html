@@ -7,7 +7,15 @@
 }
 
 @if (!isLoadingSidebar) {
-<section [class]="(isOpen ? 'w-64 shadow-2xl/30' : 'w-20 shadow-none') + ' transition-all duration-300 ease-in-out bg-white h-full border-r-2 border-[#ff8200] p-4 flex flex-col overflow-hidden '">
+@if (isMobileView && isOpen) {
+<div class="fixed inset-0 bg-black/30 backdrop-blur-[1px] z-40" (click)="closeMobileSidebar()" aria-hidden="true"></div>
+}
+
+<section [class]="(isMobileView
+        ? 'fixed left-0 top-0 bottom-0 z-50 w-72 max-w-[85vw] shadow-2xl border-r-2 border-[#ff8200] '
+            + (isOpen ? 'translate-x-0 ' : '-translate-x-full ')
+        : (isOpen ? 'w-64 shadow-2xl/30 ' : 'w-20 shadow-none '))
+    + 'transition-all duration-300 ease-in-out bg-white h-full p-4 flex flex-col overflow-hidden border-r-2 border-[#ff8200]'">
 
     <button (click)="onToggleSidebar()" class="mb-2 mx-auto hover:cursor-pointer">
         <lucide-icon [name]="isOpen ? 'panel-left-close' : 'panel-left-open'" size="42" strokeWidth="1.5" color="#326295" class="shrink-0"></lucide-icon>
