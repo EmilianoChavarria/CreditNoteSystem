@@ -1,24 +1,24 @@
 <nav
-  class="transition-all duration-300 ease-in-out w-full h-16 border-b border-[#ff8200] text-black flex items-center justify-between px-4">
+  class="transition-all duration-300 ease-in-out w-full min-h-16 border-b border-[#ff8200] text-black flex items-center justify-between px-2 py-2 sm:px-4">
 
-  <div class="text-lg font-bold text-gray-600">
+  <div class="hidden lg:block text-lg font-bold text-gray-600 truncate pr-3">
     {{ 'NAV.TITLE' | translate }}
   </div>
 
-  <div class="flex flex-row gap-x-10 items-center justify-center">
+  <div class="flex flex-row gap-x-2 sm:gap-x-4 lg:gap-x-8 items-center justify-end min-w-0 w-full lg:w-auto">
 
     <div (click)="switchLang(translate.currentLang === 'en' ? 'es' : 'en')"
-      class="flex flex-row border border-[#ff8200] rounded-md gap-x-0.5 py-1 px-3">
+      class="flex flex-row border border-[#ff8200] rounded-md gap-x-0.5 py-1 px-2 sm:px-3 shrink-0">
       <button
         [class]="`${translate.currentLang === 'es' ? 'bg-[#ff8200] text-white rounded-md':''} px-1 transition-colors hover:cursor-pointer`">ES</button>
       <button
         [class]="`${translate.currentLang === 'en' ? 'bg-[#ff8200] text-white rounded-md':''} px-1 transition-colors hover:cursor-pointer`">EN</button>
     </div>
 
-    <app-popover position="bottom-center" width="480px">
+    <app-popover position="bottom-center" width="min(92vw,480px)">
       <div trigger
-        class="transition-colors flex flex-row gap-x-2 items-center justify-center hover:bg-gray-200 px-4 py-2 hover:cursor-pointer rounded-lg whitespace-nowrap">
-        <span class="min-w-24">{{ 'NAV.NOTIFICATIONS' | translate }}</span>
+        class="transition-colors flex flex-row gap-x-2 items-center justify-center hover:bg-gray-200 px-2 sm:px-4 py-2 hover:cursor-pointer rounded-lg whitespace-nowrap shrink-0">
+        <span class="hidden md:inline min-w-24">{{ 'NAV.NOTIFICATIONS' | translate }}</span>
         <div class="relative flex">
           <lucide-icon name="bell" size="24" strokeWidth="1.8" class="mr-1 mt-0.5"></lucide-icon>
           @if (unreadCount() > 0) {
@@ -81,17 +81,17 @@
 
     </app-popover>
 
-    <app-popover position="bottom-right" width="240px">
-      <div trigger class="flex flex-row gap-x-2 items-center justify-center cursor-pointer whitespace-nowrap">
+    <app-popover position="bottom-right" width="min(92vw,240px)">
+      <div trigger class="flex flex-row gap-x-2 items-center justify-center cursor-pointer whitespace-nowrap min-w-0">
         <div class="h-11 w-11 bg-blue-600 flex items-center justify-center rounded-full shrink-0">
           <span class="text-white font-semibold text-xl">{{ (userInitials$ | async) || 'NA' }}</span>
         </div>
-        <div class="flex flex-col min-w-32">
+        <div class="hidden sm:flex flex-col min-w-32">
           <span class="font-light truncate">{{ (user$ | async)?.fullName || 'Usuario' }}</span>
           <span class="font-semibold text-xs uppercase">{{ (user$ | async)?.roleName || ('NAV.ADMIN' | translate)
             }}</span>
         </div>
-        <div class="transition-colors flex my-auto p-2 hover:bg-gray-200 rounded-lg shrink-0">
+        <div class="hidden sm:flex transition-colors my-auto p-2 hover:bg-gray-200 rounded-lg shrink-0">
           <lucide-icon name="chevron-down" size="24" strokeWidth="1.8"></lucide-icon>
         </div>
       </div>
