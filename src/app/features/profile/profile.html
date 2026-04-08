@@ -50,8 +50,8 @@
     </div>
 
     <!-- Contenedor dividido -->
-    <div class="w-full flex flex-row gap-x-4 mt-8">
-        <div class="bg-white shadow-lg w-1/2 rounded-xl h-fit">
+    <div class="w-full flex flex-col md:flex-row gap-y-4 md:gap-x-4 mt-8">
+        <div class="bg-white shadow-lg md:w-1/2 rounded-xl h-fit">
             <div class="w-full px-8 py-6 text border-b border-gray-300 flex flex-col">
                 <div class="text-[#ff8200] flex flex-row gap-x-2 font-semibold text-lg">
                     <lucide-icon name="user"></lucide-icon>
@@ -105,7 +105,7 @@
                 </div>
             </div>
         </div>
-        <div class="bg-white shadow-lg w-1/2 rounded-xl h-fit">
+        <div class="bg-white shadow-lg md:w-1/2 rounded-xl h-fit">
             <div class="w-full px-8 py-6 text border-b border-gray-300 flex flex-col">
                 <div class="text-[#ff8200] flex flex-row gap-x-2 font-semibold text-lg">
                     <lucide-icon name="user"></lucide-icon>
@@ -200,9 +200,9 @@
                 }
             </div>
 
-            <div class="flex flex-row gap-x-4">
+            <div class="flex flex-col md:flex-row gap-y-4md:gap-x-4">
                 <!-- New Password Field -->
-                <div class="flex flex-col gap-y-2 w-1/2">
+                <div class="flex flex-col gap-y-2 md:w-1/2">
                     <label class="text-sm font-semibold text-gray-700">{{ 'PROFILE.NEW_PASSWORD' | translate }}</label>
                     <div class="relative">
                         <div class="absolute left-0 top-0 h-full flex items-center px-3 text-[#ff8200]">
@@ -221,7 +221,7 @@
                 </div>
 
                 <!-- Confirm Password Field -->
-                <div class="flex flex-col gap-y-2 w-1/2">
+                <div class="flex flex-col gap-y-2 md:w-1/2">
                     <label class="text-sm font-semibold text-gray-700">{{ 'PROFILE.CONFIRM_PASSWORD' | translate
                         }}</label>
                     <div class="relative">
