@@ -1,35 +1,35 @@
 <accordeon-item [titleM]="'BULK.NEW_REQUESTS.TITLE' | translate" [description]="'BULK.NEW_REQUESTS.DESCRIPTION' | translate"
     [openButtonText]="'BULK.OPEN' | translate" [closeButtonText]="'BULK.CLOSE' | translate">
-    <div class="w-full flex flex-col p-4">
-        <div class="flex flex-wrap items-end justify-start gap-4">
-            <div class="flex flex-col gap-1 min-w-44">
+    <div class="w-full flex flex-col p-3 sm:p-4">
+        <div class="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-end justify-start gap-3 sm:gap-4">
+            <div class="flex flex-col gap-1 w-full sm:min-w-44 sm:w-auto">
                 <span class="text-sm font-medium text-[#395f93]">{{ 'BULK.COMMON.BATCH_TYPE' | translate }}</span>
                 <input
                     type="text"
                     value="newRequest"
                     disabled
-                    class="h-10 border border-gray-200 rounded-md px-2 bg-gray-100 text-gray-600" />
+                    class="h-10 w-full border border-gray-200 rounded-md px-2 bg-gray-100 text-gray-600" />
             </div>
 
-            <button class="bg-[#ff8200] text-white rounded-md px-2 hover:cursor-pointer hover:bg-[#fc9629]">{{ 'BULK.NEW_REQUESTS.TEMPLATE' | translate }}</button>
+            <button class="w-full sm:w-auto bg-[#ff8200] text-white rounded-md px-3 py-2 hover:cursor-pointer hover:bg-[#fc9629]">{{ 'BULK.NEW_REQUESTS.TEMPLATE' | translate }}</button>
 
             <button
                 type="button"
                 (click)="createBatch()"
                 [disabled]="isCreatingBatch()"
-                class="bg-[#395f93] text-white rounded-md px-4 py-2 hover:cursor-pointer hover:bg-[#4d6ea5] disabled:opacity-70 disabled:cursor-not-allowed">
+                class="w-full sm:w-auto bg-[#395f93] text-white rounded-md px-4 py-2 hover:cursor-pointer hover:bg-[#4d6ea5] disabled:opacity-70 disabled:cursor-not-allowed">
                 {{ isCreatingBatch() ? ('BULK.COMMON.PROCESSING' | translate) : ('BULK.NEW_REQUESTS.PROCESS_BUTTON' | translate) }}
             </button>
         </div>
         <div class="flex items-center justify-center w-full mt-4">
             <label for="dropzone-file-new-request"
-                class="flex flex-col items-center justify-center w-full h-64 bg-blue-50 border border-dashed bg-cover border-default-strong border-blue-600 rounded-md cursor-pointer hover:bg-neutral-tertiary-medium"
+                class="flex flex-col items-center justify-center w-full min-h-56 sm:h-64 bg-blue-50 border border-dashed bg-cover border-default-strong border-blue-600 rounded-md cursor-pointer hover:bg-neutral-tertiary-medium px-4 py-6 sm:py-0"
                 [class.bg-blue-100]="isDragOver()" [class.border-[#ff8200]]="isDragOver()"
                 (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)"
                 (drop)="onDrop($event)">
-                <div class="flex flex-col items-center justify-center text-body pt-5 pb-6">
-                    <img src="assets/svg/cloud.svg" alt="Logo" class="h-32 my-6">
-                    <p class="mb-2 text-xl">
+                <div class="flex flex-col items-center justify-center text-body pt-5 pb-2 sm:pb-6 text-center">
+                    <img src="assets/svg/cloud.svg" alt="Logo" class="w-full max-w-24 sm:max-w-28 md:max-w-32 h-auto object-contain my-4 sm:my-6">
+                    <p class="mb-2 text-base sm:text-xl leading-snug">
                         {{ 'BULK.NEW_REQUESTS.DROP_HINT' | translate }}
                         <span class="font-semibold text-[#ff8200]">
                             {{ 'BULK.COMMON.CLICK_UPLOAD' | translate }}
