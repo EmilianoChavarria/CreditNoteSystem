@@ -21,7 +21,7 @@
             </div>
             <div class="flex flex-col items-start justify-center w-full md:w-fit">
                 <label for="days" class="font-semibold text-[#ff8200]">{{'DASHBOARD.SEL_DATE'| translate}}</label>
-                <div class="flex flex-row items-center w-full">
+                <div class="flex flex-col md:flex-row items-center w-full">
                     <div class="flex flex-row items-center w-full">
                         <select name="days" id="days"
                             class="h-11 border border-gray-300 rounded-lg w-full md:w-64 pl-2 pr-4"
@@ -34,16 +34,16 @@
                         <lucide-icon name="calendar-clock" class="shrink-0" color="#ff8200" size="30"></lucide-icon>
                     </div>
                     @if (selectedDateOption() === 'custom') {
-                    <div class="flex flex-row items-start gap-x-2 -mt-4 ml-2">
-                        <div class="flex flex-col">
+                    <div class="flex flex-row items-start gap-x-4 md:gap-x-2 mt-2 w-full md:w-fit md:-mt-4 ml-2">
+                        <div class="flex flex-col w-1/2 md:w-fit">
                             <label class="font-semibold text-[#ff8200]">{{'DASHBOARD.START_DATE'| translate}}</label>
                             <input type="date" [value]="startDate()" (change)="onStartDateChange($event)"
-                                class="h-11 border border-gray-300 rounded-lg w-64 pl-2 pr-4">
+                                class="h-11 border border-gray-300 rounded-lg w-full md:w-64 pl-2 pr-4">
                         </div>
-                        <div class="flex flex-col">
+                        <div class="flex flex-col w-1/2 md:w-fit">
                             <label class="font-semibold text-[#ff8200]">{{'DASHBOARD.END_DATE'| translate}}</label>
                             <input type="date" [value]="endDate()" (change)="onEndDateChange($event)"
-                                class="h-11 border border-gray-300 rounded-lg w-64 pl-2 pr-4">
+                                class="h-11 border border-gray-300 rounded-lg w-full md:w-64 pl-2 pr-4">
                         </div>
                     </div>
                     }
@@ -60,7 +60,7 @@
         <app-stat-card [title]="card.title" [value]="card.value" [iconName]="card.iconName"></app-stat-card>
         }
     </section>
-    <section class="bg-white border border-gray-300 shadow-sm rounded-md mt-4 p-4 flex flex-col w-full">
+    <section class="bg-white border border-gray-300 shadow-sm rounded-md mt-4 px-2 py-4 md:p-4 flex flex-col w-full">
         <span class="text-center text-3xl text-gray-700 font-light">
             {{ chartHeader() }}
         </span>
@@ -74,15 +74,15 @@
         </div>
 
     </section>
-    <section class="w-full grid grid-cols-2 gap-4 mt-4">
+    <section class="w-full grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
         @for(section of recentRequests; track section.title + $index) {
-        <div class="h-fit shadow-sm border border-gray-300 rounded-md px-10 py-6">
-            <span class="text-2xl text-gray-700 font-normal">{{ section.title }}</span>
+        <div class="h-fit shadow-sm border border-gray-300 rounded-md px-4 py-4 md:px-10 md:py-6">
+            <span class="text-xl md:text-2xl text-gray-700 font-normal">{{ section.title }}</span>
             <div class="w-full flex flex-col gap-y-3 mt-4">
                 @for(request of section.requests; track request.id) {
-                <div class="flex flex-col py-2 px-4 border border-gray-200 rounded-md hover:shadow-md">
+                <div class="flex flex-col px-1 py-2 md:px-4 border border-gray-200 rounded-md hover:shadow-md">
                     <div class="w-full flex flex-col">
-                        <div class="w-full flex items-center justify-between">
+                        <div class="w-full flex items-center justify-between text-sm md:text-md">
                             <span class="text-gray-700">
                                 {{ request.title }}
                             </span>
@@ -92,8 +92,8 @@
                         </div>
                     </div>
                     <div class="w-full flex items-center justify-between mt-1">
-                        <span class="text-gray-400">
-                            {{ request.client }} @if(request.additionalInfo) { | {{ request.additionalInfo }} }
+                        <span class="text-sm md:text-md text-gray-400">
+                            {{ request.client }}
                         </span>
                         <app-badge [color]="request.badgeColor" [text]="request.badgeText" />
                     </div>
