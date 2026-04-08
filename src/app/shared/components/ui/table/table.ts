@@ -80,6 +80,8 @@ export class Table<T extends Record<string, any>>
   readonly addLabel = input('User');
   readonly addRoute = input<string>();
   readonly botonesCabeceraPersonalizados = input<BotonCabeceraPersonalizado[]>([]);
+  readonly hideHeaderActions = input<boolean>(false);
+  readonly searchFullWidth = input<boolean>(false);
 
   readonly paginaSiguiente = output<void>();
   readonly paginaAnterior = output<void>();
