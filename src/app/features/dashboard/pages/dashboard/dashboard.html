@@ -1,13 +1,13 @@
 <section class="flex flex-col">
     <!-- Encabezado principal -->
-    <header class="w-full flex justify-between items-center">
+    <header class="w-full flex flex-col md:flex-row justify-between items-center">
         <span class="text-4xl text-[#ff8200] font-semibold">{{'DASHBOARD.TITLE'| translate}}</span>
-        <div class="flex flex-row gap-x-2">
-            <div class="flex flex-col items-start justify-center">
+        <div class="flex flex-col md:flex-row gap-x-2 gap-y-2 mt-4 md:mt-0 w-full md:w-fit">
+            <div class="flex flex-col items-start justify-center w-full md:w-fit">
                 <label for="days" class="font-semibold text-[#ff8200]">{{'DASHBOARD.REQ_FILTER'| translate}}</label>
-                <div class="flex flex-row items-center">
+                <div class="flex flex-row items-center w-full">
                     <select name="request_type" id="request_type"
-                        class="h-11 border border-gray-300 rounded-lg w-64 pl-2 pr-4"
+                        class="h-11 border border-gray-300 rounded-lg w-full md:w-64 pl-2 pr-4"
                         [value]="selectedRequestType()" (change)="onRequestTypeChange($event)">
                         <option value="1">{{'REQUEST_TYPES.CREDIT'| translate}}</option>
                         <option value="2">{{'REQUEST_TYPES.DEBIT'| translate}}</option>
@@ -19,11 +19,12 @@
                     </select>
                 </div>
             </div>
-            <div class="flex flex-col items-start justify-center">
+            <div class="flex flex-col items-start justify-center w-full md:w-fit">
                 <label for="days" class="font-semibold text-[#ff8200]">{{'DASHBOARD.SEL_DATE'| translate}}</label>
-                <div class="flex flex-row items-center">
-                    <div class="flex flex-row items-center">
-                        <select name="days" id="days" class="h-11 border border-gray-300 rounded-lg w-64 pl-2 pr-4"
+                <div class="flex flex-row items-center w-full">
+                    <div class="flex flex-row items-center w-full">
+                        <select name="days" id="days"
+                            class="h-11 border border-gray-300 rounded-lg w-full md:w-64 pl-2 pr-4"
                             [value]="selectedDateOption()" (change)="onDateOptionChange($event)">
                             <option value="1">{{'DASHBOARD.DATE_OPTION1'| translate}}</option>
                             <option value="2">{{'DASHBOARD.DATE_OPTION2'| translate}}</option>
@@ -53,48 +54,11 @@
         </div>
 
     </header>
-    <section class="grid grid-cols-4 gap-4 mt-4">
-        <!-- TODO: Descomentar esto y hacerlo dinámico -->
-        <!-- <app-stat-card></app-stat-card>
-        <app-stat-card></app-stat-card>
-        <app-stat-card></app-stat-card>
-        <app-stat-card></app-stat-card> -->
-        <div class="w-full border border-gray-200 shadow-sm rounded-md flex flex-col py-4 px-8">
-            <span class="text-2xl text-gray-500">
-                Created
-            </span>
-            <div class="flex w-full justify-between items-center">
-                <span class="text-5xl font-bold text-gray-800">07</span>
-                <lucide-icon name="calendar-clock" class="shrink-0" color="#ff8200" size="50"></lucide-icon>
-            </div>
-        </div>
-        <div class="w-full border border-gray-200 shadow-sm rounded-md flex flex-col py-4 px-8">
-            <span class="text-2xl text-gray-500">
-                In Process
-            </span>
-            <div class="flex w-full justify-between items-center">
-                <span class="text-5xl font-bold text-gray-800">07</span>
-                <lucide-icon name="calendar-clock" class="shrink-0" color="#ff8200" size="50"></lucide-icon>
-            </div>
-        </div>
-        <div class="w-full border border-gray-200 shadow-sm rounded-md flex flex-col py-4 px-8">
-            <span class="text-2xl text-gray-500">
-                Approved
-            </span>
-            <div class="flex w-full justify-between items-center">
-                <span class="text-5xl font-bold text-gray-800">07</span>
-                <lucide-icon name="calendar-clock" class="shrink-0" color="#ff8200" size="50"></lucide-icon>
-            </div>
-        </div>
-        <div class="w-full border border-gray-200 shadow-sm rounded-md flex flex-col py-4 px-8">
-            <span class="text-2xl text-gray-500">
-                Released
-            </span>
-            <div class="flex w-full justify-between items-center">
-                <span class="text-5xl font-bold text-gray-800">07</span>
-                <lucide-icon name="calendar-clock" class="shrink-0" color="#ff8200" size="50"></lucide-icon>
-            </div>
-        </div>
+    <section class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
+        
+        @for (card of statCards; track $index) {
+        <app-stat-card [title]="card.title" [value]="card.value" [iconName]="card.iconName"></app-stat-card>
+        }
     </section>
     <section class="bg-white border border-gray-300 shadow-sm rounded-md mt-4 p-4 flex flex-col w-full">
         <span class="text-center text-3xl text-gray-700 font-light">

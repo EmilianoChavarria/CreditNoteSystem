@@ -9,6 +9,7 @@ import { ToastService } from '../../../../core/services/toast-service';
 import { Spinner } from '../../../../shared/components/ui/spinner/spinner';
 import { finalize } from 'rxjs';
 import { DashboardChartQueryParams, DashboardChartSeries } from '../../../../data/interfaces/DashboardChart';
+import { StatCard } from "../../components/stat-card/stat-card";
 
 interface RequestItem {
   id: string;
@@ -25,6 +26,12 @@ interface DashboardSection {
   requests: RequestItem[];
 }
 
+interface DashboardStatCard {
+  title: string;
+  value: string;
+  iconName: string;
+}
+
 type LineChartDataset = ChartDataset<'line', Array<number | null>>;
 type LineChartData = ChartData<'line', Array<number | null>, string>;
 
@@ -37,8 +44,9 @@ type LineChartData = ChartData<'line', Array<number | null>, string>;
     BaseChartDirective,
     Badge,
     TranslatePipe,
-    Spinner
-  ],
+    Spinner,
+    StatCard
+],
 })
 export class Dashboard {
 
@@ -118,6 +126,13 @@ export class Dashboard {
         }
       ]
     }
+  ];
+
+  public readonly statCards: DashboardStatCard[] = [
+    { title: 'Created', value: '07', iconName: 'calendar-clock' },
+    { title: 'In Process', value: '07', iconName: 'calendar-clock' },
+    { title: 'Approved', value: '07', iconName: 'calendar-clock' },
+    { title: 'Released', value: '07', iconName: 'calendar-clock' },
   ];
 
   public isLoadingChart = signal<boolean>(true)
