@@ -43,25 +43,25 @@
             </div>
         </div>
         @if (!hideHeaderActions()) {
-        <div class="flex flex-row gap-2 sm:gap-x-4 w-full sm:w-auto justify-start sm:justify-end">
+        <div class="grid grid-cols-2 gap-2 sm:flex sm:flex-row sm:gap-x-4 w-full sm:w-auto justify-start sm:justify-end">
             <button
-                class="rounded-md bg-[#328e9f] px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center">
+                class="w-full sm:w-auto rounded-md bg-[#328e9f] px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center">
                 <lucide-icon name="folder-archive" size="18"></lucide-icon>
                 {{'TABLE.ZIP_BUTTON' | translate}}
             </button>
             <button
-                class="rounded-md bg-[#21760e] px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center">
+                class="w-full sm:w-auto rounded-md bg-[#21760e] px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center">
                 <lucide-icon name="sheet" size="18"></lucide-icon>
                 {{'TABLE.EXCEL_BUTTON' | translate}}
             </button>
             @if (canAdd()) {
             <button
-                class="rounded-md bg-[#ff8200] px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center">
+                class="w-full sm:w-auto rounded-md bg-[#ff8200] px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center">
                 <lucide-icon name="file-up" size="18"></lucide-icon>
                 {{'TABLE.BULK_BUTTON' | translate}}
             </button>
             <button type="button" (click)="onAddClick()"
-                class="rounded-md bg-[#3c6194] hover:bg-[#2c5999] hover:cursor-pointer px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center">
+                class="w-full sm:w-auto rounded-md bg-[#3c6194] hover:bg-[#2c5999] hover:cursor-pointer px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center">
                 <lucide-icon name="plus" size="18"></lucide-icon>
                 {{'TABLE.ADD_BUTTON' | translate}} {{ addLabel() | translate }}
             </button>
@@ -75,7 +75,7 @@
                 </ng-container>
                 }@else{
                 <button type="button" (click)="ejecutarAccionCabecera(boton)" [disabled]="boton.disabled"
-                    class="rounded-md px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                    class="w-full sm:w-auto rounded-md px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                     [ngClass]="boton.className ?? 'bg-[#3c6194]'">
                     @if (boton.icon) {
                     <lucide-icon [name]="boton.icon" size="18"></lucide-icon>
@@ -92,12 +92,12 @@
 
     <!-- TABLA -->
     <div class="border border-gray-200 rounded-lg bg-white overflow-x-auto">
-        <table class="min-w-full md:min-w-190 divide-y divide-gray-200">
+        <table class="w-full min-w-max md:min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
                 <tr>
                     <th *ngFor="let col of columnasInterno()"
                         (click)="col.sortable !== false && manejarOrdenamiento(col.key)"
-                        class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase cursor-pointer hover:bg-gray-200 text-nowrap">
+                        class="px-4 md:px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase cursor-pointer hover:bg-gray-200 text-nowrap">
                         <div class="flex items-center gap-2">
                             {{ col.label | translate }}
 
@@ -109,7 +109,7 @@
                     </th>
 
                     <th *ngIf="!sinAcciones()"
-                        class="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase">
+                        class="px-4 md:px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase">
                         {{ 'TABLE.ACTIONS' | translate }}
                     </th>
                 </tr>
@@ -118,12 +118,12 @@
             <tbody class="divide-y divide-gray-200">
                 @if(loading()){
                 <td [attr.colspan]="columnasInterno().length + (sinAcciones() ? 0 : 1)"
-                    class="px-6 py-8 text-center text-gray-500 italic">
+                    class="px-4 md:px-6 py-8 text-center text-gray-500 italic">
                     <app-spinner></app-spinner>
                 </td>
                 } @else {
                 <tr *ngFor="let item of datosPaginados()" class="hover:bg-blue-50 transition">
-                    <td *ngFor="let col of columnasInterno()" class="px-6 text-sm text-gray-700 ">
+                    <td *ngFor="let col of columnasInterno()" class="px-4 md:px-6 text-sm text-gray-700 ">
                         @if (col.customTemplate && cellTemplate) {
                         <ng-container
                             *ngTemplateOutlet="cellTemplate; context: { $implicit: item, column: col }"></ng-container>
@@ -134,15 +134,15 @@
                         }
                     </td>
 
-                    <td *ngIf="!sinAcciones()" class="px-6 py-2 text-right">
+                    <td *ngIf="!sinAcciones()" class="px-4 md:px-6 py-2 text-right">
 
                         <!-- INLINE -->
-                        <div *ngIf="actionMode() === 'inline'" class="flex justify-end gap-2">
+                        <div *ngIf="actionMode() === 'inline'" class="grid grid-cols-2 gap-2 sm:flex sm:justify-end">
 
                             <!-- ACCIONES PERSONALIZADAS -->
                             <button *ngFor="let accion of accionesPersonalizadas()"
                                 (click)="ejecutarAccion(accion, item)"
-                                class="p-1.5 rounded-md text-[#ff8200] hover:bg-[#ff82001A] transition hover:cursor-pointer"
+                                class="w-full sm:w-auto p-1.5 rounded-md text-[#ff8200] hover:bg-[#ff82001A] transition hover:cursor-pointer flex items-center justify-center"
                                 [ngClass]="accion.className">
                                 <lucide-icon *ngIf="accion.icon" [name]="accion.icon"></lucide-icon>
                             </button>
@@ -183,7 +183,7 @@
 
                 <tr *ngIf="!loading() && datosPaginados().length === 0">
                     <td [attr.colspan]="columnasInterno().length + (sinAcciones() ? 0 : 1)"
-                        class="px-6 py-8 text-center text-gray-500 italic">
+                        class="px-4 md:px-6 py-8 text-center text-gray-500 italic">
                         {{ emptyMessageKey() | translate }}
                     </td>
                 </tr>
