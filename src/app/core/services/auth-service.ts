@@ -3,6 +3,7 @@ import { HttpService } from './http-service';
 import { BehaviorSubject, Observable, tap, catchError, of, map, finalize, shareReplay, throwError } from 'rxjs';
 import { Router } from '@angular/router';
 import { ApiResponse } from '../../data/interfaces/ApiResponse-interface';
+import { ToastService } from './toast-service';
 
 export interface LoginCredentials {
   email: string;
@@ -35,7 +36,8 @@ export class AuthService {
 
   constructor(
     private _httpService: HttpService,
-    private router: Router
+    private router: Router,
+    private toastService: ToastService
   ) {}
 
   /**
@@ -76,6 +78,7 @@ export class AuthService {
         this.isAuthenticatedSubject.next(isValid);
 
         if (!isValid) {
+          this.notifySessionExpired();
           this.clearUser();
           return false;
         }
@@ -90,6 +93,7 @@ export class AuthService {
         return isValid;
       }),
       catchError(() => {
+        this.notifySessionExpired();
         this.clearAuthState();
         return of(false);
       }),
@@ -150,5 +154,12 @@ export class AuthService {
     if (typeof localStorage !== 'undefined') {
       localStorage.removeItem('lang');
     }
+  }
+
+  private notifySessionExpired(): void {
+    this.toastService.error(
+      'Tu sesion ha caducado. Inicia sesión de nuevo.',
+      'Sesion caducada'
+    );
   }
 }
