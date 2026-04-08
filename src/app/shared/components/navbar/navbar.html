@@ -1,6 +1,14 @@
 <nav
   class="transition-all duration-300 ease-in-out w-full min-h-16 border-b border-[#ff8200] text-black flex items-center justify-between px-2 py-2 sm:px-4">
 
+  <button
+    type="button"
+    class="lg:hidden mr-2 p-2 rounded-md border border-[#ff8200] text-[#326295] hover:bg-orange-50 transition-colors"
+    aria-label="Open sidebar"
+    (click)="toggleMobileSidebar()">
+    <lucide-icon name="menu" size="22" [strokeWidth]="1.8"></lucide-icon>
+  </button>
+
   <div class="hidden lg:block text-lg font-bold text-gray-600 truncate pr-3">
     {{ 'NAV.TITLE' | translate }}
   </div>

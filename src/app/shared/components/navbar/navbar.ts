@@ -9,6 +9,7 @@ import { map, Observable } from 'rxjs';
 import { AuthUser } from '../../../core/services/auth-service';
 import { Router, RouterLink } from "@angular/router";
 import { AppNotification } from '../../../data/interfaces/Notification';
+import { LayoutShellService } from '../../../core/services/layout-shell-service';
 
 @Component({
     selector: 'app-navbar',
@@ -25,6 +26,7 @@ import { AppNotification } from '../../../data/interfaces/Notification';
 export class Navbar {
   private readonly notificationService = inject(NotificationService);
   private readonly router = inject(Router);
+  private readonly layoutShellService = inject(LayoutShellService);
   private readonly isBrowser: boolean;
   public user$: Observable<AuthUser | null>;
   public userInitials$: Observable<string>;
@@ -67,6 +69,10 @@ export class Navbar {
       next: (response: any) => console.log(response),
       error: (error: any) => console.log(error)
     });
+  }
+
+  toggleMobileSidebar(): void {
+    this.layoutShellService.toggleMobileSidebar();
   }
 
   markAsRead(notification: AppNotification, event?: Event): void {
