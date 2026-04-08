@@ -1,3 +1,8 @@
+:host {
+  display: inline-block;
+  max-width: 100%;
+}
+
 .ui-switch {
   --switch-width: 48px;
   --switch-height: 28px;
@@ -85,4 +90,16 @@
 .ui-switch--disabled .ui-switch__track,
 .ui-switch--disabled .ui-switch__label {
   pointer-events: none;
+}
+
+@media (max-width: 640px) {
+  .ui-switch {
+    --switch-width: 44px;
+    --switch-height: 26px;
+    --switch-thumb-size: 20px;
+  }
+
+  .ui-switch__input:checked + .ui-switch__track .ui-switch__thumb {
+    transform: translateX(18px);
+  }
 }

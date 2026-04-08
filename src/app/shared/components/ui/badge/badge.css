@@ -1,0 +1,12 @@
+:host {
+	display: inline-block;
+	max-width: 100%;
+}
+
+:host > div {
+	max-width: 100%;
+}
+
+:host span {
+	overflow-wrap: anywhere;
+}

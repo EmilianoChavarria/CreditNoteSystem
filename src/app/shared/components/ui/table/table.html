@@ -1,10 +1,10 @@
-<div class="mt-6 p-4 ">
+<div class="mt-6 p-3 sm:p-4">
 
     <!-- BUSCADOR Y FILTRO -->
-    <div class="flex flex-col sm:flex-row items-center justify-between gap-3 mb-4">
-        <div class="w-full flex flex-row gap-3">
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
+        <div class="w-full flex flex-col sm:flex-row gap-3">
             <!-- BUSCADOR -->
-            <div class="relative" [class.w-full]="searchFullWidth()" [class.w-1/2]="!searchFullWidth()">
+            <div class="relative w-full" [class.sm:w-full]="searchFullWidth()" [class.sm:w-1/2]="!searchFullWidth()">
                 <div class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
                     <lucide-icon name="search"></lucide-icon>
                 </div>
@@ -23,7 +23,7 @@
             </div>
 
             <!-- FILTRO -->
-            <div *ngIf="enableFilter() && filterField()" class="relative min-w-45">
+            <div *ngIf="enableFilter() && filterField()" class="relative w-full sm:min-w-45 sm:w-auto">
                 <div class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
                     <lucide-icon name="filter"></lucide-icon>
                 </div>
@@ -43,7 +43,7 @@
             </div>
         </div>
         @if (!hideHeaderActions()) {
-        <div class="flex gap-x-6">
+        <div class="flex flex-row gap-2 sm:gap-x-4 w-full sm:w-auto justify-start sm:justify-end">
             <button
                 class="rounded-md bg-[#328e9f] px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center">
                 <lucide-icon name="folder-archive" size="18"></lucide-icon>
@@ -91,8 +91,8 @@
     </div>
 
     <!-- TABLA -->
-    <div class=" border border-gray-200 rounded-lg bg-white">
-        <table class="min-w-full divide-y divide-gray-200">
+    <div class="border border-gray-200 rounded-lg bg-white overflow-x-auto">
+        <table class="min-w-full md:min-w-190 divide-y divide-gray-200">
             <thead class="bg-gray-50">
                 <tr>
                     <th *ngFor="let col of columnasInterno()"
@@ -193,7 +193,7 @@
 
     <!-- PAGINACIÓN -->
     <div class="flex justify-end items-center mt-4">
-        <div class="flex items-center gap-3 text-sm text-gray-500">
+        <div class="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-3 text-sm text-gray-500 w-full sm:w-auto justify-end">
             <label for="page-size" class="whitespace-nowrap">{{'TABLE.REG_PER_PAGE' | translate}}</label>
             <div class="relative">
                 <select id="page-size"

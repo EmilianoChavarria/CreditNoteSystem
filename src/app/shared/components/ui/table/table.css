@@ -1,0 +1,9 @@
+:host {
+	display: block;
+	width: 100%;
+	min-width: 0;
+}
+
+table {
+	width: 100%;
+}
