@@ -1,7 +1,7 @@
 <accordeon-item [titleM]="'BULK.SUPPORT.TITLE' | translate" [description]="'BULK.SUPPORT.DESCRIPTION' | translate"
     [openButtonText]="'BULK.OPEN' | translate" [closeButtonText]="'BULK.CLOSE' | translate">
-    <div class="w-full flex flex-col p-4">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+    <div class="w-full flex flex-col p-3 sm:p-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 items-stretch md:items-end">
 
             <div class="flex flex-col gap-1">
                 <span class="text-sm font-medium text-[#395f93]">{{ 'BULK.SUPPORT.MIN_RANGE' | translate }} <span class="text-red-500">*</span></span>
@@ -9,7 +9,7 @@
                     type="number"
                     min="1"
                     placeholder="10"
-                    class="h-10 border border-gray-300 rounded-md px-2"
+                    class="h-10 w-full border border-gray-300 rounded-md px-2"
                     [value]="minRange()"
                     (input)="onMinRangeChange($event)" />
             </div>
@@ -20,7 +20,7 @@
                     type="number"
                     min="1"
                     placeholder="20"
-                    class="h-10 border border-gray-300 rounded-md px-2"
+                    class="h-10 w-full border border-gray-300 rounded-md px-2"
                     [value]="maxRange()"
                     (input)="onMaxRangeChange($event)" />
             </div>
@@ -29,7 +29,7 @@
                 type="button"
                 (click)="createBatch()"
                 [disabled]="isCreatingBatch()"
-                class="bg-[#395f93] text-white rounded-md px-4 py-2 hover:cursor-pointer hover:bg-[#4d6ea5] disabled:opacity-70 disabled:cursor-not-allowed">
+                class="w-full bg-[#395f93] text-white rounded-md px-4 py-2 hover:cursor-pointer hover:bg-[#4d6ea5] disabled:opacity-70 disabled:cursor-not-allowed">
                 {{ isCreatingBatch() ? ('BULK.COMMON.PROCESSING' | translate) : ('BULK.SUPPORT.PROCESS_BUTTON' | translate) }}
             </button>
         </div>
@@ -38,13 +38,13 @@
 
         <div class="flex items-center justify-center w-full mt-4">
             <label for="dropzone-file-support"
-                class="flex flex-col items-center justify-center w-full h-56 bg-blue-50 border border-dashed bg-cover border-default-strong border-blue-600 rounded-md cursor-pointer hover:bg-neutral-tertiary-medium"
+                class="flex flex-col items-center justify-center w-full min-h-48 sm:h-56 bg-blue-50 border border-dashed bg-cover border-default-strong border-blue-600 rounded-md cursor-pointer hover:bg-neutral-tertiary-medium px-4 py-6 sm:py-0"
                 [class.bg-blue-100]="isDragOver()" [class.border-[#ff8200]]="isDragOver()"
                 (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)"
                 (drop)="onDrop($event)">
-                <div class="flex flex-col items-center justify-center text-body pt-5 pb-6">
-                    <img src="assets/svg/cloud.svg" alt="Logo" class="h-24 my-4">
-                    <p class="mb-2 text-base">
+                <div class="flex flex-col items-center justify-center text-body pt-5 pb-4 text-center">
+                    <img src="assets/svg/cloud.svg" alt="Logo" class="w-full max-w-20 sm:max-w-24 md:max-w-28 h-auto object-contain my-3 sm:my-4">
+                    <p class="mb-2 text-sm sm:text-base leading-snug">
                         {{ 'BULK.SUPPORT.DROP_HINT' | translate }}
                         <span class="font-semibold text-[#ff8200]">{{ 'BULK.COMMON.CLICK_UPLOAD' | translate }}</span>
                     </p>
