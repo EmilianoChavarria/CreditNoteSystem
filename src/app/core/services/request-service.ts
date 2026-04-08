@@ -227,12 +227,14 @@ export class RequestService {
   }
 
   getMyPendingRequests(requestTypeId: number, perPage = 10, page = 1): Observable<PagePagination<Request>> {
+    const params: { requestTypeId: number; per_page: number; page: number } = {
+      requestTypeId,
+      per_page: perPage,
+      page,
+    };
+
     return this._httpService.get<PagePagination<Request>>('/requests/pending/me', {
-      params: {
-        requestTypeId,
-        perPage,
-        page,
-      }
+      params
     }).pipe(
       tap((response: ApiResponse<PagePagination<Request>>) => {
         if (response.success) {
