@@ -30,25 +30,25 @@ import { Subscription } from 'rxjs';
           
           <button (click)="prev()" 
                   *ngIf="selectedIndex > 0"
-                  class="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition">
+                  class="px-2 py-2 md:px-4 md:py-2 text-xs md:text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition">
             Back
           </button>
           <div *ngIf="selectedIndex === 0"></div> <button (click)="next()" 
                   *ngIf="selectedIndex < tabs.length - 1"
-                  class="px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 transition">
+                  class="px-2 py-2 md:px-4 md:py-2 text-xs md:text-sm font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 transition">
             Next
           </button>
   
           <div class="flex gap-x-2">
             <button (click)="saveDraft()" 
-                    class="px-4 py-2 text-sm font-semibold text-white bg-gray-600 rounded-md hover:bg-gray-700 transition">
+                    class="px-2 py-2 md:px-4 md:py-2 text-xs md:text-sm font-semibold text-white bg-gray-600 rounded-md hover:bg-gray-700 transition">
               Save as draft
             </button>
             <button (click)="save()" 
                     *ngIf="selectedIndex === tabs.length - 1"
                     [disabled]="registerDisabled()"
                     [ngClass]="registerDisabled() ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'"
-                    class="px-4 py-2 text-sm font-semibold text-white rounded-md transition">
+                    class="px-2 py-2 md:px-4 md:py-2 text-xs md:text-sm font-semibold text-white rounded-md transition">
               Register request
             </button>
           </div>

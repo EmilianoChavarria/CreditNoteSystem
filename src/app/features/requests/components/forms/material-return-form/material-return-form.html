@@ -4,7 +4,7 @@
 <form action="" [formGroup]="form">
     <app-tabs-container (onSave)="saveRequest()" (onSaveDraft)="saveDraft()">
         <app-tab titleT="Request & Customer">
-            <div class="grid grid-cols-4 gap-8">
+            <div class="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-4 md:gap-8">
                 <div>
                     <label for="requestNumber"
                         class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.REQUEST_NUMBER' |
@@ -97,7 +97,7 @@
         </app-tab>
 
         <app-tab titleT="Reference & Logistics">
-            <div class="grid grid-cols-4 gap-8">
+            <div class="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-4 md:gap-8">
                 <div>
                     <label for="deliveryNote"
                         class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.DELIVERY_NOTE' |
@@ -118,7 +118,7 @@
                     <span class="text-sm text-red-500">{{ getErrorMessage('invoiceNumber') }}</span>
                     }
                 </div>
-                <div class="col-span-2">
+                <div class="md:md:col-span-2">
                     <label for="sapScreen"
                         class="block text-sm font-medium text-[#395f93]">{{'NEW_REQUEST_FORM.SAP_SCREEN' |
                         translate}}<span class="text-red-500">*</span></label>
@@ -132,7 +132,7 @@
         </app-tab>
 
         <app-tab titleT="Financial Data">
-            <div class="grid grid-cols-4 gap-8">
+            <div class="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-4 md:gap-8">
                 <div>
                     <label for="currency" class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.CURRENCY'
                         | translate}}<span class="text-red-500">*</span></label>
@@ -190,8 +190,8 @@
         </app-tab>
 
         <app-tab titleT="Supports & Comments">
-            <div class="grid grid-cols-4 gap-8">
-                <div class="col-span-2">
+            <div class="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-4 md:gap-8">
+                <div class="md:col-span-2">
                     <label for="attachSupports"
                         class="block text-sm font-medium text-[#395f93]">{{'NEW_REQUEST_FORM.ATTACH_SUPPORTS' |
                         translate}}<span class="text-red-500">*</span></label>
@@ -227,7 +227,7 @@
                     }
                 </div>
 
-                <div class="col-span-2">
+                <div class="md:col-span-2">
                     <label for="comments" class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.COMMENTS'
                         | translate}}</label>
                     <textarea id="comments" formControlName="comments"

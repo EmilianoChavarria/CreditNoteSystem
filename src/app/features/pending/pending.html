@@ -1,12 +1,12 @@
-<div class="p-8 flex flex-col">
-    <header class="w-full flex items-center justify-between">
+<div class="p-2 md:p-8 flex flex-col">
+    <header class="w-full flex flex-col-reverse md:flex-row items-center justify-between">
 
-        <div class="flex items-center justify-start mb-10 gap-x-4">
-            <label for="days" class="font-semibold text-[#3c6194] text-2xl">{{'DASHBOARD.REQ_FILTER'|
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-start md:mb-10 gap-x-4 w-full md:w-fit mt-3 md:mt-0">
+            <label for="days" class="font-semibold text-[#3c6194] text-xl md:text-2xl">{{'DASHBOARD.REQ_FILTER'|
                 translate}}</label>
-            <div class="flex flex-row items-center">
+            <div class="flex flex-row items-center w-full md:w-fit">
                 <select name="request_type" id="request_type" (change)="onRequestTypeChange($event)"
-                    class="h-11 border border-gray-300 rounded-lg w-64 pl-2 pr-4">
+                    class="h-11 border border-gray-300 rounded-lg w-full md:w-64 pl-2 pr-4">
                     <option value="DE">{{'REQUEST_TYPES.DEFAULT'| translate}}</option>
                     @for (requestType of availableRequestTypes(); track requestType.id) {
                     <option [value]="requestType.id">{{ requestType.name | translate }}</option>
@@ -46,8 +46,8 @@
     <app-workflow-history-drawer [open]="showHistoryDrawer()" [detail]="workflowDetail"
         (closed)="closeHistoryDrawer()"></app-workflow-history-drawer>
     } @else {
-    <div class="text-center py-20 text-gray-500">
-        <img src="assets/png/TIMKEN-DISABLE-esp.webp" alt="" class="h-92 mx-auto">
+    <div class="text-center pt-10 md:py-20 text-gray-500">
+        <img src="assets/png/TIMKEN-DISABLE-esp.webp" alt="" class="mx-auto h-auto w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg object-contain">
         <p class="text-2xl text-[#3c6194] font-semibold">{{'REQUEST_TYPES.DEFAULT_TEXT'| translate}}</p>
     </div>
     }

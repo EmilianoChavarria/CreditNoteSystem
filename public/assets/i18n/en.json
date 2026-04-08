@@ -137,6 +137,10 @@
     "TITLE": "Requests List",
     "DESCRIPTION": "See the complete list of requests"
   },
+  "NEW_REQ": {
+    "TITLE": "New Request",
+    "DESCRIPTION": "Select a request type and fill the form"
+  },
   "HISTORY": {
     "TITLE": "History",
     "DESCRIPTION": "See your requests"
