@@ -8,6 +8,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SidebarItem, SidebarService } from '../../../core/services/sidebar.service';
 import { ToastService } from '../../../core/services/toast-service';
 import { filter } from 'rxjs/operators';
+import { fromEvent } from 'rxjs';
 
 interface SidebarOptions {
   iconName: string,
@@ -34,12 +35,20 @@ export class Sidebar {
   private _sidebarService = inject(SidebarService);
   private _ngZone = inject(NgZone);
   private _cdr = inject(ChangeDetectorRef);
+  private readonly collapseBreakpoint = 1024;
 
   constructor(
     private router: Router,
     private _authService: AuthService,
     private _toastService: ToastService,
   ) {
+    if (typeof window !== 'undefined') {
+      this.syncSidebarViewport(window.innerWidth);
+      fromEvent(window, 'resize')
+        .pipe(takeUntilDestroyed())
+        .subscribe(() => this.syncSidebarViewport(window.innerWidth));
+    }
+
     this._authService.user$
       .pipe(takeUntilDestroyed())
       .subscribe(user => {
@@ -59,6 +68,14 @@ export class Sidebar {
       });
 
     this.loadSidebarOptions(this._authService.getCurrentUser());
+  }
+
+  private syncSidebarViewport(viewportWidth: number): void {
+    if (viewportWidth < this.collapseBreakpoint && this.isOpen) {
+      this.isOpen = false;
+      this.openedOptionIndex = null;
+      this._cdr.detectChanges();
+    }
   }
 
 
