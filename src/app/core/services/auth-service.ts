@@ -33,6 +33,9 @@ export class AuthService {
   private userSubject = new BehaviorSubject<AuthUser | null>(null);
   public user$ = this.userSubject.asObservable();
   private sessionCheck$: Observable<boolean> | null = null;
+  private lastSuccessfulSessionCheckAt = 0;
+  private readonly sessionCheckTtlMs = 60_000;
+  private isHandlingSessionExpiration = false;
 
   constructor(
     private _httpService: HttpService,
@@ -67,7 +70,16 @@ export class AuthService {
   /**
    * Verifica si la sesión es válida usando la cookie
    */
-  checkSession(): Observable<boolean> {
+  checkSession(force = false): Observable<boolean> {
+    if (
+      !force &&
+      this.isAuthenticated() &&
+      this.getCurrentUser() &&
+      Date.now() - this.lastSuccessfulSessionCheckAt < this.sessionCheckTtlMs
+    ) {
+      return of(true);
+    }
+
     if (this.sessionCheck$) {
       return this.sessionCheck$;
     }
@@ -79,6 +91,7 @@ export class AuthService {
 
         if (!isValid) {
           this.notifySessionExpired();
+          this.lastSuccessfulSessionCheckAt = 0;
           this.clearUser();
           return false;
         }
@@ -86,6 +99,7 @@ export class AuthService {
         const user = response.data?.user;
         if (user) {
           this.setUser(user);
+          this.lastSuccessfulSessionCheckAt = Date.now();
         } else {
           this.clearUser();
         }
@@ -95,6 +109,7 @@ export class AuthService {
       catchError(() => {
         this.notifySessionExpired();
         this.clearAuthState();
+        this.lastSuccessfulSessionCheckAt = 0;
         return of(false);
       }),
       finalize(() => {
@@ -113,16 +128,33 @@ export class AuthService {
     return this._httpService.post('/auth/logout', {}).pipe(
       tap(() => {
         this.clearAuthState();
+        this.lastSuccessfulSessionCheckAt = 0;
         this.clearClientPreferences();
         this.router.navigate(['/auth/login']);
       }),
       catchError(error => {
         this.clearAuthState();
+        this.lastSuccessfulSessionCheckAt = 0;
         this.clearClientPreferences();
         this.router.navigate(['/auth/login']);
         return of(null);
       })
     );
+  }
+
+  handleUnauthorizedSession(): void {
+    if (this.isHandlingSessionExpiration) {
+      return;
+    }
+
+    this.isHandlingSessionExpiration = true;
+    this.notifySessionExpired();
+    this.clearAuthState();
+    this.lastSuccessfulSessionCheckAt = 0;
+    this.clearClientPreferences();
+    this.router.navigate(['/auth/login']).finally(() => {
+      this.isHandlingSessionExpiration = false;
+    });
   }
 
   /**
@@ -147,6 +179,7 @@ export class AuthService {
   private clearAuthState(): void {
     this.isAuthenticatedSubject.next(false);
     this.sessionCheck$ = null;
+    this.lastSuccessfulSessionCheckAt = 0;
     this.clearUser();
   }
 
