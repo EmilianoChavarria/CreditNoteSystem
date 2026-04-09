@@ -88,6 +88,11 @@ export class AuthService {
 
     this.sessionCheck$ = this._httpService.get<LoginData>('/auth/verify').pipe(
       map(response => {
+        if (this.isIpBlockedResponse(response)) {
+          this.handleIpBlockedSession(response.message);
+          return false;
+        }
+
         const isValid = response.success;
         this.isAuthenticatedSubject.next(isValid);
 
@@ -110,7 +115,13 @@ export class AuthService {
 
         return isValid;
       }),
-      catchError(() => {
+      catchError((error) => {
+        if (this.isIpBlockedError(error)) {
+          const blockedMessage = this.extractApiMessage(error) ?? undefined;
+          this.handleIpBlockedSession(blockedMessage);
+          return of(false);
+        }
+
         if (hadKnownSession) {
           this.notifySessionExpired();
         }
@@ -163,6 +174,21 @@ export class AuthService {
     });
   }
 
+  handleIpBlockedSession(message?: string): void {
+    if (this.isHandlingSessionExpiration) {
+      return;
+    }
+
+    this.isHandlingSessionExpiration = true;
+    this.notifyIpBlocked(message);
+    this.clearAuthState();
+    this.lastSuccessfulSessionCheckAt = 0;
+    this.clearClientPreferences();
+    this.router.navigate(['/auth/login']).finally(() => {
+      this.isHandlingSessionExpiration = false;
+    });
+  }
+
   /**
    * Verifica si el usuario está autenticado (para guards)
    */
@@ -200,5 +226,44 @@ export class AuthService {
       'Tu sesion ha caducado. Inicia sesión de nuevo.',
       'Sesion caducada'
     );
+  }
+
+  private notifyIpBlocked(message?: string): void {
+    this.toastService.error(
+      message?.trim() || 'Dirección IP bloqueada permanentemente.',
+      'Acceso bloqueado'
+    );
+  }
+
+  private isIpBlockedResponse(response: ApiResponse<LoginData>): boolean {
+    return response.codeStatus === 423 || this.isIpBlockedMessage(response.message);
+  }
+
+  private isIpBlockedError(error: unknown): boolean {
+    const status = (error as { status?: number })?.status;
+
+    if (status === 423) {
+      return true;
+    }
+
+    const message = this.extractApiMessage(error);
+    return this.isIpBlockedMessage(message);
+  }
+
+  private isIpBlockedMessage(message?: string | null): boolean {
+    if (!message) {
+      return false;
+    }
+
+    const normalized = message.toLowerCase();
+    return normalized.includes('direccion ip bloqueada')
+      || normalized.includes('dirección ip bloqueada')
+      || normalized.includes('ip bloqueada')
+      || normalized.includes('ip blocked');
+  }
+
+  private extractApiMessage(error: unknown): string | null {
+    const errorObj = error as { error?: { message?: string } };
+    return errorObj?.error?.message ?? null;
   }
 }

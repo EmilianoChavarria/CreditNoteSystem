@@ -9,6 +9,16 @@ export const authExpirationInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
       const isAuthEndpoint = req.url.includes('/auth/login') || req.url.includes('/auth/verify') || req.url.includes('/auth/logout');
+      const message = (error.error?.message ?? '').toString().toLowerCase();
+      const isIpBlocked = error.status === 423
+        || message.includes('direccion ip bloqueada')
+        || message.includes('dirección ip bloqueada')
+        || message.includes('ip bloqueada')
+        || message.includes('ip blocked');
+
+      if (isIpBlocked) {
+        authService.handleIpBlockedSession(error.error?.message);
+      }
 
       if (error.status === 401 && !isAuthEndpoint) {
         authService.handleUnauthorizedSession();
