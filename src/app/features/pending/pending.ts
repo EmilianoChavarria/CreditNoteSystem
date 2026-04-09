@@ -89,28 +89,10 @@ export class Pending {
 
     private readonly baseAcciones: AccionPersonalizada<Request>[] = [
         {
-            key: 'approve',
-            icon: 'check',
-            label: 'PENDING_PAGE.APPROVE',
-            accion: (request) => this.logAction(request)
-        },
-        {
-            key: 'decline',
-            icon: 'x',
-            label: 'PENDING_PAGE.DECLINE',
-            accion: (request) => this.onDeclineModalChange(true, request)
-        },
-        {
             key: 'pdf',
             icon: 'file-text',
             label: 'PENDING_PAGE.PDF',
             accion: (request) => this.generatePdf(request)
-        },
-        {
-            key: 'edit',
-            icon: 'pencil',
-            label: 'PENDING_PAGE.EDIT',
-            accion: (request) => this.editRequest(request)
         },
         {
             key: 'see_history',
@@ -310,7 +292,13 @@ export class Pending {
 
         this.isLoadingTable.set(true);
 
-        this._requestsService.getRequestsByTypeWithPagePagination(requestTypeId, this.pageSize(), this.currentPage(), this.searchTerm()).pipe(
+
+        this._requestsService.getRequestsByTypeWithPagePagination(
+            requestTypeId,
+            this.pageSize(),
+            this.currentPage(),
+            this.searchTerm()
+        ).pipe(
             finalize(() => {
                 this.isLoadingTable.set(false);
                 this.isLoading.set(false);
