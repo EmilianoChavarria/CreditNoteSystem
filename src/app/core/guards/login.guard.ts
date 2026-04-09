@@ -19,10 +19,10 @@ export class LoginGuard implements CanActivate {
   ): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
 
     if (this.authService.isAuthenticated() && this.authService.getCurrentUser()) {
-      const returnUrl = route.queryParamMap.get('returnUrl');
-      if (returnUrl) {
-        return this.router.parseUrl(returnUrl);
-      }
+      // const returnUrl = route.queryParamMap.get('returnUrl');
+      // if (returnUrl) {
+      //   return this.router.parseUrl(returnUrl);
+      // }
 
       return this.router.createUrlTree(['/app/dashboard']);
     }
@@ -32,10 +32,10 @@ export class LoginGuard implements CanActivate {
       take(1),
       map(isAuthenticated => {
         if (isAuthenticated) {
-          const returnUrl = route.queryParamMap.get('returnUrl');
-          if (returnUrl) {
-            return this.router.parseUrl(returnUrl);
-          }
+          // const returnUrl = route.queryParamMap.get('returnUrl');
+          // if (returnUrl) {
+          //   return this.router.parseUrl(returnUrl);
+          // }
           // Si ya está autenticado, redirige al dashboard
           return this.router.createUrlTree(['/app/dashboard']);
         } else {
