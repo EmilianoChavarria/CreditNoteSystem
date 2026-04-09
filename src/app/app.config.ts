@@ -1,6 +1,6 @@
 import { ApplicationConfig, importProvidersFrom } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpClient } from '@angular/common/http';
 import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
@@ -9,6 +9,7 @@ import { routes } from './app.routes';
 import { Observable } from 'rxjs';
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 import { provideToastr } from 'ngx-toastr';
+import { authExpirationInterceptor } from './core/interceptors/auth-expiration.interceptor';
 
 
 export class CustomTranslateLoader implements TranslateLoader {
@@ -28,7 +29,7 @@ export function HttpLoaderFactory(http: HttpClient) {
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),
-    provideHttpClient(),
+    provideHttpClient(withInterceptors([authExpirationInterceptor])),
     // Solución para Lucide en versiones anteriores/estables
     importProvidersFrom(
       LucideAngularModule.pick({ ArrowRight, Eye, EyeClosed, User, Settings, CalendarClock, PanelLeftClose, PanelLeftOpen, LayoutDashboard, CreditCard, ChevronDown, Plus, Eraser, FolderUp, ClipboardCheck, ClipboardList, Bell, Users, Building2, Grid3x2, MonitorCog, ShieldCheck, LogOut, Trash, Search, Filter, ArrowUp, Pencil, FolderArchive, FileUp, Sheet, Key, UserCheck, MoreVertical, RotateCcw, ArrowDown, ChevronRight, ChevronLeft, Info, CircleX, Check, X, FileText, Network, History, CornerDownLeft, CloudUpload, UserPlus, ChevronsRight, ChevronsLeft, Play, FileCheck, FileClock, Receipt, Shield, Save, SquareArrowDown, BadgeCheck, Mail, Globe, Calendar, Clock4, ShieldUser, Lock, CircleAlert, UserCog, Paperclip, LockOpen, ShieldOff, RefreshCcw, UsersRound, Menu }),
