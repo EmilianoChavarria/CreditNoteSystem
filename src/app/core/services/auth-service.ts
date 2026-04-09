@@ -71,6 +71,8 @@ export class AuthService {
    * Verifica si la sesión es válida usando la cookie
    */
   checkSession(force = false): Observable<boolean> {
+    const hadKnownSession = this.isAuthenticated() || !!this.getCurrentUser() || this.lastSuccessfulSessionCheckAt > 0;
+
     if (
       !force &&
       this.isAuthenticated() &&
@@ -90,7 +92,9 @@ export class AuthService {
         this.isAuthenticatedSubject.next(isValid);
 
         if (!isValid) {
-          this.notifySessionExpired();
+          if (hadKnownSession) {
+            this.notifySessionExpired();
+          }
           this.lastSuccessfulSessionCheckAt = 0;
           this.clearUser();
           return false;
@@ -107,7 +111,9 @@ export class AuthService {
         return isValid;
       }),
       catchError(() => {
-        this.notifySessionExpired();
+        if (hadKnownSession) {
+          this.notifySessionExpired();
+        }
         this.clearAuthState();
         this.lastSuccessfulSessionCheckAt = 0;
         return of(false);
