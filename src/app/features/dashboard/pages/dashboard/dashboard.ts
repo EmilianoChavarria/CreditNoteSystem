@@ -8,7 +8,7 @@ import { DashboardService } from '../../../../core/services/dashboard-service';
 import { ToastService } from '../../../../core/services/toast-service';
 import { Spinner } from '../../../../shared/components/ui/spinner/spinner';
 import { finalize } from 'rxjs';
-import { DashboardChartQueryParams, DashboardChartSeries } from '../../../../data/interfaces/DashboardChart';
+import { DashboardChartQueryParams, DashboardChartSeries, DashboardChartTotals } from '../../../../data/interfaces/DashboardChart';
 import { StatCard } from "../../components/stat-card/stat-card";
 
 interface RequestItem {
@@ -30,6 +30,13 @@ interface DashboardStatCard {
   title: string;
   value: string;
   iconName: string;
+  color: string;
+}
+
+interface DashboardStatMeta {
+  titleKey: string;
+  iconName: string;
+  color: string;
 }
 
 type LineChartDataset = ChartDataset<'line', Array<number | null>>;
@@ -54,6 +61,15 @@ export class Dashboard {
   private _dashboardService = inject(DashboardService);
   private _toastService = inject(ToastService);
   private readonly chartColors = ['#ff8200', '#2563eb', '#dc2626', '#16a34a', '#7c3aed'];
+  private readonly statMetaByKey: Record<string, DashboardStatMeta> = {
+    created: { titleKey: 'DASHBOARD.STATS.CREATED', iconName: 'calendar-clock', color: "#ff8200" },
+    approved: { titleKey: 'DASHBOARD.STATS.APPROVED', iconName: 'badge-check', color: "#00d68f" },
+    declined: { titleKey: 'DASHBOARD.STATS.DECLINED', iconName: 'circle-x', color: "#FF0000" },
+    rejected: { titleKey: 'DASHBOARD.STATS.DECLINED', iconName: 'circle-x', color: "#ef4444" },
+    processed: { titleKey: 'DASHBOARD.STATS.PROCESSED', iconName: 'file-check', color: "#3b82f6" },
+    pending: { titleKey: 'DASHBOARD.STATS.PENDING', iconName: 'file-clock', color: "#f59e0b" },
+    released: { titleKey: 'DASHBOARD.STATS.RELEASED', iconName: 'play', color: "#22c55e" },
+  };
 
   public selectedRequestType = signal<string>('todas');
   public selectedDateOption = signal<'1' | '2' | 'custom'>('1');
@@ -128,11 +144,11 @@ export class Dashboard {
     }
   ];
 
-  public readonly statCards: DashboardStatCard[] = [
-    { title: 'Created', value: '07', iconName: 'calendar-clock' },
-    { title: 'In Process', value: '07', iconName: 'calendar-clock' },
-    { title: 'Approved', value: '07', iconName: 'calendar-clock' },
-    { title: 'Released', value: '07', iconName: 'calendar-clock' },
+  public statCards: DashboardStatCard[] = [
+    // { title: 'Created', value: '07', iconName: 'calendar-clock' },
+    // { title: 'In Process', value: '07', iconName: 'calendar-clock' },
+    // { title: 'Approved', value: '07', iconName: 'calendar-clock' },
+    // { title: 'Released', value: '07', iconName: 'calendar-clock' },
   ];
 
   public isLoadingChart = signal<boolean>(true)
@@ -169,6 +185,7 @@ export class Dashboard {
         const series = response?.series ?? [];
         const days = this.getOrderedDays(series);
         const datasets = this.buildDatasets(series, days);
+        this.statCards = this.buildStatCards(response?.totals);
 
         this.lineChartData.set({
           labels: days,
@@ -177,9 +194,37 @@ export class Dashboard {
       },
       error: (error) => {
         console.log(error);
+        this.statCards = [];
         this.lineChartData.set({ labels: [], datasets: [] });
       }
     })
+  }
+
+  private buildStatCards(totals?: DashboardChartTotals | null): DashboardStatCard[] {
+    if (!totals) {
+      return [];
+    }
+
+    return Object.entries(totals).map(([rawKey, rawValue]) => {
+      const normalizedKey = rawKey.trim().toLowerCase();
+      const meta = this.statMetaByKey[normalizedKey];
+      const title = meta?.titleKey ?? this.humanizeStatKey(rawKey);
+
+      return {
+        title,
+        value: String(rawValue ?? 0),
+        iconName: meta?.iconName ?? 'calendar-clock',
+        color: meta?.color ?? '#ff8200',
+      };
+    });
+  }
+
+  private humanizeStatKey(value: string): string {
+    return value
+      .replace(/[_-]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .replace(/\b\w/g, (char) => char.toUpperCase());
   }
 
   private buildChartQueryParams(): DashboardChartQueryParams {

@@ -54,10 +54,15 @@
         </div>
 
     </header>
-    <section class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
-        
+    <section class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+        @if (isLoadingChart()) {
+        @for (_ of [1, 2, 3]; track $index) {
+        <app-stat-card [loading]="true"></app-stat-card>
+        }
+        } @else {
         @for (card of statCards; track $index) {
-        <app-stat-card [title]="card.title" [value]="card.value" [iconName]="card.iconName"></app-stat-card>
+        <app-stat-card [title]="card.title" [value]="card.value" [color]="card.color" [iconName]="card.iconName" [loading]="false"></app-stat-card>
+        }
         }
     </section>
     <section class="bg-white border border-gray-300 shadow-sm rounded-md mt-4 px-2 py-4 md:p-4 flex flex-col w-full">
