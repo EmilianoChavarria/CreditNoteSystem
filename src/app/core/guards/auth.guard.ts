@@ -1,6 +1,5 @@
-import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, Router, UrlTree } from '@angular/router';
-import { isPlatformBrowser } from '@angular/common';
 import { Observable, map, take } from 'rxjs';
 import { AuthService } from '../services/auth-service';
 
@@ -18,6 +17,10 @@ export class AuthGuard implements CanActivate {
     route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
   ): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
+
+    if (this.authService.isAuthenticated() && this.authService.getCurrentUser()) {
+      return true;
+    }
 
     // Verifica la sesión con el backend
     return this.authService.checkSession().pipe(
