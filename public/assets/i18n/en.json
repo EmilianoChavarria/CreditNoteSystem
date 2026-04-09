@@ -50,7 +50,15 @@
     "DATE_OPTION3": "Custom",
     "START_DATE": "Start date",
     "END_DATE": "End date",
-    "LABEL": "Created requests"
+    "LABEL": "Created requests",
+    "STATS": {
+      "CREATED": "Created",
+      "APPROVED": "Approved",
+      "DECLINED": "Declined",
+      "PROCESSED": "In Process",
+      "PENDING": "Pending",
+      "RELEASED": "Released"
+    }
   },
   "TABLE": {
     "REG_PER_PAGE": "Registers per page",

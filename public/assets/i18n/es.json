@@ -63,7 +63,15 @@
     "DATE_OPTION3": "Personalizado",
     "START_DATE": "Fecha inicial",
     "END_DATE": "Fecha final",
-    "LABEL": "Solicitudes creadas"
+    "LABEL": "Solicitudes creadas",
+    "STATS": {
+      "CREATED": "Creadas",
+      "APPROVED": "Aprobadas",
+      "DECLINED": "Declinadas",
+      "PROCESSED": "En Proceso",
+      "PENDING": "Pendientes",
+      "RELEASED": "Liberadas"
+    }
   },
   "USER_MANAGE": {
     "TITLE": "Gestión de Usuarios",
