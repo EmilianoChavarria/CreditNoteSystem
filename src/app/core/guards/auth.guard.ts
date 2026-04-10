@@ -19,7 +19,7 @@ export class AuthGuard implements CanActivate {
   ): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
 
     if (this.authService.isAuthenticated() && this.authService.getCurrentUser()) {
-      return true;
+      return this.resolveSuperAdminAccess(state.url);
     }
 
     // Verifica la sesión con el backend
@@ -27,12 +27,29 @@ export class AuthGuard implements CanActivate {
       take(1),
       map(isAuthenticated => {
         if (isAuthenticated) {
-          return true;
+          return this.resolveSuperAdminAccess(state.url);
         } else {
           // Redirige al login si no está autenticado
           return this.router.createUrlTree(['/auth/login']);
         }
       })
     );
+  }
+
+  private resolveSuperAdminAccess(url: string): boolean | UrlTree {
+    const currentUser = this.authService.getCurrentUser();
+    const roleName = currentUser?.roleName?.trim().toUpperCase();
+
+    if (roleName !== 'SUPERADMIN') {
+      return true;
+    }
+
+    const normalizedUrl = (url || '').split('?')[0].toLowerCase();
+
+    if (normalizedUrl === '/app' || normalizedUrl === '/app/my-profile') {
+      return true;
+    }
+
+    return this.router.createUrlTree(['/app/my-profile']);
   }
 }
