@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { ApiResponse } from '../../data/interfaces/ApiResponse-interface';
 import { ToastService } from './toast-service';
 import { HttpCacheService } from './http-cache.service';
+import { ImpersonationService } from './impersonation.service';
 
 export interface LoginCredentials {
   email: string;
@@ -43,6 +44,7 @@ export class AuthService {
     private router: Router,
     private toastService: ToastService,
     private cacheService: HttpCacheService,
+    private impersonationService: ImpersonationService,
   ) {}
 
   /**
@@ -52,6 +54,7 @@ export class AuthService {
     return this._httpService.post<LoginData>('/auth/login', credentials).pipe(
       tap(response => {
         if (response.success) {
+          this.impersonationService.stop();
           this.cacheService.clearAll();
           this.isAuthenticatedSubject.next(true);
           const user = response.data?.user;
@@ -212,6 +215,7 @@ export class AuthService {
   }
 
   private clearAuthState(): void {
+    this.impersonationService.stop();
     this.isAuthenticatedSubject.next(false);
     this.sessionCheck$ = null;
     this.lastSuccessfulSessionCheckAt = 0;
