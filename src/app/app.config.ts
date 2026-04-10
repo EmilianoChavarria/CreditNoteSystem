@@ -11,6 +11,7 @@ import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 import { provideToastr } from 'ngx-toastr';
 import { authExpirationInterceptor } from './core/interceptors/auth-expiration.interceptor';
 import { httpCacheInterceptor } from './core/interceptors/http-cache.interceptor';
+import { impersonationInterceptor } from './core/interceptors/impersonation.interceptor';
 
 
 export class CustomTranslateLoader implements TranslateLoader {
@@ -30,7 +31,7 @@ export function HttpLoaderFactory(http: HttpClient) {
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),
-    provideHttpClient(withInterceptors([httpCacheInterceptor, authExpirationInterceptor])),
+    provideHttpClient(withInterceptors([impersonationInterceptor, httpCacheInterceptor, authExpirationInterceptor])),
     // Solución para Lucide en versiones anteriores/estables
     importProvidersFrom(
       LucideAngularModule.pick({ ArrowRight, Eye, EyeClosed, User, Settings, CalendarClock, PanelLeftClose, PanelLeftOpen, LayoutDashboard, CreditCard, ChevronDown, Plus, Eraser, FolderUp, ClipboardCheck, ClipboardList, Bell, Users, Building2, Grid3x2, MonitorCog, ShieldCheck, LogOut, Trash, Search, Filter, ArrowUp, Pencil, FolderArchive, FileUp, Sheet, Key, UserCheck, MoreVertical, RotateCcw, ArrowDown, ChevronRight, ChevronLeft, Info, CircleX, Check, X, FileText, Network, History, CornerDownLeft, CloudUpload, UserPlus, ChevronsRight, ChevronsLeft, Play, FileCheck, FileClock, Receipt, Shield, Save, SquareArrowDown, BadgeCheck, Mail, Globe, Calendar, Clock4, ShieldUser, Lock, CircleAlert, UserCog, Paperclip, LockOpen, ShieldOff, RefreshCcw, UsersRound, Menu }),
