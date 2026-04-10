@@ -5,11 +5,15 @@ import { NotificationService } from '../../../core/services/notification-service
 import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 import { Popover } from '../ui/popover/popover';
 import { LucideAngularModule } from 'lucide-angular';
-import { map, Observable } from 'rxjs';
+import { catchError, map, Observable, of, shareReplay, switchMap } from 'rxjs';
 import { AuthUser } from '../../../core/services/auth-service';
 import { Router, RouterLink } from "@angular/router";
 import { AppNotification } from '../../../data/interfaces/Notification';
 import { LayoutShellService } from '../../../core/services/layout-shell-service';
+import { ImpersonationService } from '../../../core/services/impersonation.service';
+import { toObservable } from '@angular/core/rxjs-interop';
+import { UserService } from '../../../core/services/user-service';
+import { User } from '../../../data/interfaces/User';
 
 @Component({
     selector: 'app-navbar',
@@ -27,19 +31,36 @@ export class Navbar {
   private readonly notificationService = inject(NotificationService);
   private readonly router = inject(Router);
   private readonly layoutShellService = inject(LayoutShellService);
+  private readonly impersonationService = inject(ImpersonationService);
+  private readonly userService = inject(UserService);
   private readonly isBrowser: boolean;
   public user$: Observable<AuthUser | null>;
   public userInitials$: Observable<string>;
   readonly unreadNotifications = this.notificationService.unreadNotifications;
   readonly unreadCount = this.notificationService.unreadCount;
   readonly recentUnreadNotifications = computed(() => this.unreadNotifications().slice(0, 3));
+  readonly impersonatedUserId = this.impersonationService.impersonatedUserId;
+  readonly isImpersonating = computed(() => this.impersonatedUserId() !== null);
 
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object,
     public translate: TranslateService,
     private _authService: AuthService,
   ) {
-    this.user$ = this._authService.user$;
+    this.user$ = toObservable(this.impersonatedUserId).pipe(
+      switchMap((impersonatedUserId) => {
+        if (!impersonatedUserId) {
+          return this._authService.user$;
+        }
+
+        return this.userService.getAuthenticatedUserProfile().pipe(
+          map((user) => this.mapUserToAuthUser(user)),
+          catchError(() => of(this._authService.getCurrentUser()))
+        );
+      }),
+      shareReplay({ bufferSize: 1, refCount: true })
+    );
+
     this.userInitials$ = this.user$.pipe(map(user => this.getInitials(user?.fullName)));
     this.isBrowser = isPlatformBrowser(this.platformId);
 
@@ -65,10 +86,22 @@ export class Navbar {
   }
 
   logout() {
+    if (this.isImpersonating()) {
+      return;
+    }
+
     this._authService.logout().subscribe({
       next: (response: any) => console.log(response),
       error: (error: any) => console.log(error)
     });
+  }
+
+  getLogoutTitle(): string {
+    if (!this.isImpersonating()) {
+      return '';
+    }
+
+    return 'Para salir, primero usa "Salir de visualización".';
   }
 
   toggleMobileSidebar(): void {
@@ -132,6 +165,21 @@ export class Navbar {
     const second = names[1]?.[0] ?? '';
 
     return `${first}${second}`.toUpperCase();
+  }
+
+  private mapUserToAuthUser(user: User | null | undefined): AuthUser | null {
+    if (!user) {
+      return null;
+    }
+
+    return {
+      id: user.id,
+      fullName: user.fullName,
+      email: user.email,
+      roleId: Number(user.roleId),
+      roleName: user.role?.roleName ?? '',
+      preferredLanguage: user.preferredLanguage,
+    };
   }
 
   private isBulkUploadNotification(notification: AppNotification): boolean {

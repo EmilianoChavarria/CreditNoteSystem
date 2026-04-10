@@ -96,8 +96,10 @@
         </div>
         <div class="hidden sm:flex flex-col min-w-32">
           <span class="font-light truncate">{{ (user$ | async)?.fullName || 'Usuario' }}</span>
-          <span class="font-semibold text-xs uppercase">{{ (user$ | async)?.roleName || ('NAV.ADMIN' | translate)
-            }}</span>
+          <div class="flex items-center gap-2">
+            <span class="font-semibold text-xs uppercase">{{ (user$ | async)?.roleName || ('NAV.ADMIN' | translate)
+              }}</span>
+          </div>
         </div>
         <div class="hidden sm:flex transition-colors my-auto p-2 hover:bg-gray-200 rounded-lg shrink-0">
           <lucide-icon name="chevron-down" size="24" strokeWidth="1.8"></lucide-icon>
@@ -113,13 +115,18 @@
           </div>
         </a>
         <div class="border-t my-2"></div>
-        <a (click)="logout()"
-          class="block px-4 py-2.5 text-sm hover:bg-gray-100 text-red-600 cursor-pointer transition-colors">
+        <button
+          type="button"
+          (click)="logout()"
+          [disabled]="isImpersonating()"
+          [title]="getLogoutTitle()"
+          class="block w-full text-left px-4 py-2.5 text-sm text-red-600 transition-colors"
+          [class]="isImpersonating() ? 'logout-disabled' : 'hover:bg-gray-100 cursor-pointer'">
           <div class="flex items-center gap-2">
             <lucide-icon name="log-out" size="18"></lucide-icon>
             <span>{{ 'NAV.LOGOUT' | translate }}</span>
           </div>
-        </a>
+        </button>
       </div>
     </app-popover>
   </div>
