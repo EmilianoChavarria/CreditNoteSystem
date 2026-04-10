@@ -14,7 +14,6 @@ import { map, catchError, startWith } from 'rxjs/operators';
 import { Classification, Reason, RequestType } from '../../../../data/interfaces/Request';
 import { ToastrService } from 'ngx-toastr';
 import { CreditForm } from "../../components/forms/credit-form/credit-form";
-import { AuthService } from '../../../../core/services/auth-service';
 import { PermissionAction, RequestTypePermissionRecord, RoleService } from '../../../../core/services/role-service';
 import { DebitForm } from "../../components/forms/debit-form/debit-form";
 import { AuditorCreditForm } from "../../components/forms/auditor-credit-form/auditor-credit-form";
@@ -46,7 +45,6 @@ export class NewRequest implements OnInit {
     private computedSubscriptions: Subscription[] = [];
     private requestTypeActionPermissions = signal<Record<number, Record<string, boolean>>>({});
     private toastr = inject(ToastrService);
-    private authService = inject(AuthService);
     private roleService = inject(RoleService);
     constructor(
         private fb: FormBuilder,
@@ -96,34 +94,14 @@ export class NewRequest implements OnInit {
     }
 
     private loadAllowedRequestTypes(): void {
-        const currentRoleId = this.authService.getCurrentUser()?.roleId;
-
-        if (currentRoleId) {
-            this.loadRequestTypesByRole(currentRoleId);
-            return;
-        }
-
-        this.authService.checkSession().subscribe({
-            next: () => {
-                const resolvedRoleId = this.authService.getCurrentUser()?.roleId;
-                if (!resolvedRoleId) {
-                    this.availableRequestTypes.set([]);
-                    return;
-                }
-
-                this.loadRequestTypesByRole(resolvedRoleId);
-            },
-            error: () => {
-                this.availableRequestTypes.set([]);
-            }
-        });
+        this.loadRequestTypesByContext();
     }
 
-    private loadRequestTypesByRole(roleId: number): void {
+    private loadRequestTypesByContext(): void {
         forkJoin({
             actions: this.roleService.getActions(),
             requestTypes: this._requestService.getRequestTypes(),
-            permissions: this.roleService.getRequestTypePermissionsByRole(roleId),
+            permissions: this.roleService.getRequestTypePermissionsForCurrentContext(),
         }).subscribe({
             next: ({ actions, requestTypes, permissions }) => {
                 const permissionMatrix = this.buildRequestTypeActionPermissions(actions, permissions);
