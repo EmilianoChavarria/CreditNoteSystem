@@ -13,7 +13,6 @@ import { Modal } from "../../../shared/components/ui/modal/modal";
 import { Badge } from "../../../shared/components/ui/badge/badge";
 import { JsonPipe, UpperCasePipe } from '@angular/common';
 import { Spinner } from "../../../shared/components/ui/spinner/spinner";
-import { AuthService } from '../../../core/services/auth-service';
 import { PermissionAction, RequestTypePermissionRecord, RoleService } from '../../../core/services/role-service';
 import { forkJoin } from 'rxjs';
 // 👇 Accede al default export real
@@ -130,7 +129,6 @@ export class MyApprovals {
     public submitted = signal(false);
     public showDeclineModal = signal<boolean>(false);
     private readonly requestTypeActionPermissions = signal<Record<number, Record<string, boolean>>>({});
-    private readonly authService = inject(AuthService);
     private readonly roleService = inject(RoleService);
     private readonly translateService = inject(TranslateService);
 
@@ -144,34 +142,14 @@ export class MyApprovals {
     }
 
     private loadAllowedRequestTypes(): void {
-        const currentRoleId = this.authService.getCurrentUser()?.roleId;
-
-        if (currentRoleId) {
-            this.loadRequestTypesByRole(currentRoleId);
-            return;
-        }
-
-        this.authService.checkSession().subscribe({
-            next: () => {
-                const resolvedRoleId = this.authService.getCurrentUser()?.roleId;
-                if (!resolvedRoleId) {
-                    this.availableRequestTypes.set([]);
-                    return;
-                }
-
-                this.loadRequestTypesByRole(resolvedRoleId);
-            },
-            error: () => {
-                this.availableRequestTypes.set([]);
-            }
-        });
+        this.loadRequestTypesByContext();
     }
 
-    private loadRequestTypesByRole(roleId: number): void {
+    private loadRequestTypesByContext(): void {
         forkJoin({
             actions: this.roleService.getActions(),
             requestTypes: this._requestsService.getRequestTypes(),
-            permissions: this.roleService.getRequestTypePermissionsByRole(roleId),
+            permissions: this.roleService.getRequestTypePermissionsForCurrentContext(),
         }).subscribe({
             next: ({ actions, requestTypes, permissions }) => {
                 const permissionMatrix = this.buildRequestTypeActionPermissions(actions, permissions);
