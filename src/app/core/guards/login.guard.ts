@@ -23,8 +23,7 @@ export class LoginGuard implements CanActivate {
       // if (returnUrl) {
       //   return this.router.parseUrl(returnUrl);
       // }
-
-      return this.router.createUrlTree(['/app/dashboard']);
+      return this.getAuthenticatedRedirectUrl();
     }
 
     // Verifica la sesión con el backend
@@ -37,12 +36,22 @@ export class LoginGuard implements CanActivate {
           //   return this.router.parseUrl(returnUrl);
           // }
           // Si ya está autenticado, redirige al dashboard
-          return this.router.createUrlTree(['/app/dashboard']);
+          return this.getAuthenticatedRedirectUrl();
         } else {
           // Si no está autenticado, permite acceso al login
           return true;
         }
       })
     );
+  }
+
+  private getAuthenticatedRedirectUrl(): UrlTree {
+    const roleName = this.authService.getCurrentUser()?.roleName?.trim().toUpperCase();
+
+    if (roleName === 'SUPERADMIN') {
+      return this.router.createUrlTree(['/app/my-profile']);
+    }
+
+    return this.router.createUrlTree(['/app/dashboard']);
   }
 }
