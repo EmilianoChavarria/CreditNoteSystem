@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpService } from './http-service';
-import { catchError, map, Observable, tap } from 'rxjs';
+import { catchError, map, Observable, of, switchMap, tap } from 'rxjs';
 import { Role } from '../../data/interfaces/User';
 import { ApiResponse } from '../../data/interfaces/ApiResponse-interface';
 import { RequestType } from '../../data/interfaces/Request';
+import { UserService } from './user-service';
 
 export interface AssignPermission {
   requestType: RequestType;
@@ -102,7 +103,8 @@ export interface ModulePermissionRecord {
 export class RoleService {
 
   constructor(
-    private _httpSevice: HttpService
+    private _httpSevice: HttpService,
+    private _userService: UserService,
   ) { }
 
   getRoles(): Observable<Role[]> {
@@ -223,6 +225,24 @@ export class RoleService {
     return this._httpSevice.get<RequestTypePermissionRecord[]>(`/requestTypePermissions/role/${roleId}`).pipe(
       map((response: ApiResponse<RequestTypePermissionRecord[]>) => response.data ?? []),
       catchError(error => {
+        console.log(error);
+        throw error;
+      })
+    );
+  }
+
+  getRequestTypePermissionsForCurrentContext(): Observable<RequestTypePermissionRecord[]> {
+    return this._userService.getAuthenticatedUserProfile().pipe(
+      switchMap((user) => {
+        const roleId = Number(user?.roleId);
+
+        if (!Number.isFinite(roleId) || roleId <= 0) {
+          return of([]);
+        }
+
+        return this.getRequestTypePermissionsByRole(roleId);
+      }),
+      catchError((error) => {
         console.log(error);
         throw error;
       })
