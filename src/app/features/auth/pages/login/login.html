@@ -17,6 +17,14 @@
             <input type="email" id="email"
                 class="mt-2 w-full border border-gray-300 rounded-md p-2 h-11 focus:outline-2 focus:outline-offset focus:outline-[#ff8200] disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
                 placeholder="example@mail.com" formControlName="email">
+
+            @if (submitAttempted && form.get('email')?.errors?.['required']) {
+            <p class="mt-1 text-sm text-red-600">El correo es obligatorio.</p>
+            }
+
+            @if (submitAttempted && form.get('email')?.errors?.['pattern']) {
+            <p class="mt-1 text-sm text-red-600">Ingresa un correo con formato válido.</p>
+            }
         </div>
         <div class="w-full">
             <label class="block text-foreground">Password</label>
@@ -30,6 +38,10 @@
                     <lucide-icon [name]="showPassword ? 'eye-closed' : 'eye'" [size]="24" color="#302F2F" [strokeWidth]="1.5"></lucide-icon>
                 </button>
             </div>
+
+            @if (submitAttempted && form.get('password')?.errors?.['required']) {
+            <p class="mt-1 text-sm text-red-600">La contraseña es obligatoria.</p>
+            }
         </div>
         <button class="bg-[#ff8200] text-white py-2.5 rounded-md hover:bg-[#e67300] transition-colors hover:cursor-pointer"
             [disabled]="isLoading">

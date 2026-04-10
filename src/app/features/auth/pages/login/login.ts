@@ -18,6 +18,8 @@ import { TranslateService } from '@ngx-translate/core';
 })
 export class Login {
 
+  private readonly emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
   public showPassword: boolean = false;
   public credentials = {
     email: 'juan@demo.com',
@@ -25,6 +27,7 @@ export class Login {
   };
   public isLoading = false;
   public errorMessage = '';
+  public submitAttempted = false;
 
   constructor(
     private authService: AuthService,
@@ -35,7 +38,7 @@ export class Login {
   }
 
   public form = new FormGroup({
-    email: new FormControl<string>('', Validators.required),
+    email: new FormControl<string>('', [Validators.required, Validators.pattern(this.emailRegex)]),
     password: new FormControl<string>('', Validators.required),
   })
 
@@ -44,6 +47,11 @@ export class Login {
   }
 
   onSubmit(): void {
+    this.submitAttempted = true;
+
+    if (this.form.invalid) {
+      return;
+    }
 
     this.isLoading = true;
     this.errorMessage = '';
