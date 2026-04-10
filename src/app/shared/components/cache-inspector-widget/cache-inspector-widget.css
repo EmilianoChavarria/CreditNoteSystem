@@ -1,1 +1,3 @@
-/* Layout is handled by utility classes. */
+:host {
+	display: contents;
+}

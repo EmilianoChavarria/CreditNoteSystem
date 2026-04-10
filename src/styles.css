@@ -3,6 +3,17 @@
 @import "tailwindcss";
 @import 'ngx-toastr/toastr';
 
+html,
+body,
+app-root {
+    height: 100%;
+}
+
+app-root {
+    display: block;
+}
+
 body {
+    margin: 0;
     font-family: 'Inter', sans-serif;
 }

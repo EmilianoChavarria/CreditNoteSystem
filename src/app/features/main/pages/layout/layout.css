@@ -1,10 +1,15 @@
 :host {
   display: block;
-  min-height: 100dvh;
+  height: 100%;
+  min-height: 100%;
+  overflow: hidden;
 }
 
 main {
-  min-height: 100dvh;
+  position: fixed;
+  inset: 0;
+  height: 100%;
+  min-height: 100%;
 }
 
 section {
