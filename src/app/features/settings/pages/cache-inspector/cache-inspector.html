@@ -1,0 +1,110 @@
+<main class="min-h-screen w-full px-4 py-6 sm:px-6 lg:px-8">
+  <section class="mx-auto flex w-full max-w-7xl flex-col gap-6">
+    <header class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <p class="text-sm font-medium uppercase tracking-[0.2em] text-slate-500">Diagnostics</p>
+          <h1 class="mt-2 text-2xl font-semibold text-slate-900">Cache Inspector</h1>
+          <p class="mt-2 max-w-3xl text-sm text-slate-600">
+            Vista de diagnóstico para revisar qué respuestas HTTP están en caché, cuánto ocupan y cuándo expiran.
+          </p>
+        </div>
+
+        <div class="flex flex-wrap gap-3">
+          <button type="button" class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50" (click)="clearExpired()">
+            Limpiar expiradas
+          </button>
+          <button type="button" class="rounded-lg bg-[#ff8200] px-4 py-2 text-sm font-semibold text-white hover:bg-[#e67300]" (click)="refresh()">
+            Refrescar
+          </button>
+          <button type="button" class="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700" (click)="clearCache()">
+            Vaciar caché
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <p class="text-sm text-slate-500">Entradas activas</p>
+        <p class="mt-2 text-3xl font-semibold text-slate-900">{{ diagnostics().totalEntries }}</p>
+      </article>
+
+      <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <p class="text-sm text-slate-500">Requests pendientes</p>
+        <p class="mt-2 text-3xl font-semibold text-slate-900">{{ diagnostics().pendingRequests }}</p>
+      </article>
+
+      <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <p class="text-sm text-slate-500">Tamaño estimado</p>
+        <p class="mt-2 text-3xl font-semibold text-slate-900">{{ formatBytes(diagnostics().approxSizeBytes) }}</p>
+      </article>
+
+      <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <p class="text-sm text-slate-500">Tamaño en KB</p>
+        <p class="mt-2 text-3xl font-semibold text-slate-900">{{ diagnostics().approxSizeKb | number:'1.0-1' }}</p>
+      </article>
+    </section>
+
+    <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <h2 class="text-lg font-semibold text-slate-900">Etiquetas por dominio</h2>
+      <div class="mt-4 flex flex-wrap gap-2">
+        @for (entry of (diagnostics().tagCounts | keyvalue); track entry.key) {
+          <span class="rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-700">
+            {{ entry.key }}: {{ entry.value }}
+          </span>
+        } @empty {
+          <p class="text-sm text-slate-500">No hay etiquetas activas.</p>
+        }
+      </div>
+    </section>
+
+    <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <div class="border-b border-slate-200 p-6">
+        <h2 class="text-lg font-semibold text-slate-900">Entradas</h2>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-slate-200 text-left text-sm">
+          <thead class="bg-slate-50 text-slate-600">
+            <tr>
+              <th class="px-4 py-3 font-medium">Método</th>
+              <th class="px-4 py-3 font-medium">URL</th>
+              <th class="px-4 py-3 font-medium">TTL restante</th>
+              <th class="px-4 py-3 font-medium">Edad</th>
+              <th class="px-4 py-3 font-medium">Peso</th>
+              <th class="px-4 py-3 font-medium">Tags</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 bg-white">
+            @for (entry of diagnostics().entries; track entry.key) {
+              <tr>
+                <td class="px-4 py-3 font-medium text-slate-900">{{ entry.method }}</td>
+                <td class="px-4 py-3 text-slate-700">
+                  <div class="max-w-[42rem] truncate" [title]="entry.url">{{ entry.url }}</div>
+                  <div class="text-xs text-slate-500">{{ entry.variant || 'default' }}</div>
+                </td>
+                <td class="px-4 py-3 text-slate-700">{{ formatTime(entry.remainingMs) }}</td>
+                <td class="px-4 py-3 text-slate-700">{{ formatTime(entry.ageMs) }}</td>
+                <td class="px-4 py-3 text-slate-700">{{ formatBytes(entry.approxSizeBytes) }}</td>
+                <td class="px-4 py-3 text-slate-700">
+                  <div class="flex flex-wrap gap-2">
+                    @for (tag of entry.tags; track tag) {
+                      <span class="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-700">{{ tag }}</span>
+                    }
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6" class="px-4 py-10 text-center text-sm text-slate-500">
+                  No hay entradas en caché.
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </section>
+</main>
