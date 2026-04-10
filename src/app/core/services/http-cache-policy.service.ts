@@ -87,8 +87,9 @@ export class HttpCachePolicyService {
   buildCacheKey(req: HttpRequest<unknown>): string {
     const normalizedUrl = this.normalizeUrl(req.urlWithParams);
     const variant = req.headers.get('Accept-Language') ?? '';
+    const impersonatedUserId = req.headers.get('X-Impersonate-User-Id') ?? '';
 
-    return [req.method.toUpperCase(), normalizedUrl, variant].join('|');
+    return [req.method.toUpperCase(), normalizedUrl, variant, impersonatedUserId].join('|');
   }
 
   private isBypassed(url: string): boolean {
