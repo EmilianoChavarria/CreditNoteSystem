@@ -5,6 +5,11 @@ import { SecurityService } from '../../../../core/services/security-service';
 import { forkJoin } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
 
+interface ChargePolicyItem {
+    days: number;
+    percentage: number;
+}
+
 @Component({
     selector: 'app-sys-config',
     templateUrl: './sys-config.html',
@@ -27,6 +32,10 @@ export class SysConfig implements OnInit {
     public inactivityTimeoutMinutes = 30;
     public maxAuthFailuresUser = 5;
     public maxAuthFailuresIp = 10;
+    public chargePolicies: ChargePolicyItem[] = [
+        { days: 8, percentage: 10 },
+        { days: 30, percentage: 25 },
+    ];
 
     ngOnInit(): void {
         this.loadSettings();
@@ -101,6 +110,40 @@ export class SysConfig implements OnInit {
         }
 
         return 1;
+    }
+
+    public addChargePolicy(): void {
+        this.chargePolicies = [...this.chargePolicies, { days: 0, percentage: 0 }];
+    }
+
+    public removeChargePolicy(index: number): void {
+        if (this.chargePolicies.length <= 1) {
+            return;
+        }
+
+        this.chargePolicies = this.chargePolicies.filter((_, currentIndex) => currentIndex !== index);
+    }
+
+    public onChargePolicyInput(index: number, field: 'days' | 'percentage', event: Event): void {
+        const rawValue = Number((event.target as HTMLInputElement).value);
+        let normalizedValue = Number.isFinite(rawValue) ? Math.floor(rawValue) : 0;
+
+        if (field === 'days') {
+            normalizedValue = Math.max(0, normalizedValue);
+        } else {
+            normalizedValue = Math.min(100, Math.max(0, normalizedValue));
+        }
+
+        this.chargePolicies = this.chargePolicies.map((item, currentIndex) => {
+            if (currentIndex !== index) {
+                return item;
+            }
+
+            return {
+                ...item,
+                [field]: normalizedValue,
+            };
+        });
     }
 
     public saveSettings(): void {
