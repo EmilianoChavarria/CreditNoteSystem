@@ -318,6 +318,8 @@
     "REASON": "Razón"
   },
   "MY_APPROVALS": {
+    "TITLE": "Mis aprobaciones",
+    "DESCRIPTION": "Listado de solicitudes que el usuario tiene por aprobar",
     "REQUEST": "Solicitud",
     "REQUEST_NUMBER": "Número de Solicitud",
     "REQUEST_TYPE": "Tipo de Solicitud",
@@ -382,6 +384,7 @@
     "INVALID_VALUE": "Valor no válido",
     "NO_CLIENT": "Sin cliente",
     "NO_CLASSIFICATION": "Sin clasificación",
+    "STEP": "Paso",
     "STEP_OF": "Paso {{current}} de {{total}}",
     "NO_COMMENTS": "Sin comentarios",
     "STATUS_CREATED": "Creado",

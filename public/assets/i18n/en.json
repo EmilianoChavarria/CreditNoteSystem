@@ -318,6 +318,8 @@
     "REASON": "Reason"
   },
   "MY_APPROVALS": {
+    "TITLE": "My Approvals",
+    "DESCRIPTION": "List of requests that the user has to approve",
     "REQUEST": "Request",
     "REQUEST_NUMBER": "Request Number",
     "REQUEST_TYPE": "Request Type",
@@ -382,6 +384,7 @@
     "INVALID_VALUE": "Invalid value",
     "NO_CLIENT": "No client",
     "NO_CLASSIFICATION": "No classification",
+    "STEP": "Step",
     "STEP_OF": "Step {{current}} of {{total}}",
     "NO_COMMENTS": "No comments",
     "STATUS_CREATED": "Created",
