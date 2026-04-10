@@ -5,6 +5,9 @@ import { ReactiveFormsModule, FormGroup, FormControl, Validators } from '@angula
 import { UserService } from '../../core/services/user-service';
 import { User } from '../../data/interfaces/User';
 import { CommonModule } from '@angular/common';
+import { AuthService } from '../../core/services/auth-service';
+import { ImpersonationService } from '../../core/services/impersonation.service';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-profile',
@@ -15,12 +18,23 @@ import { CommonModule } from '@angular/common';
 })
 export class Profile {
   private readonly userService = inject(UserService);
+  private readonly authService = inject(AuthService);
+  private readonly impersonationService = inject(ImpersonationService);
 
   readonly profile = signal<User | null>(null);
   readonly isLoading = signal<boolean>(true);
   readonly hasError = signal<boolean>(false);
   readonly isChangingPassword = signal<boolean>(false);
   readonly passwordFormVisible = signal<boolean>(false);
+  private readonly authUser = toSignal(this.authService.user$, { initialValue: null });
+
+  readonly isSuperAdmin = computed(() => this.authUser()?.roleName?.trim().toUpperCase() === 'SUPERADMIN');
+  readonly impersonatedUserId = this.impersonationService.impersonatedUserId;
+  readonly isImpersonating = computed(() => this.impersonatedUserId() !== null);
+
+  readonly impersonationForm = new FormGroup({
+    userId: new FormControl<number | null>(null, { validators: [Validators.required, Validators.min(1)] })
+  });
 
   readonly changePasswordForm = new FormGroup({
     currentPassword: new FormControl<string>('', { nonNullable: true, validators: [Validators.required, Validators.minLength(6)] }),
@@ -93,6 +107,44 @@ export class Profile {
     if (!this.passwordFormVisible()) {
       this.changePasswordForm.reset();
     }
+  }
+
+  startImpersonation(): void {
+    if (!this.isSuperAdmin()) {
+      return;
+    }
+
+    if (this.impersonationForm.invalid) {
+      this.impersonationForm.markAllAsTouched();
+      return;
+    }
+
+    const userId = Number(this.impersonationForm.get('userId')?.value);
+
+    if (!Number.isFinite(userId) || userId <= 0) {
+      return;
+    }
+
+    this.impersonationService.start(userId);
+
+    if (typeof window !== 'undefined') {
+      window.location.reload();
+      return;
+    }
+
+    this.loadProfile();
+  }
+
+  stopImpersonation(): void {
+    this.impersonationService.stop();
+    this.impersonationForm.reset();
+
+    if (typeof window !== 'undefined') {
+      window.location.reload();
+      return;
+    }
+
+    this.loadProfile();
   }
 
   submitPasswordChange(): void {

@@ -15,7 +15,6 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { WorkflowDetail, WorkflowHistoryDrawer } from '../history/components/workflow-history-drawer/workflow-history-drawer';
 import { finalize, forkJoin } from 'rxjs';
 import { RequestHistoryData, RequestHistoryLog } from '../../core/services/request-service';
-import { AuthService } from '../../core/services/auth-service';
 import { PermissionAction, RequestTypePermissionRecord, RoleService } from '../../core/services/role-service';
 import { RequestType } from '../../data/interfaces/Request';
 import { getPermissionSlugsForCustomAction } from '../../core/constants/action-permission-map';
@@ -133,7 +132,6 @@ export class Pending {
     private readonly requestTypeActionPermissions = signal<Record<number, Record<string, boolean>>>({});
 
     private readonly _roleService = inject(RoleService);
-    private readonly _authService = inject(AuthService);
     private readonly _translateService = inject(TranslateService);
 
     constructor(
@@ -145,48 +143,14 @@ export class Pending {
 
     private initializePermissions(): void {
         this.isLoading.set(true);
-        const roleId = this._authService.getCurrentUser()?.roleId;
-
-        if (roleId) {
-            this.loadPermissionContext(roleId);
-            return;
-        }
-
-        this._authService.checkSession().subscribe({
-            next: (isValid) => {
-                const resolvedRoleId = this._authService.getCurrentUser()?.roleId;
-                if (isValid && resolvedRoleId) {
-                    this.loadPermissionContext(resolvedRoleId);
-                    return;
-                }
-
-                this._requestsService.getRequestTypes().subscribe({
-                    next: (requestTypes) => {
-                        this.requestTypes.set(requestTypes);
-                        this.availableRequestTypes.set([]);
-                        this.acciones.set([]);
-                        this.isLoading.set(false);
-                    },
-                    error: () => {
-                        this.availableRequestTypes.set([]);
-                        this.acciones.set([]);
-                        this.isLoading.set(false);
-                    }
-                });
-            },
-            error: () => {
-                this.availableRequestTypes.set([]);
-                this.acciones.set([]);
-                this.isLoading.set(false);
-            }
-        });
+        this.loadPermissionContext();
     }
 
-    private loadPermissionContext(roleId: number): void {
+    private loadPermissionContext(): void {
         forkJoin({
             actions: this._roleService.getActions(),
             requestTypes: this._requestsService.getRequestTypes(),
-            permissions: this._roleService.getRequestTypePermissionsByRole(roleId),
+            permissions: this._roleService.getRequestTypePermissionsForCurrentContext(),
         }).subscribe({
             next: ({ actions, requestTypes, permissions }) => {
                 this.requestTypes.set(requestTypes);
