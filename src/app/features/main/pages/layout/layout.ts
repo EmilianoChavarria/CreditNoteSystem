@@ -3,6 +3,7 @@ import { Sidebar } from '../../../../shared/components/sidebar/sidebar';
 import { Navbar } from '../../../../shared/components/navbar/navbar';
 import { RouterOutlet } from '@angular/router';
 import { Footer } from '../../../../shared/components/footer/footer';
+import { CacheInspectorWidget } from '../../../../shared/components/cache-inspector-widget/cache-inspector-widget';
 
 @Component({
     selector: 'app-layout',
@@ -13,6 +14,7 @@ import { Footer } from '../../../../shared/components/footer/footer';
         Navbar,
         RouterOutlet,
         Footer,
+        CacheInspectorWidget,
     ],
     
 })
