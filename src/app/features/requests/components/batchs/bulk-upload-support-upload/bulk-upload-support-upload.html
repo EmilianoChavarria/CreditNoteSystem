@@ -36,57 +36,24 @@
 
         <p class="text-xs text-gray-500 mt-3">{{ 'BULK.SUPPORT.HELP_TEXT' | translate }}</p>
 
-        <div class="flex items-center justify-center w-full mt-4">
-            <label for="dropzone-file-support"
-                class="flex flex-col items-center justify-center w-full min-h-48 sm:h-56 bg-blue-50 border border-dashed bg-cover border-default-strong border-blue-600 rounded-md cursor-pointer hover:bg-neutral-tertiary-medium px-4 py-6 sm:py-0"
-                [class.bg-blue-100]="isDragOver()" [class.border-[#ff8200]]="isDragOver()"
-                (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)"
-                (drop)="onDrop($event)">
-                <div class="flex flex-col items-center justify-center text-body pt-5 pb-4 text-center">
-                    <img src="assets/svg/cloud.svg" alt="Logo" class="w-full max-w-20 sm:max-w-24 md:max-w-28 h-auto object-contain my-3 sm:my-4">
-                    <p class="mb-2 text-sm sm:text-base leading-snug">
-                        {{ 'BULK.SUPPORT.DROP_HINT' | translate }}
-                        <span class="font-semibold text-[#ff8200]">{{ 'BULK.COMMON.CLICK_UPLOAD' | translate }}</span>
-                    </p>
-                </div>
-                <input id="dropzone-file-support" type="file" class="hidden" multiple
-                    (change)="onFileInputChange($event)" />
-            </label>
-        </div>
+        <app-bulk-file-dropzone
+            [inputId]="'dropzone-file-support'"
+            [dropHint]="'BULK.SUPPORT.DROP_HINT' | translate"
+            [clickUploadText]="'BULK.COMMON.CLICK_UPLOAD' | translate"
+            [isDragOver]="isDragOver()"
+            [multiple]="true"
+            (dragOver)="onDragOver($event)"
+            (dragLeave)="onDragLeave($event)"
+            (dropFile)="onDrop($event)"
+            (fileChange)="onFileInputChange($event)">
+        </app-bulk-file-dropzone>
 
         @if (uploadedFiles().length > 0) {
-        <div class="w-full mt-4 overflow-x-auto rounded-md border border-gray-200">
-            <table class="w-full min-w-175 border-collapse">
-                <caption class="sr-only">Listado de solicitudes </caption>
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="border-b border-gray-200 px-4 py-2 text-left text-xs font-semibold text-gray-600">{{ 'BULK.COMMON.FILE_NAME' | translate }}</th>
-                        <th class="border-b border-gray-200 px-4 py-2 text-left text-xs font-semibold text-gray-600">{{ 'BULK.COMMON.SIZE' | translate }}</th>
-                        <th class="border-b border-gray-200 px-4 py-2 text-left text-xs font-semibold text-gray-600">{{ 'BULK.COMMON.TYPE' | translate }}</th>
-                        <th class="border-b border-gray-200 px-4 py-2 text-left text-xs font-semibold text-gray-600">{{ 'BULK.COMMON.UPLOADED_AT' | translate }}</th>
-                        <th class="border-b border-gray-200 px-4 py-2 text-left text-xs font-semibold text-gray-600">{{ 'BULK.COMMON.ACTIONS' | translate }}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @for (file of uploadedFiles(); track file.name + file.uploadedAt + file.sizeLabel) {
-                    <tr class="hover:bg-gray-50">
-                        <td class="border-b border-gray-100 px-4 py-2 text-sm text-gray-700">{{ file.name }}</td>
-                        <td class="border-b border-gray-100 px-4 py-2 text-sm text-gray-700">{{ file.sizeLabel }}</td>
-                        <td class="border-b border-gray-100 px-4 py-2 text-sm text-gray-700">{{ file.type }}</td>
-                        <td class="border-b border-gray-100 px-4 py-2 text-sm text-gray-700">{{ file.uploadedAt }}</td>
-                        <td class="border-b border-gray-100 px-4 py-2 text-gray-700">
-                            <button
-                                type="button"
-                                (click)="removeUploadedFile($index)"
-                                class="p-1 text-[#fb2c36] bg-[#fb2c361a] rounded-md hover:cursor-pointer">
-                                <lucide-icon name="trash" size="18"></lucide-icon>
-                            </button>
-                        </td>
-                    </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
+        <app-bulk-uploaded-files-table
+            [rows]="uploadedFiles()"
+            [caption]="'Listado de archivos de soporte cargados'"
+            (remove)="removeUploadedFile($event)">
+        </app-bulk-uploaded-files-table>
         }
     </div>
 </accordeon-item>
