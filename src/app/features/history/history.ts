@@ -224,7 +224,7 @@ export class History {
             company: request.customer?.customerName ?? 'Sin cliente',
             amount,
             classification: request.classification?.name ?? 'Sin clasificación',
-            flow: `Flujo: ${request.request_type?.name?.toUpperCase() ?? 'N/A'} (${request.area ?? 'N/A'})`,
+            flow: `Flujo: ${request.requestType?.name?.toUpperCase() ?? 'N/A'} (${request.area ?? 'N/A'})`,
             createdDate: request.createdAt ? moment(request.createdAt).format('DD MMM YYYY') : '-',
             progressText: 'Paso 9 de 11',
             statusLabel: this.toTitleCase(request.status),
