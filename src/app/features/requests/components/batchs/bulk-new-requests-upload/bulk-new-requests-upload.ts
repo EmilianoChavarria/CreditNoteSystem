@@ -5,6 +5,8 @@ import { AccordeonItem } from '../../../../../shared/components/ui/accordeon/acc
 import { BatchService } from '../../../../../core/services/batch-service';
 import { ToastService } from '../../../../../core/services/toast-service';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { BulkFileDropzone } from '../shared/bulk-file-dropzone/bulk-file-dropzone';
+import { BulkUploadedFilesTable } from '../shared/bulk-uploaded-files-table/bulk-uploaded-files-table';
 
 interface UploadedFileRow {
   name: string;
@@ -15,7 +17,7 @@ interface UploadedFileRow {
 
 @Component({
   selector: 'app-bulk-new-requests-upload',
-  imports: [AccordeonItem, LucideAngularModule, TranslatePipe],
+  imports: [AccordeonItem, LucideAngularModule, TranslatePipe, BulkFileDropzone, BulkUploadedFilesTable],
   templateUrl: './bulk-new-requests-upload.html',
 })
 export class BulkNewRequestsUpload {

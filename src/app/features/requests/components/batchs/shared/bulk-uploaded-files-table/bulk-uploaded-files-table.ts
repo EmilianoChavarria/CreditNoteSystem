@@ -11,6 +11,7 @@ interface UploadedFileRow {
 
 @Component({
   selector: 'app-bulk-uploaded-files-table',
+  standalone: true,
   imports: [TranslatePipe, LucideAngularModule],
   templateUrl: './bulk-uploaded-files-table.html',
 })
