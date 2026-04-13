@@ -82,6 +82,7 @@ export class Table<T extends Record<string, any>>
   readonly botonesCabeceraPersonalizados = input<BotonCabeceraPersonalizado[]>([]);
   readonly hideHeaderActions = input<boolean>(false);
   readonly searchFullWidth = input<boolean>(false);
+  readonly searchValue = input<string>('');
 
   readonly paginaSiguiente = output<void>();
   readonly paginaAnterior = output<void>();
@@ -106,6 +107,16 @@ export class Table<T extends Record<string, any>>
   filterValue = signal<any>('all');
   registrosPorPaginaInterno = signal(10);
   pageSizeOptions: number[] = [5, 10, 20];
+
+  private readonly syncExternalSearchEffect = effect(() => {
+    const externalValue = this.searchValue() ?? '';
+
+    if (externalValue === this.busqueda()) {
+      return;
+    }
+
+    this.busqueda.set(externalValue);
+  });
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['filterDefault']) {
