@@ -97,7 +97,8 @@ export class HttpCachePolicyService {
       || /^\/assets\/i18n\//.test(url)
       || /^\/rolesPermission\/role\/(?:\d+)(?:\/|$)/.test(url)
       || /^\/requestTypePermissions\/role\/(?:\d+)(?:\/|$)/.test(url)
-      || /^\/customers\/search(?:\?|\/|$)/.test(url)
+      || /^\/customers(?:\?|\/|$)/.test(url)
+      || /^\/users\/\d+\/assignments(?:\?|\/|$)/.test(url)
       || /^\/requests\/drafts(?:\/|$)/.test(url)
       || url.startsWith('blob:')
       || url.startsWith('data:');
