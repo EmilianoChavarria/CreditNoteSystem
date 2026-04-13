@@ -1,0 +1,28 @@
+<div class="flex items-center justify-center w-full mt-4">
+  <label
+    [for]="inputId()"
+    class="flex flex-col items-center justify-center w-full min-h-48 sm:h-56 bg-blue-50 border border-dashed bg-cover border-default-strong border-blue-600 rounded-md cursor-pointer hover:bg-neutral-tertiary-medium px-4 py-6 sm:py-0"
+    [class.bg-blue-100]="isDragOver()"
+    [class.border-[#ff8200]]="isDragOver()"
+    (dragover)="onDragOver($event)"
+    (dragleave)="onDragLeave($event)"
+    (drop)="onDrop($event)">
+    <div class="flex flex-col items-center justify-center text-body pt-5 pb-4 text-center">
+      <img src="assets/svg/cloud.svg" alt="Logo" class="w-full max-w-20 sm:max-w-24 md:max-w-28 h-auto object-contain my-3 sm:my-4">
+      <p class="mb-2 text-sm sm:text-base leading-snug">
+        {{ dropHint() }}
+        <span class="font-semibold text-[#ff8200]">{{ clickUploadText() }}</span>
+      </p>
+      @if (extraHint()) {
+      <p class="text-xs text-gray-500 max-w-md">{{ extraHint() }}</p>
+      }
+    </div>
+    <input
+      [id]="inputId()"
+      type="file"
+      class="hidden"
+      [accept]="accept()"
+      [multiple]="multiple()"
+      (change)="onFileInputChange($event)" />
+  </label>
+</div>
