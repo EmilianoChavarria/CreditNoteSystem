@@ -7,6 +7,8 @@ import { BatchService } from '../../../../../core/services/batch-service';
 import { ToastService } from '../../../../../core/services/toast-service';
 import { RequestType } from '../../../../../data/interfaces/Request';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { BulkUploadedFilesTable } from '../shared/bulk-uploaded-files-table/bulk-uploaded-files-table';
+import { BulkFileDropzone } from '../shared/bulk-file-dropzone/bulk-file-dropzone';
 
 interface UploadedFileRow {
   name: string;
@@ -17,7 +19,7 @@ interface UploadedFileRow {
 
 @Component({
   selector: 'app-bulk-sap-return-order-upload',
-  imports: [AccordeonItem, LucideAngularModule, TranslatePipe],
+  imports: [AccordeonItem, LucideAngularModule, TranslatePipe, BulkUploadedFilesTable, BulkFileDropzone],
   templateUrl: './bulk-sap-return-order-upload.html',
 })
 export class BulkSapReturnOrderUpload {
