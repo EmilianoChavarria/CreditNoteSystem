@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, signal, ChangeDetectorRef } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AccionPersonalizada, Column, Table } from '../../../shared/components/ui/table/table';
@@ -11,10 +11,13 @@ import * as pdfMake from 'pdfmake/build/pdfmake';
 import * as pdfFonts from 'pdfmake/build/vfs_fonts';
 import { Modal } from "../../../shared/components/ui/modal/modal";
 import { Badge } from "../../../shared/components/ui/badge/badge";
-import { JsonPipe, UpperCasePipe } from '@angular/common';
+import { UpperCasePipe } from '@angular/common';
 import { Spinner } from "../../../shared/components/ui/spinner/spinner";
 import { PermissionAction, RequestTypePermissionRecord, RoleService } from '../../../core/services/role-service';
-import { forkJoin } from 'rxjs';
+import { ActivatedRoute } from '@angular/router';
+import { catchError, forkJoin, map, of, switchMap } from 'rxjs';
+import { normalizeRequestNumber } from '../../../shared/utils/notification-navigation';
+import { FullSpinnerComponent } from '../../../shared/components/ui/full-spinner/full-spinner';
 // 👇 Accede al default export real
 const pdf: any = (pdfMake as any).default ?? pdfMake;
 
@@ -22,7 +25,7 @@ const pdf: any = (pdfMake as any).default ?? pdfMake;
 pdf.vfs = (pdfFonts as any).default?.vfs ?? (pdfFonts as any).vfs;
 @Component({
   selector: 'app-my-approvals',
-  imports: [TranslatePipe, WorkflowHistoryDrawer, Modal, Table, Badge, UpperCasePipe, Spinner, ReactiveFormsModule],
+  imports: [TranslatePipe, WorkflowHistoryDrawer, Modal, Table, Badge, UpperCasePipe, Spinner, ReactiveFormsModule, FullSpinnerComponent],
   templateUrl: './my-approvals.html',
   styleUrl: './my-approvals.css',
 })
@@ -43,6 +46,12 @@ export class MyApprovals {
         comments: new FormControl<string>('', Validators.required)
     })
     public columns: Column<Request>[] = [
+        {
+            key: 'bulkSelect',
+            label: 'MY_APPROVALS.SELECT',
+            sortable: false,
+            customTemplate: true
+        },
         {
             key: 'requestNumber',
             label: 'MY_APPROVALS.REQUEST_NUMBER',
@@ -125,12 +134,36 @@ export class MyApprovals {
         this.showHistoryDrawer.set(false);
     }
     public selectedRequest = signal<Request | null>(null);
+    public selectedRequestIds = signal<Set<number>>(new Set<number>());
+    public selectedCount = computed(() => this.selectedRequestIds().size);
+    public currentPageRequestIds = computed(() => this.requests()
+        .map((request) => Number(request.id))
+        .filter((id) => Number.isFinite(id) && id > 0));
+    public allVisibleSelected = computed(() => {
+        const pageIds = this.currentPageRequestIds();
+        if (!pageIds.length) {
+            return false;
+        }
+
+        const selectedIds = this.selectedRequestIds();
+        return pageIds.every((id) => selectedIds.has(id));
+    });
 
     public submitted = signal(false);
     public showDeclineModal = signal<boolean>(false);
+    public showBulkApproveModal = signal<boolean>(false);
+    public showBulkDeclineModal = signal<boolean>(false);
+    public isBulkProcessing = signal<boolean>(false);
+    public searchTerm = signal<string>('');
+    public isInitializingDeepLink = signal<boolean>(false);
+    private searchDebounceTimeout: ReturnType<typeof setTimeout> | null = null;
+    private pendingShortcutRequestNumber: string | null = null;
+    private appliedShortcutRequestNumber: string | null = null;
     private readonly requestTypeActionPermissions = signal<Record<number, Record<string, boolean>>>({});
     private readonly roleService = inject(RoleService);
     private readonly translateService = inject(TranslateService);
+    private readonly route = inject(ActivatedRoute);
+    private readonly cdr = inject(ChangeDetectorRef);
 
     constructor(
         private _requestsService: RequestService,
@@ -138,6 +171,7 @@ export class MyApprovals {
     ) { }
 
     ngOnInit(): void {
+        this.listenForNotificationShortcut();
         this.loadAllowedRequestTypes();
     }
 
@@ -161,6 +195,7 @@ export class MyApprovals {
                 });
 
                 this.availableRequestTypes.set(filteredTypes);
+                this.tryApplyNotificationShortcut();
             },
             error: () => {
                 this.availableRequestTypes.set([]);
@@ -195,15 +230,124 @@ export class MyApprovals {
         return permissionMatrix;
     }
 
+    private listenForNotificationShortcut(): void {
+        this.route.queryParamMap.subscribe((params) => {
+            const requestNumber = normalizeRequestNumber(params.get('requestNumber') ?? '');
+
+            if (!requestNumber) {
+                this.pendingShortcutRequestNumber = null;
+                return;
+            }
+
+            this.pendingShortcutRequestNumber = requestNumber;
+            this.tryApplyNotificationShortcut();
+        });
+    }
+
+    private tryApplyNotificationShortcut(): void {
+        const requestNumber = this.pendingShortcutRequestNumber;
+
+        if (!requestNumber || this.appliedShortcutRequestNumber === requestNumber) {
+            return;
+        }
+
+        const requestTypes = this.availableRequestTypes();
+        if (!requestTypes.length) {
+            return;
+        }
+
+        this.isInitializingDeepLink.set(true);
+
+        this.resolveRequestTypeForShortcut(requestNumber, requestTypes).subscribe((resolvedRequestTypeId) => {
+            if (!resolvedRequestTypeId) {
+                this.isInitializingDeepLink.set(false);
+                return;
+            }
+
+            this.appliedShortcutRequestNumber = requestNumber;
+            this.selectedRequestType = String(resolvedRequestTypeId);
+            this.searchTerm.set(requestNumber);
+            this.currentPage.set(1);
+            this.totalPages.set(1);
+            this.hasNextPage.set(false);
+            this.hasPrevPage.set(false);
+            this.clearSelectedRequests();
+            this.loadMyPendingRequests();
+        });
+    }
+
+    private resolveRequestTypeForShortcut(requestNumber: string, requestTypes: RequestType[]) {
+        const targetSeries = this.extractSeries(requestNumber);
+
+        return forkJoin(
+            requestTypes.map((requestType) =>
+                this._requestsService.getNextRequestNumber(requestType.id).pipe(
+                    map((nextNumber) => ({
+                        requestTypeId: requestType.id,
+                        series: this.extractSeries(nextNumber.prefix ?? ''),
+                    })),
+                    catchError(() => of({ requestTypeId: requestType.id, series: '' }))
+                )
+            )
+        ).pipe(
+            switchMap((prefixMatches) => {
+                const directMatch = prefixMatches
+                    .filter((item) => !!item.series)
+                    .sort((a, b) => b.series.length - a.series.length)
+                    .find((item) => targetSeries.startsWith(item.series));
+
+                if (directMatch) {
+                    return of(directMatch.requestTypeId);
+                }
+
+                return this.findRequestTypeByRequestLookup(requestNumber, requestTypes);
+            })
+        );
+    }
+
+    private findRequestTypeByRequestLookup(requestNumber: string, requestTypes: RequestType[]) {
+        const normalizedTarget = this.normalizeRequestNumberForCompare(requestNumber);
+
+        return forkJoin(
+            requestTypes.map((requestType) =>
+                this._requestsService.getMyPendingRequests(requestType.id, this.pageSize(), 1, requestNumber).pipe(
+                    map((response) => {
+                        const found = (response.data ?? []).some((request) =>
+                            this.normalizeRequestNumberForCompare(request.requestNumber) === normalizedTarget
+                        );
+
+                        return found ? requestType.id : null;
+                    }),
+                    catchError(() => of(null))
+                )
+            )
+        ).pipe(
+            map((matches) => matches.find((item) => item !== null) ?? null)
+        );
+    }
+
+    private extractSeries(requestNumber: string): string {
+        const normalized = normalizeRequestNumber(requestNumber);
+        const match = normalized.match(/^[A-Z]+/);
+        return match?.[0] ?? '';
+    }
+
+    private normalizeRequestNumberForCompare(requestNumber: string): string {
+        return normalizeRequestNumber(requestNumber).replace(/[^A-Z0-9]/g, '');
+    }
+
     onRequestTypeChange(event: any) {
         this.isLoading.set(true);
         const value = event.target.value as string;
         this.selectedRequestType = value;
+        this.appliedShortcutRequestNumber = null;
+        this.searchTerm.set('');
 
         this.currentPage.set(1);
         this.totalPages.set(1);
         this.hasNextPage.set(false);
         this.hasPrevPage.set(false);
+        this.clearSelectedRequests();
 
         if (value === 'DE') {
             this.requests.set([]);
@@ -221,12 +365,13 @@ export class MyApprovals {
             this.requests.set([]);
             this.isLoadingTable.set(false);
             this.isLoading.set(false);
+            this.isInitializingDeepLink.set(false);
             return;
         }
 
         this.isLoadingTable.set(true);
 
-        this._requestsService.getMyPendingRequests(requestTypeId, this.pageSize(), this.currentPage()).subscribe({
+        this._requestsService.getMyPendingRequests(requestTypeId, this.pageSize(), this.currentPage(), this.searchTerm()).subscribe({
             next: (response) => {
                 this.requests.set(response.data ?? []);
                 this.currentPage.set(response.current_page ?? 1);
@@ -235,11 +380,15 @@ export class MyApprovals {
                 this.hasPrevPage.set(Boolean(response.prev_page_url));
                 this.isLoadingTable.set(false);
                 this.isLoading.set(false);
+                this.isInitializingDeepLink.set(false);
+                this.cdr.markForCheck();
             },
             error: (error) => {
                 console.error('❌ Error al cargar requests:', error);
                 this.isLoadingTable.set(false);
                 this.isLoading.set(false);
+                this.isInitializingDeepLink.set(false);
+                this.cdr.markForCheck();
             }
         });
     }
@@ -294,6 +443,32 @@ export class MyApprovals {
         this.loadMyPendingRequests();
     }
 
+    onSearch(term: string): void {
+        if (this.selectedRequestType === 'DE' || !this.selectedRequestType) {
+            return;
+        }
+
+        if (this.searchDebounceTimeout) {
+            clearTimeout(this.searchDebounceTimeout);
+        }
+
+        this.searchDebounceTimeout = setTimeout(() => {
+            const normalizedTerm = term.trim();
+
+            if (normalizedTerm === this.searchTerm()) {
+                return;
+            }
+
+            this.searchTerm.set(normalizedTerm);
+            this.currentPage.set(1);
+            this.totalPages.set(1);
+            this.hasNextPage.set(false);
+            this.hasPrevPage.set(false);
+            this.clearSelectedRequests();
+            this.loadMyPendingRequests();
+        }, 350);
+    }
+
     onDeclineModalChange(isOpen: boolean = true, request?: Request): void {
         this.showDeclineModal.set(isOpen);
         if (isOpen && request) {
@@ -306,6 +481,195 @@ export class MyApprovals {
             this.form.reset();
             this.submitted.set(false);
         }
+    }
+
+    onBulkApproveModalChange(isOpen: boolean = true): void {
+        this.showBulkApproveModal.set(isOpen);
+    }
+
+    onBulkDeclineModalChange(isOpen: boolean = true): void {
+        this.showBulkDeclineModal.set(isOpen);
+
+        if (isOpen) {
+            this.form.reset();
+            this.submitted.set(false);
+            return;
+        }
+
+        this.form.reset();
+        this.submitted.set(false);
+    }
+
+    isRequestSelected(request: Request): boolean {
+        const requestId = Number(request.id);
+
+        if (!Number.isFinite(requestId) || requestId <= 0) {
+            return false;
+        }
+
+        return this.selectedRequestIds().has(requestId);
+    }
+
+    toggleRequestSelection(request: Request, checked: boolean): void {
+        const requestId = Number(request.id);
+
+        if (!Number.isFinite(requestId) || requestId <= 0) {
+            return;
+        }
+
+        this.selectedRequestIds.update((currentSelection) => {
+            const nextSelection = new Set(currentSelection);
+
+            if (checked) {
+                nextSelection.add(requestId);
+            } else {
+                nextSelection.delete(requestId);
+            }
+
+            return nextSelection;
+        });
+    }
+
+    toggleSelectCurrentPage(checked: boolean): void {
+        const pageIds = this.currentPageRequestIds();
+        if (!pageIds.length) {
+            return;
+        }
+
+        this.selectedRequestIds.update((currentSelection) => {
+            const nextSelection = new Set(currentSelection);
+
+            for (const requestId of pageIds) {
+                if (checked) {
+                    nextSelection.add(requestId);
+                } else {
+                    nextSelection.delete(requestId);
+                }
+            }
+
+            return nextSelection;
+        });
+    }
+
+    clearSelectedRequests(): void {
+        this.selectedRequestIds.set(new Set<number>());
+    }
+
+    openBulkApproveModal(): void {
+        if (!this.selectedCount()) {
+            return;
+        }
+
+        this.onBulkApproveModalChange(true);
+    }
+
+    openBulkDeclineModal(): void {
+        if (!this.selectedCount()) {
+            return;
+        }
+
+        this.onBulkDeclineModalChange(true);
+    }
+
+    approveSelectedRequests(): void {
+        const requestIds = Array.from(this.selectedRequestIds());
+
+        if (!requestIds.length) {
+            return;
+        }
+
+        this.isBulkProcessing.set(true);
+        const defaultComment = this.translateService.instant('MY_APPROVALS.BULK_APPROVE_DEFAULT_COMMENT');
+
+        this._requestsService.approveMassRequests(requestIds, defaultComment).subscribe({
+            next: (response) => {
+                if (response.totalApproved > 0) {
+                    this._toastService.success(
+                        this.translateService.instant('MY_APPROVALS.TOAST.BULK_APPROVE_SUCCESS', {
+                            approved: response.totalApproved,
+                            total: response.totalReceived,
+                        }),
+                        this.translateService.instant('MY_APPROVALS.TOAST.SUCCESS')
+                    );
+                }
+
+                if (response.totalFailed > 0) {
+                    this._toastService.warning(
+                        this.translateService.instant('MY_APPROVALS.TOAST.BULK_APPROVE_PARTIAL', {
+                            failed: response.totalFailed,
+                        }),
+                        this.translateService.instant('MY_APPROVALS.TOAST.ERROR')
+                    );
+                }
+
+                this.onBulkApproveModalChange(false);
+                this.clearSelectedRequests();
+                this.loadMyPendingRequests();
+                this.isBulkProcessing.set(false);
+            },
+            error: (error) => {
+                this.isBulkProcessing.set(false);
+                this._toastService.error(
+                    this.translateService.instant('MY_APPROVALS.TOAST.BULK_APPROVE_ERROR'),
+                    this.translateService.instant('MY_APPROVALS.TOAST.ERROR')
+                );
+                console.error('Error approving requests in bulk:', error);
+            }
+        });
+    }
+
+    declineSelectedRequests(): void {
+        this.submitted.set(true);
+
+        if (!this.form.valid) {
+            this.form.markAllAsTouched();
+            return;
+        }
+
+        const requestIds = Array.from(this.selectedRequestIds());
+
+        if (!requestIds.length) {
+            return;
+        }
+
+        const comments = this.form.get('comments')?.value ?? '';
+        this.isBulkProcessing.set(true);
+
+        this._requestsService.rejectMassRequests(requestIds, comments).subscribe({
+            next: (response) => {
+                if (response.totalRejected > 0) {
+                    this._toastService.success(
+                        this.translateService.instant('MY_APPROVALS.TOAST.BULK_REJECT_SUCCESS', {
+                            rejected: response.totalRejected,
+                            total: response.totalReceived,
+                        }),
+                        this.translateService.instant('MY_APPROVALS.TOAST.SUCCESS')
+                    );
+                }
+
+                if (response.totalFailed > 0) {
+                    this._toastService.warning(
+                        this.translateService.instant('MY_APPROVALS.TOAST.BULK_REJECT_PARTIAL', {
+                            failed: response.totalFailed,
+                        }),
+                        this.translateService.instant('MY_APPROVALS.TOAST.ERROR')
+                    );
+                }
+
+                this.onBulkDeclineModalChange(false);
+                this.clearSelectedRequests();
+                this.loadMyPendingRequests();
+                this.isBulkProcessing.set(false);
+            },
+            error: (error) => {
+                this.isBulkProcessing.set(false);
+                this._toastService.error(
+                    this.translateService.instant('MY_APPROVALS.TOAST.BULK_REJECT_ERROR'),
+                    this.translateService.instant('MY_APPROVALS.TOAST.ERROR')
+                );
+                console.error('Error rejecting requests in bulk:', error);
+            }
+        });
     }
 
     campoVacio(controlName: string): boolean {
