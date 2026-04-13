@@ -7,7 +7,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { Spinner } from '../../shared/components/ui/spinner/spinner';
 import { Badge } from '../../shared/components/ui/badge/badge';
 import { UpperCasePipe } from '@angular/common';
-import { WorkflowDetail, WorkflowHistoryDrawer } from './components/workflow-history-drawer/workflow-history-drawer';
+import { WorkflowDetail } from './components/workflow-history-drawer/workflow-history-drawer';
 
 @Component({
     selector: 'app-history',
@@ -193,16 +193,7 @@ export class History {
 
     onDeclineModalChange(isOpen: boolean = true, request?: Request): void {
         this.showDeclineModal.set(isOpen);
-        // if (!isOpen) {
-        //     this.selectedUserToDelete.set(null);
-        // }
         console.log(request);
-
-    }
-
-    
-
-    declineRequest(request: Request) {
 
     }
 
