@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 
-declare var gtag: Function; // Declara la función global de GA
+declare let gtag: Function; // Declara la función global de GA
 
 @Injectable({
   providedIn: 'root'
