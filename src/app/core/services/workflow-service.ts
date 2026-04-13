@@ -68,6 +68,16 @@ export class WorkflowService {
     )
   }
 
+  deleteWorkflowStep(id: number) {
+    return this._httpService.delete<null>(`/workflowsteps/${id}`).pipe(
+      map((response) => response),
+      catchError((error) => {
+        console.log(error);
+        throw error;
+      })
+    )
+  }
+
   getWorkflowSteps(workflowId: number) {
     return this._httpService.get<any>(`/workflowsteps/workflow/${workflowId}`).pipe(
       map((response) => response.data?.steps ?? []),
