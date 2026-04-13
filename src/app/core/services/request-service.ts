@@ -189,6 +189,33 @@ interface RequestAttachmentFilePayload {
   path?: string;
 }
 
+export interface MassActionRequestPayload {
+  requestIds: number[];
+  comments?: string;
+}
+
+export interface MassActionFailedRequest {
+  requestId: number;
+  reason: string;
+}
+
+export interface ApproveMassResponse {
+  totalReceived: number;
+  totalApproved: number;
+  totalFailed: number;
+  approvedRequestIds: number[];
+  failedRequests: MassActionFailedRequest[];
+}
+
+export interface RejectMassResponse {
+  totalReceived: number;
+  totalRejected: number;
+  totalFailed: number;
+  rejectedRequestIds: number[];
+  failedRequests: MassActionFailedRequest[];
+  commentApplied?: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -226,12 +253,16 @@ export class RequestService {
     )
   }
 
-  getMyPendingRequests(requestTypeId: number, perPage = 10, page = 1): Observable<PagePagination<Request>> {
-    const params: { requestTypeId: number; per_page: number; page: number } = {
+  getMyPendingRequests(requestTypeId: number, perPage = 10, page = 1, search?: string): Observable<PagePagination<Request>> {
+    const params: { requestTypeId: number; per_page: number; page: number; search?: string } = {
       requestTypeId,
       per_page: perPage,
       page,
     };
+
+    if (search && search.trim().length > 0) {
+      params.search = search.trim();
+    }
 
     return this._httpService.get<PagePagination<Request>>('/requests/pending/me', {
       params
@@ -477,6 +508,48 @@ export class RequestService {
         throw error;
       })
     )
+  }
+
+  approveMassRequests(requestIds: number[], comments?: string): Observable<ApproveMassResponse> {
+    const payload: MassActionRequestPayload = {
+      requestIds,
+      comments,
+    };
+
+    return this._httpService.post<ApproveMassResponse>('/requests/approve-mass', payload).pipe(
+      map((response: ApiResponse<ApproveMassResponse>) => response.data ?? {
+        totalReceived: requestIds.length,
+        totalApproved: 0,
+        totalFailed: requestIds.length,
+        approvedRequestIds: [],
+        failedRequests: []
+      }),
+      catchError((error) => {
+        console.log(error);
+        throw error;
+      })
+    );
+  }
+
+  rejectMassRequests(requestIds: number[], comments: string): Observable<RejectMassResponse> {
+    const payload: MassActionRequestPayload = {
+      requestIds,
+      comments,
+    };
+
+    return this._httpService.post<RejectMassResponse>('/requests/reject-mass', payload).pipe(
+      map((response: ApiResponse<RejectMassResponse>) => response.data ?? {
+        totalReceived: requestIds.length,
+        totalRejected: 0,
+        totalFailed: requestIds.length,
+        rejectedRequestIds: [],
+        failedRequests: [],
+      }),
+      catchError((error) => {
+        console.log(error);
+        throw error;
+      })
+    );
   }
 
   getRequestAttachments(requestId: number): Observable<RequestAttachment[]> {
