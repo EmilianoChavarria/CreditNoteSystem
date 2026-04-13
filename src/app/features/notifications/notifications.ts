@@ -57,17 +57,25 @@ export class Notifications implements OnInit {
         const isBulkNotification = isBulkUploadNotification(notification);
         const requestNumber = extractRequestNumberFromNotification(notification);
 
-        const routePath = isAssignedRequest || isAssignedRequestBulk
-            ? ['/app/my-approvals']
-            : isBulkNotification
-                ? ['/app/request/bulk-upload']
-                : ['/app/notifications'];
+        let routePath: string[];
 
-        const queryParams = isAssignedRequest && requestNumber
-            ? { requestNumber }
-            : isBulkNotification && !isAssignedRequestBulk
-                ? this.buildBulkHistoryQuery(notification)
-                : undefined;
+        if (isAssignedRequest || isAssignedRequestBulk) {
+            routePath = ['/app/my-approvals'];
+        } else if (isBulkNotification) {
+            routePath = ['/app/request/bulk-upload'];
+        } else {
+            routePath = ['/app/notifications'];
+        }
+
+        let queryParams: Record<string, string> | Record<string, string | number> | undefined;
+
+        if (isAssignedRequest && requestNumber) {
+            queryParams = { requestNumber };
+        } else if (isBulkNotification && !isAssignedRequestBulk) {
+            queryParams = this.buildBulkHistoryQuery(notification);
+        } else {
+            queryParams = undefined;
+        }
 
         // Show spinner when navigating to approvals
         if (isAssignedRequest || isAssignedRequestBulk) {
