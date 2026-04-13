@@ -61,7 +61,7 @@ export class Pending {
             sortable: true
         },
         {
-            key: 'request_type.name',
+            key: 'requestType.name',
             label: 'PENDING_PAGE.REQUEST_TYPE',
             sortable: true,
             customTemplate: true
