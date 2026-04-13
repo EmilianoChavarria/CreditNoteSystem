@@ -56,7 +56,7 @@
     </section>
 
     <app-tabla-dinamica [datos]="requests()" [columnas]="columns" [accionesPersonalizadas]="acciones" actionMode="menu"
-        [enableFilter]="true" filterField="workflow_current_step.assigned_role.roleName" addLabel="MY_APPROVALS.REQUEST" addRoute="/app/settings/newUser" [canAdd]="false"
+        [enableFilter]="true" filterField="workflowCurrentStep.assigned_role.roleName" addLabel="MY_APPROVALS.REQUEST" addRoute="/app/settings/newUser" [canAdd]="false"
         [emptyMessageKey]="'MY_APPROVALS.NO_PENDING_APPROVALS'"
         [searchValue]="searchTerm()"
         [registrosPorPagina]="pageSize()" [loading]="isLoadingTable()"
@@ -78,11 +78,11 @@
             <app-badge color="blue" [text]="item.request_type.name | uppercase" />
             } @else if (column.key === 'status') {
             <div class="w-fit rounded-lg px-2"
-                [style]="`background-color: ${item.workflow_current_step.assigned_role.color +'1A'}; color:${item.workflow_current_step.assigned_role.color}` ">
-                <span [class]="`text-center font-semibold`">{{item.workflow_current_step.assigned_role.roleName}}</span>
+                [style]="`background-color: ${item.workflowCurrentStep.assigned_role.color +'1A'}; color:${item.workflowCurrentStep.assigned_role.color}` ">
+                <span [class]="`text-center font-semibold`">{{item.workflowCurrentStep.assigned_role.roleName}}</span>
             </div>
             <!-- <div>
-                {{item.workflow_current_step | json}}
+                {{item.workflowCurrentStep | json}}
             </div> -->
             }
         </ng-template>
