@@ -14,6 +14,12 @@ import { ImpersonationService } from '../../../core/services/impersonation.servi
 import { toObservable } from '@angular/core/rxjs-interop';
 import { UserService } from '../../../core/services/user-service';
 import { User } from '../../../data/interfaces/User';
+import {
+  extractRequestNumberFromNotification,
+  isAssignedRequestBulkNotification,
+  isAssignedRequestNotification,
+  isBulkUploadNotification,
+} from '../../utils/notification-navigation';
 
 @Component({
     selector: 'app-navbar',
@@ -121,13 +127,22 @@ export class Navbar {
   }
 
   openNotification(notification: AppNotification): void {
-    const routePath = this.isBulkUploadNotification(notification)
-      ? ['/app/request/bulk-upload']
-      : ['/app/notifications'];
+    const isAssignedRequestBulk = isAssignedRequestBulkNotification(notification);
+    const isAssignedRequest = isAssignedRequestNotification(notification);
+    const isBulkUpload = isBulkUploadNotification(notification);
+    const requestNumber = extractRequestNumberFromNotification(notification);
 
-    const queryParams = this.isBulkUploadNotification(notification)
-      ? this.buildBulkHistoryQuery(notification)
-      : undefined;
+    const routePath = isAssignedRequest || isAssignedRequestBulk
+      ? ['/app/my-approvals']
+      : isBulkUpload
+        ? ['/app/request/bulk-upload']
+        : ['/app/notifications'];
+
+    const queryParams = isAssignedRequest && requestNumber
+      ? { requestNumber }
+      : isBulkUpload && !isAssignedRequestBulk
+        ? this.buildBulkHistoryQuery(notification)
+        : undefined;
 
     this.router.navigate(routePath, { queryParams }).catch((error) => {
       console.error('[Navbar] Notification navigation failed:', error);
@@ -180,19 +195,6 @@ export class Navbar {
       roleName: user.role?.roleName ?? '',
       preferredLanguage: user.preferredLanguage,
     };
-  }
-
-  private isBulkUploadNotification(notification: AppNotification): boolean {
-    const raw = notification as Record<string, unknown>;
-    const composedText = [
-      String(notification.type ?? ''),
-      String(notification.title ?? ''),
-      String(notification.message ?? ''),
-      String(raw['event'] ?? ''),
-      String(raw['category'] ?? ''),
-    ].join(' ').toLowerCase();
-
-    return composedText.includes('batch') || composedText.includes('bulk');
   }
 
   private buildBulkHistoryQuery(notification: AppNotification): Record<string, string | number> {
