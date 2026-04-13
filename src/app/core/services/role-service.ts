@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpService } from './http-service';
-import { catchError, map, Observable, of, switchMap, tap } from 'rxjs';
+import { catchError, map, Observable, of, switchMap } from 'rxjs';
 import { Role } from '../../data/interfaces/User';
 import { ApiResponse } from '../../data/interfaces/ApiResponse-interface';
 import { RequestType } from '../../data/interfaces/Request';
@@ -109,11 +109,6 @@ export class RoleService {
 
   getRoles(): Observable<Role[]> {
     return this._httpSevice.get<Role[]>('/roles').pipe(
-      tap((response: ApiResponse<Role[]>) => {
-        if (response.success) {
-          // console.log(response);
-        }
-      }),
       map((response: ApiResponse<Role[]>) => response.data ?? []),
       catchError(error => {
         console.log(error);
@@ -124,11 +119,6 @@ export class RoleService {
 
   saveRole(data: Role) {
     return this._httpSevice.post<Role>('roles', data).pipe(
-      tap((response: ApiResponse<Role>) => {
-        if (response.success) {
-
-        }
-      }),
       catchError((error) => {
         console.log(error);
         throw error;
@@ -151,11 +141,6 @@ export class RoleService {
       permissions: data
     }
     return this._httpSevice.post('/rolesPermission/assign', formatedData).pipe(
-      tap((response) => {
-        if (response.success) {
-
-        }
-      }),
       catchError((error) => {
         console.log(error);
         throw error;
