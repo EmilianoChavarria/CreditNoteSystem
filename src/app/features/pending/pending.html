@@ -26,7 +26,7 @@
     </div>
     } @else if (selectedRequestType !== 'DE' && selectedRequestType) {
     <app-tabla-dinamica [datos]="requests()" [columnas]="columns" [accionesPersonalizadas]="acciones()" actionMode="menu"
-        [enableFilter]="true" filterField="workflow_current_step.assigned_role.roleName" addLabel="PENDING_PAGE.REQUEST" addRoute="/app/settings/newUser" [canAdd]="false"
+        [enableFilter]="true" filterField="workflowCurrentStep.assigned_role.roleName" addLabel="PENDING_PAGE.REQUEST" addRoute="/app/settings/newUser" [canAdd]="false"
         [registrosPorPagina]="pageSize()" [serverPagination]="true" [paginaActualExterna]="currentPage()"
         [totalPaginasExterno]="totalPages()"
         [hasNextPage]="hasNextPage()" [hasPrevPage]="hasPrevPage()" [loading]="isLoadingTable()"
@@ -36,13 +36,13 @@
         (searchChange)="onSearch($event)">
 
         <ng-template #cellTemplate let-item let-column="column">
-            @if (column.key === 'request_type.name') {
-            <app-badge color="blue" [text]="item.request_type.name | uppercase" />
+            @if (column.key === 'requestType.name') {
+            <app-badge color="blue" [text]="item.requestType.name | uppercase" />
             } @else if (column.key === 'status') {
-            @if (item.workflow_current_step?.assigned_role?.roleName) {
+            @if (item.workflowCurrentStep?.assigned_role?.roleName) {
             <div class="w-fit rounded-lg px-2"
-                [style]="`background-color: ${item.workflow_current_step.assigned_role.color +'1A'}; color:${item.workflow_current_step.assigned_role.color}` ">
-                <span [class]="`text-center font-semibold`">{{item.workflow_current_step.assigned_role.roleName}}</span>
+                [style]="`background-color: ${item.workflowCurrentStep.assigned_role.color +'1A'}; color:${item.workflowCurrentStep.assigned_role.color}` ">
+                <span [class]="`text-center font-semibold`">{{item.workflowCurrentStep.assigned_role.roleName}}</span>
             </div>
             } @else {
             <app-badge color="green" [text]="item.status | uppercase" />

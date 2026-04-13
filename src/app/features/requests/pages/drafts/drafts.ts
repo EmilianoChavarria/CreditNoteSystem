@@ -55,7 +55,7 @@ export class Drafts {
                 key: 'request_type.name',
                 label: 'DRAFTS.REQUEST_TYPE',
                 sortable: true,
-                render: (value, item) => item?.request_type?.name || '-'
+                render: (value, item) => item?.requestType?.name || '-'
             },
             {
                 key: 'status',

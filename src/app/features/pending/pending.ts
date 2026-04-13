@@ -646,7 +646,7 @@ export class Pending {
             company: request.customer?.customerName ?? this._translateService.instant('PENDING_PAGE.NO_CLIENT'),
             amount,
             classification: request.classification?.name ?? this._translateService.instant('PENDING_PAGE.NO_CLASSIFICATION'),
-            flow: `${this._translateService.instant('PENDING_PAGE.FLOW_LABEL')}: ${request.request_type?.name?.toUpperCase() ?? 'N/A'} (${request.area ?? 'N/A'})`,
+            flow: `${this._translateService.instant('PENDING_PAGE.FLOW_LABEL')}: ${request.requestType?.name?.toUpperCase() ?? 'N/A'} (${request.area ?? 'N/A'})`,
             createdDate: request.createdAt ? moment(request.createdAt).format('DD MMM YYYY') : '-',
             progressText: this._translateService.instant('PENDING_PAGE.STEP_OF', { current: 9, total: 11 }),
             statusLabel: this.toTitleCase(request.status),
@@ -714,7 +714,7 @@ export class Pending {
             company: request.customer?.customerName ?? this._translateService.instant('PENDING_PAGE.NO_CLIENT'),
             amount,
             classification: request.classification?.name ?? this._translateService.instant('PENDING_PAGE.NO_CLASSIFICATION'),
-            flow: `${this._translateService.instant('PENDING_PAGE.FLOW_LABEL')}: ${request.request_type?.name?.toUpperCase() ?? 'N/A'} (${request.area ?? 'N/A'})`,
+            flow: `${this._translateService.instant('PENDING_PAGE.FLOW_LABEL')}: ${request.requestType?.name?.toUpperCase() ?? 'N/A'} (${request.area ?? 'N/A'})`,
             createdDate: request.createdAt ? moment(request.createdAt).format('DD MMM YYYY') : '-',
             progressText: this._translateService.instant('PENDING_PAGE.STEP_OF', {
                 current: data.progress.currentStepOrder,

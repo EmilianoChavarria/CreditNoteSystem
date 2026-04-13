@@ -58,7 +58,7 @@ export class MyApprovals {
             sortable: true
         },
         {
-            key: 'request_type.name',
+            key: 'requestType.name',
             label: 'MY_APPROVALS.REQUEST_TYPE',
             sortable: true,
             customTemplate: true
@@ -555,6 +555,12 @@ export class MyApprovals {
         this.selectedRequestIds.set(new Set<number>());
     }
 
+    private getErrorMessageFromResponse(error: any, fallbackTranslationKey: string): string {
+        return error?.error?.message
+            ? error.error.message
+            : this.translateService.instant(fallbackTranslationKey);
+    }
+
     openBulkApproveModal(): void {
         if (!this.selectedCount()) {
             return;
@@ -609,8 +615,9 @@ export class MyApprovals {
             },
             error: (error) => {
                 this.isBulkProcessing.set(false);
+                const errorMessage = this.getErrorMessageFromResponse(error, 'MY_APPROVALS.TOAST.BULK_APPROVE_ERROR');
                 this._toastService.error(
-                    this.translateService.instant('MY_APPROVALS.TOAST.BULK_APPROVE_ERROR'),
+                    errorMessage,
                     this.translateService.instant('MY_APPROVALS.TOAST.ERROR')
                 );
                 console.error('Error approving requests in bulk:', error);
@@ -663,8 +670,9 @@ export class MyApprovals {
             },
             error: (error) => {
                 this.isBulkProcessing.set(false);
+                const errorMessage = this.getErrorMessageFromResponse(error, 'MY_APPROVALS.TOAST.BULK_REJECT_ERROR');
                 this._toastService.error(
-                    this.translateService.instant('MY_APPROVALS.TOAST.BULK_REJECT_ERROR'),
+                    errorMessage,
                     this.translateService.instant('MY_APPROVALS.TOAST.ERROR')
                 );
                 console.error('Error rejecting requests in bulk:', error);
@@ -706,8 +714,9 @@ export class MyApprovals {
                 this.loadMyPendingRequests();
             },
             error: (error) => {
+                const errorMessage = this.getErrorMessageFromResponse(error, 'MY_APPROVALS.TOAST.REQUEST_REJECTED_ERROR');
                 this._toastService.error(
-                    this.translateService.instant('MY_APPROVALS.TOAST.REQUEST_REJECTED_ERROR'),
+                    errorMessage,
                     this.translateService.instant('MY_APPROVALS.TOAST.ERROR')
                 );
                 console.error('Error rejecting request:', error);
@@ -729,8 +738,9 @@ export class MyApprovals {
                 this.loadMyPendingRequests();
             },
             error: (error) => {
+                const errorMessage = this.getErrorMessageFromResponse(error, 'MY_APPROVALS.TOAST.REQUEST_APPROVED_ERROR');
                 this._toastService.error(
-                    this.translateService.instant('MY_APPROVALS.TOAST.REQUEST_APPROVED_ERROR'),
+                    errorMessage,
                     this.translateService.instant('MY_APPROVALS.TOAST.ERROR')
                 );
                 console.error('Error approving request:', error);
@@ -950,7 +960,7 @@ export class MyApprovals {
             company: request.customer?.customerName ?? this.translateService.instant('MY_APPROVALS.NO_CLIENT'),
             amount,
             classification: request.classification?.name ?? this.translateService.instant('MY_APPROVALS.NO_CLASSIFICATION'),
-            flow: `Flujo: ${request.request_type?.name?.toUpperCase() ?? 'N/A'} (${request.area ?? 'N/A'})`,
+            flow: `Flujo: ${request.requestType?.name?.toUpperCase() ?? 'N/A'} (${request.area ?? 'N/A'})`,
             createdDate: request.createdAt ? moment(request.createdAt).format('DD MMM YYYY') : '-',
             progressText: this.translateService.instant('MY_APPROVALS.STEP_OF', { current: 9, total: 11 }),
             statusLabel: this.toTitleCase(request.status),
@@ -1017,7 +1027,7 @@ export class MyApprovals {
             company: request.customer?.customerName ?? this.translateService.instant('MY_APPROVALS.NO_CLIENT'),
             amount,
             classification: request.classification?.name ?? this.translateService.instant('MY_APPROVALS.NO_CLASSIFICATION'),
-            flow: `Flujo: ${request.request_type?.name?.toUpperCase() ?? 'N/A'} (${request.area ?? 'N/A'})`,
+            flow: `Flujo: ${request.requestType?.name?.toUpperCase() ?? 'N/A'} (${request.area ?? 'N/A'})`,
             createdDate: request.createdAt ? moment(request.createdAt).format('DD MMM YYYY') : '-',
             progressText: this.translateService.instant('MY_APPROVALS.STEP_OF', {
                 current: data.progress.currentStepOrder,
