@@ -352,13 +352,30 @@
     "STATUS_APPROVED": "Aprobado",
     "NO_STATUS": "Sin estado",
     "NO_PENDING_APPROVALS": "No hay aprobaciones pendientes",
+    "SELECT": "Seleccionar",
+    "SELECT_CURRENT_PAGE": "Seleccionar solicitudes visibles de esta página",
+    "SELECTED_COUNT": "{{count}} solicitudes seleccionadas",
+    "CLEAR_SELECTION": "Limpiar selección",
+    "BULK_APPROVE": "Aprobación masiva",
+    "BULK_REJECT": "Rechazo masivo",
+    "BULK_APPROVE_MODAL_TITLE": "Confirmar aprobación masiva",
+    "BULK_APPROVE_CONFIRM": "Se aprobarán {{count}} solicitudes seleccionadas.",
+    "BULK_REJECT_MODAL_TITLE": "Confirmar rechazo masivo",
+    "BULK_REJECT_CONFIRM": "Se rechazarán {{count}} solicitudes seleccionadas y se aplicará el mismo comentario a todas.",
+    "BULK_APPROVE_DEFAULT_COMMENT": "Aprobación masiva desde la bandeja de aprobaciones",
     "TOAST": {
       "SUCCESS": "Éxito",
       "ERROR": "Error",
       "REQUEST_REJECTED_SUCCESS": "Solicitud rechazada correctamente",
       "REQUEST_REJECTED_ERROR": "Error al rechazar la solicitud",
       "REQUEST_APPROVED_SUCCESS": "Solicitud aprobada correctamente",
-      "REQUEST_APPROVED_ERROR": "Error al aprobar la solicitud"
+      "REQUEST_APPROVED_ERROR": "Error al aprobar la solicitud",
+      "BULK_APPROVE_SUCCESS": "Se aprobaron {{approved}} de {{total}} solicitudes.",
+      "BULK_APPROVE_PARTIAL": "{{failed}} solicitudes no pudieron aprobarse.",
+      "BULK_APPROVE_ERROR": "Error al procesar la aprobación masiva.",
+      "BULK_REJECT_SUCCESS": "Se rechazaron {{rejected}} de {{total}} solicitudes.",
+      "BULK_REJECT_PARTIAL": "{{failed}} solicitudes no pudieron rechazarse.",
+      "BULK_REJECT_ERROR": "Error al procesar el rechazo masivo."
     }
   },
   "PENDING_PAGE": {
@@ -417,7 +434,8 @@
     "EMPTY": "No hay notificaciones para mostrar.",
     "READ": "Leída",
     "NEW": "Nueva",
-    "RECENT": "Reciente"
+    "RECENT": "Reciente",
+    "MARK_AS_READ": "Marcar como leído"
   },
   "USERS_PAGE": {
     "USER": "Usuario",
