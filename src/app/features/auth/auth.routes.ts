@@ -1,6 +1,5 @@
 import { Routes } from '@angular/router';
 import { Layout } from './pages/layout/layout';
-import { LoginGuard } from '../../core/guards/login.guard';
 import { Login } from './pages/login/login';
 
 
