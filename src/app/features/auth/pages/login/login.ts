@@ -21,10 +21,6 @@ export class Login {
   private readonly emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   public showPassword: boolean = false;
-  public credentials = {
-    email: 'juan@demo.com',
-    password: '123asd'
-  };
   public isLoading = false;
   public errorMessage = '';
   public submitAttempted = false;
