@@ -35,12 +35,12 @@ export interface Request {
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
-    request_type: RequestType;
+    requestType: RequestType;
     user: User;
     customer: Customer;
     reason: Reason;
     classification: Classification;
-    workflow_current_step: WorkflowCurrentStep
+    workflowCurrentStep: WorkflowCurrentStep
 }
 
 interface WorkflowCurrentStep {
