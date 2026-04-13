@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpService } from './http-service';
-import { catchError, map, Observable, tap } from 'rxjs';
+import { catchError, map, Observable } from 'rxjs';
 import { Classification, Reason, Request, RequestType } from '../../data/interfaces/Request';
 import { ApiResponse } from '../../data/interfaces/ApiResponse-interface';
 import { CursorPagination } from './user-service';
@@ -240,11 +240,7 @@ export class RequestService {
 
   getReasons(): Observable<Reason[]> {
     return this._httpService.get<Reason[]>('/requests/reasons').pipe(
-      tap((response: ApiResponse<Reason[]>) => {
-        if (response.success) {
 
-        }
-      }),
       map((response: ApiResponse<Reason[]>) => response.data ?? []),
       catchError((error) => {
         console.log(error);
@@ -267,11 +263,7 @@ export class RequestService {
     return this._httpService.get<PagePagination<Request>>('/requests/pending/me', {
       params
     }).pipe(
-      tap((response: ApiResponse<PagePagination<Request>>) => {
-        if (response.success) {
 
-        }
-      }),
       map((response: ApiResponse<PagePagination<Request>>) => {
         const payload = response.data;
 
@@ -295,11 +287,7 @@ export class RequestService {
 
   getRequestHistory(requestId: number): Observable<RequestHistoryData | null> {
     return this._httpService.get<RequestHistoryData>(`/requests/${requestId}/history`).pipe(
-      tap((response: ApiResponse<RequestHistoryData>) => {
-        if (response.success) {
 
-        }
-      }),
       map((response: ApiResponse<RequestHistoryData>) => response.data ?? null),
       catchError((error) => {
         console.log(error);
@@ -310,11 +298,7 @@ export class RequestService {
 
   getClassificationsByType(id: number): Observable<Classification[]> {
     return this._httpService.get<Classification[]>(`classifications/requestType/${id}`).pipe(
-      tap((response: ApiResponse<Classification[]>) => {
-        if (response.success) {
-          // console.log(response);
-        }
-      }),
+
       map((response: ApiResponse<Classification[]>) => response.data ?? []),
       catchError(error => {
         console.log(error);
@@ -325,11 +309,7 @@ export class RequestService {
 
   getRequestsByType(id: number): Observable<Request[]> {
     return this._httpService.get<Request[]>(`/requests/${id}`).pipe(
-      tap((response: ApiResponse<Request[]>) => {
-        if (response.success) {
-          // console.log(response);
-        }
-      }),
+
       map((response: ApiResponse<Request[]>) => response.data ?? []),
       catchError(error => {
         console.log(error);
@@ -422,11 +402,7 @@ export class RequestService {
 
   getNextRequestNumber(requestTypeId: number): Observable<RequestNumber> {
     return this._httpService.get<RequestNumber>(`/requests/next-number/${requestTypeId}`).pipe(
-      tap((response: ApiResponse<RequestNumber>) => {
-        if (response.success) {
 
-        }
-      }),
       map((response: ApiResponse<RequestNumber>) => response.data ?? {
         requestTypeId,
         requestNumber: '',
@@ -441,11 +417,6 @@ export class RequestService {
 
   saveRequest(object: any) {
     return this._httpService.post('/requests/newRequest', object).pipe(
-      tap((response) => {
-        if (response.success) {
-          console.log(response);
-        }
-      }),
       catchError((error) => {
         console.log(error);
         throw error;
@@ -455,11 +426,6 @@ export class RequestService {
 
   saveDraft(object: any) {
     return this._httpService.post('/requests/draft', object).pipe(
-      tap((response) => {
-        if (response.success) {
-          console.log('Draft saved successfully', response);
-        }
-      }),
       catchError((error) => {
         console.log(error);
         throw error;
@@ -469,10 +435,6 @@ export class RequestService {
 
   getRequestTypes(): Observable<RequestType[]> {
     return this._httpService.get<RequestType[]>('/requestType').pipe(
-      tap((response: ApiResponse<RequestType[]>) => {
-        if (response.success) {
-        }
-      }),
       map((response: ApiResponse<RequestType[]>) => response.data ?? []),
       catchError((error) => {
         console.log(error);
@@ -484,11 +446,6 @@ export class RequestService {
 
   approveRequest(requestId: number): Observable<any> {
     return this._httpService.post(`/requests/${requestId}/approve`, {}).pipe(
-      tap((response: ApiResponse<any>) => {
-        if (response.success) {
-          console.log('Request approved successfully');
-        }
-      }),
       catchError((error) => {
         console.log(error);
         throw error;
@@ -498,11 +455,6 @@ export class RequestService {
 
   rejectRequest(requestId: number, comments: string): Observable<any> {
     return this._httpService.post(`/requests/${requestId}/reject`, { comments }).pipe(
-      tap((response: ApiResponse<any>) => {
-        if (response.success) {
-          console.log('Request rejected successfully');
-        }
-      }),
       catchError((error) => {
         console.log(error);
         throw error;
