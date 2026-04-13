@@ -26,11 +26,7 @@ export class UserService {
 
   getUsers(): Observable<User[]> {
     return this._httpService.get<User[]>('/users').pipe(
-      tap((response: ApiResponse<User[]>) => {
-        if (response.success) {
-          // console.log(response);
-        }
-      }),
+
       map((response: ApiResponse<User[]>) => response.data ?? []),
       catchError(error => {
         console.log(error);
@@ -41,11 +37,6 @@ export class UserService {
 
   getManagers(): Observable<User[]> {
     return this._httpService.get<User[]>('users/managers').pipe(
-      tap((response: ApiResponse<User[]>) => {
-        if (response.success) {
-
-        }
-      }),
       map((response: ApiResponse<User[]>) => response.data ?? []),
       catchError((error) => {
         console.log(error);
@@ -87,11 +78,6 @@ export class UserService {
 
   getUserById(userId: number): Observable<User> {
     return this._httpService.get<User>(`/users/${userId}`).pipe(
-      tap((response: ApiResponse<User>) => {
-        if (response.success) {
-          // console.log(response);
-        }
-      }),
       map((response: ApiResponse<User>) => response.data as User),
       catchError(error => {
         console.log(error);
@@ -102,11 +88,6 @@ export class UserService {
 
   getAuthenticatedUserProfile(): Observable<User> {
     return this._httpService.get<User>('/users/me').pipe(
-      tap((response: ApiResponse<User>) => {
-        if (response.success) {
-          // console.log(response);
-        }
-      }),
       map((response: ApiResponse<User>) => response.data as User),
       catchError(error => {
         console.log(error);
