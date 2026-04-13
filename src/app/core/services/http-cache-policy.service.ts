@@ -95,6 +95,9 @@ export class HttpCachePolicyService {
   private isBypassed(url: string): boolean {
     return /^\/auth\/(login|logout|verify|register)(?:\/|$)/.test(url)
       || /^\/assets\/i18n\//.test(url)
+      || /^\/workflowsteps(?:\/|$)/.test(url)
+      || /^\/workflows(?:\/|$)/.test(url)
+      || /^\/classifications(?:\/|$)/.test(url)
       || /^\/rolesPermission\/role\/(?:\d+)(?:\/|$)/.test(url)
       || /^\/requestTypePermissions\/role\/(?:\d+)(?:\/|$)/.test(url)
       || /^\/customers(?:\?|\/|$)/.test(url)
