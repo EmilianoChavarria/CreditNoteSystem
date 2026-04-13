@@ -1,7 +1,7 @@
 import { computed, Injectable, signal } from '@angular/core';
 import { catchError, map, Observable, tap, throwError } from 'rxjs';
 import { ApiResponse } from '../../data/interfaces/ApiResponse-interface';
-import { AppNotification } from '../../data/interfaces/Notification';
+import { AppNotification, NotificationEntityId } from '../../data/interfaces/Notification';
 import { AuthService } from './auth-service';
 import { HttpService } from './http-service';
 import { IncomingSocketMessage, ReverbSocketService } from './reverb-socket-service';
@@ -276,7 +276,7 @@ export class NotificationService {
     return candidateUserIds.includes(this.currentUserId);
   }
 
-  private extractNestedId(value: { id?: number | string | null } | null | undefined): number | string | null {
+  private extractNestedId(value: { id?: NotificationEntityId } | null | undefined): NotificationEntityId {
     return value?.id ?? null;
   }
 
@@ -297,7 +297,7 @@ export class NotificationService {
     return null;
   }
 
-  private pickValue(...values: unknown[]): string | number | null {
+  private pickValue(...values: unknown[]): NotificationEntityId {
     for (const value of values) {
       if (typeof value === 'string' && value.trim().length > 0) {
         return value.trim();
