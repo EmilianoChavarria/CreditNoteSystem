@@ -1,14 +1,22 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { NotificationService } from '../../core/services/notification-service';
 import { AppNotification } from '../../data/interfaces/Notification';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { LucideAngularModule } from 'lucide-angular';
+import {
+    extractRequestNumberFromNotification,
+    isAssignedRequestBulkNotification,
+    isAssignedRequestNotification,
+    isBulkUploadNotification,
+} from '../../shared/utils/notification-navigation';
+import { FullSpinnerComponent } from '../../shared/components/ui/full-spinner/full-spinner';
 
 @Component({
     selector: 'app-notifications',
     templateUrl: './notifications.html',
     styleUrl: './notifications.css',
-    imports: [TranslatePipe],
+    imports: [TranslatePipe, LucideAngularModule, FullSpinnerComponent],
 })
 export class Notifications implements OnInit {
     private readonly router = inject(Router);
@@ -19,6 +27,7 @@ export class Notifications implements OnInit {
     readonly unreadNotifications = this.notificationService.unreadNotifications;
     readonly unreadCount = this.notificationService.unreadCount;
     readonly lastError = this.notificationService.lastError;
+    readonly isNavigatingToApprovals = signal(false);
 
     ngOnInit(): void {
         this.refresh();
@@ -30,7 +39,9 @@ export class Notifications implements OnInit {
         });
     }
 
-    markAsRead(notification: AppNotification): void {
+    markAsRead(notification: AppNotification, event?: Event): void {
+        event?.stopPropagation();
+
         if (this.notificationService.isRead(notification)) {
             return;
         }
@@ -41,17 +52,44 @@ export class Notifications implements OnInit {
     }
 
     openNotification(notification: AppNotification): void {
-        const isBulkNotification = this.isBulkUploadNotification(notification);
-        const routePath = isBulkNotification ? ['/app/request/bulk-upload'] : ['/app/notifications'];
-        const queryParams = isBulkNotification ? this.buildBulkHistoryQuery(notification) : undefined;
+        const isAssignedRequestBulk = isAssignedRequestBulkNotification(notification);
+        const isAssignedRequest = isAssignedRequestNotification(notification);
+        const isBulkNotification = isBulkUploadNotification(notification);
+        const requestNumber = extractRequestNumberFromNotification(notification);
 
-        this.router.navigate(routePath, { queryParams }).catch((error) => {
-            console.error('[Notifications Component] Notification navigation failed:', error);
-        });
+        const routePath = isAssignedRequest || isAssignedRequestBulk
+            ? ['/app/my-approvals']
+            : isBulkNotification
+                ? ['/app/request/bulk-upload']
+                : ['/app/notifications'];
 
-        if (!this.notificationService.isRead(notification)) {
-            this.markAsRead(notification);
+        const queryParams = isAssignedRequest && requestNumber
+            ? { requestNumber }
+            : isBulkNotification && !isAssignedRequestBulk
+                ? this.buildBulkHistoryQuery(notification)
+                : undefined;
+
+        // Show spinner when navigating to approvals
+        if (isAssignedRequest || isAssignedRequestBulk) {
+            this.isNavigatingToApprovals.set(true);
         }
+
+        this.router.navigate(routePath, { queryParams }).then(() => {
+            // Hide spinner after navigation completes
+            this.isNavigatingToApprovals.set(false);
+        }).catch((error) => {
+            console.error('[Notifications Component] Notification navigation failed:', error);
+            this.isNavigatingToApprovals.set(false);
+        });
+    }
+
+    onCardKeydown(event: KeyboardEvent, notification: AppNotification): void {
+        if (event.key !== 'Enter' && event.key !== ' ') {
+            return;
+        }
+
+        event.preventDefault();
+        this.openNotification(notification);
     }
 
     trackByNotificationId(_: number, notification: AppNotification): string {
@@ -75,19 +113,6 @@ export class Notifications implements OnInit {
             dateStyle: 'medium',
             timeStyle: 'short',
         }).format(date);
-    }
-
-    private isBulkUploadNotification(notification: AppNotification): boolean {
-        const raw = notification as Record<string, unknown>;
-        const composedText = [
-            String(notification.type ?? ''),
-            String(notification.title ?? ''),
-            String(notification.message ?? ''),
-            String(raw['event'] ?? ''),
-            String(raw['category'] ?? ''),
-        ].join(' ').toLowerCase();
-
-        return composedText.includes('batch') || composedText.includes('bulk');
     }
 
     private buildBulkHistoryQuery(notification: AppNotification): Record<string, string | number> {

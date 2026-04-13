@@ -1,4 +1,6 @@
 <section class="notifications-page">
+	<app-full-spinner [isLoading]="isNavigatingToApprovals()" />
+	
 	<header class="notifications-header">
 		<div>
 			<p class="eyebrow">{{ 'NOTIFICATIONS.CENTER' | translate }}</p>
@@ -28,11 +30,13 @@
 			</div>
 		} @else {
 			@for (notification of notifications(); track trackByNotificationId($index, notification)) {
-				<button
-					type="button"
+				<article
 					class="notification-card"
+					role="button"
+					tabindex="0"
 					[class.unread]="!notification.isRead"
-					(click)="openNotification(notification)">
+					(click)="openNotification(notification)"
+					(keydown)="onCardKeydown($event, notification)">
 					<div class="notification-card__header">
 						<div class="notification-card__title-group">
 							<h2>{{ notification.title }}</h2>
@@ -43,11 +47,16 @@
 
 					<div class="notification-card__footer">
 						<span>{{ formatNotificationDate(notification.createdAt) }}</span>
-						@if (notification.type) {
-							<span class="notification-type">{{ notification.type }}</span>
-						}
+						<button
+							type="button"
+							class="mark-read-button"
+							[disabled]="notification.isRead"
+							[attr.title]="'NOTIFICATIONS.MARK_AS_READ' | translate"
+							(click)="markAsRead(notification, $event)">
+							<lucide-icon name="check" size="16"></lucide-icon>
+						</button>
 					</div>
-				</button>
+				</article>
 			}
 		}
 	</section>

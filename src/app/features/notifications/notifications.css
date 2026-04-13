@@ -1,9 +1,9 @@
 .notifications-page {
-	display: grid;
+	display: flex;
+	flex-direction: column;
 	gap: 0.9rem;
 	padding: 1rem;
 	background: #f9fafb;
-	min-height: 100%;
 }
 
 .notifications-header {
@@ -104,6 +104,7 @@ button:hover {
 .notifications-list {
 	display: grid;
 	gap: 0.55rem;
+	align-content: start;
 }
 
 .notification-card {
@@ -113,7 +114,13 @@ button:hover {
 	border: 1px solid #e5e7eb;
 	border-radius: 0.55rem;
 	padding: 0.6rem 0.75rem;
+	cursor: pointer;
 	transition: border-color 120ms ease, background-color 120ms ease;
+}
+
+.notification-card:focus-visible {
+	outline: 2px solid #fdba74;
+	outline-offset: 2px;
 }
 
 .notification-card:hover {
@@ -178,13 +185,29 @@ button:hover {
 	color: #6b7280;
 }
 
-.notification-type {
-	padding: 0.16rem 0.42rem;
+.mark-read-button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 1.9rem;
+	height: 1.9rem;
+	padding: 0;
 	border-radius: 999px;
-	background: #f8fafc;
-	border: 1px solid #e2e8f0;
-	text-transform: uppercase;
-	letter-spacing: 0.04em;
+	background: #fff7ed;
+	border: 1px solid #fdba74;
+	color: #c2410c;
+}
+
+.mark-read-button:hover {
+	background: #ffedd5;
+}
+
+.mark-read-button:disabled {
+	cursor: not-allowed;
+	opacity: 0.5;
+	background: #f3f4f6;
+	border-color: #d1d5db;
+	color: #9ca3af;
 }
 
 @media (max-width: 768px) {
