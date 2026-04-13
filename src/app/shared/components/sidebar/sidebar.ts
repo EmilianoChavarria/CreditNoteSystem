@@ -10,6 +10,7 @@ import { ToastService } from '../../../core/services/toast-service';
 import { filter } from 'rxjs/operators';
 import { fromEvent } from 'rxjs';
 import { LayoutShellService } from '../../../core/services/layout-shell-service';
+import { FullSpinnerComponent } from '../ui/full-spinner/full-spinner';
 
 interface SidebarOptions {
   iconName: string,
@@ -22,7 +23,7 @@ interface SidebarOptions {
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, TranslateModule],
+  imports: [CommonModule, LucideAngularModule, TranslateModule, FullSpinnerComponent],
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.css',
 })
