@@ -311,7 +311,6 @@ export class Workflows {
   private getRoles() {
     this._roleService.getRoles().subscribe({
       next: (response) => {
-        // console.log(response);
         this.isLoadingRoles.set(false);
         this.roles.set(response);
         console.log(this.roles());

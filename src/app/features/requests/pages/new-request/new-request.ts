@@ -1,17 +1,14 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { TabsContainer } from "../../../../shared/components/ui/tab/tab-container/tab-container";
-import { Tab } from "../../../../shared/components/ui/tab/tab";
 import { FormBuilder, FormGroup, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
-import { CommonModule, JsonPipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import formFieldsConfig from '../../../../data/form-fields-config.json';
 import { RequestService } from '../../../../core/services/request-service';
 import { CustomerService } from '../../../../core/services/customer-service';
-import { Spinner } from "../../../../shared/components/ui/spinner/spinner";
-import { Autocomplete, AutocompleteOption } from '../../../../shared/components/ui/autocomplete/autocomplete';
+import { AutocompleteOption } from '../../../../shared/components/ui/autocomplete/autocomplete';
 import { Observable, of, forkJoin, combineLatest, Subscription } from 'rxjs';
 import { map, catchError, startWith } from 'rxjs/operators';
-import { Classification, Reason, RequestType } from '../../../../data/interfaces/Request';
+import { Classification, Reason, RequestType, Request } from '../../../../data/interfaces/Request';
 import { ToastrService } from 'ngx-toastr';
 import { CreditForm } from "../../components/forms/credit-form/credit-form";
 import { PermissionAction, RequestTypePermissionRecord, RoleService } from '../../../../core/services/role-service';
@@ -19,7 +16,6 @@ import { DebitForm } from "../../components/forms/debit-form/debit-form";
 import { AuditorCreditForm } from "../../components/forms/auditor-credit-form/auditor-credit-form";
 import { AuditorDebitForm } from "../../components/forms/auditor-debit-form/auditor-debit-form";
 import { ActivatedRoute, Router } from '@angular/router';
-import { Request } from '../../../../data/interfaces/Request';
 import { MaterialReturnForm } from "../../components/forms/material-return-form/material-return-form";
 
 @Component({
@@ -198,44 +194,7 @@ export class NewRequest implements OnInit {
         console.log(moduleKey);
         this.selectedRequestType = moduleKey;
         this.selectedRequestTypeId = Number.isNaN(numericRequestTypeId) ? null : numericRequestTypeId;
-        // if (moduleKey && this.formConfig[moduleKey]) {
-        //     const requestTypeId = Number(this.selectedRequestType);
 
-        //     // Combinar los 3 observables
-        //     forkJoin({
-        //         requestNumber: this._requestService.getNextRequestNumber(requestTypeId),
-        //         reasons: this._requestService.getReasons(),
-        //         classifications: this._requestService.getClassificationsByType(requestTypeId)
-        //     }).subscribe({
-        //         next: (results) => {
-        //             // Actualizar los signals con los datos
-        //             this.requestNumber.set(results.requestNumber.requestNumber);
-        //             this.reasons.set(results.reasons);
-        //             this.classifications.set(results.classifications);
-
-        //             // Actualizar tabs y form
-        //             this.currentTabs = this.formConfig[moduleKey].tabs;
-        //             this.buildForm(moduleKey);
-
-        //             // Establecer el request number en el form
-        //             const requestNumberControl = this.profileForm.get('requestNumber');
-        //             if (requestNumberControl) {
-        //                 requestNumberControl.setValue(results.requestNumber.requestNumber);
-        //                 requestNumberControl.disable({ emitEvent: false });
-        //             }
-
-        //             this.isLoadingForm.set(false);
-        //         },
-        //         error: (error) => {
-        //             console.error('Error cargando datos del form:', error);
-        //             this.isLoadingForm.set(false);
-        //         }
-        //     });
-        // } else {
-        //     this.currentTabs = [];
-        //     this.profileForm = this.fb.group({});
-        //     this.isLoadingForm.set(false);
-        // }
     }
 
     buildForm(moduleKey: string) {
@@ -409,8 +368,7 @@ export class NewRequest implements OnInit {
 
         if (this.profileForm.valid) {
             const formValue = this.profileForm.getRawValue();
-            // console.log('FormData capturado con profileForm:', formValue);
-            // console.log('Tipo de request:', this.selectedRequestType);
+
             delete formValue.sapScreen;
             delete formValue.attachSupports;
             delete formValue.reviewComments;
@@ -423,8 +381,6 @@ export class NewRequest implements OnInit {
                 totalAmount: formValue.totalAmount.toFixed(2),
                 status: 'created'
             }
-            // console.log("Form parseado", newObject);
-            // alert('Datos impresos en consola');
             this.saveRequest(newObject);
             this.submitted = false; // Resetear después de guardar exitosamente
         } else {
@@ -490,7 +446,7 @@ export class NewRequest implements OnInit {
     }
 
     displayCustomer(customer: any) {
-        // console.log(customer);
+
         return customer?.label || customer?.customer?.razonSocial || customer?.razonSocial || '';
     }
 
