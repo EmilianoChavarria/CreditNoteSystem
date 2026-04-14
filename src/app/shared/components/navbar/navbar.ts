@@ -1,5 +1,5 @@
 import { AsyncPipe, isPlatformBrowser } from '@angular/common';
-import { Component, Inject, PLATFORM_ID, computed, inject } from '@angular/core';
+import { Component, Inject, OnDestroy, PLATFORM_ID, computed, inject } from '@angular/core';
 import { AuthService } from '../../../core/services/auth-service';
 import { NotificationService } from '../../../core/services/notification-service';
 import { TranslateService, TranslatePipe } from '@ngx-translate/core';
@@ -33,7 +33,7 @@ import {
     RouterLink
 ],
 })
-export class Navbar {
+export class Navbar implements OnDestroy {
   private readonly notificationService = inject(NotificationService);
   private readonly router = inject(Router);
   private readonly layoutShellService = inject(LayoutShellService);
@@ -47,6 +47,22 @@ export class Navbar {
   readonly recentUnreadNotifications = computed(() => this.unreadNotifications().slice(0, 3));
   readonly impersonatedUserId = this.impersonationService.impersonatedUserId;
   readonly isImpersonating = computed(() => this.impersonatedUserId() !== null);
+  private readonly keydownHandler = (event: KeyboardEvent) => {
+    if (!this.isBrowser || this.shouldIgnoreKeyboardShortcut(event)) {
+      return;
+    }
+
+    const isToggleLanguageShortcut = (event.ctrlKey || event.metaKey)
+      && event.shiftKey
+      && event.key.toLowerCase() === 'l';
+
+    if (!isToggleLanguageShortcut) {
+      return;
+    }
+
+    event.preventDefault();
+    this.switchLang(this.translate.currentLang === 'en' ? 'es' : 'en');
+  };
 
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object,
@@ -79,8 +95,15 @@ export class Navbar {
       const userLang = this._authService.getCurrentUser()?.preferredLanguage;
       const language = savedLang || (userLang === 'en' || userLang === 'es' ? userLang : null) || (browserLang?.match(/en|es/) ? browserLang : 'es');
       this.translate.use(language);
+      window.addEventListener('keydown', this.keydownHandler);
     } else {
       this.translate.use('es');
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.isBrowser) {
+      window.removeEventListener('keydown', this.keydownHandler);
     }
   }
 
@@ -89,6 +112,12 @@ export class Navbar {
     if (this.isBrowser) {
       localStorage.setItem('lang', lang);
     }
+  }
+
+  getLanguageShortcutHint(): string {
+    return this.translate.currentLang === 'en'
+      ? 'Toggle language (Ctrl/Cmd + Shift + L)'
+      : 'Cambiar idioma (Ctrl/Cmd + Shift + L)';
   }
 
   logout() {
@@ -147,10 +176,6 @@ export class Navbar {
     this.router.navigate(routePath, { queryParams }).catch((error) => {
       console.error('[Navbar] Notification navigation failed:', error);
     });
-
-    // if (!this.notificationService.isRead(notification)) {
-    //   this.markAsRead(notification);
-    // }
   }
 
   formatNotificationDate(value?: string | null): string {
@@ -215,5 +240,18 @@ export class Navbar {
       tab: 'bulk-history',
       batchId: String(batchId),
     };
+  }
+
+  private shouldIgnoreKeyboardShortcut(event: KeyboardEvent): boolean {
+    const target = event.target as HTMLElement | null;
+
+    if (!target) {
+      return false;
+    }
+
+    const tagName = target.tagName.toLowerCase();
+    const isFormField = tagName === 'input' || tagName === 'textarea' || tagName === 'select';
+
+    return isFormField || target.isContentEditable;
   }
 }

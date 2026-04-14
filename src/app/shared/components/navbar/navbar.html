@@ -1,11 +1,9 @@
 <nav
   class="transition-all duration-300 ease-in-out w-full min-h-16 border-b border-[#ff8200] text-black flex items-center justify-between px-2 py-2 sm:px-4">
 
-  <button
-    type="button"
+  <button type="button"
     class="lg:hidden mr-2 p-2 rounded-md border border-[#ff8200] text-[#326295] hover:bg-orange-50 transition-colors"
-    aria-label="Open sidebar"
-    (click)="toggleMobileSidebar()">
+    aria-label="Open sidebar" (click)="toggleMobileSidebar()">
     <lucide-icon name="menu" size="22" [strokeWidth]="1.8"></lucide-icon>
   </button>
 
@@ -15,12 +13,30 @@
 
   <div class="flex flex-row gap-x-2 sm:gap-x-4 lg:gap-x-8 items-center justify-end min-w-0 w-full lg:w-auto">
 
-    <div (click)="switchLang(translate.currentLang === 'en' ? 'es' : 'en')"
-      class="flex flex-row border border-[#ff8200] rounded-md gap-x-0.5 py-1 px-2 sm:px-3 shrink-0">
-      <button
-        [class]="`${translate.currentLang === 'es' ? 'bg-[#ff8200] text-white rounded-md':''} px-1 transition-colors hover:cursor-pointer`">ES</button>
-      <button
-        [class]="`${translate.currentLang === 'en' ? 'bg-[#ff8200] text-white rounded-md':''} px-1 transition-colors hover:cursor-pointer`">EN</button>
+    <div class="flex items-center gap-2 shrink-0">
+      <div class="hidden xl:flex items-center text-[11px] text-slate-500 gap-1.5 whitespace-nowrap"
+        [title]="getLanguageShortcutHint()">
+        <span>Cambiar idioma</span>
+        <span class="inline-flex items-center gap-1">
+          <kbd
+            class="rounded border border-slate-300 bg-slate-100 px-1.5 py-0.5 font-semibold text-[10px] text-slate-700">Ctrl</kbd>
+          <span>+</span>
+          <kbd
+            class="rounded border border-slate-300 bg-slate-100 px-1.5 py-0.5 font-semibold text-[10px] text-slate-700">Shift</kbd>
+          <span>+</span>
+          <kbd
+            class="rounded border border-slate-300 bg-slate-100 px-1.5 py-0.5 font-semibold text-[10px] text-slate-700">L</kbd>
+        </span>
+      </div>
+      <div (click)="switchLang(translate.currentLang === 'en' ? 'es' : 'en')" [title]="getLanguageShortcutHint()"
+        class="flex flex-row border border-[#ff8200] rounded-md gap-x-0.5 py-1 px-2 sm:px-3">
+        <button
+          [class]="`${translate.currentLang === 'es' ? 'bg-[#ff8200] text-white rounded-md':''} px-1 transition-colors hover:cursor-pointer`">ES</button>
+        <button
+          [class]="`${translate.currentLang === 'en' ? 'bg-[#ff8200] text-white rounded-md':''} px-1 transition-colors hover:cursor-pointer`">EN</button>
+      </div>
+
+
     </div>
 
     <app-popover position="bottom-center" width="min(92vw,480px)">
@@ -115,11 +131,7 @@
           </div>
         </a>
         <div class="border-t my-2"></div>
-        <button
-          type="button"
-          (click)="logout()"
-          [disabled]="isImpersonating()"
-          [title]="getLogoutTitle()"
+        <button type="button" (click)="logout()" [disabled]="isImpersonating()" [title]="getLogoutTitle()"
           class="block w-full text-left px-4 py-2.5 text-sm text-red-600 transition-colors"
           [class]="isImpersonating() ? 'logout-disabled' : 'hover:bg-gray-100 cursor-pointer'">
           <div class="flex items-center gap-2">
