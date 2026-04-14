@@ -161,9 +161,14 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
     }
 
     if ('customerNumber' in this.form.controls) {
-      const inferredCustomerId = this.resolveCustomerIdFromRequestData(this.initialRequestData);
-      if (String(inferredCustomerId ?? '').trim().length > 0) {
-        patchValue['customerNumber'] = String(inferredCustomerId);
+      const inferredCustomerNumber = this.resolveCustomerNumberFromRequestData(this.initialRequestData);
+      if (String(inferredCustomerNumber ?? '').trim().length > 0) {
+        patchValue['customerNumber'] = String(inferredCustomerNumber);
+      } else {
+        const rawCustomerId = this.resolveInternalCustomerIdFromRequestData(this.initialRequestData);
+        if (rawCustomerId !== null) {
+          this.populateCustomerNumberFromService(rawCustomerId);
+        }
       }
     }
 
@@ -196,18 +201,36 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
 
   private normalizeCustomerId(value: unknown): string | number {
     if (typeof value === 'string' || typeof value === 'number') {
-      return value;
+      return this.normalizeCustomerCodeCandidate(value);
     }
 
     if (value && typeof value === 'object') {
       const objectValue = value as Record<string, unknown>;
       const nestedId = objectValue['id'] ?? objectValue['idCliente'];
       if (typeof nestedId === 'string' || typeof nestedId === 'number') {
-        return nestedId;
+        return this.normalizeCustomerCodeCandidate(nestedId);
       }
     }
 
     return '';
+  }
+
+  private normalizeCustomerCodeCandidate(value: string | number): string | number {
+    if (typeof value === 'number') {
+      return value;
+    }
+
+    const rawValue = value.trim();
+    if (!rawValue) {
+      return '';
+    }
+
+    const leadingCodeMatch = rawValue.match(/^(\d+)\s*-/);
+    if (leadingCodeMatch?.[1]) {
+      return leadingCodeMatch[1];
+    }
+
+    return rawValue;
   }
 
   private resolveCustomerIdFromRequestData(requestData: Partial<Request>): string | number {
@@ -215,11 +238,11 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
     const customer = requestDataRecord['customer'] as Record<string, unknown> | undefined;
 
     const candidates = [
+      customer?.['customerNumber'],
+      customer?.['idCliente'],
+      requestDataRecord['customerNumber'],
       requestDataRecord['customerId'],
       requestDataRecord['customer_id'],
-      requestDataRecord['customerNumber'],
-      customer?.['idCliente'],
-      customer?.['customerNumber'],
       customer?.['id'],
     ];
 
@@ -227,6 +250,96 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
       const normalized = this.normalizeCustomerId(candidate);
       if (String(normalized).trim().length > 0) {
         return normalized;
+      }
+    }
+
+    return '';
+  }
+
+  private resolveCustomerNumberFromRequestData(requestData: Partial<Request>): string | number {
+    const requestDataRecord = requestData as Record<string, unknown>;
+    const customer = requestDataRecord['customer'] as Record<string, unknown> | undefined;
+
+    const candidates = [
+      customer?.['customerNumber'],
+      customer?.['idCliente'],
+      requestDataRecord['customerNumber'],
+    ];
+
+    for (const candidate of candidates) {
+      const normalized = this.normalizeCustomerId(candidate);
+      if (String(normalized).trim().length > 0) {
+        return normalized;
+      }
+    }
+
+    return '';
+  }
+
+  private resolveInternalCustomerIdFromRequestData(requestData: Partial<Request>): number | null {
+    const requestDataRecord = requestData as Record<string, unknown>;
+    const rawCustomerId = requestDataRecord['customerId'];
+
+    if (typeof rawCustomerId === 'number' && Number.isFinite(rawCustomerId) && rawCustomerId > 0) {
+      return rawCustomerId;
+    }
+
+    if (typeof rawCustomerId === 'string') {
+      const parsedCustomerId = Number(rawCustomerId.trim());
+      if (Number.isFinite(parsedCustomerId) && parsedCustomerId > 0) {
+        return parsedCustomerId;
+      }
+    }
+
+    return null;
+  }
+
+  private populateCustomerNumberFromService(customerId: number): void {
+    const subscription = this._customerService.getCustomerById(customerId).subscribe({
+      next: (response: any) => {
+        const customerData = response?.data ?? response;
+        const resolvedCustomerNumber = customerData?.customerNumber ?? customerData?.idCliente;
+        if (resolvedCustomerNumber === null || resolvedCustomerNumber === undefined) {
+          return;
+        }
+
+        const normalizedCustomerNumber = String(resolvedCustomerNumber).trim();
+        if (!normalizedCustomerNumber) {
+          return;
+        }
+
+        this.form.get('customerNumber')?.setValue(normalizedCustomerNumber, { emitEvent: false });
+      },
+      error: () => {
+        // Keep the field empty if the customer lookup fails.
+      }
+    });
+
+    this.subscriptions.push(subscription);
+  }
+
+  private resolveCustomerNumberFromSelection(option: any): string {
+    if (!option) {
+      return '';
+    }
+
+    const data = option.data as Record<string, unknown> | undefined;
+    const candidates = [
+      data?.['customerNumber'],
+      data?.['idCliente'],
+      option.customerNumber,
+      option.label,
+      option.id,
+    ];
+
+    for (const candidate of candidates) {
+      if (candidate === null || candidate === undefined) {
+        continue;
+      }
+
+      const normalized = this.normalizeCustomerId(candidate);
+      if (String(normalized).trim().length > 0) {
+        return String(normalized).trim();
       }
     }
 
@@ -554,10 +667,18 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
     delete payload.attachSupports;
     delete payload.reviewComments;
 
-    this._requestService.saveRequest(payload).subscribe({
+    const editingRequestId = this.resolveEditingRequestId();
+    const request$ = editingRequestId !== null
+      ? this._requestService.updateRequest(editingRequestId, payload)
+      : this._requestService.saveRequest(payload);
+
+    request$.subscribe({
       next: (response: any) => {
         if (response?.success) {
-          this._toastService.success(response?.message ?? 'Solicitud guardada correctamente', 'Exito');
+          const successMessage = editingRequestId !== null
+            ? 'Solicitud actualizada correctamente'
+            : 'Solicitud guardada correctamente';
+          this._toastService.success(response?.message ?? successMessage, 'Exito');
           this.submitted.set(false);
           return;
         }
@@ -569,6 +690,11 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
         this._toastService.error(message, 'Error');
       }
     });
+  }
+
+  private resolveEditingRequestId(): number | null {
+    const requestId = Number(this.initialRequestData?.id);
+    return Number.isFinite(requestId) && requestId > 0 ? requestId : null;
   }
 
   saveDraft(): void {
@@ -635,12 +761,12 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
     const invalidFields = controlState.filter(control => control.invalid && !control.disabled);
     const validFields = controlState.filter(control => control.valid && !control.disabled);
 
-    console.table(controlState);
-    console.log('Campos invalidos:', invalidFields.map(field => ({
-      field: field.field,
-      errors: field.errors,
-    })));
-    console.log('Campos validos:', validFields.map(field => field.field));
+    // console.table(controlState);
+    // console.log('Campos invalidos:', invalidFields.map(field => ({
+    //   field: field.field,
+    //   errors: field.errors,
+    // })));
+    // console.log('Campos validos:', validFields.map(field => field.field));
   }
 
   searchCustomers(searchTerm: string): Observable<any[]> {
@@ -670,8 +796,9 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
   }
 
   onCustomerSelected(option: any): void {
+    console.log(option);
     if (option) {
-      this.form.controls['customerNumber'].setValue(option.id);
+      this.form.controls['customerNumber'].setValue(this.resolveCustomerNumberFromSelection(option));
     }
   }
 

@@ -424,6 +424,15 @@ export class RequestService {
     )
   }
 
+  updateRequest(requestId: number, object: any) {
+    return this._httpService.put(`/requests/${requestId}`, object).pipe(
+      catchError((error) => {
+        console.log(error);
+        throw error;
+      })
+    )
+  }
+
   saveDraft(object: any) {
     return this._httpService.post('/requests/draft', object).pipe(
       catchError((error) => {
