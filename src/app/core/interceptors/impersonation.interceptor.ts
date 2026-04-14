@@ -7,11 +7,7 @@ export const impersonationInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const impersonationService = inject(ImpersonationService);
 
-  if (req.method !== 'GET') {
-    return next(req);
-  }
-
-  if (/^\/assets\//.test(req.url) || /\/auth\//.test(req.url)) {
+  if (/\/assets\//.test(req.url) || /\/auth\//.test(req.url)) {
     return next(req);
   }
 
