@@ -127,7 +127,7 @@
     </app-role-form-modal>
 
     <app-add-step-modal [open]="isOpenAddStepModal()" [stepForm]="stepForm" [isStepNumberLocked]="isStepNumberLocked()"
-        [modalTitle]="editingStepId() !== null ? 'Editar Paso' : 'Agregar Paso'" [isLoading]="isLoadingStepModal()"
+        [modalTitle]="editingStepId() !== null ? 'WORKFLOWS_STEP_MODAL.TITLE_EDIT' : 'WORKFLOWS_STEP_MODAL.TITLE_ADD'" [isLoading]="isLoadingStepModal()"
         [isSaving]="isSavingStep()" [availableRoles]="availableRoles()" [transitions]="transitions()"
         [availableSteps]="workflowSteps()" (openChange)="showAddStepModal($event)" (primaryAction)="saveStep()"
         (transitionsChange)="transitions.set($event)">

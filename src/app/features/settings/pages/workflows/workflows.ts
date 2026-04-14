@@ -39,6 +39,7 @@ interface WorkflowStep {
   badgeColor?: string;
   badgeBgColor?: string;
   badgeBorderColor?: string;
+  outgoingTransitions: WorkflowTransition[];
 }
 
 interface WorkflowGroup {
@@ -56,6 +57,15 @@ interface AdvanceCondition {
 
 interface BranchRule {
   id: number;
+}
+
+interface WorkflowTransition {
+  id?: number;
+  toStepId: number | null;
+  conditionField: string;
+  conditionOperator: string;
+  conditionValue: string;
+  priority: number;
 }
 
 @Component({
@@ -190,6 +200,16 @@ export class Workflows {
             steps: sortedSteps.map((step) => {
               const action = step.isInitialStep ? 'Inicio' : step.isFinalStep ? 'Finalización' : 'Aprobación';
               const roleColor = step.role?.color;
+              const outgoingTransitions = ((step as any).outgoingTransitions ?? (step as any).outgoing_transitions ?? [])
+                .map((transition: any, index: number) => ({
+                  id: transition.id,
+                  toStepId: transition.toStepId ?? transition.to_step?.id ?? null,
+                  conditionField: transition.conditionField ?? '',
+                  conditionOperator: transition.conditionOperator ?? '',
+                  conditionValue: transition.conditionValue ?? '',
+                  priority: transition.priority ?? index + 1
+                }))
+                .sort((a: WorkflowTransition, b: WorkflowTransition) => a.priority - b.priority);
 
               return {
                 id: step.id,
@@ -207,7 +227,8 @@ export class Workflows {
                 iconColor: roleColor,
                 badgeColor: roleColor,
                 badgeBgColor: this.hexToRgba(roleColor, 0.12),
-                badgeBorderColor: roleColor
+                badgeBorderColor: roleColor,
+                outgoingTransitions
               };
             })
           } as WorkflowGroup;
@@ -366,6 +387,7 @@ export class Workflows {
 
   public openEditStepModal(workflow: WorkflowGroup, step: WorkflowStep) {
     this.activeWorkflow.set(workflow);
+    console.log(this.activeWorkflow());
     this.isStepNumberLocked.set(true);
     this.isOpenAddStepModal.set(true);
     this.resetStepModalData();
@@ -376,6 +398,7 @@ export class Workflows {
       roleId: step.roleId,
       isFinalStep: step.isFinalStep
     });
+    this.transitions.set(step.outgoingTransitions ?? []);
     this.loadModalData(workflow.id);
   }
 
