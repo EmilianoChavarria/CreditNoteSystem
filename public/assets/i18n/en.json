@@ -137,6 +137,49 @@
     "TITLE": "Approval Flows",
     "DESCRIPTION": "Each type of note follows a sequential approval workflow. The note moves from one role to the next until it is released."
   },
+  "WORKFLOWS_STEP_MODAL": {
+    "TITLE_ADD": "Add Step",
+    "TITLE_EDIT": "Edit Step",
+    "STEP_NUMBER": "Step Number",
+    "STEP_NUMBER_PLACEHOLDER": "Ex: 1",
+    "ROLE": "Role",
+    "SELECT_ROLE": "Select a role",
+    "SPECIAL_CONDITIONS": "Special conditions",
+    "ADD_CONDITION": "Add condition",
+    "HELP": {
+      "LINE_1": "Rules allow skipping intermediate steps. For example,",
+      "HIGHLIGHT": "if the amount is greater than $10,000",
+      "LINE_2": "you can make the flow jump directly to Director approval.",
+      "LINE_3": "Rules are evaluated in order."
+    },
+    "FIELD": "Field",
+    "FIELD_PLACEHOLDER": "e.g: totalAmount",
+    "OPERATOR": "Operator",
+    "SELECT_OPERATOR": "Select operator",
+    "VALUE": "Value",
+    "VALUE_PLACEHOLDER": "e.g: 1000",
+    "DESTINATION_STEP": "Destination step",
+    "SELECT_STEP": "Select a step",
+    "STEP_LABEL": "Step",
+    "PRIORITY": "Priority",
+    "PRIORITY_PLACEHOLDER": "1",
+    "REMOVE": "Remove",
+    "VISUAL": {
+      "CURRENT_STEP": "Current step",
+      "CONDITIONAL_JUMP": "Conditional jump",
+      "SELECT_DESTINATION": "Select destination step"
+    },
+    "OPERATORS": {
+      "GREATER_THAN": "Greater than (>)",
+      "LESS_THAN": "Less than (<)",
+      "GREATER_OR_EQUAL": "Greater than or equal (>=)",
+      "LESS_OR_EQUAL": "Less than or equal (<=)"
+    }
+  },
+  "COMMON": {
+    "SAVE": "Save Changes",
+    "CANCEL": "Cancel"
+  },
   "PENDING": {
     "TITLE": "Pending Requests",
     "DESCRIPTION": "Continue With Your Approval Request Process"

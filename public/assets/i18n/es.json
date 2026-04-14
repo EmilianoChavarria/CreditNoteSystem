@@ -137,6 +137,45 @@
     "TITLE": "Flujos de Aprobación",
     "DESCRIPTION": "Cada tipo de nota sigue un flujo secuencial de aprobación. La nota avanza de un rol al siguiente hasta ser liberada."
   },
+  "WORKFLOWS_STEP_MODAL": {
+    "TITLE_ADD": "Agregar Paso",
+    "TITLE_EDIT": "Editar Paso",
+    "STEP_NUMBER": "Número de paso",
+    "STEP_NUMBER_PLACEHOLDER": "Ej: 1",
+    "ROLE": "Rol",
+    "SELECT_ROLE": "Selecciona un rol",
+    "SPECIAL_CONDITIONS": "Condiciones especiales",
+    "ADD_CONDITION": "Agregar condición",
+    "HELP": {
+      "LINE_1": "Las reglas permiten omitir pasos intermedios. Por ejemplo",
+      "HIGHLIGHT": "Si el monto es mayor a $10,000",
+      "LINE_2": "puedes hacer que el flujo salte directamente a la aprobación del Director.",
+      "LINE_3": "Las reglas se evalúan en orden."
+    },
+    "FIELD": "Campo",
+    "FIELD_PLACEHOLDER": "ej: totalAmount",
+    "OPERATOR": "Operador",
+    "SELECT_OPERATOR": "Selecciona operador",
+    "VALUE": "Valor",
+    "VALUE_PLACEHOLDER": "ej: 1000",
+    "DESTINATION_STEP": "Paso destino",
+    "SELECT_STEP": "Selecciona un paso",
+    "STEP_LABEL": "Paso",
+    "PRIORITY": "Prioridad",
+    "PRIORITY_PLACEHOLDER": "1",
+    "REMOVE": "Remover",
+    "VISUAL": {
+      "CURRENT_STEP": "Paso actual",
+      "CONDITIONAL_JUMP": "Salto condicional",
+      "SELECT_DESTINATION": "Selecciona paso destino"
+    },
+    "OPERATORS": {
+      "GREATER_THAN": "Mayor que (>)",
+      "LESS_THAN": "Menor que (<)",
+      "GREATER_OR_EQUAL": "Mayor o igual que (>=)",
+      "LESS_OR_EQUAL": "Menor o igual que (<=)"
+    }
+  },
   "PENDING": {
     "TITLE": "Solicitudes Pendientes",
     "DESCRIPTION": "Continua Con Tu Proceso de Solicitud"
