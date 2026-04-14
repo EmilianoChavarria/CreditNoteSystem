@@ -190,7 +190,9 @@
   },
   "NEW_REQ": {
     "TITLE": "Nueva solicitud",
-    "DESCRIPTION": "Selecciona un tipo de solicitud y llena el formulario"
+    "DESCRIPTION": "Selecciona un tipo de solicitud y llena el formulario",
+    "EDIT_TITLE": "Editar solicitud",
+    "EDIT_DESCRIPTION": "Actualiza la información de la solicitud seleccionada"
   },
   "HISTORY": {
     "TITLE": "Historial",

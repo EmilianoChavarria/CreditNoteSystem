@@ -190,7 +190,9 @@
   },
   "NEW_REQ": {
     "TITLE": "New Request",
-    "DESCRIPTION": "Select a request type and fill the form"
+    "DESCRIPTION": "Select a request type and fill the form",
+    "EDIT_TITLE": "Edit request",
+    "EDIT_DESCRIPTION": "Update the selected request information"
   },
   "HISTORY": {
     "TITLE": "History",
