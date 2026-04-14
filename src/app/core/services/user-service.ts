@@ -6,6 +6,8 @@ import { ApiResponse } from '../../data/interfaces/ApiResponse-interface';
 
 export interface CursorPagination<T> {
   data: T[];
+  current_page?: number;
+  last_page?: number;
   per_page?: number;
   next_cursor?: string | null;
   next_page_url?: string | null;
@@ -45,12 +47,8 @@ export class UserService {
     )
   }
 
-  getUsersPaginated(per_page = 10, cursor?: string | null, search?: string): Observable<CursorPagination<User>> {
-    const params: { per_page: number; cursor?: string; search?: string } = { per_page };
-
-    if (cursor) {
-      params.cursor = cursor;
-    }
+  getUsersPaginated(per_page = 10, page = 1, search?: string): Observable<CursorPagination<User>> {
+    const params: { per_page: number; page: number; search?: string } = { per_page, page };
 
     if (search && search.trim().length > 0) {
       params.search = search.trim();
@@ -62,6 +60,8 @@ export class UserService {
 
         return {
           data: payload?.data ?? [],
+          current_page: payload?.current_page,
+          last_page: payload?.last_page,
           per_page: payload?.per_page,
           next_cursor: payload?.next_cursor ?? null,
           next_page_url: payload?.next_page_url ?? null,
