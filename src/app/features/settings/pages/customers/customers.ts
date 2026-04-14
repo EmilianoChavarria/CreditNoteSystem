@@ -81,14 +81,6 @@ export class Customers {
             label: 'Customer Service Manager',
             sortable: true,
             render: (value, item) => item.customer?.customerServiceManager?.fullName ?? '-'
-        },
-        {
-            key: 'estatus',
-            label: 'CUSTOMERS_PAGE.STATUS',
-            sortable: true,
-            render: (value) => value
-                ? this._translateService.instant('CUSTOMERS_PAGE.ACTIVE')
-                : this._translateService.instant('CUSTOMERS_PAGE.INACTIVE')
         }
     ];
 

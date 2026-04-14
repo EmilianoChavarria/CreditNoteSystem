@@ -14,7 +14,7 @@ import { Badge } from "../../../shared/components/ui/badge/badge";
 import { UpperCasePipe } from '@angular/common';
 import { Spinner } from "../../../shared/components/ui/spinner/spinner";
 import { PermissionAction, RequestTypePermissionRecord, RoleService } from '../../../core/services/role-service';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, forkJoin, map, of, switchMap } from 'rxjs';
 import { normalizeRequestNumber } from '../../../shared/utils/notification-navigation';
 import { FullSpinnerComponent } from '../../../shared/components/ui/full-spinner/full-spinner';
@@ -115,7 +115,7 @@ export class MyApprovals {
             key: 'edit',
             icon: 'pencil',
             label: 'MY_APPROVALS.EDIT',
-            accion: (request) => this.logAction(request)
+            accion: (request) => this.editRequest(request)
         },
         {
             key: 'history',
@@ -188,6 +188,8 @@ export class MyApprovals {
         private _requestsService: RequestService,
         private _toastService: ToastService
     ) { }
+
+    private readonly router = inject(Router);
 
     ngOnInit(): void {
         this.listenForNotificationShortcut();
@@ -769,6 +771,19 @@ export class MyApprovals {
 
     logAction(request: Request) {
         this.openHistoryDrawer(request);
+    }
+
+    editRequest(request: Request): void {
+        const requestTypeId = Number(request.requestTypeId ?? request.requestType?.id);
+
+        if (!requestTypeId || Number.isNaN(requestTypeId)) {
+            return;
+        }
+
+        this.router.navigate(['/app/request/new-request'], {
+            queryParams: { requestTypeId },
+            state: { editRequest: request }
+        });
     }
 
     // =============================
