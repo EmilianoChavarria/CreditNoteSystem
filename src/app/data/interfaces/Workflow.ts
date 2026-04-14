@@ -24,6 +24,21 @@ export interface WorkflowStep {
   isInitialStep: boolean;
   isFinalStep: boolean;
   role?: WorkflowStepRole;
+  outgoingTransitions?: WorkflowStepTransition[];
+}
+
+export interface WorkflowStepTransition {
+  id?: number;
+  workflowId?: number;
+  fromStepId?: number;
+  toStepId?: number;
+  conditionField?: string;
+  conditionOperator?: string;
+  conditionValue?: string;
+  priority?: number;
+  to_step?: {
+    id?: number;
+  };
 }
 
 export interface WorkflowStepRole {
