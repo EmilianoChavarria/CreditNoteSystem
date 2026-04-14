@@ -9,8 +9,10 @@
         [enableFilter]="true" filterField="role.roleName" [canAdd]="true"
         [addLabel]="'USERS_PAGE.USER'"
         [registrosPorPagina]="pageSize()" [serverPagination]="true" [paginaActualExterna]="currentPage()"
+        [totalPaginasExterno]="totalPages()"
         [hasNextPage]="hasNextPage()" [hasPrevPage]="hasPrevPage()" [loading]="isLoadingTable()"
         (paginaSiguiente)="onNextPage()" (paginaAnterior)="onPrevPage()"
+        (paginaPrimera)="onFirstPage()" (paginaUltima)="onLastPage()"
         (registrosPorPaginaChange)="onPageSizeChange($event)"
         (searchChange)="onSearch($event)"
         (addClick)="openUserModalForCreate()">

@@ -33,11 +33,10 @@ export class Users implements OnInit {
     public users = signal<User[]>([]);
     public pageSize = signal<number>(10);
     public currentPage = signal<number>(1);
+    public totalPages = signal<number>(1);
     public hasNextPage = signal<boolean>(false);
     public hasPrevPage = signal<boolean>(false);
     public isLoadingTable = signal<boolean>(true);
-    private nextCursor = signal<string | null>(null);
-    private prevCursor = signal<string | null>(null);
     public showDeleteModal = signal<boolean>(false);
     public selectedUserToDelete = signal<User | null>(null);
     public showUserModal = signal<boolean>(false);
@@ -316,16 +315,16 @@ export class Users implements OnInit {
         this.getUsers();
     }
 
-    getUsers(cursor?: string | null): void {
+    getUsers(page: number = this.currentPage()): void {
         this.isLoadingTable.set(true);
 
-        this._userService.getUsersPaginated(this.pageSize(), cursor, this.searchTerm()).pipe(
+        this._userService.getUsersPaginated(this.pageSize(), page, this.searchTerm()).pipe(
             finalize(() => this.isLoadingTable.set(false))
         ).subscribe({
             next: (response) => {
                 this.users.set(response.data);
-                this.nextCursor.set(response.next_cursor ?? null);
-                this.prevCursor.set(response.prev_cursor ?? null);
+                this.currentPage.set(response.current_page ?? page);
+                this.totalPages.set(response.last_page ?? 1);
                 this.hasNextPage.set(!!response.next_cursor || !!response.next_page_url);
                 this.hasPrevPage.set(!!response.prev_cursor || !!response.prev_page_url);
                 console.log('✅ Usuarios cargados:', response);
@@ -350,42 +349,56 @@ export class Users implements OnInit {
 
             this.searchTerm.set(normalizedTerm);
             this.currentPage.set(1);
-            this.nextCursor.set(null);
-            this.prevCursor.set(null);
+            this.totalPages.set(1);
             this.hasNextPage.set(false);
             this.hasPrevPage.set(false);
-            this.getUsers();
+            this.getUsers(1);
         }, 350);
     }
 
     onNextPage(): void {
-        const cursor = this.nextCursor();
-        if (!cursor) {
+        if (!this.hasNextPage()) {
             return;
         }
 
-        this.currentPage.update((value) => value + 1);
-        this.getUsers(cursor);
+        const nextPage = this.currentPage() + 1;
+        this.getUsers(nextPage);
     }
 
     onPrevPage(): void {
-        const cursor = this.prevCursor();
-        if (!cursor) {
+        if (!this.hasPrevPage()) {
             return;
         }
 
-        this.currentPage.update((value) => Math.max(1, value - 1));
-        this.getUsers(cursor);
+        const prevPage = Math.max(1, this.currentPage() - 1);
+        this.getUsers(prevPage);
+    }
+
+    onFirstPage(): void {
+        if (this.currentPage() <= 1) {
+            return;
+        }
+
+        this.getUsers(1);
+    }
+
+    onLastPage(): void {
+        const lastPage = this.totalPages();
+
+        if (this.currentPage() >= lastPage) {
+            return;
+        }
+
+        this.getUsers(lastPage);
     }
 
     onPageSizeChange(size: number): void {
         this.pageSize.set(size);
         this.currentPage.set(1);
-        this.nextCursor.set(null);
-        this.prevCursor.set(null);
+        this.totalPages.set(1);
         this.hasNextPage.set(false);
         this.hasPrevPage.set(false);
-        this.getUsers();
+        this.getUsers(1);
     }
 
     private loadFormCatalogs(userId?: number): void {
