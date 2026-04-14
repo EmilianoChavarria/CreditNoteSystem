@@ -6,7 +6,7 @@
             <label for="request_type" class="font-semibold text-[#3c6194] text-2xl">{{'DASHBOARD.REQ_FILTER'|
                 translate}}</label>
             <div class="flex flex-row items-center w-full md:w-fit">
-                <select name="request_type" id="request_type" (change)="onRequestTypeChange($event)"
+                <select name="request_type" id="request_type" [value]="selectedRequestTypeId ?? ''" (change)="onRequestTypeChange($event)"
                     class="h-11 border border-gray-300 rounded-lg w-full md:w-64 pl-2 pr-4">
                     <option value="">{{'REQUEST_TYPES.DEFAULT'| translate}}</option>
                     @for (requestType of availableRequestTypes(); track requestType.id) {
@@ -16,9 +16,9 @@
             </div>
         </div>
         <div class="flex flex-col items-start">
-            <span class="text-4xl tracking-wider text-[#ff8200] font-semibold">{{'NEW_REQ.TITLE' |
+            <span class="text-4xl tracking-wider text-[#ff8200] font-semibold">{{ (isEditingRequest() ? 'NEW_REQ.EDIT_TITLE' : 'NEW_REQ.TITLE') |
                 translate}}</span>
-            <span class="text-orange-400">{{'NEW_REQ.DESCRIPTION' | translate}}</span>
+            <span class="text-orange-400">{{ (isEditingRequest() ? 'NEW_REQ.EDIT_DESCRIPTION' : 'NEW_REQ.DESCRIPTION') | translate }}</span>
         </div>
     </div>
 

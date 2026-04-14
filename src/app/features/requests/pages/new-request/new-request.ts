@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormGroup, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
@@ -38,6 +38,10 @@ export class NewRequest implements OnInit {
     public classifications = signal<Classification[]>([]);
     public availableRequestTypes = signal<RequestType[]>([]);
     public editingRequestData = signal<Partial<Request> | null>(null);
+    public isEditingRequest = computed(() => {
+        const requestId = Number(this.editingRequestData()?.id);
+        return Number.isFinite(requestId) && requestId > 0;
+    });
     private computedSubscriptions: Subscription[] = [];
     private requestTypeActionPermissions = signal<Record<number, Record<string, boolean>>>({});
     private toastr = inject(ToastrService);
@@ -72,6 +76,7 @@ export class NewRequest implements OnInit {
         const editRequest = navigationState?.editRequest ?? browserState?.editRequest;
 
         if (editRequest) {
+            console.log(editRequest);
             this.editingRequestData.set(editRequest);
         }
     }
