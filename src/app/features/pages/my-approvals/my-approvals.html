@@ -77,9 +77,12 @@
             } @else if (column.key === 'requestType.name') {
             <app-badge color="blue" [text]="item.requestType.name | uppercase" />
             } @else if (column.key === 'status') {
-            <div class="w-fit rounded-lg px-2"
+            <div class="inline-flex max-w-55 rounded-lg px-2 py-1"
                 [style]="`background-color: ${item.workflowCurrentStep.assigned_role.color +'1A'}; color:${item.workflowCurrentStep.assigned_role.color}` ">
-                <span [class]="`text-center font-semibold`">{{item.workflowCurrentStep.assigned_role.roleName}}</span>
+                <span class="block w-full truncate text-center font-semibold"
+                    [title]="item.workflowCurrentStep.assigned_role.roleName">
+                    {{item.workflowCurrentStep.assigned_role.roleName}}
+                </span>
             </div>
             }
         </ng-template>
