@@ -57,7 +57,7 @@
                         [class]="campoVacio('area') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'">
                         <option value="" disabled>Selecciona una opción</option>
                         <option value="AFTERMARKET">AFTERMARKET</option>
-                        <option value="SALES">SALES</option>
+                        <option value="ORIGINAL EQUIPMENT">ORIGINAL EQUIPMENT</option>
                     </select>
                     @if (campoVacio('area')) {
                     <span class="text-sm text-red-500">{{ getErrorMessage('area') }}</span>
