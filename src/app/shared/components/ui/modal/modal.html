@@ -3,7 +3,8 @@
     class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-3 sm:p-4"
     role="dialog"
     aria-modal="true"
-    (click)="onBackdropClick($event)"
+    (pointerdown)="onBackdropPointerDown($event)"
+    (pointerup)="onBackdropPointerUp($event)"
   >
     <section
       class="w-full overflow-hidden rounded-lg bg-white shadow-xl"
