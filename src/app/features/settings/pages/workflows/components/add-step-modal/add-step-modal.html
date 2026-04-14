@@ -58,7 +58,8 @@
                 <div class="border border-gray-300 rounded-md p-3 space-y-3">
                     <div class="grid grid-cols-3 gap-3">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Campo</label>
+                            <label
+                                class="block text-sm font-medium text-gray-700 mb-1">{{'WORKFLOWS_STEP_MODAL.FIELD' | translate}}</label>
                             <input type="text" [placeholder]="'WORKFLOWS_STEP_MODAL.FIELD_PLACEHOLDER' | translate"
                                 [(ngModel)]="transition.conditionField" [ngModelOptions]="{standalone: true}"
                                 class="w-full border border-gray-300 rounded-md p-2 text-sm">
@@ -115,7 +116,8 @@
                                     class="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-200 text-lg font-extrabold text-amber-700">
                                     {{ currentStepNumber ?? '-' }}
                                 </div>
-                                <span class="mt-1 text-sm text-slate-600">{{ 'WORKFLOWS_STEP_MODAL.VISUAL.CURRENT_STEP' |
+                                <span class="mt-1 text-sm text-slate-600">{{ 'WORKFLOWS_STEP_MODAL.VISUAL.CURRENT_STEP'
+                                    |
                                     translate }}</span>
                             </div>
 

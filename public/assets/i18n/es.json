@@ -176,6 +176,10 @@
       "LESS_OR_EQUAL": "Menor o igual que (<=)"
     }
   },
+  "COMMON": {
+    "SAVE": "Guardar Cambios",
+    "CANCEL": "Cancelar"
+  },
   "PENDING": {
     "TITLE": "Solicitudes Pendientes",
     "DESCRIPTION": "Continua Con Tu Proceso de Solicitud"
