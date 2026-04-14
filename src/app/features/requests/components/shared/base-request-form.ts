@@ -1,5 +1,6 @@
-import { Directive, Input, OnChanges, OnDestroy, OnInit, signal, SimpleChanges } from '@angular/core';
+import { Directive, inject, Input, OnChanges, OnDestroy, OnInit, signal, SimpleChanges } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { forkJoin, map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { Classification, Customer, Reason, Request } from '../../../../data/interfaces/Request';
 import { RequestService } from '../../../../core/services/request-service';
@@ -20,6 +21,8 @@ const DEFAULT_OPTIONS: RequestFormOptions = {
 
 @Directive()
 export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
+  private readonly _router = inject(Router);
+
   constructor(
     protected readonly _requestService: RequestService,
     protected readonly _customerService: CustomerService,
@@ -680,6 +683,7 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
             : 'Solicitud guardada correctamente';
           this._toastService.success(response?.message ?? successMessage, 'Exito');
           this.submitted.set(false);
+          this._router.navigate(['/app/pending']);
           return;
         }
 
