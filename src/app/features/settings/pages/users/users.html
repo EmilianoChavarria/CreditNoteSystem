@@ -24,150 +24,27 @@
         </ng-template>
     </app-tabla-dinamica>
 
-    <app-modal
-        size="lg"
-        [titleM]="isEditMode() ? ('USERS_PAGE.EDIT_USER' | translate) : ('USERS_PAGE.NEW_USER' | translate)"
+    <app-user-form-modal
         [open]="showUserModal()"
-        [closeText]="'USERS_PAGE.CANCEL' | translate"
-        [primaryText]="isSavingUser() ? ('USERS_PAGE.SAVING' | translate) : (isEditMode() ? ('USERS_PAGE.UPDATE' | translate) : ('USERS_PAGE.SAVE' | translate))"
-        [showPrimaryButton]="!isUserModalLoading()"
+        [isEditMode]="isEditMode()"
+        [isUserModalLoading]="isUserModalLoading()"
+        [isSavingUser]="isSavingUser()"
+        [showPassword]="showPassword()"
+        [passwordErrors]="passwordErrors()"
+        [userForm]="userForm"
+        [roles]="roles()"
+        [supervisors]="supervisors()"
+        [isCustomerRoleSelected]="isCustomerRoleSelected()"
+        [campoVacioFn]="campoVacio.bind(this)"
+        [getErrorMessageFn]="getErrorMessage.bind(this)"
+        [searchCustomersFn]="searchCustomers.bind(this)"
+        [displayCustomerFn]="displayCustomer.bind(this)"
         (openChange)="onUserModalChange($event)"
-        (primaryAction)="saveUserFromModal()"
-    >
-        @if (isUserModalLoading()) {
-            <div class="py-8">
-                <app-spinner size="large"></app-spinner>
-            </div>
-        } @else {
-            <form [formGroup]="userForm" (ngSubmit)="saveUserFromModal()" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block font-medium text-[#395f93] text-sm">{{ 'USERS_PAGE.FULL_NAME' | translate }} <span class="text-red-500">*</span></label>
-                    <input
-                        type="text"
-                        [placeholder]="'USERS_PAGE.FULL_NAME_PLACEHOLDER' | translate"
-                        formControlName="fullName"
-                        [class]="campoVacio('fullName') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'"
-                    />
-                    @if (campoVacio('fullName')) {
-                        <span class="text-sm text-red-500">{{ getErrorMessage('fullName') }}</span>
-                    }
-                </div>
-
-                <div>
-                    <label class="block font-medium text-[#395f93] text-sm">{{ 'USERS_PAGE.EMAIL' | translate }} <span class="text-red-500">*</span></label>
-                    <input
-                        type="text"
-                        placeholder="example@email.com"
-                        formControlName="email"
-                        [class]="campoVacio('email') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'"
-                    />
-                    @if (campoVacio('email')) {
-                        <span class="text-sm text-red-500">{{ getErrorMessage('email') }}</span>
-                    }
-                </div>
-
-                @if (!isEditMode()) {
-                    <div class="md:col-span-2">
-                        <label class="block font-medium text-[#395f93] text-sm">{{ 'USERS_PAGE.PASSWORD' | translate }} <span class="text-red-500">*</span></label>
-                        <div class="relative mt-2">
-                            <input
-                                [type]="showPassword() ? 'text' : 'password'"
-                                placeholder="********"
-                                formControlName="password"
-                                [class]="campoVacio('password') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'"
-                            />
-                            <button
-                                type="button"
-                                (click)="togglePassword()"
-                                class="absolute inset-y-0 end-0 flex items-center px-3 text-xs text-slate-600"
-                            >
-                                {{ showPassword() ? ('USERS_PAGE.HIDE' | translate) : ('USERS_PAGE.SHOW' | translate) }}
-                            </button>
-                        </div>
-
-                        @if (campoVacio('password')) {
-                            @if (passwordErrors().length > 0) {
-                                @for (error of passwordErrors(); track $index) {
-                                    <span class="text-sm text-red-500 block">- {{ error }}</span>
-                                }
-                            } @else {
-                                <span class="text-sm text-red-500">{{ getErrorMessage('password') }}</span>
-                            }
-                        }
-                    </div>
-                }
-
-                <div>
-                    <label class="block font-medium text-[#395f93] text-sm">{{ 'USERS_PAGE.ROLE' | translate }} <span class="text-red-500">*</span></label>
-                    <select
-                        formControlName="roleId"
-                        (change)="onRoleChange()"
-                        [class]="campoVacio('roleId') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'"
-                    >
-                        <option [ngValue]="0">{{ 'USERS_PAGE.SELECT_ROLE' | translate }}</option>
-                        @for (item of roles(); track item.id) {
-                            <option [ngValue]="item.id">{{ item.roleName }}</option>
-                        }
-                    </select>
-                    @if (campoVacio('roleId')) {
-                        <span class="text-sm text-red-500">{{ getErrorMessage('roleId') }}</span>
-                    }
-                </div>
-
-                <div [class.hidden]="!isCustomerRoleSelected()">
-                    <app-autocomplete
-                        [control]="$any(userForm.get('clientId'))"
-                        [label]="'USERS_PAGE.CUSTOMER' | translate"
-                        [placeholder]="'USERS_PAGE.SEARCH_CUSTOMER' | translate"
-                        [isRequired]="isCustomerRoleSelected()"
-                        [searchFn]="searchCustomers.bind(this)"
-                        [displayFn]="displayCustomer.bind(this)"
-                        [debounceMs]="500"
-                        [minCharacters]="1"
-                        [hasError]="campoVacio('clientId')"
-                        (optionSelected)="onCustomerSelected($event)">
-                    </app-autocomplete>
-
-                    @if (campoVacio('clientId')) {
-                        <span class="text-sm text-red-500">{{ getErrorMessage('clientId') }}</span>
-                    }
-                </div>
-
-                <div>
-                    <label class="block font-medium text-[#395f93] text-sm">{{ 'USERS_PAGE.SUPERVISOR' | translate }} <span class="text-red-500">*</span></label>
-                    <select
-                        formControlName="supervisorId"
-                        [class]="campoVacio('supervisorId') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'"
-                    >
-                        <option [ngValue]="0">{{ 'USERS_PAGE.SELECT_SUPERVISOR' | translate }}</option>
-                        @for (item of supervisors(); track item.id) {
-                            <option [ngValue]="item.id">{{ item.fullName }} ({{ item.role.roleName }})</option>
-                        }
-                    </select>
-                    @if (campoVacio('supervisorId')) {
-                        <span class="text-sm text-red-500">{{ getErrorMessage('supervisorId') }}</span>
-                    }
-                </div>
-
-                <div class="md:col-span-2">
-                    <label class="block font-medium text-[#395f93] text-sm">{{ 'USERS_PAGE.PREFERRED_LANGUAGE' | translate }} <span class="text-red-500">*</span></label>
-                    <select
-                        formControlName="preferredLanguage"
-                        [class]="campoVacio('preferredLanguage') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'"
-                    >
-                        <option value="DEF">{{ 'USERS_PAGE.SELECT_LANGUAGE' | translate }}</option>
-                        <option value="es">{{ 'USERS_PAGE.SPANISH' | translate }}</option>
-                        <option value="en">{{ 'USERS_PAGE.ENGLISH' | translate }}</option>
-                    </select>
-                    @if (campoVacio('preferredLanguage')) {
-                        <span class="text-sm text-red-500">{{ getErrorMessage('preferredLanguage') }}</span>
-                    }
-                </div>
-
-                <button type="submit" class="hidden"></button>
-            </form>
-        }
-    </app-modal>
+        (save)="saveUserFromModal()"
+        (togglePassword)="togglePassword()"
+        (roleChange)="onRoleChange()"
+        (customerSelected)="onCustomerSelected($event)">
+    </app-user-form-modal>
 
     <app-modal
         size="md"

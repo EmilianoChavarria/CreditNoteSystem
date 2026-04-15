@@ -11,9 +11,9 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { catchError, debounceTime, distinctUntilChanged, finalize, forkJoin, map, Observable, of, switchMap } from 'rxjs';
 import { RoleService } from '../../../../core/services/role-service';
 import { SecurityService } from '../../../../core/services/security-service';
-import { Spinner } from '../../../../shared/components/ui/spinner/spinner';
-import { Autocomplete as UiAutocomplete, AutocompleteOption } from '../../../../shared/components/ui/autocomplete/autocomplete';
+import { AutocompleteOption } from '../../../../shared/components/ui/autocomplete/autocomplete';
 import { CustomerService } from '../../../../core/services/customer-service';
+import { UserFormModalComponent } from './components/user-form-modal/user-form-modal';
 
 interface UserData {
     id: number;
@@ -25,7 +25,7 @@ interface UserData {
     selector: 'app-users',
     templateUrl: './users.html',
     styleUrl: './users.css',
-    imports: [Table, Modal, Badge, TranslatePipe, ReactiveFormsModule, Spinner, UiAutocomplete],
+    imports: [Table, Modal, Badge, TranslatePipe, UserFormModalComponent],
 })
 export class Users implements OnInit {
     toastr = inject(ToastrService);
@@ -461,7 +461,7 @@ export class Users implements OnInit {
         const resolvedSupervisorId = typeof user.supervisorId === 'number'
             ? user.supervisorId
             : user.supervisorId?.id ?? 0;
-        const resolvedCustomer = (user as any).customer ?? (user as any).clientId ?? null;
+        const resolvedCustomer = this.resolveCustomerOption(user as any);
 
         this.userForm.patchValue({
             fullName: user.fullName ?? '',
@@ -594,7 +594,7 @@ export class Users implements OnInit {
 
                 return customers.map((customer): AutocompleteOption => ({
                     id: customer.idCliente,
-                    label: customer.razonSocial,
+                    label: `${customer.idCliente} - ${customer.razonSocial}`,
                     customer,
                 }));
             }),
@@ -603,7 +603,22 @@ export class Users implements OnInit {
     }
 
     public displayCustomer(customer: any): string {
-        return customer?.label || customer?.customer?.razonSocial || customer?.razonSocial || '';
+        if (!customer) {
+            return '';
+        }
+
+        if (typeof customer.label === 'string' && customer.label.trim().length > 0) {
+            return customer.label;
+        }
+
+        const customerId = customer?.id ?? customer?.idCliente ?? customer?.customer?.idCliente;
+        const customerName = customer?.customer?.razonSocial ?? customer?.razonSocial;
+
+        if (customerId && customerName) {
+            return `${customerId} - ${customerName}`;
+        }
+
+        return customerName || String(customerId ?? '');
     }
 
     public onCustomerSelected(option: AutocompleteOption): void {
@@ -624,5 +639,23 @@ export class Users implements OnInit {
         }
 
         customerControl.updateValueAndValidity({ emitEvent: false });
+    }
+
+    private resolveCustomerOption(user: any): AutocompleteOption | null {
+        const customerId = user?.clientId ?? user?.client?.idCliente ?? user?.customer?.idCliente ?? null;
+        const customerName = user?.client?.razonSocial ?? user?.customer?.razonSocial ?? '';
+
+        if (!customerId && !customerName) {
+            return null;
+        }
+
+        return {
+            id: customerId,
+            label: customerId && customerName ? `${customerId} - ${customerName}` : String(customerName || customerId || ''),
+            customer: {
+                idCliente: customerId,
+                razonSocial: customerName,
+            }
+        };
     }
 }
