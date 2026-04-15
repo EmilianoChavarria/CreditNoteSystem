@@ -31,6 +31,11 @@ export class Customers {
 
     public columns: Column<Customer>[] = [
         {
+            key: 'idCliente',
+            label: 'CUSTOMERS_PAGE.CUSTOMER_ID',
+            sortable: true
+        },
+        {
             key: 'razonSocial',
             label: 'CUSTOMERS_PAGE.CUSTOMER_NAME',
             sortable: true
@@ -45,12 +50,6 @@ export class Customers {
             key: 'rfc',
             label: 'R.F.C',
             sortable: true
-        },
-        {
-            key: 'area',
-            label: 'CUSTOMERS_PAGE.AREA',
-            sortable: true,
-            render: (value, item) => item.customer?.area ?? '-'
         },
         {
             key: 'salesEngineerId',

@@ -19,6 +19,7 @@ export interface AuthUser {
   roleId: number;
   roleName: string;
   preferredLanguage?: string;
+  clientId?: string;
 }
 
 interface LoginData {
@@ -45,7 +46,7 @@ export class AuthService {
     private toastService: ToastService,
     private cacheService: HttpCacheService,
     private impersonationService: ImpersonationService,
-  ) {}
+  ) { }
 
   /**
    * Login de usuario - la cookie se recibe automáticamente del backend
@@ -59,7 +60,7 @@ export class AuthService {
           this.isAuthenticatedSubject.next(true);
           const user = response.data?.user;
           if (user) {
-            this.setUser(user);
+            this.setUser(user, 'login');
           } else {
             this.clearUser();
           }
@@ -113,7 +114,7 @@ export class AuthService {
 
         const user = response.data?.user;
         if (user) {
-          this.setUser(user);
+          this.setUser(user, 'verify');
           this.lastSuccessfulSessionCheckAt = Date.now();
         } else {
           this.clearUser();
@@ -206,8 +207,18 @@ export class AuthService {
     return this.userSubject.value;
   }
 
-  private setUser(user: AuthUser): void {
-    this.userSubject.next(user);
+  private setUser(user: AuthUser, source: 'login' | 'verify' | 'unknown' = 'unknown'): void {
+    const currentUser = this.userSubject.value;
+    const incomingClientId = typeof user?.clientId === 'string' ? user.clientId.trim() : '';
+    const previousClientId = typeof currentUser?.clientId === 'string' ? currentUser.clientId.trim() : '';
+
+    const resolvedUser: AuthUser = {
+      ...user,
+      clientId: incomingClientId || previousClientId || undefined,
+    };
+
+    this.userSubject.next(resolvedUser);
+    this.prepareMyInvoicesEndpointCall(resolvedUser, source);
   }
 
   private clearUser(): void {
@@ -273,5 +284,16 @@ export class AuthService {
   private extractApiMessage(error: unknown): string | null {
     const errorObj = error as { error?: { message?: string } };
     return errorObj?.error?.message ?? null;
+  }
+
+  private prepareMyInvoicesEndpointCall(user: AuthUser, source: 'login' | 'verify' | 'unknown'): void {
+    const roleName = user?.roleName?.trim().toUpperCase();
+    const clientId = typeof user?.clientId === 'string' ? user.clientId.trim() : '';
+
+    if (roleName !== 'CUSTOMER' || !clientId) {
+      return;
+    }
+
+    console.log(`aqui va tu endpoint llamando a clientId: ${clientId}`);
   }
 }

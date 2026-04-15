@@ -252,12 +252,12 @@ export class Sidebar {
         url: item.url,
         children: item.children?.length
           ? [...item.children]
-              .sort((a, b) => a.orderIndex - b.orderIndex)
-              .map(child => ({
-                iconName: child.icon,
-                optionName: child.name,
-                url: child.url,
-              }))
+            .sort((a, b) => a.orderIndex - b.orderIndex)
+            .map(child => ({
+              iconName: child.icon,
+              optionName: child.name,
+              url: child.url,
+            }))
           : undefined,
       }));
   }
@@ -338,6 +338,7 @@ export class Sidebar {
   }
 
   private isCustomer(user: AuthUser | null): boolean {
+    console.log(user);
     const roleName = user?.roleName?.trim().toUpperCase();
     return roleName === 'CUSTOMER';
   }
