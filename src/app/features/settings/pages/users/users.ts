@@ -66,7 +66,7 @@ export class Users implements OnInit {
         email: new FormControl<string>('', [Validators.required, Validators.email]),
         password: new FormControl<string>('', [Validators.required], [this.passwordValidator()]),
         roleId: new FormControl<number>(0, [Validators.required, Validators.min(1)]),
-        customerId: new FormControl<any>(null),
+        clientId: new FormControl<any>(null),
         supervisorId: new FormControl<number>(0, [Validators.required, Validators.min(1)]),
         preferredLanguage: new FormControl<string>('DEF', [Validators.required, Validators.pattern(/^(en|es)$/)]),
     });
@@ -461,13 +461,13 @@ export class Users implements OnInit {
         const resolvedSupervisorId = typeof user.supervisorId === 'number'
             ? user.supervisorId
             : user.supervisorId?.id ?? 0;
-        const resolvedCustomer = (user as any).customer ?? (user as any).customerId ?? null;
+        const resolvedCustomer = (user as any).customer ?? (user as any).clientId ?? null;
 
         this.userForm.patchValue({
             fullName: user.fullName ?? '',
             email: user.email ?? '',
             roleId: resolvedRoleId,
-            customerId: resolvedCustomer,
+            clientId: resolvedCustomer,
             supervisorId: resolvedSupervisorId,
             preferredLanguage: user.preferredLanguage ?? 'DEF',
             password: '',
@@ -547,21 +547,21 @@ export class Users implements OnInit {
             email: '',
             password: '',
             roleId: 0,
-            customerId: null,
+            clientId: null,
             supervisorId: 0,
             preferredLanguage: 'DEF',
         });
     }
 
     private get userPayload(): Partial<User> {
-        const payload = { ...this.userForm.getRawValue() } as Partial<User> & { password?: string; customerId?: any };
+        const payload = { ...this.userForm.getRawValue() } as Partial<User> & { password?: string; clientId?: any };
 
-        if (payload.customerId && typeof payload.customerId === 'object') {
-            payload.customerId = payload.customerId.id;
+        if (payload.clientId && typeof payload.clientId === 'object') {
+            payload.clientId = payload.clientId.id;
         }
 
         if (!this.isCustomerRoleSelected()) {
-            delete payload.customerId;
+            delete payload.clientId;
         }
 
         if (this.isEditMode() && !payload.password) {
@@ -607,11 +607,11 @@ export class Users implements OnInit {
     }
 
     public onCustomerSelected(option: AutocompleteOption): void {
-        this.userForm.get('customerId')?.setValue(option, { emitEvent: false });
+        this.userForm.get('clientId')?.setValue(option, { emitEvent: false });
     }
 
     private updateCustomerControlState(): void {
-        const customerControl = this.userForm.get('customerId');
+        const customerControl = this.userForm.get('clientId');
         if (!customerControl) {
             return;
         }

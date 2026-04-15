@@ -6,7 +6,7 @@ export interface User {
   supervisorId: any;
   preferredLanguage: string;
   isActive: boolean;
-  clientId?: number | null;
+  clientId?: number | string;
   deletedAt: string;
   createdAt: string;
   updatedAt: string;

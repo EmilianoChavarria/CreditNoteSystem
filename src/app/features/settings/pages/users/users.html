@@ -116,7 +116,7 @@
 
                 <div [class.hidden]="!isCustomerRoleSelected()">
                     <app-autocomplete
-                        [control]="$any(userForm.get('customerId'))"
+                        [control]="$any(userForm.get('clientId'))"
                         [label]="'USERS_PAGE.CUSTOMER' | translate"
                         [placeholder]="'USERS_PAGE.SEARCH_CUSTOMER' | translate"
                         [isRequired]="isCustomerRoleSelected()"
@@ -124,12 +124,12 @@
                         [displayFn]="displayCustomer.bind(this)"
                         [debounceMs]="500"
                         [minCharacters]="1"
-                        [hasError]="campoVacio('customerId')"
+                        [hasError]="campoVacio('clientId')"
                         (optionSelected)="onCustomerSelected($event)">
                     </app-autocomplete>
 
-                    @if (campoVacio('customerId')) {
-                        <span class="text-sm text-red-500">{{ getErrorMessage('customerId') }}</span>
+                    @if (campoVacio('clientId')) {
+                        <span class="text-sm text-red-500">{{ getErrorMessage('clientId') }}</span>
                     }
                 </div>
 
