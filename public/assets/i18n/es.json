@@ -538,6 +538,7 @@
   },
   "CUSTOMERS_PAGE": {
     "CUSTOMER": "Cliente",
+    "CUSTOMER_ID": "ID Cliente",
     "CUSTOMER_NAME": "Nombre del Cliente",
     "AREA": "Area",
     "SALES_ENGINEER": "Ingeniero Ventas",
