@@ -43,6 +43,7 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
   private amountSubscription: Subscription | null = null;
   private ivaSubscription: Subscription | null = null;
   private currencySubscription: Subscription | null = null;
+  private initialLoadTriggered = false;
 
   public form: FormGroup = this.createForm();
 
@@ -51,13 +52,16 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
   }
 
   ngOnInit(): void {
-    this.loadInitialData();
+    if (!this.initialLoadTriggered) {
+      this.loadInitialData();
+    }
     this.setupTotalAmountListener();
     this.setupCurrencyExchangeRateListener();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['requestTypeId'] && this.requestTypeId !== null) {
+      this.initialLoadTriggered = true;
       this.loadInitialData();
     }
 
