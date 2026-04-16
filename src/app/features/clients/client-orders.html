@@ -6,7 +6,30 @@
       <p class="text-sm text-gray-600">Consulta el historial de ordenes, su estatus y el detalle de productos por factura.</p>
     </header>
 
-    @if (orders().length === 0) {
+    <section class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <article class="rounded-md border border-gray-200 bg-white px-3 py-2 shadow-sm">
+        <span class="block text-xs text-gray-500">Ordenes</span>
+        <strong class="text-base text-gray-800">{{ totalOrders() }}</strong>
+      </article>
+      <article class="rounded-md border border-gray-200 bg-white px-3 py-2 shadow-sm">
+        <span class="block text-xs text-gray-500">Productos</span>
+        <strong class="text-base text-gray-800">{{ totalItems() }}</strong>
+      </article>
+      <article class="rounded-md border border-gray-200 bg-white px-3 py-2 shadow-sm">
+        <span class="block text-xs text-gray-500">Importe estimado</span>
+        <strong class="text-base text-gray-800">{{ totalAmount() | currency: 'MXN' : 'symbol' : '1.2-2' }}</strong>
+      </article>
+    </section>
+
+    @if (isLoadingOrders()) {
+    <article class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+      <p class="text-sm text-gray-600">Cargando ordenes de devolucion...</p>
+    </article>
+    } @else if (ordersLoadError(); as loadError) {
+    <article class="rounded-lg border border-red-200 bg-white p-4 shadow-sm">
+      <p class="text-sm text-red-700">{{ loadError }}</p>
+    </article>
+    } @else if (orders().length === 0) {
     <article class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
       <p class="text-sm text-gray-600">Aun no hay ordenes de devolucion generadas.</p>
     </article>
@@ -16,14 +39,12 @@
       <article class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
         <header class="flex flex-col gap-2 border-b border-gray-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p class="text-sm font-semibold text-gray-800">Orden {{ order.orderNumber }}</p>
+            <p class="text-sm font-semibold text-gray-800">Orden #{{ order.id }}</p>
             <p class="text-xs text-gray-500">Fecha: {{ order.createdAt | date: 'dd/MM/yyyy HH:mm' }}</p>
           </div>
 
           <div class="flex flex-wrap items-center gap-2">
-            <span [class]="'rounded-full border px-2.5 py-1 text-[11px] font-semibold ' + statusClasses(order.status)">
-              {{ order.status }}
-            </span>
+            
             <span class="rounded-full border border-gray-200 bg-gray-50 px-2.5 py-1 text-[11px] text-gray-600">
               {{ order.products.length }} productos
             </span>
@@ -47,34 +68,44 @@
             {{ order.subtotal | currency: 'MXN' : 'symbol' : '1.2-2' }}
           </p>
           <p>
-            <span class="font-medium text-gray-700">Total:</span>
+            <span class="font-medium text-gray-700">Total estimado:</span>
             {{ order.total | currency: 'MXN' : 'symbol' : '1.2-2' }}
           </p>
+          @if (order.notes) {
+          <p class="sm:col-span-3">
+            <span class="font-medium text-gray-700">Notas:</span>
+            {{ order.notes }}
+          </p>
+          }
         </div>
 
         @if (isExpanded(order.id)) {
         <div class="w-full overflow-x-auto">
           <table class="min-w-225 w-full border-collapse bg-white">
-            <caption class="sr-only">Detalle de productos de la orden {{ order.orderNumber }}</caption>
+            <caption class="sr-only">Detalle de productos de la orden {{ order.id }}</caption>
             <thead class="bg-white text-xs uppercase tracking-wide text-gray-600">
               <tr>
                 <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">Factura</th>
-                <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">No. Parte</th>
-                <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">Parte Cliente</th>
-                <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">Cantidad</th>
+                <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">Concepto</th>
+                <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">Clave prod/serv</th>
+                <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">Descripcion</th>
+                <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">Solicitada</th>
+                <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">Original</th>
+                <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">Unidad</th>
                 <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">PU</th>
-                <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">Importe</th>
               </tr>
             </thead>
             <tbody>
               @for (product of order.products; track product.id) {
               <tr class="hover:bg-gray-50">
-                <td class="border-b border-gray-200 px-3 py-2 text-sm text-gray-700">{{ product.invoiceNumber }}</td>
-                <td class="border-b border-gray-200 px-3 py-2 text-sm text-gray-700">{{ product.partNumber }}</td>
-                <td class="border-b border-gray-200 px-3 py-2 text-sm text-gray-700">{{ product.customerPart }}</td>
-                <td class="border-b border-gray-200 px-3 py-2 text-sm text-gray-700">{{ product.quantity }} {{ product.unit }}</td>
+                <td class="border-b border-gray-200 px-3 py-2 text-sm text-gray-700">{{ product.invoiceFolio }}</td>
+                <td class="border-b border-gray-200 px-3 py-2 text-sm text-gray-700">{{ product.conceptoIndex }}</td>
+                <td class="border-b border-gray-200 px-3 py-2 text-sm text-gray-700">{{ product.claveProdServ }}</td>
+                <td class="border-b border-gray-200 px-3 py-2 text-sm text-gray-700">{{ product.descripcion }}</td>
+                <td class="border-b border-gray-200 px-3 py-2 text-sm text-gray-700">{{ product.requestedQuantity }}</td>
+                <td class="border-b border-gray-200 px-3 py-2 text-sm text-gray-700">{{ product.originalQuantity }}</td>
+                <td class="border-b border-gray-200 px-3 py-2 text-sm text-gray-700">{{ product.unit }}</td>
                 <td class="border-b border-gray-200 px-3 py-2 text-sm text-gray-700">{{ product.unitPrice | currency: 'MXN' : 'symbol' : '1.2-2' }}</td>
-                <td class="border-b border-gray-200 px-3 py-2 text-sm text-gray-700">{{ product.quantity * product.unitPrice | currency: 'MXN' : 'symbol' : '1.2-2' }}</td>
               </tr>
               }
             </tbody>
@@ -86,13 +117,13 @@
             <span>Subtotal</span>
             <strong>{{ order.subtotal | currency: 'MXN' : 'symbol' : '1.2-2' }}</strong>
           </p>
-          <p class="flex items-center justify-between text-gray-700">
-            <span>IVA</span>
-            <strong>{{ order.tax | currency: 'MXN' : 'symbol' : '1.2-2' }}</strong>
-          </p>
           <p class="flex items-center justify-between text-gray-800">
-            <span class="font-semibold">Total</span>
+            <span class="font-semibold">Total estimado</span>
             <strong>{{ order.total | currency: 'MXN' : 'symbol' : '1.2-2' }}</strong>
+          </p>
+          <p class="flex items-center justify-between text-gray-700">
+            <span>Actualizada</span>
+            <strong>{{ order.updatedAt | date: 'dd/MM/yyyy HH:mm' }}</strong>
           </p>
         </footer>
         }
