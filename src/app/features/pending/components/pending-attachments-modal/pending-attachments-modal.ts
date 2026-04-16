@@ -4,7 +4,8 @@ import { finalize } from 'rxjs';
 import { Modal } from '../../../../shared/components/ui/modal/modal';
 import { Spinner } from '../../../../shared/components/ui/spinner/spinner';
 import { ApiResponse } from '../../../../data/interfaces/ApiResponse-interface';
-import { RequestAttachment, RequestService } from '../../../../core/services/request-service';
+import { RequestAttachment } from '../../../../data/interfaces/RequestService';
+import { RequestService } from '../../../../core/services/request-service';
 import { ToastService } from '../../../../core/services/toast-service';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
