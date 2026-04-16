@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpService } from './http-service';
-import { catchError, map, Observable } from 'rxjs';
+import { catchError, map, Observable, shareReplay } from 'rxjs';
 import { Classification, Reason, Request, RequestType } from '../../data/interfaces/Request';
 import { ApiResponse } from '../../data/interfaces/ApiResponse-interface';
 import { CursorPagination } from './user-service';
@@ -222,6 +222,7 @@ export interface RejectMassResponse {
 export class RequestService {
 
   private token = 'df86e3c71f798ed791afff85b7074abefeb34558903553b6e1aa37f0214aa0bb';
+  private reasons$: Observable<Reason[]> | null = null;
 
   constructor(
     private _httpService: HttpService,
@@ -239,14 +240,18 @@ export class RequestService {
   }
 
   getReasons(): Observable<Reason[]> {
-    return this._httpService.get<Reason[]>('/requests/reasons').pipe(
-
-      map((response: ApiResponse<Reason[]>) => response.data ?? []),
-      catchError((error) => {
-        console.log(error);
-        throw error;
-      })
-    )
+    if (!this.reasons$) {
+      this.reasons$ = this._httpService.get<Reason[]>('/requests/reasons').pipe(
+        map((response: ApiResponse<Reason[]>) => response.data ?? []),
+        catchError((error) => {
+          this.reasons$ = null;
+          console.log(error);
+          throw error;
+        }),
+        shareReplay(1),
+      );
+    }
+    return this.reasons$;
   }
 
   getMyPendingRequests(requestTypeId: number, perPage = 10, page = 1, search?: string): Observable<PagePagination<Request>> {
