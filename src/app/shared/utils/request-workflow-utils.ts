@@ -1,6 +1,6 @@
 import moment from 'moment';
 import { Request } from '../../data/interfaces/Request';
-import { RequestHistoryData, RequestHistoryLog } from '../../core/services/request-service';
+import { RequestHistoryData, RequestHistoryLog } from '../../data/interfaces/RequestService';
 import { WorkflowDetail } from '../../features/history/components/workflow-history-drawer/workflow-history-drawer';
 
 export interface WorkflowDetailLabels {
