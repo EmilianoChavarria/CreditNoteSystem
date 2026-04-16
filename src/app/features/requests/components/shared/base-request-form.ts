@@ -765,12 +765,12 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
     const invalidFields = controlState.filter(control => control.invalid && !control.disabled);
     const validFields = controlState.filter(control => control.valid && !control.disabled);
 
-    // console.table(controlState);
-    // console.log('Campos invalidos:', invalidFields.map(field => ({
-    //   field: field.field,
-    //   errors: field.errors,
-    // })));
-    // console.log('Campos validos:', validFields.map(field => field.field));
+    console.table(controlState);
+    console.log('Campos invalidos:', invalidFields.map(field => ({
+      field: field.field,
+      errors: field.errors,
+    })));
+    console.log('Campos validos:', validFields.map(field => field.field));
   }
 
   searchCustomers(searchTerm: string): Observable<any[]> {
