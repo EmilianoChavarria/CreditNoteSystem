@@ -41,7 +41,17 @@
 
         <section class="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_420px]">
             <div class="flex flex-col gap-4">
-                @if (filteredInvoices().length === 0) {
+                @if (isLoadingInvoices()) {
+                <article class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+                    <h2 class="text-lg font-semibold text-gray-800">Cargando facturas</h2>
+                    <p class="mt-1 text-sm text-gray-600">Consultando facturas del cliente seleccionado.</p>
+                </article>
+                } @else if (invoicesLoadError(); as loadError) {
+                <article class="rounded-lg border border-red-200 bg-white p-4 shadow-sm">
+                    <h2 class="text-lg font-semibold text-red-700">No se pudieron cargar las facturas</h2>
+                    <p class="mt-1 text-sm text-gray-600">{{ loadError }}</p>
+                </article>
+                } @else if (filteredInvoices().length === 0) {
                 <article class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
                     <h2 class="text-lg font-semibold text-gray-800">No hay facturas para ese rango</h2>
                     <p class="mt-1 text-sm text-gray-600">Ajusta las fechas para encontrar informacion de facturacion.
@@ -63,7 +73,7 @@
                             </span>
                             <button type="button"
                                 class="rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
-                                (click)="toggleInvoice(invoiceAccordionKey)">
+                                (click)="toggleInvoice(invoice, invoiceAccordionKey)">
                                 {{ isInvoiceExpanded(invoiceAccordionKey) ? 'Ocultar' : 'Mostrar' }}
                             </button>
                         </div>
@@ -80,8 +90,6 @@
                                         DELIVERY NOTE</th>
                                     <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">No. PARTE /
                                         PART NUMBER</th>
-                                    <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">PARTE CLIENTE
-                                        / CUST PART</th>
                                     <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">CANT EMB /
                                         QTY SHIP</th>
                                     <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">PRECIO
@@ -92,6 +100,28 @@
                                 </tr>
                             </thead>
                             <tbody>
+                                @if (isInvoiceProductsLoading(invoiceAccordionKey)) {
+                                <tr>
+                                    <td class="border-b border-gray-200 bg-white px-3 py-3 text-sm text-gray-600"
+                                        colspan="7">
+                                        Cargando productos de la factura...
+                                    </td>
+                                </tr>
+                                } @else if (invoiceProductsErrorMessage(invoiceAccordionKey); as invoiceError) {
+                                <tr>
+                                    <td class="border-b border-gray-200 bg-white px-3 py-3 text-sm text-red-700"
+                                        colspan="7">
+                                        {{ invoiceError }}
+                                    </td>
+                                </tr>
+                                } @else if (invoice.products.length === 0) {
+                                <tr>
+                                    <td class="border-b border-gray-200 bg-white px-3 py-3 text-sm text-gray-600"
+                                        colspan="7">
+                                        Esta factura no tiene productos disponibles para devolucion.
+                                    </td>
+                                </tr>
+                                } @else {
                                 @for (product of invoice.products; track product.id) {
                                 <tr class="hover:bg-gray-50">
                                     <td class="border-b border-gray-200 bg-white px-3 py-2 text-sm text-gray-700">
@@ -102,10 +132,18 @@
                                         product.deliveryNote }}</td>
                                     <td class="border-b border-gray-200 bg-white px-3 py-2 text-sm text-gray-700">{{
                                         product.partNumber }}</td>
-                                    <td class="border-b border-gray-200 bg-white px-3 py-2 text-sm text-gray-700">{{
-                                        product.customerPart }}</td>
-                                    <td class="border-b border-gray-200 bg-white px-3 py-2 text-sm text-gray-700">{{
-                                        product.qtyShipped }} {{ product.unit }}</td>
+                                    <td class="border-b border-gray-200 bg-white px-3 py-2 text-sm text-gray-700">
+                                        <div class="flex flex-row items-center justify-center gap-x-4">
+                                            <span>
+                                                {{product.qtyShipped }} {{ product.unit }}
+                                            </span>
+                                            <button type="button"
+                                                class=" text-orange-500 p-2 rounded-md hover:bg-orange-100 hover:cursor-pointer"
+                                                (click)="openProductHistory(invoice, product)">
+                                                <lucide-icon name="history" size="20"></lucide-icon>
+                                            </button>
+                                        </div>
+                                    </td>
                                     <td class="border-b border-gray-200 bg-white px-3 py-2 text-sm text-gray-700">
                                         {{ product.unitPrice | currency: 'MXN' : 'symbol' : '1.2-2' }}
                                     </td>
@@ -140,6 +178,7 @@
                                         </div>
                                     </td>
                                 </tr>
+                                }
                                 }
                             </tbody>
                         </table>
@@ -230,6 +269,18 @@
                 </div>
 
                 <footer class="mt-3 border-t border-gray-200 pt-3">
+                    <label class="mb-3 flex flex-col gap-1 text-sm text-gray-700">
+                        <span class="text-xs font-medium text-gray-600">Notas de la orden (opcional)</span>
+                        <textarea class="min-h-20 rounded-md border border-gray-300 px-3 py-2 text-sm"
+                            [formControl]="returnOrderNotes" placeholder="Productos dañados en transporte"></textarea>
+                    </label>
+
+                    @if (returnOrderError(); as orderError) {
+                    <div class="mb-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                        {{ orderError }}
+                    </div>
+                    }
+
                     <div class="flex flex-col gap-1 text-sm">
                         <p class="flex items-center justify-between text-gray-700">
                             <span>Subtotal</span>
@@ -248,16 +299,20 @@
 
                     <button type="button"
                         class="mt-3 w-full rounded-md bg-[#ff8200] px-3 py-2 text-sm font-semibold text-white hover:bg-[#db7201] disabled:cursor-not-allowed disabled:bg-gray-300"
-                        [disabled]="!canGenerateOrder()" (click)="generateReturnOrder()">
-                        Generar orden de devolucion
+                        [disabled]="!canGenerateOrder() || isCreatingReturnOrder()" (click)="generateReturnOrder()">
+                        {{ isCreatingReturnOrder() ? 'Generando orden...' : 'Generar orden de devolucion' }}
                     </button>
                 </footer>
                 }
 
                 @if (generatedOrder(); as order) {
                 <section class="mt-4 border-t border-dashed border-gray-300 pt-3">
-                    <h3 class="text-sm font-semibold text-gray-800">Orden generada: {{ order.number }}</h3>
+                    <h3 class="text-sm font-semibold text-gray-800">Orden generada: #{{ order.id }}</h3>
+                    <p class="mt-1 text-xs text-gray-500">Estado: {{ order.status }}</p>
                     <p class="mt-1 text-xs text-gray-500">Fecha: {{ order.createdAt | date: 'dd/MM/yyyy HH:mm' }}</p>
+                    @if (order.notes) {
+                    <p class="mt-1 text-xs text-gray-500">Notas: {{ order.notes }}</p>
+                    }
 
                     <div class="mt-2 flex flex-col gap-2">
                         @for (group of groupedReturnItems(); track group.invoiceId) {
@@ -286,5 +341,10 @@
                 }
             </aside>
         </section>
+
+        <app-product-history-modal [open]="isHistoryModalOpen()" [title]="historyModalTitle()"
+            [subtitle]="historyModalSubtitle()" [isLoading]="isLoadingProductHistory()" [error]="productHistoryError()"
+            [summary]="productHistorySummary()" [rows]="productHistoryRows()"
+            (openChange)="closeProductHistoryModal()"></app-product-history-modal>
     </div>
 </section>
