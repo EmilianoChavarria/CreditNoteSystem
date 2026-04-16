@@ -1,0 +1,85 @@
+<app-modal
+  size="xl"
+  [titleM]="title()"
+  [open]="open()"
+  [closeText]="'Cerrar'"
+  [showPrimaryButton]="false"
+  (openChange)="onOpenChange($event)"
+>
+  <p modal-title class="mt-1 text-sm text-gray-500">{{ subtitle() }}</p>
+
+  @if (isLoading()) {
+    <p class="text-sm text-gray-600">Cargando historial de devoluciones...</p>
+  } @else if (error(); as historyError) {
+    <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+      {{ historyError }}
+    </div>
+  } @else if (summary(); as currentSummary) {
+    <div class="space-y-4">
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <article class="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3">
+          <p class="text-xs font-semibold uppercase tracking-wide text-blue-700">Facturado</p>
+          <p class="mt-1 text-3xl font-bold text-blue-700">{{ currentSummary.totalSent }} {{ currentSummary.unit }}</p>
+        </article>
+        <article class="rounded-xl border border-orange-100 bg-orange-50 px-4 py-3">
+          <p class="text-xs font-semibold uppercase tracking-wide text-orange-700">Devoluciones Parciales</p>
+          <p class="mt-1 text-3xl font-bold text-orange-700">{{ currentSummary.totalReturned }} {{ currentSummary.unit }}</p>
+        </article>
+        <article class="rounded-xl border border-green-100 bg-green-50 px-4 py-3">
+          <p class="text-xs font-semibold uppercase tracking-wide text-green-700">Disponible</p>
+          <p class="mt-1 text-3xl font-bold text-green-700">{{ currentSummary.available }} {{ currentSummary.unit }}</p>
+        </article>
+      </div>
+
+      <div>
+        <div class="mb-1 flex items-center justify-between text-xs text-gray-500">
+          <span>Trazabilidad de unidades</span>
+          <span>{{ currentSummary.totalSent }} {{ currentSummary.unit }} total</span>
+        </div>
+        <div class="h-3 overflow-hidden rounded-full bg-gray-200">
+          <div class="h-full bg-orange-500" [style.width.%]="returnedPercent()"></div>
+          <div class="-mt-3 h-full bg-green-500" [style.width.%]="availablePercent()"></div>
+        </div>
+      </div>
+
+      <div>
+        <h3 class="mb-2 text-lg font-semibold text-gray-800">Registros de Devolución</h3>
+
+        @if (rows().length === 0) {
+          <div class="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-600">
+            No hay devoluciones registradas para este producto.
+          </div>
+        } @else {
+          <div class="overflow-x-auto rounded-lg border border-gray-200">
+            <table class="min-w-full border-collapse">
+              <thead class="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
+                <tr>
+                  <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">Fecha</th>
+                  <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">Orden</th>
+                  <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">Cant.</th>
+                  <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">Estado</th>
+                  <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">Notas</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of rows(); track row.returnOrderId + '-' + row.date) {
+                  <tr class="hover:bg-gray-50">
+                    <td class="border-b border-gray-200 px-3 py-2 text-sm text-gray-700">{{ row.date | date: 'dd/MM/yyyy' }}</td>
+                    <td class="border-b border-gray-200 px-3 py-2 text-sm font-semibold text-orange-700">{{ row.orderNumber }}</td>
+                    <td class="border-b border-gray-200 px-3 py-2 text-sm text-gray-700">{{ row.quantity }}</td>
+                    <td class="border-b border-gray-200 px-3 py-2">
+                      <span [class]="'inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ' + statusBadgeClass(row.status)">
+                        {{ statusLabel(row.status) }}
+                      </span>
+                    </td>
+                    <td class="border-b border-gray-200 px-3 py-2 text-sm text-gray-700">{{ row.notes || '-' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</app-modal>
