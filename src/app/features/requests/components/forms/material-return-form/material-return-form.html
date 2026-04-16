@@ -112,10 +112,20 @@
                     <label for="invoiceNumber"
                         class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.INVOICE_NUMBER' |
                         translate}}<span class="text-red-500">*</span></label>
-                    <input id="invoiceNumber" type="date" formControlName="invoiceNumber"
+                    <input id="invoiceNumber" type="text" formControlName="invoiceNumber"
                         [class]="campoVacio('invoiceNumber') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
                     @if (campoVacio('invoiceNumber')) {
                     <span class="text-sm text-red-500">{{ getErrorMessage('invoiceNumber') }}</span>
+                    }
+                </div>
+                <div>
+                    <label for="invoiceDate"
+                        class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.INVOICE_DATE' |
+                        translate}}<span class="text-red-500">*</span></label>
+                    <input id="invoiceDate" type="date" formControlName="invoiceDate"
+                        [class]="campoVacio('invoiceDate') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
+                    @if (campoVacio('invoiceDate')) {
+                    <span class="text-sm text-red-500">{{ getErrorMessage('invoiceDate') }}</span>
                     }
                 </div>
                 <div class="md:md:col-span-2">
@@ -237,6 +247,80 @@
                     }
                 </div>
             </div>
+        </app-tab>
+
+        <app-tab titleT="Material List">
+            @if (!orderId()) {
+            <div class="rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600">
+                Selecciona una orden de devolución para visualizar materiales.
+            </div>
+            } @else if (isLoadingMaterialList()) {
+            <div class="rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600">
+                Cargando materiales de la orden {{ orderId() }}...
+            </div>
+            } @else if (materialListError(); as loadError) {
+            <div class="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {{ loadError }}
+            </div>
+            } @else if (materialList().length === 0) {
+            <div class="rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600">
+                La orden {{ orderId() }} no tiene materiales registrados.
+            </div>
+            } @else {
+            <div class="overflow-x-auto rounded-md border border-gray-200">
+                <table class="w-full table-fixed divide-y divide-gray-200 bg-white">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Cant. devuelta</th>
+                            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Replanishment accepted</th>
+                            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Replanishment reason for rejection</th>
+                            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Warehouse received</th>
+                            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Warehouse Accepted</th>
+                            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Warehouse reason for rejection</th>
+                            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">SAP ID</th>
+                            <!-- <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Concepto</th>
+                            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Clave SAT</th> -->
+                            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Part number</th>
+                            <!-- <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Unidad</th> -->
+                            <!-- <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Cant. original</th> -->
+                            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Precio Unitario</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        @for (material of materialList(); track material.id) {
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-3 py-2 text-sm text-gray-700">{{ material.requestedQuantity }}</td>
+                            <td class="px-3 py-2 text-sm text-gray-700">
+                                <input type="text" name="" id="" class="border border-gray-300 rounded-md h-8 px-2 w-full">
+                            </td>
+                            <td class="px-3 py-2 text-sm text-gray-700">
+                                <input type="text" name="" id="" class="border border-gray-300 rounded-md h-8 px-2 w-full">
+                            </td>
+                            <td class="px-3 py-2 text-sm text-gray-700">
+                                <input type="text" name="" id="" class="border border-gray-300 rounded-md h-8 px-2 w-full">
+                            </td>
+                            <td class="px-3 py-2 text-sm text-gray-700">
+                                <input type="text" name="" id="" class="border border-gray-300 rounded-md h-8 px-2 w-full">
+                            </td>
+                            <td class="px-3 py-2 text-sm text-gray-700">
+                                <input type="text" name="" id="" class="border border-gray-300 rounded-md h-8 px-2 w-full">
+                            </td>
+                            <td class="px-3 py-2 text-sm text-gray-700">
+                                <input type="text" name="" id="" class="border border-gray-300 rounded-md h-8 px-2 w-full">
+                            </td>
+                            <!-- <td class="px-3 py-2 text-sm text-gray-700">{{ material.conceptoIndex }}</td> -->
+                            <!-- <td class="px-3 py-2 text-sm text-gray-700">{{ material.claveProdServ }}</td> -->
+                            <td class="px-3 py-2 text-sm text-gray-700">{{ material.descripcion }}</td>
+                            <!-- <td class="px-3 py-2 text-sm text-gray-700">{{ material.unidad || material.claveUnidad }}</td> -->
+                            <!-- <td class="px-3 py-2 text-sm text-gray-700">{{ material.originalQuantity }}</td> -->
+                            
+                            <td class="px-3 py-2 text-sm text-gray-700">{{ material.valorUnitario | currency: 'MXN' : 'symbol' : '1.2-2' }}</td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            }
         </app-tab>
     </app-tabs-container>
 </form>
