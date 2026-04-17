@@ -100,6 +100,18 @@ export interface BlockedIpApi {
   releasedAt: string | null;
 }
 
+export interface ChargePolicy {
+  id: number;
+  day: number;
+  percentage: number;
+}
+
+export interface ChargePolicyInput {
+  id?: number;
+  day: number;
+  percentage: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -161,6 +173,22 @@ export class SecurityService {
 
   unlockBlockedUser(userId: number) {
     return this._httpService.post<unknown>(`security/users/${userId}/unlock`, {});
+  }
+
+  getChargePolicies() {
+    return this._httpService.get<ChargePolicy[]>('charge-policies').pipe(
+      map(response => response.data)
+    );
+  }
+
+  syncChargePolicies(payload: { policies: ChargePolicyInput[] }) {
+    return this._httpService.post<ChargePolicy[]>('charge-policies/sync', payload).pipe(
+      map(response => response.data)
+    );
+  }
+
+  deleteChargePolicy(id: number) {
+    return this._httpService.delete<unknown>(`charge-policies/${id}`);
   }
 
 }
