@@ -7,6 +7,7 @@ import { ToastrService } from 'ngx-toastr';
 
 interface ChargePolicyItem {
     id?: number;
+    conditional: '<' | '>';
     days: number;
     percentage: number;
 }
@@ -60,7 +61,12 @@ export class SysConfig implements OnInit {
                 this.maxAuthFailuresUser = Number(loginSettings?.maxUserAttempts ?? this.maxAuthFailuresUser);
                 this.maxAuthFailuresIp = Number(loginSettings?.maxIpAttempts ?? this.maxAuthFailuresIp);
 
-                this.chargePolicies = (chargePolicies ?? []).map(p => ({ id: p.id, days: p.day, percentage: p.percentage }));
+                this.chargePolicies = (chargePolicies ?? []).map(p => ({
+                    id: p.id,
+                    conditional: p.conditional === '>' ? '>' : '<',
+                    days: p.day,
+                    percentage: p.percentage,
+                }));
 
                 this.isLoading.set(false);
             },
@@ -83,6 +89,21 @@ export class SysConfig implements OnInit {
 
     public minLengthHelperText(): string {
         return this._translate.instant('SYS_CONFIG.MIN_LENGTH_HELP', { min: this.minimumPasswordLength });
+    }
+
+    public chargeConditionalLabel(conditional: '<' | '>'): string {
+        return this._translate.instant(
+            conditional === '<' ? 'SYS_CONFIG.CHARGE_BEFORE' : 'SYS_CONFIG.CHARGE_AFTER'
+        );
+    }
+
+    public chargePolicySummary(policy: ChargePolicyItem): string {
+        return this._translate.instant('SYS_CONFIG.CHARGE_SUMMARY', {
+            conditionalLabel: this.chargeConditionalLabel(policy.conditional),
+            days: policy.days,
+            daysUnit: this._translate.instant('SYS_CONFIG.CHARGE_DAYS_UNIT'),
+            percentage: policy.percentage,
+        });
     }
 
     public decrement(field: 'minimumPasswordLength' | 'inactivityTimeoutMinutes' | 'maxAuthFailuresUser' | 'maxAuthFailuresIp'): void {
@@ -115,7 +136,7 @@ export class SysConfig implements OnInit {
     }
 
     public addChargePolicy(): void {
-        this.chargePolicies = [...this.chargePolicies, { days: 0, percentage: 0 }];
+        this.chargePolicies = [...this.chargePolicies, { conditional: '<', days: 0, percentage: 0 }];
     }
 
     public removeChargePolicy(index: number): void {
@@ -147,7 +168,24 @@ export class SysConfig implements OnInit {
         });
     }
 
-    public onChargePolicyInput(index: number, field: 'days' | 'percentage', event: Event): void {
+    public onChargePolicyInput(index: number, field: 'conditional' | 'days' | 'percentage', event: Event): void {
+        if (field === 'conditional') {
+            const value = (event.target as HTMLSelectElement).value;
+
+            this.chargePolicies = this.chargePolicies.map((item, currentIndex) => {
+                if (currentIndex !== index) {
+                    return item;
+                }
+
+                return {
+                    ...item,
+                    conditional: value === '>' ? '>' : '<',
+                };
+            });
+
+            return;
+        }
+
         const rawValue = Number((event.target as HTMLInputElement).value);
         let normalizedValue = Number.isFinite(rawValue) ? Math.floor(rawValue) : 0;
 
@@ -194,6 +232,7 @@ export class SysConfig implements OnInit {
         const chargePoliciesPayload = {
             policies: this.chargePolicies.map(p => ({
                 ...(p.id ? { id: p.id } : {}),
+                conditional: p.conditional,
                 day: p.days,
                 percentage: p.percentage,
             }))
@@ -205,7 +244,12 @@ export class SysConfig implements OnInit {
             chargePolicies: this._securityService.syncChargePolicies(chargePoliciesPayload),
         }).subscribe({
             next: ({ chargePolicies }) => {
-                this.chargePolicies = (chargePolicies ?? []).map(p => ({ id: p.id, days: p.day, percentage: p.percentage }));
+                this.chargePolicies = (chargePolicies ?? []).map(p => ({
+                    id: p.id,
+                    conditional: p.conditional === '>' ? '>' : '<',
+                    days: p.day,
+                    percentage: p.percentage,
+                }));
                 this._toastr.success(
                     this._translate.instant('SYS_CONFIG.TOAST.SAVE_SUCCESS'),
                     this._translate.instant('SYS_CONFIG.TOAST.SUCCESS')

@@ -102,12 +102,14 @@ export interface BlockedIpApi {
 
 export interface ChargePolicy {
   id: number;
+  conditional?: '<' | '>';
   day: number;
   percentage: number;
 }
 
 export interface ChargePolicyInput {
   id?: number;
+  conditional: '<' | '>';
   day: number;
   percentage: number;
 }

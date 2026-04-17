@@ -160,8 +160,8 @@
 
         <article class="max-w-5xl bg-white border border-slate-200 shadow-sm rounded-2xl w-full overflow-hidden">
             <div class="px-6 py-5 border-b border-slate-200">
-                <h2 class="text-lg font-semibold text-gray-800">Charge Policy</h2>
-                <p class="text-gray-600">Configure charge rates based on elapsed days. Add rules to define the percentage charged at each interval.</p>
+                <h2 class="text-lg font-semibold text-gray-800">{{ 'SYS_CONFIG.CHARGE_SECTION_TITLE' | translate }}</h2>
+                <p class="text-gray-600">{{ 'SYS_CONFIG.CHARGE_SECTION_DESC' | translate }}</p>
             </div>
 
             <div class="px-6 py-3">
@@ -169,11 +169,20 @@
                     @for (policy of chargePolicies; track $index; let policyIndex = $index) {
                     <div class="py-5 flex items-center justify-between gap-4">
                         <div>
-                            <p class="font-semibold text-slate-800">Rule {{ policyIndex + 1 }}</p>
-                            <p class="mt-1 text-slate-400">After {{ policy.days }} days, charge {{ policy.percentage }}% of the total</p>
+                            <p class="font-semibold text-slate-800">{{ 'SYS_CONFIG.CHARGE_RULE_LABEL' | translate:{ index: policyIndex + 1 } }}</p>
+                            <p class="mt-1 text-slate-400">{{ chargePolicySummary(policy) }}</p>
                         </div>
 
                         <div class="inline-flex items-center gap-2 sm:gap-3 shrink-0">
+                            <div class="inline-flex items-center rounded-lg border border-slate-300 overflow-hidden bg-white h-10">
+                                <select
+                                    [value]="policy.conditional"
+                                    (change)="onChargePolicyInput(policyIndex, 'conditional', $event)"
+                                    class="h-full px-3 text-slate-700 font-medium outline-none bg-transparent">
+                                    <option value="<">{{ 'SYS_CONFIG.CHARGE_BEFORE' | translate }}</option>
+                                    <option value=">">{{ 'SYS_CONFIG.CHARGE_AFTER' | translate }}</option>
+                                </select>
+                            </div>
                             <div class="inline-flex items-center rounded-lg border border-slate-300 overflow-hidden bg-white h-10">
                                 <input
                                     type="number"
@@ -182,7 +191,7 @@
                                     (input)="onChargePolicyInput(policyIndex, 'days', $event)"
                                     class="w-16 h-full px-3 text-center text-slate-700 font-medium outline-none" />
                             </div>
-                            <span class="text-slate-600">days</span>
+                            <span class="text-slate-600">{{ 'SYS_CONFIG.CHARGE_DAYS_UNIT' | translate }}</span>
                             <span class="text-slate-300">→</span>
 
                             <div class="inline-flex items-center rounded-lg border border-slate-300 overflow-hidden bg-white h-10">
@@ -220,7 +229,7 @@
                     (click)="addChargePolicy()"
                     class="mt-4 mb-1 inline-flex items-center gap-2 text-[#ff8200] font-semibold hover:text-[#e87500] transition-colors">
                     <span class="text-xl leading-none">+</span>
-                    <span>Add New Rule</span>
+                    <span>{{ 'SYS_CONFIG.CHARGE_ADD_RULE' | translate }}</span>
                 </button>
             </div>
         </article>
