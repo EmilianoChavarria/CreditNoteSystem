@@ -6,6 +6,7 @@ import { forkJoin } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
 
 interface ChargePolicyItem {
+    id?: number;
     days: number;
     percentage: number;
 }
@@ -23,6 +24,7 @@ export class SysConfig implements OnInit {
 
     public readonly isLoading = signal<boolean>(false);
     public readonly isSaving = signal<boolean>(false);
+    public readonly deletingPolicyIds = signal<Set<number>>(new Set());
     public requireUppercase = true;
     public requireLowercase = true;
     public requireNumbers = false;
@@ -32,10 +34,7 @@ export class SysConfig implements OnInit {
     public inactivityTimeoutMinutes = 30;
     public maxAuthFailuresUser = 5;
     public maxAuthFailuresIp = 10;
-    public chargePolicies: ChargePolicyItem[] = [
-        { days: 8, percentage: 10 },
-        { days: 30, percentage: 25 },
-    ];
+    public chargePolicies: ChargePolicyItem[] = [];
 
     ngOnInit(): void {
         this.loadSettings();
@@ -47,8 +46,9 @@ export class SysConfig implements OnInit {
         forkJoin({
             passwordRequirements: this._securityService.getFormattedPasswordRequirements(),
             loginSettings: this._securityService.getLoginAttemptSettings(),
+            chargePolicies: this._securityService.getChargePolicies(),
         }).subscribe({
-            next: ({ passwordRequirements, loginSettings }) => {
+            next: ({ passwordRequirements, loginSettings, chargePolicies }) => {
                 this.minimumPasswordLength = Number(passwordRequirements?.minLength?.value ?? this.minimumPasswordLength);
                 this.requireUppercase = Boolean(passwordRequirements?.requireUppercase?.value);
                 this.requireLowercase = Boolean(passwordRequirements?.requireLowercase?.value);
@@ -59,6 +59,8 @@ export class SysConfig implements OnInit {
                 this.inactivityTimeoutMinutes = Number(loginSettings?.sessionTimeoutMinutes ?? this.inactivityTimeoutMinutes);
                 this.maxAuthFailuresUser = Number(loginSettings?.maxUserAttempts ?? this.maxAuthFailuresUser);
                 this.maxAuthFailuresIp = Number(loginSettings?.maxIpAttempts ?? this.maxAuthFailuresIp);
+
+                this.chargePolicies = (chargePolicies ?? []).map(p => ({ id: p.id, days: p.day, percentage: p.percentage }));
 
                 this.isLoading.set(false);
             },
@@ -121,7 +123,28 @@ export class SysConfig implements OnInit {
             return;
         }
 
-        this.chargePolicies = this.chargePolicies.filter((_, currentIndex) => currentIndex !== index);
+        const policy = this.chargePolicies[index];
+
+        if (!policy.id) {
+            this.chargePolicies = this.chargePolicies.filter((_, i) => i !== index);
+            return;
+        }
+
+        this.deletingPolicyIds.update(set => new Set([...set, policy.id!]));
+
+        this._securityService.deleteChargePolicy(policy.id).subscribe({
+            next: () => {
+                this.chargePolicies = this.chargePolicies.filter((_, i) => i !== index);
+                this.deletingPolicyIds.update(set => { const s = new Set(set); s.delete(policy.id!); return s; });
+            },
+            error: (error) => {
+                this._toastr.error(
+                    error?.error?.message ?? this._translate.instant('SYS_CONFIG.TOAST.SAVE_ERROR'),
+                    this._translate.instant('SYS_CONFIG.TOAST.ERROR')
+                );
+                this.deletingPolicyIds.update(set => { const s = new Set(set); s.delete(policy.id!); return s; });
+            }
+        });
     }
 
     public onChargePolicyInput(index: number, field: 'days' | 'percentage', event: Event): void {
@@ -168,11 +191,21 @@ export class SysConfig implements OnInit {
             allowedSpecialChars: this.requireSpecialCharacters ? this.allowedSpecialChars.trim() : '',
         };
 
+        const chargePoliciesPayload = {
+            policies: this.chargePolicies.map(p => ({
+                ...(p.id ? { id: p.id } : {}),
+                day: p.days,
+                percentage: p.percentage,
+            }))
+        };
+
         forkJoin({
             loginSettings: this._securityService.updateLoginAttemptSettings(loginPayload),
             passwordRequirements: this._securityService.updatePasswordRequirements(passwordPayload),
+            chargePolicies: this._securityService.syncChargePolicies(chargePoliciesPayload),
         }).subscribe({
-            next: () => {
+            next: ({ chargePolicies }) => {
+                this.chargePolicies = (chargePolicies ?? []).map(p => ({ id: p.id, days: p.day, percentage: p.percentage }));
                 this._toastr.success(
                     this._translate.instant('SYS_CONFIG.TOAST.SAVE_SUCCESS'),
                     this._translate.instant('SYS_CONFIG.TOAST.SUCCESS')

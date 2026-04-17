@@ -199,7 +199,7 @@
                             <button
                                 type="button"
                                 (click)="removeChargePolicy(policyIndex)"
-                                [disabled]="chargePolicies.length <= 1"
+                                [disabled]="chargePolicies.length <= 1 || !!(policy.id && deletingPolicyIds().has(policy.id))"
                                 class="h-8 w-8 rounded-md text-slate-300 hover:text-red-400 hover:bg-red-50 disabled:opacity-40 disabled:cursor-not-allowed"
                                 aria-label="Remove charge policy row">
                                 <svg viewBox="0 0 24 24" class="h-4 w-4 mx-auto" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
