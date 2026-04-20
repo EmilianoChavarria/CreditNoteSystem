@@ -44,6 +44,11 @@ interface RequestAttachmentFilePayload {
   path?: string;
 }
 
+export interface ReturnOrderRequestLinkPayload {
+  returnOrderId: number;
+  requestId: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -114,6 +119,28 @@ export class RequestService {
         throw error;
       })
     )
+  }
+
+  getRequestsByCustomerId(customerId: number | string): Observable<PagePagination<Request>> {
+    return this._httpService.get<PagePagination<Request>>(`/requests/customer/${customerId}`).pipe(
+      map((response: ApiResponse<PagePagination<Request>>) => {
+        const payload = response.data;
+
+        return {
+          data: payload?.data ?? [],
+          current_page: payload?.current_page ?? 1,
+          last_page: payload?.last_page ?? 1,
+          per_page: payload?.per_page,
+          total: payload?.total,
+          next_page_url: payload?.next_page_url ?? null,
+          prev_page_url: payload?.prev_page_url ?? null,
+        };
+      }),
+      catchError((error) => {
+        console.log(error);
+        throw error;
+      })
+    );
   }
 
   getRequestHistory(requestId: number): Observable<RequestHistoryData | null> {
@@ -242,8 +269,8 @@ export class RequestService {
     )
   }
 
-  saveRequest(object: any) {
-    return this._httpService.post('/requests/newRequest', object).pipe(
+  saveRequest(object: any): Observable<ApiResponse<Request | null>> {
+    return this._httpService.post<Request>('/requests/newRequest', object).pipe(
       catchError((error) => {
         console.log(error);
         throw error;
@@ -251,8 +278,17 @@ export class RequestService {
     )
   }
 
-  updateRequest(requestId: number, object: any) {
-    return this._httpService.put(`/requests/${requestId}`, object).pipe(
+  linkReturnOrderToRequest(payload: ReturnOrderRequestLinkPayload): Observable<ApiResponse<unknown>> {
+    return this._httpService.post<unknown>('/return-order-requests', payload).pipe(
+      catchError((error) => {
+        console.log(error);
+        throw error;
+      })
+    );
+  }
+
+  updateRequest(requestId: number, object: any): Observable<ApiResponse<Request | null>> {
+    return this._httpService.put<Request>(`/requests/${requestId}`, object).pipe(
       catchError((error) => {
         console.log(error);
         throw error;
@@ -260,8 +296,8 @@ export class RequestService {
     )
   }
 
-  saveDraft(object: any) {
-    return this._httpService.post('/requests/draft', object).pipe(
+  saveDraft(object: any): Observable<ApiResponse<Request | null>> {
+    return this._httpService.post<Request>('/requests/draft', object).pipe(
       catchError((error) => {
         console.log(error);
         throw error;
