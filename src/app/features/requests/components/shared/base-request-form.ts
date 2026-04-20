@@ -1,8 +1,9 @@
 import { Directive, inject, Input, OnChanges, OnDestroy, OnInit, signal, SimpleChanges } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { forkJoin, map, Observable, of, Subscription, switchMap } from 'rxjs';
+import { forkJoin, map, Observable, of, Subscription, switchMap, take } from 'rxjs';
 import { Classification, Customer, Reason, Request } from '../../../../data/interfaces/Request';
+import { ApiResponse } from '../../../../data/interfaces/ApiResponse-interface';
 import { RequestService } from '../../../../core/services/request-service';
 import { CustomerService } from '../../../../core/services/customer-service';
 import { ToastService } from '../../../../core/services/toast-service';
@@ -17,6 +18,11 @@ const DEFAULT_OPTIONS: RequestFormOptions = {
   includeOrderNumber: true,
   includeCreditNumber: true,
   includeStatus: true,
+};
+
+type SaveRequestResponse = ApiResponse<Request | null> & {
+  id?: number;
+  requestId?: number;
 };
 
 @Directive()
@@ -679,29 +685,58 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
       ? this._requestService.updateRequest(editingRequestId, payload)
       : this._requestService.saveRequest(payload);
 
-    request$.subscribe({
-      next: (response: any) => {
-        if (response?.success) {
-          const successMessage = editingRequestId !== null
-            ? 'Solicitud actualizada correctamente'
-            : 'Solicitud guardada correctamente';
-          this._toastService.success(response?.message ?? successMessage, 'Exito');
-          this.submitted.set(false);
-          this._router.navigate(['/app/pending']);
-          return;
+    request$.pipe(
+      take(1),
+      switchMap((response: SaveRequestResponse) => {
+        if (!response?.success) {
+          throw new Error(response?.message ?? 'No se pudo guardar la solicitud');
         }
 
-        this._toastService.error(response?.message ?? 'No se pudo guardar la solicitud', 'Error');
+        if (editingRequestId !== null) {
+          return of(response);
+        }
+
+        const createdRequestId = this.resolveRequestIdFromResponse(response);
+        if (!createdRequestId) {
+          throw new Error('La solicitud se creó, pero no se pudo obtener su id.');
+        }
+
+        return this.onRequestCreated(createdRequestId, response).pipe(
+          map(() => response)
+        );
+      })
+    ).subscribe({
+      next: (response: SaveRequestResponse) => {
+        const successMessage = editingRequestId !== null
+          ? 'Solicitud actualizada correctamente'
+          : 'Solicitud guardada correctamente';
+
+        this._toastService.success(response?.message ?? successMessage, 'Exito');
+        this.submitted.set(false);
+        this._router.navigate(['/app/pending']);
       },
-      error: (error: any) => {
-        const message = error?.error?.message ?? error?.message ?? 'No se pudo guardar la solicitud';
+      error: (error: unknown) => {
+        const message = (error as { error?: { message?: string }; message?: string })?.error?.message
+          ?? (error as { message?: string })?.message
+          ?? 'No se pudo guardar la solicitud';
         this._toastService.error(message, 'Error');
       }
     });
   }
 
+  protected onRequestCreated(_requestId: number, _response: SaveRequestResponse): Observable<unknown> {
+    return of(null);
+  }
+
   private resolveEditingRequestId(): number | null {
     const requestId = Number(this.initialRequestData?.id);
+    return Number.isFinite(requestId) && requestId > 0 ? requestId : null;
+  }
+
+  private resolveRequestIdFromResponse(response: SaveRequestResponse): number | null {
+    const candidateId = response?.data?.id ?? response?.id ?? response?.requestId;
+    const requestId = Number(candidateId);
+
     return Number.isFinite(requestId) && requestId > 0 ? requestId : null;
   }
 
@@ -740,7 +775,7 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
     delete payload.reviewComments;
 
     this._requestService.saveDraft(payload).subscribe({
-      next: (response: any) => {
+      next: (response: ApiResponse<Request | null>) => {
         if (response?.success) {
           this._toastService.success(response?.message ?? 'Borrador guardado correctamente', 'Exito');
           this.submitted.set(false);
@@ -749,8 +784,10 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
 
         this._toastService.error(response?.message ?? 'No se pudo guardar el borrador', 'Error');
       },
-      error: (error: any) => {
-        const message = error?.error?.message ?? error?.message ?? 'No se pudo guardar el borrador';
+      error: (error: unknown) => {
+        const message = (error as { error?: { message?: string }; message?: string })?.error?.message
+          ?? (error as { message?: string })?.message
+          ?? 'No se pudo guardar el borrador';
         this._toastService.error(message, 'Error');
       }
     });
