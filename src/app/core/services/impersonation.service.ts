@@ -1,5 +1,4 @@
 import { Injectable, signal } from '@angular/core';
-import { HttpCacheService } from './http-cache.service';
 
 @Injectable({
   providedIn: 'root',
@@ -8,7 +7,7 @@ export class ImpersonationService {
   private readonly storageKey = 'impersonate-user-id';
   private readonly impersonatedUserIdSignal = signal<number | null>(this.loadFromSessionStorage());
 
-  constructor(private readonly cacheService: HttpCacheService) {}
+  constructor() {}
 
   readonly impersonatedUserId = this.impersonatedUserIdSignal.asReadonly();
 
@@ -24,13 +23,11 @@ export class ImpersonationService {
     const normalizedUserId = Math.floor(userId);
     this.impersonatedUserIdSignal.set(normalizedUserId);
     this.persistToSessionStorage(normalizedUserId);
-    this.cacheService.clearAll();
   }
 
   stop(): void {
     this.impersonatedUserIdSignal.set(null);
     this.removeFromSessionStorage();
-    this.cacheService.clearAll();
   }
 
   private loadFromSessionStorage(): number | null {

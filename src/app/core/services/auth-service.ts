@@ -4,7 +4,6 @@ import { BehaviorSubject, Observable, tap, catchError, of, map, finalize, shareR
 import { Router } from '@angular/router';
 import { ApiResponse } from '../../data/interfaces/ApiResponse-interface';
 import { ToastService } from './toast-service';
-import { HttpCacheService } from './http-cache.service';
 import { ImpersonationService } from './impersonation.service';
 
 export interface LoginCredentials {
@@ -44,7 +43,6 @@ export class AuthService {
     private _httpService: HttpService,
     private router: Router,
     private toastService: ToastService,
-    private cacheService: HttpCacheService,
     private impersonationService: ImpersonationService,
   ) { }
 
@@ -56,7 +54,6 @@ export class AuthService {
       tap(response => {
         if (response.success) {
           this.impersonationService.stop();
-          this.cacheService.clearAll();
           this.isAuthenticatedSubject.next(true);
           const user = response.data?.user;
           if (user) {
@@ -231,7 +228,6 @@ export class AuthService {
     this.sessionCheck$ = null;
     this.lastSuccessfulSessionCheckAt = 0;
     this.clearUser();
-    this.cacheService.clearAll();
   }
 
   private clearClientPreferences(): void {

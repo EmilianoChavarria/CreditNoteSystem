@@ -3,7 +3,6 @@ import { Sidebar } from '../../../../shared/components/sidebar/sidebar';
 import { Navbar } from '../../../../shared/components/navbar/navbar';
 import { RouterOutlet } from '@angular/router';
 import { Footer } from '../../../../shared/components/footer/footer';
-import { CacheInspectorWidget } from '../../../../shared/components/cache-inspector-widget/cache-inspector-widget';
 import { ImpersonationService } from '../../../../core/services/impersonation.service';
 import { UserService } from '../../../../core/services/user-service';
 import { User } from '../../../../data/interfaces/User';
@@ -20,7 +19,6 @@ import { catchError, of, switchMap } from 'rxjs';
         Navbar,
         RouterOutlet,
         Footer,
-        CacheInspectorWidget,
     ],
     
 })
