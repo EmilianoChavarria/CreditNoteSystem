@@ -3,8 +3,9 @@ import { ChangeDetectionStrategy, Component, DestroyRef, effect, inject, signal 
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
-import { catchError, debounceTime, distinctUntilChanged, map, of, startWith, switchMap } from 'rxjs';
+import { debounceTime, distinctUntilChanged, map, startWith } from 'rxjs';
 import { CustomerService, ReturnOrderSearchEntry, ReturnOrderListItem } from '../../../core/services/customer-service';
+import { AssignExistingRequestModal } from './assign-existing-request-modal';
 
 interface ApprovalOrderProduct {
   id: string;
@@ -22,6 +23,7 @@ type ApprovalStatus = 'pending' | 'approved' | 'cancelled';
 
 interface ReturnOrderForApproval {
   id: number;
+  clientId: number;
   orderNumber: string;
   customerName: string;
   customerCode: string;
@@ -37,7 +39,7 @@ interface ReturnOrderForApproval {
 
 @Component({
   selector: 'app-return-orders-approval',
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, AssignExistingRequestModal],
   templateUrl: './return-orders-approval.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -64,6 +66,10 @@ export class ReturnOrdersApproval {
   protected readonly emptySearchMessage = signal<string>('Escribe una razon social o un clientId para buscar órdenes.');
 
   protected readonly expandedOrderIds = signal<Set<number>>(new Set());
+  protected readonly assignRequestModalOpen = signal<boolean>(false);
+  protected readonly selectedOrderNumber = signal<string | null>(null);
+  protected readonly selectedClientId = signal<number | null>(null);
+  protected readonly selectedOrderId = signal<number | null>(null);
 
   constructor() {
     effect(() => {
@@ -107,6 +113,37 @@ export class ReturnOrdersApproval {
         orderId,
       },
     });
+  }
+
+  protected openAssignRequestModal(order: ReturnOrderForApproval): void {
+    this.selectedClientId.set(order.clientId);
+    this.selectedOrderId.set(order.id);
+    this.selectedOrderNumber.set(order.orderNumber);
+    this.assignRequestModalOpen.set(true);
+  }
+
+  protected onAssignRequestModalChange(isOpen = false): void {
+    this.assignRequestModalOpen.set(isOpen);
+
+    if (!isOpen) {
+      this.selectedOrderNumber.set(null);
+      this.selectedClientId.set(null);
+      this.selectedOrderId.set(null);
+    }
+  }
+
+  protected onAssignRequestCompleted(): void {
+    const term = this.searchTerm().trim();
+
+    if (!term) {
+      this.orders.set([]);
+      this.expandedOrderIds.set(new Set());
+      this.hasSearched.set(false);
+      return;
+    }
+
+    this.hasSearched.set(true);
+    this.loadOrders(term);
   }
 
   protected rejectOrder(orderId: number): void {
@@ -168,6 +205,7 @@ export class ReturnOrdersApproval {
 
     return {
       id: order.id,
+      clientId: order.clientId,
       orderNumber: `RO-${String(order.id).padStart(6, '0')}`,
       customerName: order.razonSocial,
       customerCode: String(order.clientId),

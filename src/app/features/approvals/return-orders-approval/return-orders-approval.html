@@ -47,9 +47,7 @@
           </div>
 
           <div class="flex flex-wrap items-center gap-2">
-            <span [class]="'rounded-full border px-2.5 py-1 text-[11px] font-semibold ' + statusClasses(order.status)">
-              {{ statusLabel(order.status) }}
-            </span>
+            
 
             <button
               type="button"
@@ -86,7 +84,9 @@
             <tbody>
               @for (product of order.products; track product.id) {
               <tr class="hover:bg-gray-50">
-                <td class="border-b border-gray-200 px-3 py-2 text-sm text-gray-700">{{ product.invoiceFolio }}</td>
+                <td class="border-b border-gray-200 px-3 py-2 text-sm text-gray-700">
+                  <span>{{ product.invoiceFolio }}</span>
+                </td>
                 <td class="border-b border-gray-200 px-3 py-2 text-sm text-gray-700">{{ product.conceptoIndex }}</td>
                 <td class="border-b border-gray-200 px-3 py-2 text-sm text-gray-700">{{ product.claveProdServ }}</td>
                 <td class="border-b border-gray-200 px-3 py-2 text-sm text-gray-700">{{ product.descripcion }}</td>
@@ -101,6 +101,14 @@
         </div>
 
         <footer class="flex flex-wrap items-center justify-end gap-2 border-t border-gray-200 bg-gray-50 px-4 py-3">
+          <button
+            type="button"
+            class="rounded-md border border-orange-300 bg-orange-50 px-3 py-2 text-xs font-semibold text-orange-700 hover:bg-orange-100 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500"
+            [disabled]="order.status !== 'pending'"
+            (click)="openAssignRequestModal(order)"
+          >
+            Agregar a solicitud existente
+          </button>
           
           <button
             type="button"
@@ -108,7 +116,7 @@
             [disabled]="order.status !== 'pending'"
             (click)="approveOrder(order.id)"
           >
-            Mover a solicitud de devolución
+            Agregar a solicitud nueva
           </button>
         </footer>
         }
@@ -117,4 +125,13 @@
     </div>
     }
   </div>
+
+  <app-assign-existing-request-modal
+    [open]="assignRequestModalOpen()"
+    [clientId]="selectedClientId()"
+    [orderId]="selectedOrderId()"
+    [orderNumber]="selectedOrderNumber()"
+    (openChange)="onAssignRequestModalChange($event)"
+    (assigned)="onAssignRequestCompleted()">
+  </app-assign-existing-request-modal>
 </section>
