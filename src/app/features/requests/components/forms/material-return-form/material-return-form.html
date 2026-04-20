@@ -252,7 +252,7 @@
         <app-tab titleT="Material List">
             @if (!orderId()) {
             <div class="rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600">
-                Selecciona una orden de devolución para visualizar materiales.
+                No tiene una orden de devolución asignada; se debe asignar desde la vista de "Ordenes de devolución".
             </div>
             } @else if (isLoadingMaterialList()) {
             <div class="rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600">
@@ -284,6 +284,7 @@
                             <!-- <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Unidad</th> -->
                             <!-- <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Cant. original</th> -->
                             <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Precio Unitario</th>
+                            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Subtotal</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200">
@@ -315,9 +316,36 @@
                             <!-- <td class="px-3 py-2 text-sm text-gray-700">{{ material.originalQuantity }}</td> -->
                             
                             <td class="px-3 py-2 text-sm text-gray-700">{{ material.valorUnitario | currency: 'MXN' : 'symbol' : '1.2-2' }}</td>
+                            <td class="px-3 py-2 text-sm text-gray-700">{{ material.valorUnitario * material.requestedQuantity | currency: 'MXN' : 'symbol' : '1.2-2' }}</td>
                         </tr>
                         }
                     </tbody>
+                    <tfoot class="bg-gray-50">
+                        <tr>
+                            <td colspan="6" class="px-3 py-2"></td>
+                            <td colspan="2" class="px-3 py-2">
+                                <div class="flex items-center gap-3 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-800">
+                                    <label class="inline-flex items-center gap-2 font-medium">
+                                        <input
+                                            type="checkbox"
+                                            class="h-4 w-4 rounded border-emerald-300 text-emerald-600 focus:ring-emerald-500"
+                                            [checked]="hasReturnCharge()"
+                                            (change)="onReturnChargeToggle($event)"
+                                        />
+                                        <span>{{ hasReturnCharge() ? 'Tiene cargo' : 'Sin cargo' }}</span>
+                                    </label>
+                                    @if (hasReturnCharge()) {
+                                    <span>{{ returnChargePercent() }}%</span>
+                                    <span class="text-emerald-700">Total con cargo: {{ totalWithReturnCharge() | currency: 'MXN' : 'symbol' : '1.2-2' }}</span>
+                                    }
+                                </div>
+                            </td>
+                            <td class="px-3 py-2 text-right text-sm font-semibold text-gray-700">Subtotal</td>
+                            <td class="px-3 py-2 text-sm font-semibold text-gray-800">
+                                {{ materialListSubtotal() | currency: 'MXN' : 'symbol' : '1.2-2' }}
+                            </td>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
             }
