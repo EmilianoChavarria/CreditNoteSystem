@@ -33,7 +33,7 @@
                 </article>
                 <article class="rounded-md border border-gray-200 bg-white px-3 py-2">
                     <span class="block text-xs text-gray-500">Total orden</span>
-                    <strong class="text-base text-gray-800">{{ returnOrderTotal() | currency: 'MXN' : 'symbol' : '1.2-2'
+                    <strong class="text-base text-gray-800">{{ returnOrderTotal() | number : '1.2-2'
                         }}</strong>
                 </article>
             </div>
@@ -145,10 +145,10 @@
                                         </div>
                                     </td>
                                     <td class="border-b border-gray-200 bg-white px-3 py-2 text-sm text-gray-700">
-                                        {{ product.unitPrice | currency: 'MXN' : 'symbol' : '1.2-2' }}
+                                        ${{ product.unitPrice | number : '1.2-2' }}
                                     </td>
                                     <td class="border-b border-gray-200 bg-white px-3 py-2 text-sm text-gray-700">
-                                        {{ productTotal(product) | currency: 'MXN' : 'symbol' : '1.2-2' }}
+                                        ${{ productTotal(product) | number : '1.2-2' }}
                                     </td>
                                     <td class="border-b border-gray-200 bg-white px-3 py-2">
                                         <div class="flex w-40 flex-col gap-1.5">
@@ -284,16 +284,16 @@
                     <div class="flex flex-col gap-1 text-sm">
                         <p class="flex items-center justify-between text-gray-700">
                             <span>Subtotal</span>
-                            <strong>{{ returnOrderSubtotal() | currency: 'MXN' : 'symbol' : '1.2-2' }}</strong>
+                            <strong>{{ returnOrderSubtotal() | number : '1.2-2' }}</strong>
                         </p>
                         <p class="flex items-center justify-between text-gray-700">
                             <span>IVA ({{ taxRate * 100 }}%)</span>
-                            <strong>{{ returnOrderTax() | currency: 'MXN' : 'symbol' : '1.2-2' }}</strong>
+                            <strong>{{ returnOrderTax() | number : '1.2-2' }}</strong>
                         </p>
                         <p
                             class="mt-1 flex items-center justify-between border-t border-dashed border-gray-200 pt-2 text-base text-gray-800">
                             <span class="font-semibold">Total orden</span>
-                            <strong>{{ returnOrderTotal() | currency: 'MXN' : 'symbol' : '1.2-2' }}</strong>
+                            <strong>{{ returnOrderTotal() | number : '1.2-2' }}</strong>
                         </p>
                     </div>
 

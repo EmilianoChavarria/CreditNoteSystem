@@ -61,8 +61,8 @@
 
         <div class="grid grid-cols-1 gap-2 border-b border-gray-200 bg-gray-50 px-4 py-2 text-xs text-gray-600 sm:grid-cols-3">
           <p><span class="font-medium text-gray-700">Facturas:</span> {{ order.invoices.join(', ') }}</p>
-          <p><span class="font-medium text-gray-700">Subtotal:</span> {{ order.subtotal | currency: 'MXN' : 'symbol' : '1.2-2' }}</p>
-          <p><span class="font-medium text-gray-700">Total:</span> {{ order.total | currency: 'MXN' : 'symbol' : '1.2-2' }}</p>
+          <p><span class="font-medium text-gray-700">Subtotal:</span> {{ order.subtotal | number : '1.2-2' }}</p>
+          <p><span class="font-medium text-gray-700">Total:</span> {{ order.total | number : '1.2-2' }}</p>
         </div>
 
         @if (isExpanded(order.id)) {
@@ -92,8 +92,8 @@
                 <td class="border-b border-gray-200 px-3 py-2 text-sm text-gray-700">{{ product.descripcion }}</td>
                 <td class="border-b border-gray-200 px-3 py-2 text-sm text-gray-700">{{ product.quantity }} {{ product.unit }}</td>
                 <td class="border-b border-gray-200 px-3 py-2 text-sm text-gray-700">{{ product.originalQuantity }}</td>
-                <td class="border-b border-gray-200 px-3 py-2 text-sm text-gray-700">{{ product.unitPrice | currency: 'MXN' : 'symbol' : '1.2-2' }}</td>
-                <td class="border-b border-gray-200 px-3 py-2 text-sm text-gray-700">{{ product.quantity * product.unitPrice | currency: 'MXN' : 'symbol' : '1.2-2' }}</td>
+                <td class="border-b border-gray-200 px-3 py-2 text-sm text-gray-700">{{ product.unitPrice | number : '1.2-2' }}</td>
+                <td class="border-b border-gray-200 px-3 py-2 text-sm text-gray-700">{{ product.quantity * product.unitPrice | number : '1.2-2' }}</td>
               </tr>
               }
             </tbody>

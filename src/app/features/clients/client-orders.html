@@ -17,7 +17,7 @@
       </article>
       <article class="rounded-md border border-gray-200 bg-white px-3 py-2 shadow-sm">
         <span class="block text-xs text-gray-500">Importe estimado</span>
-        <strong class="text-base text-gray-800">{{ totalAmount() | currency: 'MXN' : 'symbol' : '1.2-2' }}</strong>
+        <strong class="text-base text-gray-800">{{ totalAmount() | number : '1.2-2' }}</strong>
       </article>
     </section>
 
@@ -65,11 +65,11 @@
           </p>
           <p>
             <span class="font-medium text-gray-700">Subtotal:</span>
-            {{ order.subtotal | currency: 'MXN' : 'symbol' : '1.2-2' }}
+            {{ order.subtotal | number : '1.2-2' }}
           </p>
           <p>
             <span class="font-medium text-gray-700">Total estimado:</span>
-            {{ order.total | currency: 'MXN' : 'symbol' : '1.2-2' }}
+            {{ order.total | number : '1.2-2' }}
           </p>
           @if (order.notes) {
           <p class="sm:col-span-3">
@@ -105,7 +105,7 @@
                 <td class="border-b border-gray-200 px-3 py-2 text-sm text-gray-700">{{ product.requestedQuantity }}</td>
                 <td class="border-b border-gray-200 px-3 py-2 text-sm text-gray-700">{{ product.originalQuantity }}</td>
                 <td class="border-b border-gray-200 px-3 py-2 text-sm text-gray-700">{{ product.unit }}</td>
-                <td class="border-b border-gray-200 px-3 py-2 text-sm text-gray-700">{{ product.unitPrice | currency: 'MXN' : 'symbol' : '1.2-2' }}</td>
+                <td class="border-b border-gray-200 px-3 py-2 text-sm text-gray-700">{{ product.unitPrice | number : '1.2-2' }}</td>
               </tr>
               }
             </tbody>
@@ -115,11 +115,11 @@
         <footer class="grid grid-cols-1 gap-2 bg-gray-50 px-4 py-3 text-sm sm:grid-cols-3">
           <p class="flex items-center justify-between text-gray-700">
             <span>Subtotal</span>
-            <strong>{{ order.subtotal | currency: 'MXN' : 'symbol' : '1.2-2' }}</strong>
+            <strong>{{ order.subtotal | number : '1.2-2' }}</strong>
           </p>
           <p class="flex items-center justify-between text-gray-800">
             <span class="font-semibold">Total estimado</span>
-            <strong>{{ order.total | currency: 'MXN' : 'symbol' : '1.2-2' }}</strong>
+            <strong>{{ order.total | number : '1.2-2' }}</strong>
           </p>
           <p class="flex items-center justify-between text-gray-700">
             <span>Actualizada</span>

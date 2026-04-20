@@ -9,7 +9,7 @@ import { Tab } from '../../../../../shared/components/ui/tab/tab';
 import { ReactiveFormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Autocomplete } from '../../../../../shared/components/ui/autocomplete/autocomplete';
-import { CurrencyPipe, TitleCasePipe } from '@angular/common';
+import { CurrencyPipe, DecimalPipe, TitleCasePipe } from '@angular/common';
 import { Spinner } from '../../../../../shared/components/ui/spinner/spinner';
 import { Observable, of, take } from 'rxjs';
 import { SimpleChanges } from '@angular/core';
@@ -21,7 +21,7 @@ import {
 
 @Component({
   selector: 'app-material-return-form',
-  imports: [TabsContainer, Tab, ReactiveFormsModule, TranslatePipe, Autocomplete, TitleCasePipe, CurrencyPipe, Spinner],
+  imports: [TabsContainer, Tab, ReactiveFormsModule, TranslatePipe, Autocomplete, TitleCasePipe, Spinner, DecimalPipe],
   templateUrl: './material-return-form.html',
   styleUrl: './material-return-form.css',
 })

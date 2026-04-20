@@ -315,8 +315,8 @@
                             <!-- <td class="px-3 py-2 text-sm text-gray-700">{{ material.unidad || material.claveUnidad }}</td> -->
                             <!-- <td class="px-3 py-2 text-sm text-gray-700">{{ material.originalQuantity }}</td> -->
                             
-                            <td class="px-3 py-2 text-sm text-gray-700">{{ material.valorUnitario | currency: 'MXN' : 'symbol' : '1.2-2' }}</td>
-                            <td class="px-3 py-2 text-sm text-gray-700">{{ material.valorUnitario * material.requestedQuantity | currency: 'MXN' : 'symbol' : '1.2-2' }}</td>
+                            <td class="px-3 py-2 text-sm text-gray-700">{{ material.valorUnitario | number : '1.2-2' }}</td>
+                            <td class="px-3 py-2 text-sm text-gray-700">{{ material.valorUnitario * material.requestedQuantity | number : '1.2-2' }}</td>
                         </tr>
                         }
                     </tbody>
@@ -336,13 +336,13 @@
                                     </label>
                                     @if (hasReturnCharge()) {
                                     <span>{{ returnChargePercent() }}%</span>
-                                    <span class="text-emerald-700">Total con cargo: {{ totalWithReturnCharge() | currency: 'MXN' : 'symbol' : '1.2-2' }}</span>
+                                    <span class="text-emerald-700">Total con cargo: {{ totalWithReturnCharge() | number : '1.2-2' }}</span>
                                     }
                                 </div>
                             </td>
                             <td class="px-3 py-2 text-right text-sm font-semibold text-gray-700">Subtotal</td>
                             <td class="px-3 py-2 text-sm font-semibold text-gray-800">
-                                {{ materialListSubtotal() | currency: 'MXN' : 'symbol' : '1.2-2' }}
+                                {{ materialListSubtotal() | number : '1.2-2' }}
                             </td>
                         </tr>
                     </tfoot>
