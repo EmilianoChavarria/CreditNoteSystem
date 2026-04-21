@@ -55,7 +55,7 @@ export interface ReturnOrderRequestLinkPayload {
 export class RequestService {
 
   private token = 'df86e3c71f798ed791afff85b7074abefeb34558903553b6e1aa37f0214aa0bb';
-  private reasons$: Observable<Reason[]> | null = null;
+  private reasonsByType = new Map<number, Observable<Reason[]>>();
 
   constructor(
     private _httpService: HttpService,
@@ -72,19 +72,24 @@ export class RequestService {
     )
   }
 
-  getReasons(): Observable<Reason[]> {
-    if (!this.reasons$) {
-      this.reasons$ = this._httpService.get<Reason[]>('/requests/reasons').pipe(
+  getReasons(requestTypeId: number): Observable<Reason[]> {
+    const cachedReasons = this.reasonsByType.get(requestTypeId);
+    if (cachedReasons) {
+      return cachedReasons;
+    }
+
+    const reasons$ = this._httpService.get<Reason[]>(`/requests/reasons/${requestTypeId}`).pipe(
         map((response: ApiResponse<Reason[]>) => response.data ?? []),
         catchError((error) => {
-          this.reasons$ = null;
+          this.reasonsByType.delete(requestTypeId);
           console.log(error);
           throw error;
         }),
         shareReplay(1),
       );
-    }
-    return this.reasons$;
+
+    this.reasonsByType.set(requestTypeId, reasons$);
+    return reasons$;
   }
 
   getMyPendingRequests(requestTypeId: number, perPage = 10, page = 1, search?: string): Observable<PagePagination<Request>> {
