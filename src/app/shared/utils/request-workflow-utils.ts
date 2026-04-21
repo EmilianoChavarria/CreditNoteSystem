@@ -16,6 +16,7 @@ export interface WorkflowDetailLabels {
   statusRejected: string;
   statusReturned: string;
   statusApproved: string;
+  statusPending: string;
 }
 
 function buildPdfTableLayout(): { hLineWidth: () => number; vLineWidth: () => number } {
@@ -69,6 +70,7 @@ function buildTimelineSteps(
         number: item.step.order,
         title: `${labels.stepLabel} ${item.step.order}`,
         status: mapHistoryStatus(item.actionType, labels),
+        statusKey: normalizeStatusKey(item.actionType),
         role: roleNameByStepId.get(item.step.id) ?? item.step.name,
         user: item.actionUser?.fullName ?? '-',
         date: eventMoment.format('DD MMM YYYY'),
@@ -95,10 +97,12 @@ function buildFallbackSteps(history: RequestHistoryLog[], labels: WorkflowDetail
       const eventDate = historyItem.request_step?.completedAt ?? historyItem.request_step?.startedAt ?? historyItem.createdAt;
       const eventMoment = eventDate ? moment(eventDate) : null;
 
+      const rawStatus = historyItem.request_step?.status ?? historyItem.actionType;
       return {
         number: historyItem.workflow_step.stepOrder,
         title: `${labels.stepLabel} ${historyItem.workflow_step.stepOrder}`,
-        status: mapHistoryStatus(historyItem.request_step?.status ?? historyItem.actionType, labels),
+        status: mapHistoryStatus(rawStatus, labels),
+        statusKey: normalizeStatusKey(rawStatus),
         role: historyItem.workflow_step?.stepName ?? '-',
         user: historyItem.action_user?.fullName ?? '-',
         date: eventMoment ? eventMoment.format('DD MMM YYYY') : '-',
@@ -106,6 +110,16 @@ function buildFallbackSteps(history: RequestHistoryLog[], labels: WorkflowDetail
         note: historyItem.comments ?? '',
       };
     });
+}
+
+function normalizeStatusKey(status: string | null | undefined): string {
+  const normalized = (status ?? '').toLowerCase();
+  if (normalized === 'created') return 'created';
+  if (normalized === 'processed' || normalized === 'routed') return 'processed';
+  if (normalized === 'rejected') return 'rejected';
+  if (normalized === 'returned' || normalized === 'routed_back') return 'returned';
+  if (normalized === 'current' || normalized === 'pending') return 'pending';
+  return 'approved';
 }
 
 function mapHistoryStatus(status: string | null | undefined, labels: WorkflowDetailLabels): string {
@@ -135,8 +149,8 @@ function mapHistoryStatus(status: string | null | undefined, labels: WorkflowDet
     return labels.statusReturned;
   }
 
-  if (normalized === 'pending') {
-    return labels.statusProcessed;
+  if (normalized === 'current' || normalized === 'pending') {
+    return labels.statusPending;
   }
 
   return labels.statusApproved;
@@ -158,6 +172,7 @@ function buildWorkflowDetail(
     createdDate: request.createdAt ? moment(request.createdAt).format('DD MMM YYYY') : '-',
     progressText: labels.progressText(9, 11),
     statusLabel: toTitleCase(request.status) || labels.noStatus,
+    statusKey: normalizeStatusKey(request.status),
     steps,
     commentsHistory: [],
   };
@@ -369,6 +384,7 @@ export function buildRequestWorkflowDetailFromHistory(
     createdDate: request.createdAt ? moment(request.createdAt).format('DD MMM YYYY') : '-',
     progressText: labels.progressText(data.progress.currentStepOrder, data.progress.totalSteps),
     statusLabel: toTitleCase(request.status) || labels.noStatus,
+    statusKey: normalizeStatusKey(request.status),
     steps: timelineSteps.length > 0 ? timelineSteps : fallbackSteps,
     commentsHistory: data.history.map((historyItem) => ({
       id: historyItem.id,
