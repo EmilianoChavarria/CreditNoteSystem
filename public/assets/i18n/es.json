@@ -196,7 +196,20 @@
   },
   "HISTORY": {
     "TITLE": "Historial",
-    "DESCRIPTION": "Ver tus solicitudes"
+    "DESCRIPTION": "Ver tus solicitudes",
+    "WORKFLOW_DRAWER": {
+      "TITLE": "Historial",
+      "CLOSE": "Cerrar",
+      "AMOUNT": "Monto",
+      "CLASSIFICATION": "Clasificación",
+      "FLOW_PROGRESS": "Progreso del flujo",
+      "FLOW": "Flujo",
+      "COMMENTS_HISTORY": "Historial de comentarios",
+      "NO_COMMENTS": "No hay comentarios en el historial.",
+      "STEP_AUTHOR": "Autor",
+      "STEP_ROLE": "Rol",
+      "STEP_TIME": "Hora"
+    }
   },
   "DRAFTS": {
     "TITLE": "Borradores",
@@ -395,6 +408,7 @@
     "STATUS_REJECTED": "Rechazado",
     "STATUS_RETURNED": "Devuelto",
     "STATUS_APPROVED": "Aprobado",
+    "STATUS_PENDING": "Pendiente",
     "NO_STATUS": "Sin estado",
     "NO_PENDING_APPROVALS": "No hay aprobaciones pendientes",
     "SELECT": "Seleccionar",
@@ -454,6 +468,7 @@
     "STATUS_REJECTED": "Rechazado",
     "STATUS_RETURNED": "Devuelto",
     "STATUS_APPROVED": "Aprobado",
+    "STATUS_PENDING": "Pendiente",
     "NO_STATUS": "Sin estado"
   },
   "PENDING_ATTACHMENTS": {

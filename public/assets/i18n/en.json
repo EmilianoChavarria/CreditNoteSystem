@@ -196,7 +196,20 @@
   },
   "HISTORY": {
     "TITLE": "History",
-    "DESCRIPTION": "See your requests"
+    "DESCRIPTION": "See your requests",
+    "WORKFLOW_DRAWER": {
+      "TITLE": "History",
+      "CLOSE": "Close",
+      "AMOUNT": "Amount",
+      "CLASSIFICATION": "Classification",
+      "FLOW_PROGRESS": "Flow Progress",
+      "FLOW": "Flow",
+      "COMMENTS_HISTORY": "Comments History",
+      "NO_COMMENTS": "No comments in history.",
+      "STEP_AUTHOR": "Author",
+      "STEP_ROLE": "Role",
+      "STEP_TIME": "Time"
+    }
   },
   "DRAFTS": {
     "TITLE": "Drafts",
@@ -395,6 +408,7 @@
     "STATUS_REJECTED": "Rejected",
     "STATUS_RETURNED": "Returned",
     "STATUS_APPROVED": "Approved",
+    "STATUS_PENDING": "Pending",
     "NO_STATUS": "No status",
     "NO_PENDING_APPROVALS": "No pending approvals",
     "SELECT": "Select",
@@ -454,6 +468,7 @@
     "STATUS_REJECTED": "Rejected",
     "STATUS_RETURNED": "Returned",
     "STATUS_APPROVED": "Approved",
+    "STATUS_PENDING": "Pending",
     "NO_STATUS": "No status"
   },
   "PENDING_ATTACHMENTS": {
