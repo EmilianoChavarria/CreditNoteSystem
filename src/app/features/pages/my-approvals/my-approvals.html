@@ -1,13 +1,15 @@
 <div class="p-2 md:p-8 flex flex-col">
     <app-full-spinner [isLoading]="isInitializingDeepLink()" />
-    
+
     <header class="w-full flex flex-col-reverse md:flex-row items-center justify-between">
 
-        <div class="flex flex-col md:flex-row items-start md:items-center justify-start md:mb-10 gap-x-4 w-full md:w-fit mt-3 md:mt-0">
+        <div
+            class="flex flex-col md:flex-row items-start md:items-center justify-start md:mb-10 gap-x-4 w-full md:w-fit mt-3 md:mt-0">
             <label for="days" class="font-semibold text-[#3c6194] text-xl md:text-2xl">{{'DASHBOARD.REQ_FILTER'|
                 translate}}</label>
             <div class="flex flex-row items-center w-full md:w-fit">
-                <select name="request_type" id="request_type" [value]="selectedRequestType || 'DE'" (change)="onRequestTypeChange($event)"
+                <select name="request_type" id="request_type" [value]="selectedRequestType || 'DE'"
+                    (change)="onRequestTypeChange($event)"
                     class="h-11 border border-gray-300 rounded-lg w-full md:w-64 pl-2 pr-4">
                     <option value="DE">{{'REQUEST_TYPES.DEFAULT'| translate}}</option>
                     @for (requestType of availableRequestTypes(); track requestType.id) {
@@ -36,18 +38,22 @@
                         class="h-4 w-4 rounded border-gray-300 text-[#3c6194] focus:ring-[#3c6194]">
                     <span>{{'MY_APPROVALS.SELECT_CURRENT_PAGE' | translate}}</span>
                 </label>
-                <span class="text-xs text-gray-600">{{ 'MY_APPROVALS.SELECTED_COUNT' | translate : { count: selectedCount() } }}</span>
+                <span class="text-xs text-gray-600">{{ 'MY_APPROVALS.SELECTED_COUNT' | translate : { count:
+                    selectedCount() } }}</span>
             </div>
             <div class="flex flex-wrap gap-2">
-                <button type="button" (click)="clearSelectedRequests()" [disabled]="!selectedCount() || isBulkProcessing()"
+                <button type="button" (click)="clearSelectedRequests()"
+                    [disabled]="!selectedCount() || isBulkProcessing()"
                     class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50">
                     {{'MY_APPROVALS.CLEAR_SELECTION' | translate}}
                 </button>
-                <button type="button" (click)="openBulkApproveModal()" [disabled]="!selectedCount() || isBulkProcessing()"
+                <button type="button" (click)="openBulkApproveModal()"
+                    [disabled]="!selectedCount() || isBulkProcessing()"
                     class="rounded-md bg-[#21760e] px-3 py-2 text-sm font-semibold text-white hover:bg-[#1c630c] disabled:cursor-not-allowed disabled:opacity-50">
                     {{'MY_APPROVALS.BULK_APPROVE' | translate}}
                 </button>
-                <button type="button" (click)="openBulkDeclineModal()" [disabled]="!selectedCount() || isBulkProcessing()"
+                <button type="button" (click)="openBulkDeclineModal()"
+                    [disabled]="!selectedCount() || isBulkProcessing()"
                     class="rounded-md bg-[#b42318] px-3 py-2 text-sm font-semibold text-white hover:bg-[#9d1f15] disabled:cursor-not-allowed disabled:opacity-50">
                     {{'MY_APPROVALS.BULK_REJECT' | translate}}
                 </button>
@@ -56,17 +62,13 @@
     </section>
 
     <app-tabla-dinamica [datos]="requests()" [columnas]="columns" [accionesPersonalizadas]="acciones" actionMode="menu"
-        [enableFilter]="true" filterField="workflowCurrentStep.assigned_role.roleName" addLabel="MY_APPROVALS.REQUEST" addRoute="/app/settings/newUser" [canAdd]="false"
-        [emptyMessageKey]="'MY_APPROVALS.NO_PENDING_APPROVALS'"
-        [searchValue]="searchTerm()"
-        [registrosPorPagina]="pageSize()" [loading]="isLoadingTable()"
-        [serverPagination]="true" [paginaActualExterna]="currentPage()"
-        [totalPaginasExterno]="totalPages()"
-        [hasNextPage]="hasNextPage()" [hasPrevPage]="hasPrevPage()"
-        (searchChange)="onSearch($event)"
-        (paginaSiguiente)="onNextPage()" (paginaAnterior)="onPrevPage()"
-        (paginaPrimera)="onFirstPage()" (paginaUltima)="onLastPage()"
-        (registrosPorPaginaChange)="onPageSizeChange($event)">
+        [enableFilter]="true" filterField="workflowCurrentStep.assigned_role.roleName" addLabel="MY_APPROVALS.REQUEST"
+        addRoute="/app/settings/newUser" [canAdd]="false" [emptyMessageKey]="'MY_APPROVALS.NO_PENDING_APPROVALS'"
+        [searchValue]="searchTerm()" [registrosPorPagina]="pageSize()" [loading]="isLoadingTable()"
+        [serverPagination]="true" [paginaActualExterna]="currentPage()" [totalPaginasExterno]="totalPages()"
+        [hasNextPage]="hasNextPage()" [hasPrevPage]="hasPrevPage()" (searchChange)="onSearch($event)"
+        (paginaSiguiente)="onNextPage()" (paginaAnterior)="onPrevPage()" (paginaPrimera)="onFirstPage()"
+        (paginaUltima)="onLastPage()" (registrosPorPaginaChange)="onPageSizeChange($event)">
 
         <ng-template #cellTemplate let-item let-column="column">
             @if (column.key === 'bulkSelect') {
@@ -77,6 +79,7 @@
             } @else if (column.key === 'requestType.name') {
             <app-badge color="blue" [text]="item.requestType.name | uppercase" />
             } @else if (column.key === 'status') {
+            @if (item.workflowCurrentStep?.assigned_role?.roleName) {
             <div class="inline-flex max-w-55 rounded-lg px-2 py-1"
                 [style]="`background-color: ${item.workflowCurrentStep.assigned_role.color +'1A'}; color:${item.workflowCurrentStep.assigned_role.color}` ">
                 <span class="block w-full truncate text-center font-semibold"
@@ -84,6 +87,20 @@
                     {{item.workflowCurrentStep.assigned_role.roleName}}
                 </span>
             </div>
+            } @else {
+            <app-badge [color]="item.status?.toLowerCase() === 'rejected' ? 'red' : 'green'" [text]="item.status | uppercase" />
+            }
+            }
+            @else if (column.key === 'username') {
+            @if (item.workflowCurrentStep?.assigned_user?.fullName) {
+            <div class="w-fit rounded-lg px-2"
+                [style]="`background-color: ${item.workflowCurrentStep.assigned_role.color +'1A'}; color:${item.workflowCurrentStep.assigned_role.color}` ">
+                <span
+                    [class]="`text-center font-semibold text-nowrap`">{{item.workflowCurrentStep?.assigned_user?.fullName}}</span>
+            </div>
+            } @else {
+            <app-badge color="green" [text]="item.status | uppercase" />
+            }
             }
         </ng-template>
     </app-tabla-dinamica>
@@ -91,13 +108,15 @@
         (closed)="closeHistoryDrawer()"></app-workflow-history-drawer>
     } @else {
     <div class="text-center pt-10 md:py-20 text-gray-500">
-        <img src="assets/png/TIMKEN-DISABLE-esp.webp" alt="" class="mx-auto h-auto w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg object-contain">
+        <img src="assets/png/TIMKEN-DISABLE-esp.webp" alt=""
+            class="mx-auto h-auto w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg object-contain">
         <p class="text-2xl text-[#3c6194] font-semibold">{{'REQUEST_TYPES.DEFAULT_TEXT'| translate}}</p>
     </div>
     }
 
-    <app-modal size="md" [titleM]="'MY_APPROVALS.REJECTION_MODAL_TITLE' | translate" [open]="showDeclineModal()" [closeText]="'MY_APPROVALS.CANCEL' | translate"
-        [primaryText]="'MY_APPROVALS.REJECT' | translate" (openChange)="onDeclineModalChange($event)" (primaryAction)="declineRequest(selectedRequest()!)">
+    <app-modal size="md" [titleM]="'MY_APPROVALS.REJECTION_MODAL_TITLE' | translate" [open]="showDeclineModal()"
+        [closeText]="'MY_APPROVALS.CANCEL' | translate" [primaryText]="'MY_APPROVALS.REJECT' | translate"
+        (openChange)="onDeclineModalChange($event)" (primaryAction)="declineRequest(selectedRequest()!)">
         <div [formGroup]="form">
             <label class="block font-medium text-[#395f93] text-lg">{{'REJECTION.REASON' | translate}}
                 <span class="text-red-500 text-lg">*</span>
@@ -115,14 +134,16 @@
     <app-modal size="md" [titleM]="'MY_APPROVALS.BULK_APPROVE_MODAL_TITLE' | translate" [open]="showBulkApproveModal()"
         [closeText]="'MY_APPROVALS.CANCEL' | translate" [primaryText]="'MY_APPROVALS.BULK_APPROVE' | translate"
         (openChange)="onBulkApproveModalChange($event)" (primaryAction)="approveSelectedRequests()">
-        <p class="text-sm text-gray-700">{{ 'MY_APPROVALS.BULK_APPROVE_CONFIRM' | translate : { count: selectedCount() } }}</p>
+        <p class="text-sm text-gray-700">{{ 'MY_APPROVALS.BULK_APPROVE_CONFIRM' | translate : { count: selectedCount() }
+            }}</p>
     </app-modal>
 
     <app-modal size="md" [titleM]="'MY_APPROVALS.BULK_REJECT_MODAL_TITLE' | translate" [open]="showBulkDeclineModal()"
         [closeText]="'MY_APPROVALS.CANCEL' | translate" [primaryText]="'MY_APPROVALS.BULK_REJECT' | translate"
         (openChange)="onBulkDeclineModalChange($event)" (primaryAction)="declineSelectedRequests()">
         <div [formGroup]="form">
-            <p class="mb-2 text-sm text-gray-700">{{ 'MY_APPROVALS.BULK_REJECT_CONFIRM' | translate : { count: selectedCount() } }}</p>
+            <p class="mb-2 text-sm text-gray-700">{{ 'MY_APPROVALS.BULK_REJECT_CONFIRM' | translate : { count:
+                selectedCount() } }}</p>
             <label class="block font-medium text-[#395f93] text-lg">{{'REJECTION.REASON' | translate}}
                 <span class="text-red-500 text-lg">*</span>
             </label>
