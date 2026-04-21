@@ -561,6 +561,8 @@
     "REQUEST_NUMBER": "Número de Solicitud",
     "ORDER_NUMBER": "Número de Orden",
     "CREDIT_NUMBER": "Número de Crédito",
+    "CREDIT_DEBIT_NUMBER": "Número de Crédito/Débito",
+    "NEW_INVOICE": "New Invoice",
     "DEBIT_NUMBER": "Número de Débito",
     "REQUEST_DATE": "Fecha de Solicitud",
     "CUSTOMER_NUMBER": "Número de Cliente",
@@ -572,6 +574,7 @@
     "DELIVERY_NOTE": "Nota de Entrega",
     "INVOICE_NUMBER": "Número de Factura",
     "INVOICE_DATE": "Fecha de Factura",
+    "WAREHOUSE_CODE": "Almacén",
     "SAP_SCREEN": "Pantalla de SAP",
     "CURRENCY": "Moneda",
     "EXCHANGE_RATE": "Tipo de Cambio",
@@ -579,7 +582,11 @@
     "HAS_IVA": "¿Tiene IVA?",
     "TOTAL_AMOUNT": "Monto Total",
     "ATTACH_SUPPORTS": "Adjuntar Soportes",
-    "COMMENTS": "Comentarios"
+    "COMMENTS": "Comentarios",
+    "REPLANISHMENT_AMOUNT": "Cantidad de Replenishment",
+    "WAREHOUSE_AMOUNT": "Cantidad de Almacén",
+    "REPLANISHMENT_TOTAL": "Total",
+    "WAREHOUSE_TOTAL": "Total"
   },
   "PROFILE": {
     "LOADING": "Cargando perfil...",

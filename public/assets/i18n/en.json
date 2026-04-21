@@ -561,6 +561,8 @@
     "REQUEST_NUMBER": "Request Number",
     "ORDER_NUMBER": "Order Number",
     "CREDIT_NUMBER": "Credit Number",
+    "CREDIT_DEBIT_NUMBER": "Credit/Debit Number",
+    "NEW_INVOICE": "New Invoice",
     "DEBIT_NUMBER": "Debit Number",
     "REQUEST_DATE": "Request Date",
     "CUSTOMER_NUMBER": "Customer Number",
@@ -572,6 +574,7 @@
     "DELIVERY_NOTE": "Delivery Note",
     "INVOICE_NUMBER": "Invoice Number",
     "INVOICE_DATE": "Invoice Date",
+    "WAREHOUSE_CODE": "Warehouse",
     "SAP_SCREEN": "SAP Screen",
     "CURRENCY": "Currency",
     "EXCHANGE_RATE": "Exchange Rate",
@@ -579,7 +582,11 @@
     "HAS_IVA": "Has IVA?",
     "TOTAL_AMOUNT": "Total Amount",
     "ATTACH_SUPPORTS": "Attach Supports",
-    "COMMENTS": "Comments"
+    "COMMENTS": "Comments",
+    "REPLANISHMENT_AMOUNT": "Replenishment Amount",
+    "WAREHOUSE_AMOUNT": "Warehouse Amount",
+    "REPLANISHMENT_TOTAL": "Total",
+    "WAREHOUSE_TOTAL": "Total"
   },
   "PROFILE": {
     "LOADING": "Loading profile...",
