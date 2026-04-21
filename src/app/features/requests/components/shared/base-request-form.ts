@@ -440,7 +440,7 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
       invoiceNumber: new FormControl<string>('', [Validators.required]),
       invoiceDate: new FormControl<string>('', [Validators.required]),
       newInvoice: new FormControl<string>(''),
-      warehouseCode: new FormControl<string>('', [Validators.required]),
+      warehouseCode: new FormControl<string>(''),
       sapScreen: new FormControl<File | null>(null),
       currency: new FormControl<string>('', [Validators.required]),
       exchangeRate: new FormControl<number | null>(null, [Validators.required, Validators.min(0)]),
@@ -706,7 +706,9 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
         }
 
         if (editingRequestId !== null) {
-          return of(response);
+          return this.onRequestUpdated(editingRequestId, response).pipe(
+            map(() => response)
+          );
         }
 
         const createdRequestId = this.resolveRequestIdFromResponse(response);
@@ -726,7 +728,7 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
 
         this._toastService.success(response?.message ?? successMessage, 'Exito');
         this.submitted.set(false);
-        this._router.navigate(['/app/pending']);
+        // this._router.navigate(['/app/pending']);
       },
       error: (error: unknown) => {
         const message = (error as { error?: { message?: string }; message?: string })?.error?.message
@@ -738,6 +740,10 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
   }
 
   protected onRequestCreated(_requestId: number, _response: SaveRequestResponse): Observable<unknown> {
+    return of(null);
+  }
+
+  protected onRequestUpdated(_requestId: number, _response: SaveRequestResponse): Observable<unknown> {
     return of(null);
   }
 

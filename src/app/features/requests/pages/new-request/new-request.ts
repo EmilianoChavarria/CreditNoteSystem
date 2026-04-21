@@ -77,8 +77,12 @@ export class NewRequest implements OnInit {
         const editRequest = navigationState?.editRequest ?? browserState?.editRequest;
 
         if (editRequest) {
-            console.log(editRequest);
             this.editingRequestData.set(editRequest);
+
+            if ((this.selectedRequestTypeId === null || this.selectedRequestType === '') && Number(editRequest.requestTypeId) > 0) {
+                this.selectedRequestTypeId = Number(editRequest.requestTypeId);
+                this.selectedRequestType = this.resolveRequestTypeModuleKey(this.selectedRequestTypeId);
+            }
         }
     }
 
@@ -359,7 +363,7 @@ export class NewRequest implements OnInit {
             delete formValue.creditNumber;
             delete formValue.orderNumber;
             const newObject = {
-                requestTypeId: this.selectedRequestType,
+                requestTypeId: this.selectedRequestTypeId,
                 ...formValue,
                 customerId: formValue.customerId.id,
                 totalAmount: formValue.totalAmount.toFixed(2),
@@ -394,7 +398,7 @@ export class NewRequest implements OnInit {
         delete formValue.orderNumber;
         
         const newObject = {
-            requestTypeId: this.selectedRequestType,
+            requestTypeId: this.selectedRequestTypeId,
             ...formValue,
             customerId: formValue.customerId?.id || null,
             totalAmount: formValue.totalAmount ? formValue.totalAmount.toFixed(2) : 0,
