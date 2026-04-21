@@ -50,7 +50,7 @@ export class NewRequest implements OnInit {
     constructor(
         private fb: FormBuilder,
         private _requestService: RequestService,
-        private _customerService: CustomerService,
+
         private readonly route: ActivatedRoute,
         private readonly router: Router,
 
@@ -166,28 +166,6 @@ export class NewRequest implements OnInit {
             }
         })
 
-    }
-
-    getReasons() {
-        this._requestService.getReasons().subscribe({
-            next: (response) => {
-                this.reasons.set(response);
-            },
-            error: (error) => {
-                console.log(error);
-            }
-        })
-    }
-
-    getClassifications(requestTypeId: number) {
-        this._requestService.getClassificationsByType(requestTypeId).subscribe({
-            next: (response) => {
-                this.classifications.set(response);
-            },
-            error: (error) => {
-                console.log(error);
-            }
-        })
     }
 
     onRequestTypeChange(event: any) {
@@ -427,54 +405,4 @@ export class NewRequest implements OnInit {
         this.submitted = false;
     }
 
-    searchCustomers(term: string): Observable<AutocompleteOption[]> {
-        if (!term || term.trim().length === 0) {
-            return of([]);
-        }
-        return this._customerService.getCustomersByName(term).pipe(
-            map(customers => {
-                // Validar que customers sea un array
-                if (!Array.isArray(customers)) {
-                    console.warn('Expected array but got:', customers);
-                    return [];
-                }
-                return customers.map((customer): AutocompleteOption => ({
-                    id: customer.idCliente,
-                    label: customer.razonSocial,
-                    customer
-                }));
-            }),
-            catchError(error => {
-                console.error('Error searching customers:', error);
-                return of([]);
-            })
-        );
-    }
-
-    displayCustomer(customer: any) {
-
-        return customer?.label || customer?.customer?.razonSocial || customer?.razonSocial || '';
-    }
-
-    onCustomerSelected(option: AutocompleteOption) {
-        console.log('Cliente seleccionado:', option);
-        const salesManagerId = option?.['customer']?.clienteExt?.salesManagerId;
-        const salesEngineerId = option?.['customer']?.clienteExt?.salesEngineerId;
-        const financeManagerId = option?.['customer']?.clienteExt?.financeManagerId;
-        const marketingManagerId = option?.['customer']?.clienteExt?.marketingManagerId;
-        const customerServiceManagerId = option?.['customer']?.clienteExt?.customerServiceManagerId;
-        const hasAssignedWorkflow = [
-            salesManagerId,
-            salesEngineerId,
-            financeManagerId,
-            marketingManagerId,
-            customerServiceManagerId
-        ].every((id) => id !== null && id !== undefined);
-
-        this.isRegisterRequestDisabled.set(!hasAssignedWorkflow);
-
-        if (!hasAssignedWorkflow) {
-            this.toastr.error('El cliente no tiene un flujo de aprobación asignado, favor de avisar al administrador', 'Error');
-        }
-    }
 }
