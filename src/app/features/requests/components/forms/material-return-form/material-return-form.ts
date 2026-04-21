@@ -47,6 +47,66 @@ export class MaterialReturnForm extends BaseRequestForm {
   protected readonly isLoadingMaterialList = signal<boolean>(false);
   protected readonly materialListError = signal<string | null>(null);
 
+  // Signals for table row data (keyed by material.id)
+  protected readonly replenishmentAcceptedByMaterialId = signal<Map<number, number>>(new Map());
+  protected readonly warehouseReceivedByMaterialId = signal<Map<number, number>>(new Map());
+  protected readonly warehouseAcceptedByMaterialId = signal<Map<number, number>>(new Map());
+
+  // Flags for IVA
+  protected readonly hasReplenishmentIva = signal<boolean>(false);
+  protected readonly hasWarehouseIva = signal<boolean>(false);
+
+  // Computed totals for replenishment (quantity * unit price)
+  protected readonly replenishmentAcceptedTotal = computed(() => {
+    const acceptedMap = this.replenishmentAcceptedByMaterialId();
+    const materials = this.materialList();
+    let total = 0;
+    
+    materials.forEach((material) => {
+      const acceptedQty = acceptedMap.get(material.id) || 0;
+      const unitPrice = Number(material.valorUnitario) || 0;
+      total += (acceptedQty * unitPrice);
+    });
+    
+    return total;
+  });
+
+  // Computed total for warehouse received (quantity only, no price multiplication)
+  protected readonly warehouseReceivedTotal = computed(() => {
+    const map = this.warehouseReceivedByMaterialId();
+    let total = 0;
+    map.forEach((value) => {
+      total += Number(value) || 0;
+    });
+    return total;
+  });
+
+  // Computed total for warehouse accepted (quantity * unit price)
+  protected readonly warehouseAcceptedTotal = computed(() => {
+    const acceptedMap = this.warehouseAcceptedByMaterialId();
+    const materials = this.materialList();
+    let total = 0;
+    
+    materials.forEach((material) => {
+      const acceptedQty = acceptedMap.get(material.id) || 0;
+      const unitPrice = Number(material.valorUnitario) || 0;
+      total += (acceptedQty * unitPrice);
+    });
+    
+    return total;
+  });
+
+  // Computed IVA amounts (16% = 0.16)
+  protected readonly replenishmentIvaAmount = computed(() => {
+    const total = this.replenishmentAcceptedTotal();
+    return this.hasReplenishmentIva() ? total * 0.16 : 0;
+  });
+
+  protected readonly warehouseIvaAmount = computed(() => {
+    const total = this.warehouseAcceptedTotal();
+    return this.hasWarehouseIva() ? total * 0.16 : 0;
+  });
+
   constructor(
     requestService: RequestService,
     customerService: CustomerService,
@@ -192,6 +252,129 @@ export class MaterialReturnForm extends BaseRequestForm {
   protected onReturnChargeToggle(event: Event): void {
     const checked = (event.target as HTMLInputElement | null)?.checked === true;
     this.hasReturnCharge.set(checked);
+  }
+
+  protected onReplenishmentIvaToggle(event: Event): void {
+    const checked = (event.target as HTMLInputElement | null)?.checked === true;
+    this.hasReplenishmentIva.set(checked);
+  }
+
+  protected onWarehouseIvaToggle(event: Event): void {
+    const checked = (event.target as HTMLInputElement | null)?.checked === true;
+    this.hasWarehouseIva.set(checked);
+  }
+
+  protected onTableInputChange(materialId: number, fieldType: 'replenishment' | 'warehouseReceived' | 'warehouseAccepted', event: any): void {
+    const value = event?.target?.value || '';
+    
+    if (fieldType === 'replenishment') {
+      this.updateReplenishmentAccepted(materialId, value);
+    } else if (fieldType === 'warehouseReceived') {
+      this.updateWarehouseReceived(materialId, value);
+    } else if (fieldType === 'warehouseAccepted') {
+      this.updateWarehouseAccepted(materialId, value);
+    }
+  }
+
+  protected getMaterialAmount(materialId: number, fieldType: 'replenishment' | 'warehouseAccepted'): number {
+    const material = this.materialList().find(m => m.id === materialId);
+    if (!material) return 0;
+    
+    const unitPrice = Number(material.valorUnitario) || 0;
+    let quantity = 0;
+    
+    if (fieldType === 'replenishment') {
+      quantity = this.replenishmentAcceptedByMaterialId().get(materialId) || 0;
+    } else if (fieldType === 'warehouseAccepted') {
+      quantity = this.warehouseAcceptedByMaterialId().get(materialId) || 0;
+    }
+    
+    return quantity * unitPrice;
+  }
+
+  protected validateReplenishmentInput(materialId: number, event: any): void {
+    const numValue = Number(event.target.value) || 0;
+    const material = this.materialList().find(m => m.id === materialId);
+    const maxAllowed = Number(material?.requestedQuantity) || 0;
+    
+    if (numValue > maxAllowed) {
+      event.target.value = '';
+    }
+  }
+
+  protected validateWarehouseReceivedInput(materialId: number, event: any): void {
+    const numValue = Number(event.target.value) || 0;
+    const material = this.materialList().find(m => m.id === materialId);
+    const maxAllowed = Number(material?.requestedQuantity) || 0;
+    
+    if (numValue > maxAllowed) {
+      event.target.value = '';
+    }
+  }
+
+  protected validateWarehouseAcceptedInput(materialId: number, event: any): void {
+    const numValue = Number(event.target.value) || 0;
+    const warehouseReceivedQty = this.warehouseReceivedByMaterialId().get(materialId) || 0;
+    
+    if (numValue > warehouseReceivedQty) {
+      event.target.value = '';
+    }
+  }
+
+  protected updateReplenishmentAccepted(materialId: number, value: string | number): void {
+    const numValue = Number(value) || 0;
+    const material = this.materialList().find(m => m.id === materialId);
+    const maxAllowed = Number(material?.requestedQuantity) || 0;
+    
+    if (numValue > maxAllowed) {
+      this._toastService.error(`Replanishment accepted no puede ser mayor a ${maxAllowed} (Cant. devuelta)`);
+      return;
+    }
+    
+    const newMap = new Map(this.replenishmentAcceptedByMaterialId());
+    if (numValue === 0) {
+      newMap.delete(materialId);
+    } else {
+      newMap.set(materialId, numValue);
+    }
+    this.replenishmentAcceptedByMaterialId.set(newMap);
+  }
+
+  protected updateWarehouseReceived(materialId: number, value: string | number): void {
+    const numValue = Number(value) || 0;
+    const material = this.materialList().find(m => m.id === materialId);
+    const maxAllowed = Number(material?.requestedQuantity) || 0;
+    
+    if (numValue > maxAllowed) {
+      this._toastService.error(`Warehouse received no puede ser mayor a ${maxAllowed} (Cant. devuelta)`);
+      return;
+    }
+    
+    const newMap = new Map(this.warehouseReceivedByMaterialId());
+    if (numValue === 0) {
+      newMap.delete(materialId);
+    } else {
+      newMap.set(materialId, numValue);
+    }
+    this.warehouseReceivedByMaterialId.set(newMap);
+  }
+
+  protected updateWarehouseAccepted(materialId: number, value: string | number): void {
+    const numValue = Number(value) || 0;
+    const warehouseReceivedQty = this.warehouseReceivedByMaterialId().get(materialId) || 0;
+    
+    if (numValue > warehouseReceivedQty) {
+      this._toastService.error(`Warehouse accepted no puede ser mayor a ${warehouseReceivedQty} (Warehouse received)`);
+      return;
+    }
+    
+    const newMap = new Map(this.warehouseAcceptedByMaterialId());
+    if (numValue === 0) {
+      newMap.delete(materialId);
+    } else {
+      newMap.set(materialId, numValue);
+    }
+    this.warehouseAcceptedByMaterialId.set(newMap);
   }
 
   private mapReturnOrderRequestItemToMaterial(item: ReturnOrderRequestItem, returnOrderId: number): ReturnOrderListItem {
