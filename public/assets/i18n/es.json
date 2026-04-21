@@ -586,7 +586,20 @@
     "REPLANISHMENT_AMOUNT": "Cantidad de Replenishment",
     "WAREHOUSE_AMOUNT": "Cantidad de Almacén",
     "REPLANISHMENT_TOTAL": "Total",
-    "WAREHOUSE_TOTAL": "Total"
+    "WAREHOUSE_TOTAL": "Total",
+    "RETURNED_QUANTITY": "Cant. devuelta",
+    "REPLANISHMENT_ACCEPTED": "Replanimiento Aceptado",
+    "REPLANISHMENT_REJECTION_REASON": "Motivo de Rechazo Replanimiento",
+    "WAREHOUSE_RECEIVED": "Almacén Recibido",
+    "WAREHOUSE_ACCEPTED": "Almacén Aceptado",
+    "WAREHOUSE_REJECTION_REASON": "Motivo de Rechazo Almacén",
+    "SAP_ID": "ID SAP",
+    "PART_NUMBER": "Número de Parte",
+    "UNIT_PRICE": "Precio Unitario",
+    "SUBTOTAL": "Subtotal",
+    "HAS_CHARGE": "Tiene cargo",
+    "NO_CHARGE": "Sin cargo",
+    "TOTAL_WITH_CHARGE": "Total con cargo"
   },
   "PROFILE": {
     "LOADING": "Cargando perfil...",

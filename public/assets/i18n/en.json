@@ -586,7 +586,20 @@
     "REPLANISHMENT_AMOUNT": "Replenishment Amount",
     "WAREHOUSE_AMOUNT": "Warehouse Amount",
     "REPLANISHMENT_TOTAL": "Total",
-    "WAREHOUSE_TOTAL": "Total"
+    "WAREHOUSE_TOTAL": "Total",
+    "RETURNED_QUANTITY": "Returned Quantity",
+    "REPLANISHMENT_ACCEPTED": "Replanishment Accepted",
+    "REPLANISHMENT_REJECTION_REASON": "Replanishment Rejection Reason",
+    "WAREHOUSE_RECEIVED": "Warehouse Received",
+    "WAREHOUSE_ACCEPTED": "Warehouse Accepted",
+    "WAREHOUSE_REJECTION_REASON": "Warehouse Rejection Reason",
+    "SAP_ID": "SAP ID",
+    "PART_NUMBER": "Part Number",
+    "UNIT_PRICE": "Unit Price",
+    "SUBTOTAL": "Subtotal",
+    "HAS_CHARGE": "Has charge",
+    "NO_CHARGE": "No charge",
+    "TOTAL_WITH_CHARGE": "Total with charge"
   },
   "PROFILE": {
     "LOADING": "Loading profile...",
