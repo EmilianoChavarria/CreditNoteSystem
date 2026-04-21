@@ -71,86 +71,14 @@ export class History {
     public selectedRequest = signal<Request | null>(null);
 
     private readonly mockSteps: WorkflowDetail['steps'] = [
-        {
-            number: 1,
-            title: 'Paso 1',
-            status: 'Creado',
-            role: 'Requester',
-            user: 'María López',
-            date: '01 feb 2026',
-            time: '03:00 a.m.',
-            note: ''
-        },
-        {
-            number: 2,
-            title: 'Paso 2',
-            status: 'Procesado',
-            role: 'Processor',
-            user: 'Andrés Morales',
-            date: '01 feb 2026',
-            time: '07:00 a.m.',
-            note: 'Datos validados correctamente'
-        },
-        {
-            number: 3,
-            title: 'Paso 3',
-            status: 'Aprobado',
-            role: 'Finance',
-            user: 'Luis Hernández',
-            date: '02 feb 2026',
-            time: '03:00 a.m.',
-            note: ''
-        },
-        {
-            number: 4,
-            title: 'Paso 4',
-            status: 'Aprobado',
-            role: 'Manager',
-            user: 'Roberto Mendez',
-            date: '02 feb 2026',
-            time: '08:00 a.m.',
-            note: ''
-        },
-        {
-            number: 5,
-            title: 'Paso 5',
-            status: 'Aprobado',
-            role: 'General Manager',
-            user: 'Patricia Vega',
-            date: '03 feb 2026',
-            time: '03:30 a.m.',
-            note: ''
-        },
-        {
-            number: 6,
-            title: 'Paso 6',
-            status: 'Rechazado',
-            role: 'Business Controllers',
-            user: 'Fernando Díaz',
-            date: '03 feb 2026',
-            time: '10:00 a.m.',
-            note: 'Discrepancia en el monto facturado'
-        },
-        {
-            number: 7,
-            title: 'Paso 5',
-            status: 'Devuelto',
-            role: 'General Manager',
-            user: 'Fernando Díaz',
-            date: '03 feb 2026',
-            time: '10:01 a.m.',
-            note: ''
-        },
-        {
-            number: 8,
-            title: 'Paso 5',
-            status: 'Aprobado',
-            role: 'General Manager',
-            user: 'Patricia Vega',
-            date: '04 feb 2026',
-            time: '04:00 a.m.',
-            note: 'Monto corregido'
-        }
+        { number: 1, title: 'Paso 1', status: 'Creado',    statusKey: 'created',   role: 'Requester',          user: 'María López',     date: '01 feb 2026', time: '03:00 a.m.', note: '' },
+        { number: 2, title: 'Paso 2', status: 'Procesado', statusKey: 'processed', role: 'Processor',          user: 'Andrés Morales',  date: '01 feb 2026', time: '07:00 a.m.', note: 'Datos validados correctamente' },
+        { number: 3, title: 'Paso 3', status: 'Aprobado',  statusKey: 'approved',  role: 'Finance',            user: 'Luis Hernández',  date: '02 feb 2026', time: '03:00 a.m.', note: '' },
+        { number: 4, title: 'Paso 4', status: 'Aprobado',  statusKey: 'approved',  role: 'Manager',            user: 'Roberto Mendez',  date: '02 feb 2026', time: '08:00 a.m.', note: '' },
+        { number: 5, title: 'Paso 5', status: 'Aprobado',  statusKey: 'approved',  role: 'General Manager',    user: 'Patricia Vega',   date: '03 feb 2026', time: '03:30 a.m.', note: '' },
+        { number: 6, title: 'Paso 6', status: 'Rechazado', statusKey: 'rejected',  role: 'Business Controllers', user: 'Fernando Díaz', date: '03 feb 2026', time: '10:00 a.m.', note: 'Discrepancia en el monto facturado' },
+        { number: 7, title: 'Paso 7', status: 'Devuelto',  statusKey: 'returned',  role: 'General Manager',    user: 'Fernando Díaz',   date: '03 feb 2026', time: '10:01 a.m.', note: '' },
+        { number: 8, title: 'Paso 8', status: 'Aprobado',  statusKey: 'approved',  role: 'General Manager',    user: 'Patricia Vega',   date: '04 feb 2026', time: '04:00 a.m.', note: 'Monto corregido' }
     ];
 
     public workflowDetail: WorkflowDetail = {
@@ -162,6 +90,7 @@ export class History {
         createdDate: '01 feb 2026',
         progressText: 'Paso 9 de 11',
         statusLabel: 'Liberada',
+        statusKey: 'approved',
         steps: this.mockSteps
     };
 
@@ -219,6 +148,7 @@ export class History {
             createdDate: request.createdAt ? moment(request.createdAt).format('DD MMM YYYY') : '-',
             progressText: 'Paso 9 de 11',
             statusLabel: this.toTitleCase(request.status),
+            statusKey: (request.status ?? '').toLowerCase(),
             steps: this.mockSteps
         };
     }
