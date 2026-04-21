@@ -284,38 +284,38 @@
                             <tr>
                                 <th
                                     class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
-                                    Cant. devuelta</th>
+                                    {{ 'NEW_REQUEST_FORM.RETURNED_QUANTITY' | translate }}</th>
                                 <th
                                     class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
-                                    Replanishment accepted</th>
+                                    {{ 'NEW_REQUEST_FORM.REPLANISHMENT_ACCEPTED' | translate }}</th>
                                 <th
                                     class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
-                                    Replanishment reason for rejection</th>
+                                    {{ 'NEW_REQUEST_FORM.REPLANISHMENT_REJECTION_REASON' | translate }}</th>
                                 <th
                                     class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
-                                    Warehouse received</th>
+                                    {{ 'NEW_REQUEST_FORM.WAREHOUSE_RECEIVED' | translate }}</th>
                                 <th
                                     class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
-                                    Warehouse Accepted</th>
+                                    {{ 'NEW_REQUEST_FORM.WAREHOUSE_ACCEPTED' | translate }}</th>
                                 <th
                                     class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
-                                    Warehouse reason for rejection</th>
+                                    {{ 'NEW_REQUEST_FORM.WAREHOUSE_REJECTION_REASON' | translate }}</th>
                                 <th
                                     class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
-                                    SAP ID</th>
+                                    {{ 'NEW_REQUEST_FORM.SAP_ID' | translate }}</th>
                                 <!-- <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Concepto</th>
                                 <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Clave SAT</th> -->
                                 <th
                                     class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
-                                    Part number</th>
+                                    {{ 'NEW_REQUEST_FORM.PART_NUMBER' | translate }}</th>
                                 <!-- <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Unidad</th> -->
                                 <!-- <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Cant. original</th> -->
                                 <th
                                     class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
-                                    Precio Unitario</th>
+                                    {{ 'NEW_REQUEST_FORM.UNIT_PRICE' | translate }}</th>
                                 <th
                                     class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
-                                    Subtotal</th>
+                                    {{ 'NEW_REQUEST_FORM.SUBTOTAL' | translate }}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200">
@@ -325,6 +325,7 @@
                                 <td class="px-3 py-2 text-sm text-gray-700">
                                     <div class="flex flex-col gap-1">
                                         <input type="number" 
+                                            [value]="replenishmentAcceptedByMaterialId().get(material.id) ?? ''"
                                             [max]="material.requestedQuantity"
                                             (input)="validateReplenishmentInput(material.id, $event)"
                                             (change)="onTableInputChange(material.id, 'replenishment', $event)"
@@ -333,11 +334,14 @@
                                     </div>
                                 </td>
                                 <td class="px-3 py-2 text-sm text-gray-700">
-                                    <input type="text" name="" id=""
+                                    <input type="text"
+                                        [value]="getTextFieldValue(material.id, 'replenishmentReason')"
+                                        (change)="onTextFieldChange(material.id, 'replenishmentReason', $event)"
                                         class="border border-gray-300 rounded-md h-8 px-2 w-full">
                                 </td>
                                 <td class="px-3 py-2 text-sm text-gray-700">
                                     <input type="number" 
+                                        [value]="warehouseReceivedByMaterialId().get(material.id) ?? ''"
                                         [max]="material.requestedQuantity"
                                         (input)="validateWarehouseReceivedInput(material.id, $event)"
                                         (change)="onTableInputChange(material.id, 'warehouseReceived', $event)"
@@ -346,6 +350,7 @@
                                 <td class="px-3 py-2 text-sm text-gray-700">
                                     <div class="flex flex-col gap-1">
                                         <input type="number" 
+                                            [value]="warehouseAcceptedByMaterialId().get(material.id) ?? ''"
                                             [max]="warehouseReceivedByMaterialId().get(material.id) || 0"
                                             (input)="validateWarehouseAcceptedInput(material.id, $event)"
                                             (change)="onTableInputChange(material.id, 'warehouseAccepted', $event)"
@@ -354,11 +359,15 @@
                                     </div>
                                 </td>
                                 <td class="px-3 py-2 text-sm text-gray-700">
-                                    <input type="text" name="" id=""
+                                    <input type="text"
+                                        [value]="getTextFieldValue(material.id, 'warehouseReason')"
+                                        (change)="onTextFieldChange(material.id, 'warehouseReason', $event)"
                                         class="border border-gray-300 rounded-md h-8 px-2 w-full">
                                 </td>
                                 <td class="px-3 py-2 text-sm text-gray-700">
-                                    <input type="text" name="" id=""
+                                    <input type="text"
+                                        [value]="getTextFieldValue(material.id, 'sapId')"
+                                        (change)="onTextFieldChange(material.id, 'sapId', $event)"
                                         class="border border-gray-300 rounded-md h-8 px-2 w-full">
                                 </td>
                                 <!-- <td class="px-3 py-2 text-sm text-gray-700">{{ material.conceptoIndex }}</td> -->
@@ -385,17 +394,17 @@
                                             <input type="checkbox"
                                                 class="h-4 w-4 rounded border-emerald-300 text-emerald-600 focus:ring-emerald-500"
                                                 [checked]="hasReturnCharge()" (change)="onReturnChargeToggle($event)" />
-                                            <span>{{ hasReturnCharge() ? 'Tiene cargo' : 'Sin cargo' }}</span>
+                                            <span>{{ hasReturnCharge() ? ('NEW_REQUEST_FORM.HAS_CHARGE' | translate) : ('NEW_REQUEST_FORM.NO_CHARGE' | translate) }}</span>
                                         </label>
                                         @if (hasReturnCharge()) {
                                         <span>{{ returnChargePercent() }}%</span>
-                                        <span class="text-emerald-700">Total con cargo: {{ totalWithReturnCharge() |
+                                        <span class="text-emerald-700">{{ 'NEW_REQUEST_FORM.TOTAL_WITH_CHARGE' | translate }}: {{ totalWithReturnCharge() |
                                             number
                                             : '1.2-2' }}</span>
                                         }
                                     </div>
                                 </td>
-                                <td class="px-3 py-2 text-right text-sm font-semibold text-gray-700">Subtotal</td>
+                                <td class="px-3 py-2 text-right text-sm font-semibold text-gray-700">{{ 'NEW_REQUEST_FORM.SUBTOTAL' | translate }}</td>
                                 <td class="px-3 py-2 text-sm font-semibold text-gray-800">
                                     {{ materialListSubtotal() | number : '1.2-2' }}
                                 </td>
@@ -410,7 +419,7 @@
                             translate}}<span class="text-red-500">*</span></label>
                         <input id="replenishmentAmount" type="number" 
                             [value]="replenishmentAcceptedTotal() | number : '1.2-2'"
-                            readonly
+                            readonly 
                             [class]="campoVacio('replenishmentAmount') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
                         @if (campoVacio('replenishmentAmount')) {
                         <span class="text-sm text-red-500">{{ getErrorMessage('replenishmentAmount') }}</span>
