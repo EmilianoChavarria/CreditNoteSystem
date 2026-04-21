@@ -39,6 +39,10 @@
     <app-auditor-debit-form [requestTypeId]="selectedRequestTypeId"
         [initialRequestData]="editingRequestData()"></app-auditor-debit-form>
     }
+    @case ('re-invoicing') {
+    <app-re-invoicing-form [requestTypeId]="selectedRequestTypeId"
+        [initialRequestData]="editingRequestData()"></app-re-invoicing-form>
+    }
     @case ('material-return') {
     <app-material-return-form [requestTypeId]="selectedRequestTypeId"
         [initialRequestData]="editingRequestData()"></app-material-return-form>

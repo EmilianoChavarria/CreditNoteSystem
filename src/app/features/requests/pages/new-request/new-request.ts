@@ -17,12 +17,13 @@ import { AuditorCreditForm } from "../../components/forms/auditor-credit-form/au
 import { AuditorDebitForm } from "../../components/forms/auditor-debit-form/auditor-debit-form";
 import { ActivatedRoute, Router } from '@angular/router';
 import { MaterialReturnForm } from "../../components/forms/material-return-form/material-return-form";
+import { ReInvoicingForm } from "../../components/forms/re-invoicing-form/re-invoicing-form";
 
 @Component({
     selector: 'app-new-request',
     templateUrl: './new-request.html',
     styleUrl: './new-request.css',
-    imports: [ReactiveFormsModule, TranslatePipe, CommonModule, CreditForm, DebitForm, AuditorCreditForm, AuditorDebitForm, MaterialReturnForm],
+    imports: [ReactiveFormsModule, TranslatePipe, CommonModule, CreditForm, DebitForm, AuditorCreditForm, AuditorDebitForm, MaterialReturnForm, ReInvoicingForm],
 })
 export class NewRequest implements OnInit {
     public profileForm: FormGroup;
