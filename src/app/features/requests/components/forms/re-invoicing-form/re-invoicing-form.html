@@ -27,7 +27,7 @@
                 </div>
                 <div>
                     <label for="creditNumber"
-                        class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.CREDIT_NUMBER' |
+                        class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.CREDIT_DEBIT_NUMBER' |
                         translate}}</label>
                     <input id="creditNumber" type="text" formControlName="creditNumber"
                         [class]="campoVacio('creditNumber') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
@@ -145,6 +145,16 @@
                         [class]="campoVacio('invoiceDate') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
                     @if (campoVacio('invoiceDate')) {
                     <span class="text-sm text-red-500">{{ getErrorMessage('invoiceDate') }}</span>
+                    }
+                </div>
+                <div>
+                    <label for="newInvoice"
+                        class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.NEW_INVOICE' |
+                        translate}}</label>
+                    <input id="newInvoice" type="text" formControlName="newInvoice"
+                        [class]="campoVacio('newInvoice') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
+                    @if (campoVacio('newInvoice')) {
+                    <span class="text-sm text-red-500">{{ getErrorMessage('newInvoice') }}</span>
                     }
                 </div>
                 <div class="md:md:col-span-2">

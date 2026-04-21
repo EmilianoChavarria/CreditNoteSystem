@@ -88,7 +88,7 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
 
     forkJoin({
       requestNumber: this._requestService.getNextRequestNumber(this.requestTypeId),
-      reasons: this._requestService.getReasons(),
+      reasons: this._requestService.getReasons(this.requestTypeId),
       classifications: this._requestService.getClassificationsByType(this.requestTypeId),
     }).subscribe({
       next: ({ requestNumber, reasons, classifications }) => {
@@ -439,6 +439,8 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
       deliveryNote: new FormControl<string>(''),
       invoiceNumber: new FormControl<string>('', [Validators.required]),
       invoiceDate: new FormControl<string>('', [Validators.required]),
+      newInvoice: new FormControl<string>(''),
+      warehouseCode: new FormControl<string>('', [Validators.required]),
       sapScreen: new FormControl<File | null>(null),
       currency: new FormControl<string>('', [Validators.required]),
       exchangeRate: new FormControl<number | null>(null, [Validators.required, Validators.min(0)]),
@@ -447,6 +449,12 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
       totalAmount: new FormControl<string>({ value: '', disabled: true }, []),
       attachSupports: new FormControl<File[] | null>(null),
       comments: new FormControl<string>(''),
+      replenishmentAmount: new FormControl<string>(''),
+      hasReplenishmentIva: new FormControl<boolean>(false),
+      warehouseAmount: new FormControl<string>(''),
+      warehouseTotal: new FormControl<string>(''),
+      replenishmentTotal: new FormControl<string>(''),
+      hasWarehouseIva: new FormControl<boolean>(false),
       reviewComments: new FormControl<string>({ value: '', disabled: true }, []),
     };
 
@@ -478,7 +486,12 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
   }
 
   getReasons(): void {
-    this._requestService.getReasons().subscribe({
+    if (this.requestTypeId === null) {
+      this.reasons.set([]);
+      return;
+    }
+
+    this._requestService.getReasons(this.requestTypeId).subscribe({
       next: (response: Reason[]) => {
         this.reasons.set(response);
       },
