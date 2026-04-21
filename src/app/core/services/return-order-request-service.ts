@@ -39,13 +39,27 @@ export interface ReturnOrderRequestItem {
   descripcion: string;
   claveUnidad: string;
   unidad: string;
-  replenishmentAccepted: boolean | null;
+  replenishmentAccepted: number | null;
   replenishmentReasonForRejection: string | null;
-  warehouseReceived: boolean | null;
-  warehouseAccepted: boolean | null;
+  warehouseReceived: number | null;
+  warehouseAccepted: number | null;
   warehouseReasonForRejection: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface ReturnOrderRequestItemUpdate {
+  id: number;
+  replenishmentAccepted?: number | null;
+  replenishmentReasonForRejection?: string | null;
+  warehouseReceived?: number | null;
+  warehouseAccepted?: number | null;
+  warehouseReasonForRejection?: string | null;
+  sapId?: string | null;
+}
+
+export interface UpdateReturnOrderRequestItemsPayload {
+  items: ReturnOrderRequestItemUpdate[];
 }
 
 export interface ReturnOrderRequestByRequestData {
@@ -74,6 +88,16 @@ export class ReturnOrderRequestService {
         console.log(error);
         throw error;
       })
+    );
+  }
+
+  updateItems(
+    returnOrderRequestId: number,
+    payload: UpdateReturnOrderRequestItemsPayload
+  ): Observable<ApiResponse<ReturnOrderRequestByRequestData | null>> {
+    return this.httpService.put<ReturnOrderRequestByRequestData | null>(
+      `/return-order-requests/${returnOrderRequestId}/items`,
+      payload
     );
   }
 }
