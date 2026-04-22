@@ -1,7 +1,8 @@
 <div class="p-2 md:p-8 flex flex-col">
     <header class="w-full flex flex-col-reverse md:flex-row items-center justify-between">
 
-        <div class="flex flex-col md:flex-row items-start md:items-center justify-start md:mb-10 gap-x-4 w-full md:w-fit mt-3 md:mt-0">
+        <div
+            class="flex flex-col md:flex-row items-start md:items-center justify-start md:mb-10 gap-x-4 w-full md:w-fit mt-3 md:mt-0">
             <label for="days" class="font-semibold text-[#3c6194] text-xl md:text-2xl">{{'DASHBOARD.REQ_FILTER'|
                 translate}}</label>
             <div class="flex flex-row items-center w-full md:w-fit">
@@ -25,33 +26,37 @@
         <app-spinner></app-spinner>
     </div>
     } @else if (selectedRequestType !== 'DE' && selectedRequestType) {
-    <app-tabla-dinamica [datos]="requests()" [columnas]="columns" [accionesPersonalizadas]="acciones()" actionMode="menu"
-        [enableFilter]="true" filterField="workflowCurrentStep.assigned_role.roleName" addLabel="PENDING_PAGE.REQUEST" addRoute="/app/settings/newUser" [canAdd]="false"
+    <app-tabla-dinamica [datos]="requests()" [columnas]="columns" [accionesPersonalizadas]="acciones()"
+        actionMode="menu" [enableFilter]="true" filterField="workflowCurrentStep.assigned_role.roleName"
+        addLabel="PENDING_PAGE.REQUEST" addRoute="/app/settings/newUser" [canAdd]="false"
         [registrosPorPagina]="pageSize()" [serverPagination]="true" [paginaActualExterna]="currentPage()"
-        [totalPaginasExterno]="totalPages()"
-        [hasNextPage]="hasNextPage()" [hasPrevPage]="hasPrevPage()" [loading]="isLoadingTable()"
-        (paginaSiguiente)="onNextPage()" (paginaAnterior)="onPrevPage()"
+        [totalPaginasExterno]="totalPages()" [hasNextPage]="hasNextPage()" [hasPrevPage]="hasPrevPage()"
+        [loading]="isLoadingTable()" (paginaSiguiente)="onNextPage()" (paginaAnterior)="onPrevPage()"
         (paginaPrimera)="onFirstPage()" (paginaUltima)="onLastPage()"
-        (registrosPorPaginaChange)="onPageSizeChange($event)"
-        (searchChange)="onSearch($event)">
+        (registrosPorPaginaChange)="onPageSizeChange($event)" (searchChange)="onSearch($event)">
 
         <ng-template #cellTemplate let-item let-column="column">
             @if (column.key === 'requestType.name') {
             <app-badge color="blue" [text]="item.requestType.name | uppercase" />
             } @else if (column.key === 'status') {
-            @if (item.workflowCurrentStep?.assigned_role?.roleName) {
-            <div class="w-fit rounded-lg px-2"
-                [style]="`background-color: ${item.workflowCurrentStep.assigned_role.color +'1A'}; color:${item.workflowCurrentStep.assigned_role.color}` ">
-                <span [class]="`text-center font-semibold text-nowrap`">{{item.workflowCurrentStep.assigned_role.roleName}}</span>
-            </div>
-            } @else {
-            <app-badge [color]="item.status?.toLowerCase() === 'rejected' ? 'red' : 'green'" [text]="item.status | uppercase" />
-            }
+                @if (item.status?.toLowerCase() === 'approved') {
+                <app-badge color="green" text="RELEASED" />
+                }@else if (item.workflowCurrentStep?.assigned_role?.roleName) {
+                <div class="w-fit rounded-lg px-2"
+                    [style]="`background-color: ${item.workflowCurrentStep.assigned_role.color +'1A'}; color:${item.workflowCurrentStep.assigned_role.color}` ">
+                    <span
+                        [class]="`text-center font-semibold text-nowrap`">{{item.workflowCurrentStep.assigned_role.roleName}}</span>
+                </div>
+                } @else {
+                <app-badge [color]="item.status?.toLowerCase() === 'rejected' ? 'red' : 'green'"
+                    [text]="item.status | uppercase" />
+                }
             }@else if (column.key === 'username') {
             @if (item.workflowCurrentStep?.assigned_user?.fullName) {
             <div class="w-fit rounded-lg px-2"
                 [style]="`background-color: ${item.workflowCurrentStep.assigned_role.color +'1A'}; color:${item.workflowCurrentStep.assigned_role.color}` ">
-                <span [class]="`text-center font-semibold text-nowrap`">{{item.workflowCurrentStep?.assigned_user?.fullName}}</span>
+                <span
+                    [class]="`text-center font-semibold text-nowrap`">{{item.workflowCurrentStep?.assigned_user?.fullName}}</span>
             </div>
             } @else {
             <app-badge color="green" [text]="item.status | uppercase" />
@@ -63,13 +68,15 @@
         (closed)="closeHistoryDrawer()"></app-workflow-history-drawer>
     } @else {
     <div class="text-center pt-10 md:py-20 text-gray-500">
-        <img src="assets/png/TIMKEN-DISABLE-esp.webp" alt="" class="mx-auto h-auto w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg object-contain">
+        <img src="assets/png/TIMKEN-DISABLE-esp.webp" alt=""
+            class="mx-auto h-auto w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg object-contain">
         <p class="text-2xl text-[#3c6194] font-semibold">{{'REQUEST_TYPES.DEFAULT_TEXT'| translate}}</p>
     </div>
     }
 
-    <app-modal size="md" [titleM]="'PENDING_PAGE.REJECTION_MODAL_TITLE' | translate" [open]="showDeclineModal()" [closeText]="'PENDING_PAGE.CANCEL' | translate"
-        [primaryText]="'PENDING_PAGE.REJECT' | translate" (openChange)="onDeclineModalChange($event)" (primaryAction)="onDeclineModalChange()">
+    <app-modal size="md" [titleM]="'PENDING_PAGE.REJECTION_MODAL_TITLE' | translate" [open]="showDeclineModal()"
+        [closeText]="'PENDING_PAGE.CANCEL' | translate" [primaryText]="'PENDING_PAGE.REJECT' | translate"
+        (openChange)="onDeclineModalChange($event)" (primaryAction)="onDeclineModalChange()">
         <div [formGroup]="form">
             <label class="block font-medium text-[#395f93] text-lg">{{'REJECTION.REASON' | translate}}
                 <span class="text-red-500 text-lg">*</span>
@@ -84,10 +91,12 @@
 
     </app-modal>
 
-    <app-pending-attachments-modal
-        [open]="showAttachmentsModal()"
-        [requestId]="selectedRequestForAttachments()?.id ?? null"
-        [canDelete]="canDeleteSelectedAttachments()"
+    <app-request-info-modal [open]="showInfoModal()" [request]="selectedRequestForInfo()"
+        (openChange)="onInfoModalChange($event)">
+    </app-request-info-modal>
+
+    <app-pending-attachments-modal [open]="showAttachmentsModal()"
+        [requestId]="selectedRequestForAttachments()?.id ?? null" [canDelete]="canDeleteSelectedAttachments()"
         (openChange)="onAttachmentsModalChange($event)">
     </app-pending-attachments-modal>
 </div>
