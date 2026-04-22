@@ -1,4 +1,5 @@
 import { Role, User } from './User';
+
 export interface Request {
     id?: number;
     requestNumber: string;
@@ -43,16 +44,32 @@ export interface Request {
     workflowCurrentStep: WorkflowCurrentStep
 }
 
-interface WorkflowCurrentStep {
+export interface WorkflowStep {
+    id: number
+    workflowId: number
+    stepName: string
+    stepOrder: number
+    roleId: number
+    isInitialStep: boolean
+    isFinalStep: boolean
+    createdAt: string
+    updatedAt: string
+    deletedAt: string | null
+}
+
+export interface WorkflowCurrentStep {
     id: number
     requestId: number
     workflowId: number
     workflowStepId: number
     assignedRoleId: number
+    assignedUserId: number
     status: string
     createdAt: string
     updatedAt: string
+    workflow_step: WorkflowStep
     assigned_role: Role
+    assigned_user: User
 }
 
 export interface RequestType {
