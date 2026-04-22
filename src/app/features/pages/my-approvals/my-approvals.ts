@@ -16,10 +16,11 @@ import { catchError, forkJoin, map, of, switchMap } from 'rxjs';
 import { normalizeRequestNumber } from '../../../shared/utils/notification-navigation';
 import { FullSpinnerComponent } from '../../../shared/components/ui/full-spinner/full-spinner';
 import { RequestListBase } from '../../../shared/base/request-list.base';
+import { RequestInfoModal } from '../../pending/components/request-info-modal/request-info-modal';
 
 @Component({
     selector: 'app-my-approvals',
-    imports: [TranslatePipe, WorkflowHistoryDrawer, Modal, Table, Badge, UpperCasePipe, Spinner, ReactiveFormsModule, FullSpinnerComponent],
+    imports: [TranslatePipe, WorkflowHistoryDrawer, Modal, Table, Badge, UpperCasePipe, Spinner, ReactiveFormsModule, FullSpinnerComponent, RequestInfoModal],
     templateUrl: './my-approvals.html',
     styleUrl: './my-approvals.css',
 })
@@ -53,7 +54,6 @@ export class MyApprovals extends RequestListBase {
         { key: 'bulkSelect', label: 'MY_APPROVALS.SELECT', sortable: false, customTemplate: true },
         { key: 'requestNumber', label: 'MY_APPROVALS.REQUEST_NUMBER', sortable: true },
         { key: 'requestType.name', label: 'MY_APPROVALS.REQUEST_TYPE', sortable: true, customTemplate: true },
-        { key: 'area', label: 'MY_APPROVALS.AREA', sortable: false },
         { key: 'classification.name', label: 'MY_APPROVALS.CLASSIFICATION', sortable: true },
         { key: 'username', label: 'Assigned User', sortable: true, customTemplate: true },
         { key: 'status', label: 'MY_APPROVALS.STATUS', sortable: true, customTemplate: true },
@@ -67,6 +67,7 @@ export class MyApprovals extends RequestListBase {
         { key: 'approve', icon: 'check', label: 'MY_APPROVALS.APPROVE', accion: (request) => this.approveRequest(request) },
         { key: 'decline', icon: 'x', label: 'MY_APPROVALS.DECLINE', accion: (request) => this.onDeclineModalChange(true, request) },
         { key: 'pdf', icon: 'file-text', label: 'MY_APPROVALS.PDF', accion: (request) => this.generatePdf(request) },
+        { key: 'see_info', icon: 'info', label: 'PENDING_PAGE.SEE_INFO', accion: (request) => this.openInfoModal(request) },
         { key: 'edit', icon: 'pencil', label: 'MY_APPROVALS.EDIT', accion: (request) => this.editRequest(request) },
         { key: 'history', icon: 'history', label: 'MY_APPROVALS.SEE_HISTORY', accion: (request) => this.logAction(request) },
         { key: 'delete', icon: 'trash', label: 'MY_APPROVALS.DELETE', accion: (request) => this.logAction(request) }

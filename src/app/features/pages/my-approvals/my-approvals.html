@@ -154,4 +154,8 @@
             }
         </div>
     </app-modal>
+
+    <app-request-info-modal [open]="showInfoModal()" [request]="selectedRequestForInfo()"
+        (openChange)="onInfoModalChange($event)">
+    </app-request-info-modal>
 </div>
