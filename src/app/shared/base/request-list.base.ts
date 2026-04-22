@@ -44,6 +44,8 @@ export abstract class RequestListBase {
     public selectedRequest = signal<Request | null>(null);
     public submitted = signal(false);
     public showDeclineModal = signal<boolean>(false);
+    public showInfoModal = signal<boolean>(false);
+    public selectedRequestForInfo = signal<Request | null>(null);
     protected readonly requestTypeActionPermissions = signal<Record<number, Record<string, boolean>>>({});
     protected currentLanguage = signal<string>(this._translateService.currentLang || 'es');
     protected searchDebounceTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -111,6 +113,16 @@ export abstract class RequestListBase {
         this.totalPages.set(1);
         this.hasNextPage.set(false);
         this.hasPrevPage.set(false);
+    }
+
+    openInfoModal(request: Request): void {
+        this.selectedRequestForInfo.set(request);
+        this.showInfoModal.set(true);
+    }
+
+    onInfoModalChange(isOpen: boolean): void {
+        this.showInfoModal.set(isOpen);
+        if (!isOpen) this.selectedRequestForInfo.set(null);
     }
 
     closeHistoryDrawer(): void {
