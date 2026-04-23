@@ -31,21 +31,10 @@ export class BulkCreditsDataUpload {
   selectedRequestTypeId = input<number | null>(null);
   batchCreated = output<void>();
 
-  private readonly allowedTypes = ['credits', 'debits'];
-
   isDragOver = signal(false);
   isCreatingBatch = signal(false);
   uploadedFiles = signal<UploadedFileRow[]>([]);
   private selectedFile = signal<File | null>(null);
-
-  isAllowed = computed(() => {
-    const selectedType = this.selectedType();
-    if (!selectedType) {
-      return false;
-    }
-
-    return this.allowedTypes.includes(selectedType.name.toLowerCase());
-  });
 
   isDebitsSelected = computed(() => {
     const selectedType = this.selectedType();
@@ -79,11 +68,6 @@ export class BulkCreditsDataUpload {
 
     if (!file) {
       this.toastService.warning(this.translateService.instant('BULK.TOAST.CREDITS_SELECT_FILE'), this.translateService.instant('BULK.TABS.UPLOAD'));
-      return;
-    }
-
-    if (!this.isAllowed()) {
-      this.toastService.warning(this.translateService.instant('BULK.TOAST.CREDITS_ALLOWED_ONLY'), this.translateService.instant('BULK.TABS.UPLOAD'));
       return;
     }
 
