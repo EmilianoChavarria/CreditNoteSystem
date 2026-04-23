@@ -1,11 +1,10 @@
-import { Component, DestroyRef, computed, inject, input, output, signal } from '@angular/core';
+import { Component, DestroyRef, inject, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LucideAngularModule } from 'lucide-angular';
 import { switchMap, takeWhile, timer } from 'rxjs';
 import { AccordeonItem } from '../../../../../shared/components/ui/accordeon/accordeon-item';
 import { BatchService } from '../../../../../core/services/batch-service';
 import { ToastService } from '../../../../../core/services/toast-service';
-import { RequestType } from '../../../../../data/interfaces/Request';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { BulkUploadedFilesTable } from '../shared/bulk-uploaded-files-table/bulk-uploaded-files-table';
 import { BulkFileDropzone } from '../shared/bulk-file-dropzone/bulk-file-dropzone';
@@ -28,26 +27,14 @@ export class BulkSapReturnOrderUpload {
   private readonly translateService = inject(TranslateService);
   private readonly destroyRef = inject(DestroyRef);
 
-  requestTypes = input.required<RequestType[]>();
   selectedRequestTypeId = input<number | null>(null);
   batchCreated = output<void>();
-
-  private readonly allowedTypes = ['credits', 'debits', 'auditor-credits', 'auditor-debits'];
 
   isDragOver = signal(false);
   isCreatingBatch = signal(false);
   isPollingBatch = signal(false);
   uploadedFiles = signal<UploadedFileRow[]>([]);
   private files = signal<File[]>([]);
-
-  isAllowed = computed(() => {
-    const selectedType = this.selectedType();
-    if (!selectedType) {
-      return false;
-    }
-
-    return this.allowedTypes.includes(selectedType.name.toLowerCase());
-  });
 
   onDragOver(event: DragEvent): void {
     event.preventDefault();
@@ -83,11 +70,6 @@ export class BulkSapReturnOrderUpload {
 
     if (!requestTypeId) {
       this.toastService.warning(this.translateService.instant('BULK.TOAST.SELECT_REQUEST_TYPE'), this.translateService.instant('BULK.SAP.TITLE'));
-      return;
-    }
-
-    if (!this.isAllowed()) {
-      this.toastService.warning(this.translateService.instant('BULK.TOAST.SAP_REQUEST_TYPE_NOT_ALLOWED'), this.translateService.instant('BULK.SAP.TITLE'));
       return;
     }
 
@@ -211,15 +193,6 @@ export class BulkSapReturnOrderUpload {
         this.isPollingBatch.set(false);
       }
     });
-  }
-
-  private selectedType(): RequestType | undefined {
-    const selectedId = this.selectedRequestTypeId();
-    if (!selectedId) {
-      return undefined;
-    }
-
-    return this.requestTypes().find((type) => type.id === selectedId);
   }
 
   private isValidFile(file: File): boolean {
