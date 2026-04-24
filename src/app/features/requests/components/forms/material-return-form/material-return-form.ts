@@ -11,7 +11,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { Autocomplete } from '../../../../../shared/components/ui/autocomplete/autocomplete';
 import { CurrencyPipe, DecimalPipe, TitleCasePipe } from '@angular/common';
 import { Spinner } from '../../../../../shared/components/ui/spinner/spinner';
-import { Observable, of, switchMap, take } from 'rxjs';
+import { Observable, of, switchMap, take, catchError } from 'rxjs';
 import { SimpleChanges } from '@angular/core';
 import {
   ReturnOrderRequestByRequestData,
@@ -170,8 +170,12 @@ export class MaterialReturnForm extends BaseRequestForm {
 
         return this.returnOrderRequestService.updateItems(resolvedReturnOrderRequestId, {
           items: this.buildReturnOrderItemsPayload(),
-        }).pipe(take(1));
-      })
+        }).pipe(
+          take(1),
+          catchError(() => of(null))
+        );
+      }),
+      catchError(() => of(null))
     );
   }
 
@@ -588,7 +592,8 @@ export class MaterialReturnForm extends BaseRequestForm {
 
         this.returnOrderRequestId.set(resolvedId);
         return of(resolvedId);
-      })
+      }),
+      catchError(() => of(null))
     );
   }
 
