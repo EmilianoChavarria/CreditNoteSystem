@@ -8,11 +8,12 @@ import {
   CustomerInvoiceProduct,
   CustomerInvoiceSummary,
   CustomerService,
+  InvoiceChargeType,
   ProductReturnHistoryData,
   ProductReturnHistoryEntry,
   ReturnOrderCreated,
 } from '../../core/services/customer-service';
-import { catchError, distinctUntilChanged, map, of, startWith, switchMap, take } from 'rxjs';
+import { catchError, combineLatest, distinctUntilChanged, map, of, startWith, switchMap, take } from 'rxjs';
 import { LucideAngularModule } from "lucide-angular";
 import { UiProductHistoryModal } from './components/product-history-modal/product-history-modal';
 
@@ -98,6 +99,11 @@ export class Clients {
   private readonly destroyRef = inject(DestroyRef);
 
   protected readonly taxRate = 0.16;
+  protected readonly invoiceChargeType = new FormControl<InvoiceChargeType>('annual', { nonNullable: true });
+  protected readonly invoiceChargeTypeOptions: Array<{ value: InvoiceChargeType; label: string }> = [
+    { value: 'annual', label: 'Anual' },
+    { value: 'sporadic', label: 'Esporadica (30 dias)' },
+  ];
   protected readonly collapsedInvoiceKeys = signal<Set<string>>(new Set());
   protected readonly draftQuantities = signal<Record<string, number>>({});
   protected readonly isLoadingInvoices = signal<boolean>(false);
@@ -443,14 +449,21 @@ export class Clients {
   }
 
   private syncInvoicesFromAuthenticatedClient(): void {
-    this.authService.user$
-      .pipe(
+    combineLatest([
+      this.authService.user$.pipe(
         map(user => {
           const clientId = user?.clientId;
           return typeof clientId === 'string' ? clientId.trim() : '';
         }),
         distinctUntilChanged(),
-        switchMap(clientId => {
+      ),
+      this.invoiceChargeType.valueChanges.pipe(
+        startWith(this.invoiceChargeType.getRawValue()),
+        distinctUntilChanged(),
+      ),
+    ])
+      .pipe(
+        switchMap(([clientId, chargeType]) => {
           this.currentClientId.set(clientId);
           this.currentClientIdNumber.set(Number(clientId) || null);
           this.collapsedInvoiceKeys.set(new Set());
@@ -461,17 +474,17 @@ export class Clients {
           this.generatedOrder.set(null);
           this.returnOrderError.set(null);
           this.returnOrderNotes.setValue('');
+          this.invoices.set([]);
+          this.invoicesLoadError.set(null);
+          this.isLoadingInvoices.set(false);
 
           if (!clientId) {
-            this.invoicesLoadError.set(null);
-            this.isLoadingInvoices.set(false);
             return of<CustomerInvoice[]>([]);
           }
 
           this.isLoadingInvoices.set(true);
-          this.invoicesLoadError.set(null);
 
-          return this.customerService.getInvoicesByClientId(clientId).pipe(
+          return this.customerService.getInvoicesByClientId(clientId, chargeType).pipe(
             map(invoices => invoices.map(invoice => this.toCustomerInvoice(invoice))),
             catchError(() => {
               this.invoicesLoadError.set('No fue posible cargar las facturas del cliente.');
