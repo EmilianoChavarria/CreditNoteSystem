@@ -1,6 +1,6 @@
 <accordeon-item
-    [titleM]="isDebitsSelected() ? ('BULK.CREDITS.TITLE_DEBITS' | translate) : ('BULK.CREDITS.TITLE_CREDITS' | translate)"
-    [description]="'BULK.CREDITS.DESCRIPTION' | translate" [openButtonText]="'BULK.OPEN' | translate"
+    [titleM]="isAuditorDebitsSelected() ? ('BULK.CREDITS.TITLE_AUDITOR_DEBITS' | translate) : (isReInvoicingSelected() ? ('BULK.CREDITS.TITLE_REINVOICING' | translate) : (isDebitsSelected() ? ('BULK.CREDITS.TITLE_DEBITS' | translate) : ('BULK.CREDITS.TITLE_CREDITS' | translate)))"
+    [description]="isReInvoicingSelected() ? ('BULK.CREDITS.DESCRIPTION_REINVOICING' | translate) : ('BULK.CREDITS.DESCRIPTION' | translate)" [openButtonText]="'BULK.OPEN' | translate"
     [closeButtonText]="'BULK.CLOSE' | translate">
     <div class="w-full flex flex-col p-3 sm:p-4">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 items-stretch md:items-end">
@@ -19,15 +19,15 @@
             <button type="button" (click)="createBatch()" [disabled]="isCreatingBatch()"
                 class="h-10 w-full bg-[#395f93] text-white rounded-md px-4 py-2 hover:cursor-pointer hover:bg-[#4d6ea5] disabled:opacity-70 disabled:cursor-not-allowed">
                 {{ isCreatingBatch() ? ('BULK.COMMON.PROCESSING' | translate) : (isDebitsSelected() ?
-                ('BULK.CREDITS.PROCESS_DEBITS' | translate) : ('BULK.CREDITS.PROCESS_CREDITS' | translate)) }}
+                ('BULK.CREDITS.PROCESS_DEBITS' | translate) : (isReInvoicingSelected() ? ('BULK.CREDITS.PROCESS_REINVOICING' | translate) : ('BULK.CREDITS.PROCESS_CREDITS' | translate))) }}
             </button>
         </div>
 
-        <p class="text-xs text-gray-500 mt-3">{{ 'BULK.CREDITS.HELP_TEXT' | translate }}</p>
+        <p class="text-xs text-gray-500 mt-3">{{ isReInvoicingSelected() ? ('BULK.CREDITS.HELP_TEXT_REINVOICING' | translate) : ('BULK.CREDITS.HELP_TEXT' | translate) }}</p>
 
         <app-bulk-file-dropzone
             [inputId]="'dropzone-file-credits-data'"
-            [dropHint]="'BULK.CREDITS.DROP_HINT' | translate"
+            [dropHint]="isReInvoicingSelected() ? ('BULK.CREDITS.DROP_HINT_REINVOICING' | translate) : ('BULK.CREDITS.DROP_HINT' | translate)"
             [clickUploadText]="'BULK.COMMON.CLICK_UPLOAD' | translate"
             [isDragOver]="isDragOver()"
             [accept]="'.csv,.xlsx'"
@@ -40,7 +40,7 @@
         @if (uploadedFiles().length > 0) {
         <app-bulk-uploaded-files-table
             [rows]="uploadedFiles()"
-            [caption]="'Listado de archivos cargados de creditos y debitos'"
+            [caption]="isReInvoicingSelected() ? 'Listado de archivos cargados para re-invoicing' : 'Listado de archivos cargados de creditos y debitos'"
             (remove)="removeUploadedFile($event)">
         </app-bulk-uploaded-files-table>
         }

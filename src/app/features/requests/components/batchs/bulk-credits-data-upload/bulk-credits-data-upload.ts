@@ -41,6 +41,18 @@ export class BulkCreditsDataUpload {
     return selectedType?.name.toLowerCase() === 'debits';
   });
 
+  isReInvoicingSelected = computed(() => {
+    const selectedType = this.selectedType();
+    const normalizedName = selectedType?.name.toLowerCase() ?? '';
+    return normalizedName.includes('re-invoicing') || normalizedName.includes('re invoicing') || normalizedName.includes('reinvoicing');
+  });
+
+  isAuditorDebitsSelected = computed(() => {
+    const selectedType = this.selectedType();
+    const normalizedName = selectedType?.name.toLowerCase() ?? '';
+    return normalizedName === 'auditor-debits' || normalizedName === 'auditor debits' || normalizedName === 'audit-debits' || normalizedName === 'audit debits';
+  });
+
   onDragOver(event: DragEvent): void {
     event.preventDefault();
     this.isDragOver.set(true);
