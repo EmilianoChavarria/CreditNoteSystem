@@ -49,7 +49,6 @@ type LineChartData = ChartData<'line', Array<number | null>, string>;
   imports: [
     LucideAngularModule,
     BaseChartDirective,
-    Badge,
     TranslatePipe,
     Spinner,
     StatCard
