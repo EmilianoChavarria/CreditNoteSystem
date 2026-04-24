@@ -20,6 +20,7 @@ import { Workflows } from './features/settings/pages/workflows/workflows';
 import { MyApprovals } from './features/pages/my-approvals/my-approvals';
 import { Clients } from './features/clients/clients';
 import { ClientOrders } from './features/clients/client-orders';
+import { MyInvoices } from './features/clients/my-invoices/my-invoices';
 import { ManageRoles } from './features/settings/pages/roles/pages/manage-roles/manage-roles';
 import { ReturnOrdersApproval } from './features/approvals/return-orders-approval/return-orders-approval';
 import { ActionGuard } from './core/guards/action.guard';
@@ -65,6 +66,7 @@ export const routes: Routes = [
       { path: 'approvals/return-orders', component: ReturnOrdersApproval },
       { path: 'clients', component: Clients },
       { path: 'clients/orders', component: ClientOrders },
+      { path: 'clients/my-invoices', component: MyInvoices },
       { path: 'pending', component: Pending },
       { path: 'history', component: History },
       { path: 'notifications', component: Notifications },
