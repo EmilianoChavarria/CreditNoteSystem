@@ -16,7 +16,8 @@
     "BULK_UPLOAD": "Bulk Upload",
     "PENDING": "Request List",
     "APPROVE": "My Approvals",
-    "MY_INVOICES": "My Invoices",
+    "MY_INVOICES": "My Requests",
+    "MY_INVOICES_FILTER": "My Invoices",
     "HISTORY": "History",
     "ORDERS": "Return Orders",
     "RETURN_ORDERS_APPROVAL": "Approve Return Orders",
@@ -302,12 +303,18 @@
     "CREDITS": {
       "TITLE_CREDITS": "Upload Credits Data",
       "TITLE_DEBITS": "Upload Debits Data",
+      "TITLE_AUDITOR_DEBITS": "Upload Debits Data",
+      "TITLE_REINVOICING": "Upload credits/debit and new Invoice",
       "DESCRIPTION": "Bulk upload for Credits and Debits using CSV or XLSX",
+      "DESCRIPTION_REINVOICING": "Bulk upload for re-invoicing using CSV or XLSX",
       "FORMAT_VALUE": "CSV or XLSX",
       "PROCESS_CREDITS": "Process Credits Data",
       "PROCESS_DEBITS": "Process Debits Data",
+      "PROCESS_REINVOICING": "Process Upload credits/debit and new Invoice",
       "HELP_TEXT": "Will be sent as batchType=creditsData using file. Only one file per upload.",
-      "DROP_HINT": "Drag and drop CSV/XLSX here or"
+      "HELP_TEXT_REINVOICING": "Will be sent as batchType=creditsData using file for re-invoicing. Only one file per upload.",
+      "DROP_HINT": "Drag and drop CSV/XLSX here or",
+      "DROP_HINT_REINVOICING": "Drag and drop CSV/XLSX for re-invoicing here or"
     },
     "SAP": {
       "TITLE": "Upload SAP Return Order",

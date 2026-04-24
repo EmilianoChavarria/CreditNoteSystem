@@ -16,7 +16,8 @@
     "BULK_UPLOAD": "Carga Masiva",
     "PENDING": "Lista de Solicitudes",
     "APPROVE": "Mis Aprobaciones",
-    "MY_INVOICES": "Mis Facturas",
+    "MY_INVOICES": "Mis Solicitudes",
+    "MY_INVOICES_FILTER": "Mis Facturas",
     "ORDERS": "Mis Órdenes",
     "RETURN_ORDERS_APPROVAL": "Aprobar Ordenes Devolucion",
     "HISTORY": "Historial",
@@ -302,12 +303,18 @@
     "CREDITS": {
       "TITLE_CREDITS": "Subir Datos de Créditos",
       "TITLE_DEBITS": "Subir Datos de Débitos",
+      "TITLE_AUDITOR_DEBITS": "Upload Debits Data",
+      "TITLE_REINVOICING": "Upload credits/debit and new Invoice",
       "DESCRIPTION": "Carga masiva para Créditos y Débitos por CSV o XLSX",
+      "DESCRIPTION_REINVOICING": "Carga masiva para re-invoicing por CSV o XLSX",
       "FORMAT_VALUE": "CSV o XLSX",
       "PROCESS_CREDITS": "Procesar Credits Data",
       "PROCESS_DEBITS": "Procesar Debits Data",
+      "PROCESS_REINVOICING": "Procesar Upload credits/debit and new Invoice",
       "HELP_TEXT": "Se enviará como batchType=creditsData usando file. Solo un archivo por carga.",
-      "DROP_HINT": "Arrastra y suelta CSV/XLSX aquí o"
+      "HELP_TEXT_REINVOICING": "Se enviará como batchType=creditsData usando file para re-invoicing. Solo un archivo por carga.",
+      "DROP_HINT": "Arrastra y suelta CSV/XLSX aquí o",
+      "DROP_HINT_REINVOICING": "Arrastra y suelta CSV/XLSX para re-invoicing aquí o"
     },
     "SAP": {
       "TITLE": "Subir SAP Return Order",
