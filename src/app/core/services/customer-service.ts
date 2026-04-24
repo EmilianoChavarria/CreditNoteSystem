@@ -28,6 +28,8 @@ export interface CustomerInvoiceSummary {
   total: string | null;
 }
 
+export type InvoiceChargeType = 'annual' | 'sporadic';
+
 export interface CustomerInvoiceProduct {
   conceptoIndex: number;
   claveProdServ: string;
@@ -138,6 +140,17 @@ export interface ProductReturnHistoryEntry {
   notes?: string | null;
 }
 
+export interface InvoiceSearchFilters {
+  uuid?: string;
+  folio?: string;
+  receptorId?: string;
+  receptorRfc?: string;
+  receptorNombre?: string;
+  moneda?: string;
+  fechaInicial?: string;
+  fechaFinal?: string;
+}
+
 export interface ProductReturnHistoryData {
   product: ProductReturnHistoryProduct;
   summary: ProductReturnHistorySummary;
@@ -236,15 +249,18 @@ export class CustomerService {
     );
   }
 
-  getInvoicesByClientId(clientId: string): Observable<CustomerInvoiceSummary[]> {
+  getInvoicesByClientId(clientId: string, chargeType: InvoiceChargeType): Observable<CustomerInvoiceSummary[]> {
     const normalizedClientId = clientId.trim();
+    const normalizedChargeType = chargeType.trim();
 
-    if (!normalizedClientId) {
+    if (!normalizedClientId || !normalizedChargeType) {
       return of([]);
     }
 
     return this._httpService
-      .get<CustomerInvoiceSummary[]>(`/invoices/${encodeURIComponent(normalizedClientId)}`)
+      .get<CustomerInvoiceSummary[]>(
+        `/invoices/${encodeURIComponent(normalizedClientId)}/charge-type/${encodeURIComponent(normalizedChargeType)}`,
+      )
       .pipe(
         map((response: ApiResponse<CustomerInvoiceSummary[]>) => response.data ?? []),
         catchError((error) => {
@@ -331,6 +347,37 @@ export class CustomerService {
         return throwError(() => error);
       }),
     );
+  }
+
+  searchInvoicesByClientId(clientId: string, filters: InvoiceSearchFilters): Observable<CustomerInvoiceSummary[]> {
+    const normalizedClientId = clientId.trim();
+
+    if (!normalizedClientId) {
+      return of([]);
+    }
+
+    const params: Record<string, string> = {};
+    if (filters.uuid?.trim()) params['uuid'] = filters.uuid.trim();
+    if (filters.folio?.trim()) params['folio'] = filters.folio.trim();
+    if (filters.receptorId?.trim()) params['receptorId'] = filters.receptorId.trim();
+    if (filters.receptorRfc?.trim()) params['receptorRfc'] = filters.receptorRfc.trim();
+    if (filters.receptorNombre?.trim()) params['receptorNombre'] = filters.receptorNombre.trim();
+    if (filters.moneda?.trim()) params['moneda'] = filters.moneda.trim();
+    if (filters.fechaInicial?.trim()) params['fechaInicial'] = filters.fechaInicial.trim();
+    if (filters.fechaFinal?.trim()) params['fechaFinal'] = filters.fechaFinal.trim();
+
+    return this._httpService
+      .get<CustomerInvoiceSummary[]>(
+        `/invoices/${encodeURIComponent(normalizedClientId)}/search`,
+        { params, timeoutMs: 30000 },
+      )
+      .pipe(
+        map((response: ApiResponse<CustomerInvoiceSummary[]>) => response.data ?? []),
+        catchError((error) => {
+          console.log(error);
+          return throwError(() => error);
+        }),
+      );
   }
 
   getInvoiceProductHistory(
