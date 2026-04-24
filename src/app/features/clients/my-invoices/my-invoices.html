@@ -1,0 +1,219 @@
+<section class="w-full">
+    <div class="mx-auto flex w-full flex-col gap-5">
+        <header class="flex flex-col gap-1">
+            <p class="text-xs font-semibold uppercase tracking-wider text-orange-700">Portal de Cliente</p>
+            <h1 class="text-2xl font-semibold text-gray-800">Busqueda de Facturas</h1>
+            <p class="text-sm text-gray-600">
+                Filtra tus facturas por uno o varios campos y consulta el detalle de productos.
+            </p>
+        </header>
+
+        <!-- Formulario de filtros -->
+        <section class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm" [formGroup]="searchForm"
+            aria-label="Filtros de busqueda">
+            <h2 class="mb-4 text-sm font-semibold text-gray-700">Filtros de busqueda</h2>
+
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <label class="flex flex-col gap-1">
+                    <span class="text-xs font-medium text-gray-600">UUID</span>
+                    <input class="rounded-md border border-gray-300 px-3 py-2 text-sm placeholder-gray-400"
+                        type="text" formControlName="uuid" placeholder="UUID de la factura" />
+                </label>
+
+                <label class="flex flex-col gap-1">
+                    <span class="text-xs font-medium text-gray-600">Folio</span>
+                    <input class="rounded-md border border-gray-300 px-3 py-2 text-sm placeholder-gray-400"
+                        type="text" formControlName="folio" placeholder="Ej. 536662" />
+                </label>
+
+                <label class="flex flex-col gap-1">
+                    <span class="text-xs font-medium text-gray-600">ID Receptor</span>
+                    <input class="rounded-md border border-gray-300 px-3 py-2 text-sm placeholder-gray-400"
+                        type="text" formControlName="receptorId" placeholder="ID del receptor" />
+                </label>
+
+                <label class="flex flex-col gap-1">
+                    <span class="text-xs font-medium text-gray-600">RFC Receptor</span>
+                    <input class="rounded-md border border-gray-300 px-3 py-2 text-sm placeholder-gray-400"
+                        type="text" formControlName="receptorRfc" placeholder="Ej. ABC010101XYZ" />
+                </label>
+
+                <label class="flex flex-col gap-1 sm:col-span-2">
+                    <span class="text-xs font-medium text-gray-600">Nombre Receptor</span>
+                    <input class="rounded-md border border-gray-300 px-3 py-2 text-sm placeholder-gray-400"
+                        type="text" formControlName="receptorNombre" placeholder="Busqueda parcial por nombre" />
+                </label>
+
+                <label class="flex flex-col gap-1">
+                    <span class="text-xs font-medium text-gray-600">Moneda</span>
+                    <input class="rounded-md border border-gray-300 px-3 py-2 text-sm placeholder-gray-400"
+                        type="text" formControlName="moneda" placeholder="Ej. MXN, USD" />
+                </label>
+
+                <div class="flex flex-col gap-1 sm:col-span-2 lg:col-span-1">
+                    <!-- spacer on large screens; moneda already takes one col -->
+                </div>
+
+                <label class="flex flex-col gap-1">
+                    <span class="text-xs font-medium text-gray-600">Fecha Inicial</span>
+                    <input class="rounded-md border border-gray-300 px-3 py-2 text-sm"
+                        type="date" formControlName="fechaInicial" />
+                </label>
+
+                <label class="flex flex-col gap-1">
+                    <span class="text-xs font-medium text-gray-600">Fecha Final</span>
+                    <input class="rounded-md border border-gray-300 px-3 py-2 text-sm"
+                        type="date" formControlName="fechaFinal" />
+                </label>
+            </div>
+
+            <div class="mt-4 flex items-center gap-3">
+                <button type="button"
+                    class="rounded-md bg-[#ff8200] px-5 py-2 text-sm font-semibold text-white hover:bg-[#db7201] disabled:cursor-not-allowed disabled:bg-gray-300"
+                    [disabled]="isSearching()" (click)="search()">
+                    {{ isSearching() ? 'Consultando...' : 'Consultar' }}
+                </button>
+
+                <button type="button"
+                    class="rounded-md border border-gray-300 bg-white px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                    [disabled]="isSearching()" (click)="clear()">
+                    Limpiar
+                </button>
+
+                @if (hasSearched() && !isSearching()) {
+                <span class="text-xs text-gray-500">
+                    {{ invoiceCount() }} {{ invoiceCount() === 1 ? 'factura encontrada' : 'facturas encontradas' }}
+                </span>
+                }
+            </div>
+        </section>
+
+        <!-- Resultados -->
+        @if (isSearching()) {
+        <article class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+            <h2 class="text-lg font-semibold text-gray-800">Consultando facturas...</h2>
+            <p class="mt-1 text-sm text-gray-600">Buscando facturas con los filtros indicados.</p>
+        </article>
+        } @else if (searchError(); as error) {
+        <article class="rounded-lg border border-red-200 bg-white p-4 shadow-sm">
+            <h2 class="text-lg font-semibold text-red-700">No se pudo realizar la busqueda</h2>
+            <p class="mt-1 text-sm text-gray-600">{{ error }}</p>
+        </article>
+        } @else if (hasSearched() && invoices().length === 0) {
+        <article class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+            <h2 class="text-lg font-semibold text-gray-800">Sin resultados</h2>
+            <p class="mt-1 text-sm text-gray-600">
+                No se encontraron facturas con los filtros indicados. Intenta con otros criterios.
+            </p>
+        </article>
+        } @else if (invoices().length > 0) {
+        <div class="flex flex-col gap-4">
+            @for (invoice of invoices(); track invoice.id + '-' + $index; let idx = $index) {
+            @let invoiceAccordionKey = invoiceKey(invoice, idx);
+            <article class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+                <header class="flex items-center justify-between gap-3 border-b border-gray-200 px-4 py-3">
+                    <div>
+                        <p class="text-sm font-semibold text-gray-800">Factura {{ invoice.invoiceNumber }}</p>
+                        <p class="text-xs text-gray-500">Fecha: {{ invoice.date | date: 'dd/MM/yyyy' }}</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span
+                            class="rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-xs font-medium text-gray-600">
+                            {{ invoice.products.length }} productos
+                        </span>
+                        <button type="button"
+                            class="rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                            (click)="toggleInvoice(invoice, invoiceAccordionKey)">
+                            {{ isInvoiceExpanded(invoiceAccordionKey) ? 'Ocultar' : 'Mostrar' }}
+                        </button>
+                    </div>
+                </header>
+
+                @if (isInvoiceExpanded(invoiceAccordionKey)) {
+                <div class="w-full overflow-x-auto">
+                    <table class="min-w-225 w-full border-collapse bg-white">
+                        <thead class="bg-white text-xs uppercase tracking-wide text-gray-600">
+                            <tr>
+                                <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">No.PEDIDO /
+                                    CUST PO NBR</th>
+                                <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">REMISION /
+                                    DELIVERY NOTE</th>
+                                <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">No. PARTE /
+                                    PART NUMBER</th>
+                                <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">CANT EMB /
+                                    QTY SHIP</th>
+                                <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">PRECIO
+                                    UNITARIO / UNIT PRICE</th>
+                                <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">TOTAL NETO /
+                                    EXT PRICE</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (isInvoiceProductsLoading(invoiceAccordionKey)) {
+                            <tr>
+                                <td class="border-b border-gray-200 bg-white px-3 py-3 text-sm text-gray-600"
+                                    colspan="6">
+                                    Cargando productos de la factura...
+                                </td>
+                            </tr>
+                            } @else if (invoiceProductsErrorMessage(invoiceAccordionKey); as invoiceError) {
+                            <tr>
+                                <td class="border-b border-gray-200 bg-white px-3 py-3 text-sm text-red-700"
+                                    colspan="6">
+                                    {{ invoiceError }}
+                                </td>
+                            </tr>
+                            } @else if (invoice.products.length === 0) {
+                            <tr>
+                                <td class="border-b border-gray-200 bg-white px-3 py-3 text-sm text-gray-600"
+                                    colspan="6">
+                                    Esta factura no tiene productos disponibles.
+                                </td>
+                            </tr>
+                            } @else {
+                            @for (product of invoice.products; track product.id) {
+                            <tr class="hover:bg-gray-50">
+                                <td class="border-b border-gray-200 bg-white px-3 py-2 text-sm text-gray-700">
+                                    <strong>{{ product.orderNumber }}</strong><br />
+                                    {{ product.customerPoNumber }}
+                                </td>
+                                <td class="border-b border-gray-200 bg-white px-3 py-2 text-sm text-gray-700">
+                                    {{ product.deliveryNote }}
+                                </td>
+                                <td class="border-b border-gray-200 bg-white px-3 py-2 text-sm text-gray-700">
+                                    {{ product.partNumber }}
+                                </td>
+                                <td class="border-b border-gray-200 bg-white px-3 py-2 text-sm text-gray-700">
+                                    <div class="flex flex-row items-center justify-center gap-x-4">
+                                        <span>{{ product.qtyShipped }} {{ product.unit }}</span>
+                                        <button type="button"
+                                            class="rounded-md p-2 text-orange-500 hover:cursor-pointer hover:bg-orange-100"
+                                            (click)="openProductHistory(invoice, product)">
+                                            <lucide-icon name="history" size="20"></lucide-icon>
+                                        </button>
+                                    </div>
+                                </td>
+                                <td class="border-b border-gray-200 bg-white px-3 py-2 text-sm text-gray-700">
+                                    ${{ product.unitPrice | number : '1.2-2' }}
+                                </td>
+                                <td class="border-b border-gray-200 bg-white px-3 py-2 text-sm text-gray-700">
+                                    ${{ productTotal(product) | number : '1.2-2' }}
+                                </td>
+                            </tr>
+                            }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                }
+            </article>
+            }
+        </div>
+        }
+
+        <app-product-history-modal [open]="isHistoryModalOpen()" [title]="historyModalTitle()"
+            [subtitle]="historyModalSubtitle()" [isLoading]="isLoadingProductHistory()"
+            [error]="productHistoryError()" [summary]="productHistorySummary()" [rows]="productHistoryRows()"
+            (openChange)="closeProductHistoryModal()"></app-product-history-modal>
+    </div>
+</section>
