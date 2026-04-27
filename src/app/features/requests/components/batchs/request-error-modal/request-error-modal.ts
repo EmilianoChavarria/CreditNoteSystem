@@ -18,4 +18,15 @@ export class RequestErrorModal {
   selectedRequestError = input<RequestHistoryRow | null>(null);
 
   openChange = output<boolean>();
+
+  get errorMessage(): string {
+    const raw = this.selectedRequestError()?.errorMessage;
+    if (!raw) return '';
+    try {
+      const parsed = JSON.parse(raw);
+      return parsed?.message ?? raw;
+    } catch {
+      return raw;
+    }
+  }
 }

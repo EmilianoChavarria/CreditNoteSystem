@@ -16,6 +16,7 @@ import { Workflow } from '../../../../data/interfaces/Workflow';
 import { Spinner } from '../../../../shared/components/ui/spinner/spinner';
 import { ToastService } from '../../../../core/services/toast-service';
 import { Modal as UiModal } from '../../../../shared/components/ui/modal/modal';
+import { ApiResponse } from '../../../../data/interfaces/ApiResponse-interface';
 
 interface Color {
   name: string;
@@ -484,8 +485,9 @@ export class Workflows {
       : this._workflowService.storeWorkflowStep(stepPayload);
 
     request$.subscribe({
-      next: (response) => {
-        console.log(response);
+      next: (response: ApiResponse<any>) => {
+        // console.log(response);
+        this._toastService.success(response.message ?? `Paso ${editId !== null ? 'actualizado' : 'creado'} correctamente.`, 'Éxito');
         this.isSavingStep.set(false);
         this.isOpenAddStepModal.set(false);
         this.resetStepModalData();

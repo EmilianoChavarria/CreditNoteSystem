@@ -6,7 +6,7 @@
             <span class="ml-2">{{ selectedRequestError()?.requestNumber || '-' }}</span>
         </div>
         <div class="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700 leading-snug">
-            {{ selectedRequestError()?.errorMessage || ('BULK.REQUEST_ERROR.NO_DETAIL' | translate) }}
+            {{ errorMessage || ('BULK.REQUEST_ERROR.NO_DETAIL' | translate) }}
         </div>
     </div>
 </app-modal>
