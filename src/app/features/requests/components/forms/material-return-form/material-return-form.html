@@ -397,10 +397,18 @@
                                             <span>{{ hasReturnCharge() ? ('NEW_REQUEST_FORM.HAS_CHARGE' | translate) : ('NEW_REQUEST_FORM.NO_CHARGE' | translate) }}</span>
                                         </label>
                                         @if (hasReturnCharge()) {
-                                        <span>{{ returnChargePercent() }}%</span>
-                                        <span class="text-emerald-700">{{ 'NEW_REQUEST_FORM.TOTAL_WITH_CHARGE' | translate }}: {{ totalWithReturnCharge() |
-                                            number
-                                            : '1.2-2' }}</span>
+                                        <div class="flex items-center gap-1">
+                                            <input type="number" min="0" max="100" step="0.1"
+                                                [value]="returnChargePercent()"
+                                                (blur)="onReturnChargePercentBlur($event)"
+                                                [disabled]="isSavingCharge()"
+                                                class="w-16 rounded border border-emerald-300 bg-white px-1.5 py-0.5 text-xs text-emerald-900 focus:outline-none focus:ring-1 focus:ring-emerald-500 disabled:opacity-50" />
+                                            <span class="text-emerald-700">%</span>
+                                            @if (isSavingCharge()) {
+                                            <span class="text-[10px] text-emerald-600 animate-pulse">Guardando...</span>
+                                            }
+                                        </div>
+                                        <span class="text-emerald-700">{{ 'NEW_REQUEST_FORM.TOTAL_WITH_CHARGE' | translate }}: {{ totalWithReturnCharge() | number : '1.2-2' }}</span>
                                         }
                                     </div>
                                 </td>

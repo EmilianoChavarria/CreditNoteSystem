@@ -41,6 +41,8 @@ export class MaterialReturnForm extends BaseRequestForm {
   );
   protected readonly hasReturnCharge = signal<boolean>(false);
   protected readonly returnChargePercent = signal<number>(0);
+  private readonly chargeTypeId = signal<number | null>(null);
+  protected readonly isSavingCharge = signal<boolean>(false);
   protected readonly totalWithReturnCharge = computed(() => {
     const subtotal = this.materialListSubtotal();
     const percent = Number(this.returnChargePercent()) || 0;
@@ -207,15 +209,25 @@ export class MaterialReturnForm extends BaseRequestForm {
       next: (materialReturn: ReturnOrderRequestByRequestData | null) => {
         this.returnOrderRequestId.set(Number(materialReturn?.id) || null);
         const returnOrderId = Number(materialReturn?.returnOrderId);
-        const hasCharge = materialReturn?.returnOrder?.charge === true;
-        const policyPercent = Number(materialReturn?.returnOrder?.chargePolicy?.percentage);
-        const returnChargePercent = Number(materialReturn?.returnChargePercent);
-        const chargePercent = Number.isFinite(policyPercent)
-          ? policyPercent
-          : (Number.isFinite(returnChargePercent) ? returnChargePercent : 0);
+        const chargeTypeId = materialReturn?.returnOrder?.chargeTypeId ?? null;
+        const customRate = materialReturn?.returnOrder?.customRate ?? null;
+        const hasCharge = chargeTypeId != null;
+
+        let chargePercent = 0;
+        let effectiveChargeTypeId: number | null = null;
+
+        if (customRate !== null && Number.isFinite(Number(customRate)) && Number(customRate) > 0) {
+          chargePercent = Number(customRate);
+          effectiveChargeTypeId = null;
+        } else if (chargeTypeId !== null) {
+          const policyPercent = Number(materialReturn?.returnOrder?.chargeType?.percentage);
+          chargePercent = Number.isFinite(policyPercent) ? policyPercent : 0;
+          effectiveChargeTypeId = chargeTypeId;
+        }
 
         this.hasReturnCharge.set(hasCharge);
         this.returnChargePercent.set(chargePercent > 0 ? chargePercent : 0);
+        this.chargeTypeId.set(effectiveChargeTypeId);
 
         if (!Number.isFinite(returnOrderId) || returnOrderId <= 0) {
           this.setNoAssignedReturnOrderState();
@@ -258,6 +270,7 @@ export class MaterialReturnForm extends BaseRequestForm {
     this.returnOrderRequestId.set(null);
     this.hasReturnCharge.set(false);
     this.returnChargePercent.set(0);
+    this.chargeTypeId.set(null);
     this.orderId.set(orderId);
     this.isLoadingMaterialList.set(true);
     this.materialListError.set(null);
@@ -283,6 +296,7 @@ export class MaterialReturnForm extends BaseRequestForm {
   private setNoAssignedReturnOrderState(): void {
     this.hasReturnCharge.set(false);
     this.returnChargePercent.set(0);
+    this.chargeTypeId.set(null);
     this.orderId.set(null);
     this.returnOrderRequestId.set(null);
     this.materialList.set([]);
@@ -295,6 +309,45 @@ export class MaterialReturnForm extends BaseRequestForm {
   protected onReturnChargeToggle(event: Event): void {
     const checked = (event.target as HTMLInputElement | null)?.checked === true;
     this.hasReturnCharge.set(checked);
+    this.patchReturnOrderCharge();
+  }
+
+  protected onReturnChargePercentBlur(event: Event): void {
+    const raw = (event.target as HTMLInputElement | null)?.value ?? '';
+    const value = parseFloat(raw);
+    if (!Number.isFinite(value) || value < 0) return;
+    this.returnChargePercent.set(value);
+    this.chargeTypeId.set(null);
+    this.patchReturnOrderCharge();
+  }
+
+  private patchReturnOrderCharge(): void {
+    const returnOrderId = this.orderId();
+    if (!returnOrderId) return;
+
+    const payload: { chargeTypeId?: number; customRate?: number } = {};
+
+    if (this.hasReturnCharge()) {
+      const cid = this.chargeTypeId();
+      if (cid !== null) {
+        payload.chargeTypeId = cid;
+      } else {
+        const pct = this.returnChargePercent();
+        if (Number.isFinite(pct) && pct > 0) {
+          payload.customRate = pct;
+        }
+      }
+    }
+
+    this.isSavingCharge.set(true);
+
+    this._customerService.updateReturnOrderCharge(returnOrderId, payload).pipe(take(1)).subscribe({
+      next: () => this.isSavingCharge.set(false),
+      error: () => {
+        this.isSavingCharge.set(false);
+        this._toastService.error('No fue posible actualizar el cargo de devolución.');
+      },
+    });
   }
 
   protected onReplenishmentIvaToggle(event: Event): void {
