@@ -207,12 +207,13 @@ export class Clients {
     });
     this.syncInvoicesFromAuthenticatedClient();
   }
-  
+
 
   protected addToReturnOrder(invoice: CustomerInvoice, product: InvoiceProduct): void {
     if (product.qtyShipped <= 0) {
       return;
     }
+
 
     const key = this.returnItemKey(invoice, product);
     const selectedQuantity = this.getDraftQuantity(invoice, product);
@@ -478,7 +479,9 @@ export class Clients {
     ])
       .pipe(
         switchMap(([clientId, chargeTypeId]) => {
-          const chargeTypeName = this.invoiceChargeTypeOptions().find(o => o.id === chargeTypeId)?.name;
+          const chargeTypeName = this.invoiceChargeTypeOptions().find(o => { 
+            return o.id == chargeTypeId 
+          })?.name;
 
           this.currentClientId.set(clientId);
           this.currentClientIdNumber.set(Number(clientId) || null);

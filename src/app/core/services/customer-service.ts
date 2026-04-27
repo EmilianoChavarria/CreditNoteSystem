@@ -87,7 +87,7 @@ export interface ReturnOrderCreated {
   notes?: string | null;
   createdAt: string;
   updatedAt: string;
-  items: ReturnOrderCreatedItem[];
+  items?: ReturnOrderCreatedItem[];
 }
 
 export interface ReturnOrderListItem {
