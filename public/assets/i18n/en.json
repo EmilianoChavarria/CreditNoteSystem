@@ -154,7 +154,7 @@
       "LINE_3": "Rules are evaluated in order."
     },
     "FIELD": "Field",
-    "FIELD_PLACEHOLDER": "e.g: totalAmount",
+    "FIELD_PLACEHOLDER": "Select an option",
     "OPERATOR": "Operator",
     "SELECT_OPERATOR": "Select operator",
     "VALUE": "Value",

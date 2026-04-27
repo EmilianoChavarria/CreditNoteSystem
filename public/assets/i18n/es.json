@@ -154,7 +154,7 @@
       "LINE_3": "Las reglas se evalúan en orden."
     },
     "FIELD": "Campo",
-    "FIELD_PLACEHOLDER": "ej: totalAmount",
+    "FIELD_PLACEHOLDER": "Selecciona una opción",
     "OPERATOR": "Operador",
     "SELECT_OPERATOR": "Selecciona operador",
     "VALUE": "Valor",
