@@ -30,6 +30,12 @@ export interface CustomerInvoiceSummary {
 
 export type InvoiceChargeType = 'annual' | 'sporadic';
 
+export interface ChargeTypeOption {
+  id: number;
+  name: InvoiceChargeType;
+  label: string;
+}
+
 export interface CustomerInvoiceProduct {
   conceptoIndex: number;
   claveProdServ: string;
@@ -53,6 +59,7 @@ export interface CreateReturnOrderItemRequest {
 export interface CreateReturnOrderRequest {
   clientId: number;
   notes?: string;
+  chargeTypeId: number;
   items: CreateReturnOrderItemRequest[];
 }
 
@@ -218,7 +225,7 @@ export class CustomerService {
   saveExtraData(customer: CustomerLocal) {
     return this._httpService.post('/customers/saveLocal', customer).pipe(
       tap((response) => {
-        
+
       }),
       catchError((error) => {
         return throwError(() => error);
@@ -242,6 +249,29 @@ export class CustomerService {
   getCustomersByName(customerName: string): Observable<Customer[]> {
     return this._httpService.get<SearchCustomerResponse>(`/customers/search?search=${customerName}`).pipe(
       map((response: ApiResponse<SearchCustomerResponse>) => response.data?.customers ?? []),
+      catchError(error => {
+        console.log(error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  updateReturnOrderCharge(
+    returnOrderId: number,
+    payload: { chargeTypeId?: number; customRate?: number },
+  ): Observable<void> {
+    return this._httpService.patch<void>(`/return-orders/${returnOrderId}/charge`, payload).pipe(
+      map(() => undefined),
+      catchError(error => {
+        console.log(error);
+        return throwError(() => error);
+      }),
+    );
+  }
+
+  getChargeTypes(): Observable<ChargeTypeOption[]> {
+    return this._httpService.get<ChargeTypeOption[]>('/charge-types').pipe(
+      map((response: ApiResponse<ChargeTypeOption[]>) => response.data ?? []),
       catchError(error => {
         console.log(error);
         return throwError(() => error);
