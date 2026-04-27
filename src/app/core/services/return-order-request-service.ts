@@ -3,15 +3,7 @@ import { catchError, map, Observable } from 'rxjs';
 import { ApiResponse } from '../../data/interfaces/ApiResponse-interface';
 import { HttpService } from './http-service';
 
-export interface ReturnOrderRequestChargePolicy {
-  id: number;
-  conditional: string;
-  day: number;
-  percentage: number;
-  createdAt: string;
-  updatedAt: string;
-  deletedAt: string | null;
-}
+
 
 export interface ReturnOrderRequestReturnOrder {
   id: number;
@@ -19,11 +11,20 @@ export interface ReturnOrderRequestReturnOrder {
   userId: number;
   status: string;
   notes: string | null;
-  charge: boolean;
-  chargePolicyId: number | null;
-  chargePolicy: ReturnOrderRequestChargePolicy | null;
+  chargeTypeId: number
+  customRate?: number;
+  chargeType: ChargeType;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface ChargeType {
+  id: number
+  name: string
+  label: string
+  percentage: string
+  createdAt: string
+  updatedAt: string
 }
 
 export interface ReturnOrderRequestItem {
