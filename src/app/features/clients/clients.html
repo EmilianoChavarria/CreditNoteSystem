@@ -14,8 +14,8 @@
             <label class="flex flex-col gap-1 text-sm text-gray-700">
                 <span class="text-xs font-medium text-gray-600">Tipo de facturacion</span>
                 <select class="rounded-md border border-gray-300 px-3 py-2 text-sm" [formControl]="invoiceChargeType">
-                    @for (option of invoiceChargeTypeOptions; track option.value) {
-                    <option [value]="option.value">{{ option.label }}</option>
+                    @for (option of invoiceChargeTypeOptions(); track option.id) {
+                                <option [value]="option.id">{{ option.label }}</option>
                     }
                 </select>
             </label>

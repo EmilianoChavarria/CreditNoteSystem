@@ -4,11 +4,11 @@ import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth-service';
 import {
+  ChargeTypeOption,
   CreateReturnOrderRequest,
   CustomerInvoiceProduct,
   CustomerInvoiceSummary,
   CustomerService,
-  InvoiceChargeType,
   ProductReturnHistoryData,
   ProductReturnHistoryEntry,
   ReturnOrderCreated,
@@ -99,11 +99,8 @@ export class Clients {
   private readonly destroyRef = inject(DestroyRef);
 
   protected readonly taxRate = 0.16;
-  protected readonly invoiceChargeType = new FormControl<InvoiceChargeType>('annual', { nonNullable: true });
-  protected readonly invoiceChargeTypeOptions: Array<{ value: InvoiceChargeType; label: string }> = [
-    { value: 'annual', label: 'Anual' },
-    { value: 'sporadic', label: 'Esporadica (30 dias)' },
-  ];
+  protected readonly invoiceChargeType = new FormControl<number | null>(null, { nonNullable: true });
+  protected readonly invoiceChargeTypeOptions = signal<ChargeTypeOption[]>([]);
   protected readonly collapsedInvoiceKeys = signal<Set<string>>(new Set());
   protected readonly draftQuantities = signal<Record<string, number>>({});
   protected readonly isLoadingInvoices = signal<boolean>(false);
@@ -200,8 +197,17 @@ export class Clients {
   });
 
   constructor() {
+    this.customerService.getChargeTypes().pipe(take(1)).subscribe({
+      next: options => {
+        this.invoiceChargeTypeOptions.set(options);
+        if (options.length > 0) {
+          this.invoiceChargeType.setValue(options[0].id);
+        }
+      },
+    });
     this.syncInvoicesFromAuthenticatedClient();
   }
+  
 
   protected addToReturnOrder(invoice: CustomerInvoice, product: InvoiceProduct): void {
     if (product.qtyShipped <= 0) {
@@ -399,6 +405,13 @@ export class Clients {
       return;
     }
 
+    const chargeTypeId = this.invoiceChargeType.value;
+
+    if (!clientId || !chargeTypeId) {
+      this.returnOrderError.set('No se ha seleccionado un tipo de facturación.');
+      return;
+    }
+
     const items = this.returnItems().map(item => ({
       invoiceFolio: item.invoiceFolio,
       invoiceClientId: item.invoiceClientId || clientId,
@@ -408,6 +421,7 @@ export class Clients {
 
     const payload: CreateReturnOrderRequest = {
       clientId,
+      chargeTypeId,
       items,
     };
 
@@ -463,7 +477,9 @@ export class Clients {
       ),
     ])
       .pipe(
-        switchMap(([clientId, chargeType]) => {
+        switchMap(([clientId, chargeTypeId]) => {
+          const chargeTypeName = this.invoiceChargeTypeOptions().find(o => o.id === chargeTypeId)?.name;
+
           this.currentClientId.set(clientId);
           this.currentClientIdNumber.set(Number(clientId) || null);
           this.collapsedInvoiceKeys.set(new Set());
@@ -478,13 +494,13 @@ export class Clients {
           this.invoicesLoadError.set(null);
           this.isLoadingInvoices.set(false);
 
-          if (!clientId) {
+          if (!clientId || !chargeTypeName) {
             return of<CustomerInvoice[]>([]);
           }
 
           this.isLoadingInvoices.set(true);
 
-          return this.customerService.getInvoicesByClientId(clientId, chargeType).pipe(
+          return this.customerService.getInvoicesByClientId(clientId, chargeTypeName).pipe(
             map(invoices => invoices.map(invoice => this.toCustomerInvoice(invoice))),
             catchError(() => {
               this.invoicesLoadError.set('No fue posible cargar las facturas del cliente.');
