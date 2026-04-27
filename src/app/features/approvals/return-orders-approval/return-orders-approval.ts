@@ -30,6 +30,7 @@ interface ReturnOrderForApproval {
   createdBy: string;
   createdAt: string;
   subtotal: number;
+  notes:string;
   tax: number;
   total: number;
   status: ApprovalStatus;
@@ -215,6 +216,7 @@ export class ReturnOrdersApproval {
       tax: 0,
       total: subtotal,
       status: this.normalizeStatus(order.status),
+      notes: order.notes ?? '',
       invoices: Array.from(new Set(products.map(product => product.invoiceFolio))),
       products,
     };
