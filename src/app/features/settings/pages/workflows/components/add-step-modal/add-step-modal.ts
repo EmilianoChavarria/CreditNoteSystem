@@ -33,6 +33,10 @@ export class AddStepModal {
     { label: '<=', value: 'WORKFLOWS_STEP_MODAL.OPERATORS.LESS_OR_EQUAL' }
   ];
 
+  conditionFieldOptions = [
+    { value: 'totalAmount', label: 'Total Amount' },
+  ];
+
   addTransition() {
     const newTransition = {
       toStepId: null,
