@@ -306,6 +306,15 @@
                             <span>IVA ({{ taxRate * 100 }}%)</span>
                             <strong>{{ returnOrderTax() | number : '1.2-2' }}</strong>
                         </p>
+                        @if (chargeRate() > 0) {
+                        <p class="flex items-center justify-between text-orange-700">
+                            <span>
+                                Cargo {{ selectedChargeOption()?.label }}
+                                ({{ chargeRate() * 100 }}%)
+                            </span>
+                            <strong>{{ returnOrderCharge() | number : '1.2-2' }}</strong>
+                        </p>
+                        }
                         <p
                             class="mt-1 flex items-center justify-between border-t border-dashed border-gray-200 pt-2 text-base text-gray-800">
                             <span class="font-semibold">Total orden</span>
