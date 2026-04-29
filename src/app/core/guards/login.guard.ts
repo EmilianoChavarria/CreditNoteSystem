@@ -19,6 +19,9 @@ export class LoginGuard implements CanActivate {
   ): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
 
     if (this.authService.isAuthenticated() && this.authService.getCurrentUser()) {
+      if (state.url.includes('change-password') && this.authService.mustChangePassword()) {
+        return true;
+      }
       return this.getAuthenticatedRedirectUrl();
     }
 
@@ -27,10 +30,11 @@ export class LoginGuard implements CanActivate {
       take(1),
       map(isAuthenticated => {
         if (isAuthenticated) {
-          // Si ya está autenticado, redirige al dashboard
+          if (state.url.includes('change-password') && this.authService.mustChangePassword()) {
+            return true;
+          }
           return this.getAuthenticatedRedirectUrl();
         } else {
-          // Si no está autenticado, permite acceso al login
           return true;
         }
       })
