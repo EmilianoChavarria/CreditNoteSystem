@@ -26,6 +26,12 @@ export interface CustomerInvoiceSummary {
   status: string | null;
   fechaEmision: string | null;
   total: string | null;
+  tipoComprobante: string | null;
+  receptorRfc: string | null;
+  receptorNombre: string | null;
+  moneda: string | null;
+  UUID: string | null;
+  subTotal: string | null;
 }
 
 export type InvoiceChargeType = 'annual' | 'sporadic';
@@ -408,6 +414,28 @@ export class CustomerService {
           return throwError(() => error);
         }),
       );
+  }
+
+  downloadInvoiceXml(folio: string, clientId: string): Observable<Blob> {
+    const normalizedFolio = folio.trim();
+    if (!normalizedFolio) {
+      return throwError(() => new Error('Folio requerido'));
+    }
+    return this._httpService.getBlob(
+      `/invoices/${encodeURIComponent(normalizedFolio)}/download/xml`,
+      { clientId: clientId.trim() },
+    );
+  }
+
+  downloadInvoicePdf(folio: string, clientId: string): Observable<Blob> {
+    const normalizedFolio = folio.trim();
+    if (!normalizedFolio) {
+      return throwError(() => new Error('Folio requerido'));
+    }
+    return this._httpService.getBlob(
+      `/invoices/${encodeURIComponent(normalizedFolio)}/download/pdf`,
+      { clientId: clientId.trim() },
+    );
   }
 
   getInvoiceProductHistory(
