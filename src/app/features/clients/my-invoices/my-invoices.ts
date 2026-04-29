@@ -4,50 +4,31 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth-service';
 import {
-  CustomerInvoiceProduct,
   CustomerInvoiceSummary,
   CustomerService,
   InvoiceSearchFilters,
-  ProductReturnHistoryData,
-  ProductReturnHistoryEntry,
 } from '../../../core/services/customer-service';
-import { catchError, map, of, take } from 'rxjs';
+import { map, take } from 'rxjs';
 import { LucideAngularModule } from 'lucide-angular';
-import { UiProductHistoryModal } from '../components/product-history-modal/product-history-modal';
-
-interface InvoiceProduct {
-  id: string;
-  conceptoIndex: number;
-  invoiceFolio: string;
-  orderNumber: string;
-  customerPoNumber: string;
-  deliveryNote: string;
-  qtyShipped: number;
-  partNumber: string;
-  customerPart: string;
-  satCode: string;
-  unit: string;
-  unitPrice: number;
-}
 
 interface CustomerInvoice {
   id: string;
   folio: string;
+  serie: string;
   invoiceNumber: string;
   date: string;
-  products: InvoiceProduct[];
-}
-
-interface ProductHistorySummaryView {
-  totalSent: number;
-  totalReturned: number;
-  available: number;
-  unit: string;
+  status: string;
+  tipoComprobante: string;
+  receptorRfc: string;
+  receptorNombre: string;
+  moneda: string;
+  total: number;
+  uuid: string;
 }
 
 @Component({
   selector: 'app-my-invoices',
-  imports: [CommonModule, ReactiveFormsModule, LucideAngularModule, UiProductHistoryModal],
+  imports: [CommonModule, ReactiveFormsModule, LucideAngularModule],
   templateUrl: './my-invoices.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -60,20 +41,8 @@ export class MyInvoices {
   protected readonly isSearching = signal<boolean>(false);
   protected readonly searchError = signal<string | null>(null);
   protected readonly hasSearched = signal<boolean>(false);
-
   protected readonly invoices = signal<CustomerInvoice[]>([]);
-  protected readonly collapsedInvoiceKeys = signal<Set<string>>(new Set());
-  protected readonly invoiceProductsLoading = signal<Record<string, boolean>>({});
-  protected readonly invoiceProductsError = signal<Record<string, string | null>>({});
-  private readonly loadedInvoiceKeys = signal<Set<string>>(new Set());
-
-  protected readonly isHistoryModalOpen = signal<boolean>(false);
-  protected readonly isLoadingProductHistory = signal<boolean>(false);
-  protected readonly productHistoryError = signal<string | null>(null);
-  protected readonly historyModalTitle = signal<string>('Historial de devoluciones');
-  protected readonly historyModalSubtitle = signal<string>('');
-  protected readonly productHistorySummary = signal<ProductHistorySummaryView | null>(null);
-  protected readonly productHistoryRows = signal<ProductReturnHistoryEntry[]>([]);
+  protected readonly downloadingKeys = signal<Set<string>>(new Set());
 
   protected readonly searchForm = new FormGroup({
     uuid: new FormControl<string>('', { nonNullable: true }),
@@ -102,10 +71,7 @@ export class MyInvoices {
 
   protected search(): void {
     const clientId = this.currentClientId();
-
-    if (!clientId || this.isSearching()) {
-      return;
-    }
+    if (!clientId || this.isSearching()) return;
 
     const raw = this.searchForm.getRawValue();
     const filters: InvoiceSearchFilters = {
@@ -122,21 +88,13 @@ export class MyInvoices {
     this.isSearching.set(true);
     this.searchError.set(null);
     this.invoices.set([]);
-    this.collapsedInvoiceKeys.set(new Set());
-    this.loadedInvoiceKeys.set(new Set());
-    this.invoiceProductsLoading.set({});
-    this.invoiceProductsError.set({});
 
     this.customerService
       .searchInvoicesByClientId(clientId, filters)
       .pipe(take(1))
       .subscribe({
         next: summaries => {
-          const invoices = summaries.map(s => this.toCustomerInvoice(s));
-          this.invoices.set(invoices);
-          this.collapsedInvoiceKeys.set(
-            new Set(invoices.map((inv, idx) => this.invoiceKey(inv, idx))),
-          );
+          this.invoices.set(summaries.map(s => this.toCustomerInvoice(s)));
           this.hasSearched.set(true);
           this.isSearching.set(false);
         },
@@ -149,100 +107,59 @@ export class MyInvoices {
       });
   }
 
-  protected invoiceKey(invoice: CustomerInvoice, index: number): string {
-    return `${invoice.id}-${index}`;
-  }
-
-  protected isInvoiceExpanded(key: string): boolean {
-    return !this.collapsedInvoiceKeys().has(key);
-  }
-
-  protected toggleInvoice(invoice: CustomerInvoice, key: string): void {
-    const isCollapsed = this.collapsedInvoiceKeys().has(key);
-
-    if (isCollapsed) {
-      this.loadInvoiceProducts(invoice, key);
-    }
-
-    this.collapsedInvoiceKeys.update(current => {
-      const next = new Set(current);
-      if (next.has(key)) {
-        next.delete(key);
-      } else {
-        next.add(key);
-      }
-      return next;
-    });
-  }
-
-  protected isInvoiceProductsLoading(key: string): boolean {
-    return this.invoiceProductsLoading()[key] ?? false;
-  }
-
-  protected invoiceProductsErrorMessage(key: string): string | null {
-    return this.invoiceProductsError()[key] ?? null;
-  }
-
-  protected productTotal(product: InvoiceProduct): number {
-    return product.qtyShipped * product.unitPrice;
-  }
-
-  protected openProductHistory(invoice: CustomerInvoice, product: InvoiceProduct): void {
-    const clientId = this.currentClientId();
-
-    if (!clientId || !invoice.folio) {
-      return;
-    }
-
-    this.isHistoryModalOpen.set(true);
-    this.isLoadingProductHistory.set(true);
-    this.productHistoryError.set(null);
-    this.productHistorySummary.set(null);
-    this.productHistoryRows.set([]);
-    this.historyModalTitle.set('Historial de Devoluciones');
-    this.historyModalSubtitle.set(`${product.partNumber} - Factura ${invoice.folio}`);
-
-    this.customerService
-      .getInvoiceProductHistory(invoice.folio, clientId, product.conceptoIndex)
-      .pipe(take(1))
-      .subscribe({
-        next: (historyData: ProductReturnHistoryData | null) => {
-          if (!historyData) {
-            this.productHistoryError.set('No se encontro historial para este producto.');
-            this.isLoadingProductHistory.set(false);
-            return;
-          }
-
-          this.productHistorySummary.set({
-            totalSent: Number(historyData.summary?.totalSent) || 0,
-            totalReturned: Number(historyData.summary?.totalReturned) || 0,
-            available: Number(historyData.summary?.available) || 0,
-            unit: historyData.summary?.unidad || product.unit || 'PC',
-          });
-          this.productHistoryRows.set(historyData.history ?? []);
-          this.isLoadingProductHistory.set(false);
-        },
-        error: (error: unknown) => {
-          const apiMessage = (error as { error?: { message?: string } })?.error?.message;
-          this.productHistoryError.set(apiMessage?.trim() || 'No fue posible cargar el historial.');
-          this.isLoadingProductHistory.set(false);
-        },
-      });
-  }
-
   protected clear(): void {
     this.searchForm.reset();
     this.invoices.set([]);
-    this.collapsedInvoiceKeys.set(new Set());
-    this.loadedInvoiceKeys.set(new Set());
-    this.invoiceProductsLoading.set({});
-    this.invoiceProductsError.set({});
     this.searchError.set(null);
     this.hasSearched.set(false);
   }
 
-  protected closeProductHistoryModal(): void {
-    this.isHistoryModalOpen.set(false);
+  protected isDownloading(key: string): boolean {
+    return this.downloadingKeys().has(key);
+  }
+
+  protected downloadXml(invoice: CustomerInvoice): void {
+    this.downloadFile(invoice, 'xml');
+  }
+
+  protected downloadPdf(invoice: CustomerInvoice): void {
+    this.downloadFile(invoice, 'pdf');
+  }
+
+  protected statusClass(status: string): string {
+    const s = status.toLowerCase();
+    if (s === 'emitido') return 'bg-green-100 text-green-700';
+    if (s === 'cancelado') return 'bg-red-100 text-red-700';
+    return 'bg-gray-100 text-gray-600';
+  }
+
+  private downloadFile(invoice: CustomerInvoice, format: 'xml' | 'pdf'): void {
+    const clientId = this.currentClientId();
+    const key = `${invoice.folio}-${format}`;
+
+    if (!clientId || !invoice.folio || this.downloadingKeys().has(key)) return;
+
+    this.downloadingKeys.update(s => new Set([...s, key]));
+
+    const download$ = format === 'xml'
+      ? this.customerService.downloadInvoiceXml(invoice.folio, clientId)
+      : this.customerService.downloadInvoicePdf(invoice.folio, clientId);
+
+    download$.pipe(take(1)).subscribe({
+      next: (blob) => {
+        const filename = `Factura_${invoice.invoiceNumber}.${format}`;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
+        this.downloadingKeys.update(s => { const n = new Set(s); n.delete(key); return n; });
+      },
+      error: () => {
+        this.downloadingKeys.update(s => { const n = new Set(s); n.delete(key); return n; });
+      },
+    });
   }
 
   private toCustomerInvoice(invoice: CustomerInvoiceSummary): CustomerInvoice {
@@ -253,102 +170,16 @@ export class MyInvoices {
     return {
       id: invoice.id,
       folio,
+      serie,
       invoiceNumber: [serie, folio].filter(Boolean).join('-') || invoice.id,
       date: emissionDate ? emissionDate.slice(0, 10) : '',
-      products: [],
-    };
-  }
-
-  private loadInvoiceProducts(invoice: CustomerInvoice, invoiceKey: string): void {
-    const clientId = this.currentClientId();
-
-    if (!clientId || !invoice.folio) {
-      return;
-    }
-
-    if (this.loadedInvoiceKeys().has(invoiceKey) || this.isInvoiceProductsLoading(invoiceKey)) {
-      return;
-    }
-
-    this.invoiceProductsLoading.update(current => ({ ...current, [invoiceKey]: true }));
-    this.invoiceProductsError.update(current => ({ ...current, [invoiceKey]: null }));
-
-    this.customerService
-      .getInvoiceProductsByFolio(invoice.folio, clientId)
-      .pipe(
-        map(products => products.map((p, idx) => this.toInvoiceProduct(invoice, p, idx))),
-        catchError((error: unknown) => {
-          const apiMessage = (error as { error?: { message?: string } })?.error?.message;
-          this.invoiceProductsError.update(current => ({
-            ...current,
-            [invoiceKey]: apiMessage?.trim() || 'No fue posible cargar los productos.',
-          }));
-          return of<InvoiceProduct[]>([]);
-        }),
-        take(1),
-      )
-      .subscribe(products => {
-        this.invoices.update(list =>
-          list.map(item =>
-            item.id === invoice.id && item.folio === invoice.folio ? { ...item, products } : item,
-          ),
-        );
-
-        this.loadedInvoiceKeys.update(current => {
-          const next = new Set(current);
-          next.add(invoiceKey);
-          return next;
-        });
-
-        this.invoiceProductsLoading.update(current => ({ ...current, [invoiceKey]: false }));
-      });
-  }
-
-  private toInvoiceProduct(invoice: CustomerInvoice, product: CustomerInvoiceProduct, index: number): InvoiceProduct {
-    const descriptionParts = this.parseDescriptionParts(product.descripcion);
-    const quantityAvailable = Number(product.availableQuantity) || 0;
-
-    return {
-      id: `${invoice.id}-${product.conceptoIndex}-${index}`,
-      conceptoIndex: product.conceptoIndex,
-      invoiceFolio: invoice.folio,
-      orderNumber: descriptionParts.orderNumber,
-      customerPoNumber: descriptionParts.customerPoNumber,
-      deliveryNote: descriptionParts.deliveryNote,
-      qtyShipped: quantityAvailable,
-      partNumber: descriptionParts.partNumber,
-      customerPart: descriptionParts.customerPart,
-      satCode: product.claveProdServ || '',
-      unit: product.unidad || product.claveUnidad || '',
-      unitPrice: Number(product.valorUnitario) || 0,
-    };
-  }
-
-  private parseDescriptionParts(rawDescription: string): {
-    partNumber: string;
-    customerPart: string;
-    orderNumber: string;
-    customerPoNumber: string;
-    deliveryNote: string;
-  } {
-    const normalized = (rawDescription ?? '').trim();
-
-    if (!normalized) {
-      return { partNumber: '-', customerPart: '-', orderNumber: '-', customerPoNumber: '-', deliveryNote: '-' };
-    }
-
-    const tokens = normalized.split('^').map(t => t.trim()).filter(Boolean);
-    const firstToken = tokens[0] ?? '';
-    const partNumber = firstToken.includes(';') ? firstToken.split(';')[0].trim() : firstToken;
-    const orderNumber = tokens[1] ?? '-';
-    const deliveryNote = tokens[2] ?? '-';
-
-    return {
-      partNumber: partNumber || '-',
-      customerPart: partNumber || '-',
-      orderNumber,
-      customerPoNumber: orderNumber,
-      deliveryNote,
+      status: invoice.status ?? '',
+      tipoComprobante: invoice.tipoComprobante ?? '',
+      receptorRfc: invoice.receptorRfc ?? '',
+      receptorNombre: invoice.receptorNombre ?? '',
+      moneda: invoice.moneda ?? '',
+      total: Number(invoice.total) || 0,
+      uuid: invoice.UUID ?? '',
     };
   }
 }
