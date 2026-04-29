@@ -161,15 +161,37 @@ export class Clients {
     () => new Set(this.filteredInvoices().map(invoice => invoice.id)),
   );
 
+  private static readonly CHARGE_RATES: Record<string, number> = {
+    annual: 0.25,
+    sporadic: 0.12,
+  };
+
+  private readonly chargeTypeIdSignal = toSignal(
+    this.invoiceChargeType.valueChanges.pipe(startWith(this.invoiceChargeType.getRawValue())),
+    { initialValue: this.invoiceChargeType.getRawValue() },
+  );
+
+  protected readonly selectedChargeOption = computed(() =>
+    this.invoiceChargeTypeOptions().find(o => o.id == this.chargeTypeIdSignal()) ?? null,
+  );
+
+  protected readonly chargeRate = computed(() =>
+    Clients.CHARGE_RATES[this.selectedChargeOption()?.name ?? ''] ?? 0,
+  );
+
   protected readonly canGenerateOrder = computed(() => this.returnItems().length > 0);
 
   protected readonly returnOrderSubtotal = computed(() => {
     return this.returnItems().reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
   });
 
+  protected readonly returnOrderCharge = computed(() => this.returnOrderSubtotal() * this.chargeRate());
+
   protected readonly returnOrderTax = computed(() => this.returnOrderSubtotal() * this.taxRate);
 
-  protected readonly returnOrderTotal = computed(() => this.returnOrderSubtotal() + this.returnOrderTax());
+  protected readonly returnOrderTotal = computed(() =>
+    this.returnOrderSubtotal() + this.returnOrderTax() + this.returnOrderCharge(),
+  );
 
   protected readonly groupedReturnItems = computed<GroupedReturnItems[]>(() => {
     const groups = new Map<string, GroupedReturnItems>();
