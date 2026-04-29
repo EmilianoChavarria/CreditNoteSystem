@@ -148,17 +148,15 @@
                                 <div class="flex items-center justify-center gap-1.5">
                                     <button type="button"
                                         class="flex items-center gap-1 rounded border border-gray-300 bg-white px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 transition-colors"
-                                        [disabled]="isDownloading(invoice.folio + '-xml')"
+                                        [disabled]="isDownloading(invoice.id + '-xml')"
                                         (click)="downloadXml(invoice)">
                                         <lucide-icon name="download" size="12"></lucide-icon>
-                                        {{ isDownloading(invoice.folio + '-xml') ? '...' : 'XML' }}
+                                        {{ isDownloading(invoice.id + '-xml') ? '...' : 'XML' }}
                                     </button>
                                     <button type="button"
-                                        class="flex items-center gap-1 rounded border border-red-300 bg-white px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40 transition-colors"
-                                        [disabled]="isDownloading(invoice.folio + '-pdf')"
-                                        (click)="downloadPdf(invoice)">
+                                        class="flex items-center gap-1 rounded border border-red-300 bg-white px-2 py-1 text-xs font-medium text-red-700">
                                         <lucide-icon name="download" size="12"></lucide-icon>
-                                        {{ isDownloading(invoice.folio + '-pdf') ? '...' : 'PDF' }}
+                                        PDF
                                     </button>
                                 </div>
                             </td>

@@ -119,35 +119,14 @@ export class MyInvoices {
   }
 
   protected downloadXml(invoice: CustomerInvoice): void {
-    this.downloadFile(invoice, 'xml');
-  }
-
-  protected downloadPdf(invoice: CustomerInvoice): void {
-    this.downloadFile(invoice, 'pdf');
-  }
-
-  protected statusClass(status: string): string {
-    const s = status.toLowerCase();
-    if (s === 'emitido') return 'bg-green-100 text-green-700';
-    if (s === 'cancelado') return 'bg-red-100 text-red-700';
-    return 'bg-gray-100 text-gray-600';
-  }
-
-  private downloadFile(invoice: CustomerInvoice, format: 'xml' | 'pdf'): void {
-    const clientId = this.currentClientId();
-    const key = `${invoice.folio}-${format}`;
-
-    if (!clientId || !invoice.folio || this.downloadingKeys().has(key)) return;
+    const key = `${invoice.id}-xml`;
+    if (!invoice.id || this.downloadingKeys().has(key)) return;
 
     this.downloadingKeys.update(s => new Set([...s, key]));
 
-    const download$ = format === 'xml'
-      ? this.customerService.downloadInvoiceXml(invoice.folio, clientId)
-      : this.customerService.downloadInvoicePdf(invoice.folio, clientId);
-
-    download$.pipe(take(1)).subscribe({
+    this.customerService.downloadInvoiceXml(invoice.id).pipe(take(1)).subscribe({
       next: (blob) => {
-        const filename = `Factura_${invoice.invoiceNumber}.${format}`;
+        const filename = `Factura_${invoice.invoiceNumber}.xml`;
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -161,6 +140,14 @@ export class MyInvoices {
       },
     });
   }
+
+  protected statusClass(status: string): string {
+    const s = status.toLowerCase();
+    if (s === 'emitido') return 'bg-green-100 text-green-700';
+    if (s === 'cancelado') return 'bg-red-100 text-red-700';
+    return 'bg-gray-100 text-gray-600';
+  }
+
 
   private toCustomerInvoice(invoice: CustomerInvoiceSummary): CustomerInvoice {
     const serie = (invoice.serie ?? '').trim();
