@@ -126,4 +126,19 @@ export class HttpService {
   patch<T>(url: string, data: any, options?: RequestOptions): Observable<ApiResponse<T>> {
     return this.request<T>('PATCH', url, data, options);
   }
+
+  getBlob(endpoint: string, params?: Record<string, string>): Observable<Blob> {
+    const url = this.buildUrl(endpoint);
+    let httpParams = new HttpParams();
+    if (params) {
+      Object.keys(params).forEach(key => {
+        httpParams = httpParams.set(key, params[key]);
+      });
+    }
+    return this.http.get(url, {
+      responseType: 'blob',
+      withCredentials: true,
+      params: httpParams,
+    }).pipe(timeout(30000));
+  }
 }
