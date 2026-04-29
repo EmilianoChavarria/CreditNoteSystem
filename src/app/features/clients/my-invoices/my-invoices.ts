@@ -10,6 +10,7 @@ import {
 } from '../../../core/services/customer-service';
 import { map, take } from 'rxjs';
 import { LucideAngularModule } from 'lucide-angular';
+import { TranslatePipe } from '@ngx-translate/core';
 
 interface CustomerInvoice {
   id: string;
@@ -28,7 +29,7 @@ interface CustomerInvoice {
 
 @Component({
   selector: 'app-my-invoices',
-  imports: [CommonModule, ReactiveFormsModule, LucideAngularModule],
+  imports: [CommonModule, ReactiveFormsModule, LucideAngularModule, TranslatePipe],
   templateUrl: './my-invoices.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

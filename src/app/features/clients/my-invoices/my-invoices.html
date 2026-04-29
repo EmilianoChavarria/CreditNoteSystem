@@ -1,63 +1,61 @@
 <section class="w-full">
     <div class="mx-auto flex w-full flex-col gap-5">
         <header class="flex flex-col gap-1">
-            <p class="text-xs font-semibold uppercase tracking-wider text-orange-700">Portal de Cliente</p>
-            <h1 class="text-2xl font-semibold text-gray-800">Busqueda de Facturas</h1>
-            <p class="text-sm text-gray-600">
-                Filtra tus facturas por uno o varios campos y consulta el detalle de productos.
-            </p>
+            <p class="text-xs font-semibold uppercase tracking-wider text-orange-700">{{ 'INVOICE_SEARCH.PORTAL_LABEL' | translate }}</p>
+            <h1 class="text-2xl font-semibold text-gray-800">{{ 'INVOICE_SEARCH.TITLE' | translate }}</h1>
+            <p class="text-sm text-gray-600">{{ 'INVOICE_SEARCH.DESCRIPTION' | translate }}</p>
         </header>
 
-        <!-- Filtros -->
+        <!-- Filters -->
         <section class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm" [formGroup]="searchForm"
-            aria-label="Filtros de busqueda">
-            <h2 class="mb-4 text-sm font-semibold text-gray-700">Filtros de busqueda</h2>
+            [attr.aria-label]="'INVOICE_SEARCH.FILTERS_TITLE' | translate">
+            <h2 class="mb-4 text-sm font-semibold text-gray-700">{{ 'INVOICE_SEARCH.FILTERS_TITLE' | translate }}</h2>
 
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <label class="flex flex-col gap-1">
-                    <span class="text-xs font-medium text-gray-600">UUID</span>
+                    <span class="text-xs font-medium text-gray-600">{{ 'INVOICE_SEARCH.FIELD_UUID' | translate }}</span>
                     <input class="rounded-md border border-gray-300 px-3 py-2 text-sm placeholder-gray-400"
-                        type="text" formControlName="uuid" placeholder="UUID de la factura" />
+                        type="text" formControlName="uuid" [placeholder]="'INVOICE_SEARCH.PLACEHOLDER_UUID' | translate" />
                 </label>
 
                 <label class="flex flex-col gap-1">
-                    <span class="text-xs font-medium text-gray-600">Folio</span>
+                    <span class="text-xs font-medium text-gray-600">{{ 'INVOICE_SEARCH.FIELD_FOLIO' | translate }}</span>
                     <input class="rounded-md border border-gray-300 px-3 py-2 text-sm placeholder-gray-400"
-                        type="text" formControlName="folio" placeholder="Ej. 536662" />
+                        type="text" formControlName="folio" [placeholder]="'INVOICE_SEARCH.PLACEHOLDER_FOLIO' | translate" />
                 </label>
 
                 <label class="flex flex-col gap-1">
-                    <span class="text-xs font-medium text-gray-600">ID Receptor</span>
+                    <span class="text-xs font-medium text-gray-600">{{ 'INVOICE_SEARCH.FIELD_RECIPIENT_ID' | translate }}</span>
                     <input class="rounded-md border border-gray-300 px-3 py-2 text-sm placeholder-gray-400"
-                        type="text" formControlName="receptorId" placeholder="ID del receptor" />
+                        type="text" formControlName="receptorId" [placeholder]="'INVOICE_SEARCH.PLACEHOLDER_RECIPIENT_ID' | translate" />
                 </label>
 
                 <label class="flex flex-col gap-1">
-                    <span class="text-xs font-medium text-gray-600">RFC Receptor</span>
+                    <span class="text-xs font-medium text-gray-600">{{ 'INVOICE_SEARCH.FIELD_RECIPIENT_RFC' | translate }}</span>
                     <input class="rounded-md border border-gray-300 px-3 py-2 text-sm placeholder-gray-400"
-                        type="text" formControlName="receptorRfc" placeholder="Ej. ABC010101XYZ" />
+                        type="text" formControlName="receptorRfc" [placeholder]="'INVOICE_SEARCH.PLACEHOLDER_RECIPIENT_RFC' | translate" />
                 </label>
 
                 <label class="flex flex-col gap-1 sm:col-span-2">
-                    <span class="text-xs font-medium text-gray-600">Nombre Receptor</span>
+                    <span class="text-xs font-medium text-gray-600">{{ 'INVOICE_SEARCH.FIELD_RECIPIENT_NAME' | translate }}</span>
                     <input class="rounded-md border border-gray-300 px-3 py-2 text-sm placeholder-gray-400"
-                        type="text" formControlName="receptorNombre" placeholder="Busqueda parcial por nombre" />
+                        type="text" formControlName="receptorNombre" [placeholder]="'INVOICE_SEARCH.PLACEHOLDER_RECIPIENT_NAME' | translate" />
                 </label>
 
                 <label class="flex flex-col gap-1">
-                    <span class="text-xs font-medium text-gray-600">Moneda</span>
+                    <span class="text-xs font-medium text-gray-600">{{ 'INVOICE_SEARCH.FIELD_CURRENCY' | translate }}</span>
                     <input class="rounded-md border border-gray-300 px-3 py-2 text-sm placeholder-gray-400"
-                        type="text" formControlName="moneda" placeholder="Ej. MXN, USD" />
+                        type="text" formControlName="moneda" [placeholder]="'INVOICE_SEARCH.PLACEHOLDER_CURRENCY' | translate" />
                 </label>
 
                 <label class="flex flex-col gap-1">
-                    <span class="text-xs font-medium text-gray-600">Fecha Inicial</span>
+                    <span class="text-xs font-medium text-gray-600">{{ 'INVOICE_SEARCH.FIELD_START_DATE' | translate }}</span>
                     <input class="rounded-md border border-gray-300 px-3 py-2 text-sm"
                         type="date" formControlName="fechaInicial" />
                 </label>
 
                 <label class="flex flex-col gap-1">
-                    <span class="text-xs font-medium text-gray-600">Fecha Final</span>
+                    <span class="text-xs font-medium text-gray-600">{{ 'INVOICE_SEARCH.FIELD_END_DATE' | translate }}</span>
                     <input class="rounded-md border border-gray-300 px-3 py-2 text-sm"
                         type="date" formControlName="fechaFinal" />
                 </label>
@@ -67,57 +65,55 @@
                 <button type="button"
                     class="rounded-md bg-[#ff8200] px-5 py-2 text-sm font-semibold text-white hover:bg-[#db7201] disabled:cursor-not-allowed disabled:bg-gray-300"
                     [disabled]="isSearching()" (click)="search()">
-                    {{ isSearching() ? 'Consultando...' : 'Consultar' }}
+                    {{ isSearching() ? ('INVOICE_SEARCH.BTN_SEARCHING' | translate) : ('INVOICE_SEARCH.BTN_SEARCH' | translate) }}
                 </button>
 
                 <button type="button"
                     class="rounded-md border border-gray-300 bg-white px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                     [disabled]="isSearching()" (click)="clear()">
-                    Limpiar
+                    {{ 'INVOICE_SEARCH.BTN_CLEAR' | translate }}
                 </button>
 
                 @if (hasSearched() && !isSearching()) {
                 <span class="text-xs text-gray-500">
-                    {{ invoiceCount() }} {{ invoiceCount() === 1 ? 'factura encontrada' : 'facturas encontradas' }}
+                    {{ invoiceCount() }} {{ invoiceCount() === 1 ? ('INVOICE_SEARCH.RESULTS_ONE' | translate) : ('INVOICE_SEARCH.RESULTS_MANY' | translate) }}
                 </span>
                 }
             </div>
         </section>
 
-        <!-- Estados de resultado -->
+        <!-- Result states -->
         @if (isSearching()) {
         <article class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-            <h2 class="text-lg font-semibold text-gray-800">Consultando facturas...</h2>
-            <p class="mt-1 text-sm text-gray-600">Buscando facturas con los filtros indicados.</p>
+            <h2 class="text-lg font-semibold text-gray-800">{{ 'INVOICE_SEARCH.LOADING_TITLE' | translate }}</h2>
+            <p class="mt-1 text-sm text-gray-600">{{ 'INVOICE_SEARCH.LOADING_DESC' | translate }}</p>
         </article>
         } @else if (searchError(); as error) {
         <article class="rounded-lg border border-red-200 bg-white p-4 shadow-sm">
-            <h2 class="text-lg font-semibold text-red-700">No se pudo realizar la busqueda</h2>
+            <h2 class="text-lg font-semibold text-red-700">{{ 'INVOICE_SEARCH.ERROR_TITLE' | translate }}</h2>
             <p class="mt-1 text-sm text-gray-600">{{ error }}</p>
         </article>
         } @else if (hasSearched() && invoices().length === 0) {
         <article class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-            <h2 class="text-lg font-semibold text-gray-800">Sin resultados</h2>
-            <p class="mt-1 text-sm text-gray-600">
-                No se encontraron facturas con los filtros indicados. Intenta con otros criterios.
-            </p>
+            <h2 class="text-lg font-semibold text-gray-800">{{ 'INVOICE_SEARCH.EMPTY_TITLE' | translate }}</h2>
+            <p class="mt-1 text-sm text-gray-600">{{ 'INVOICE_SEARCH.EMPTY_DESC' | translate }}</p>
         </article>
         } @else if (invoices().length > 0) {
 
-        <!-- Tabla de facturas -->
+        <!-- Invoice table -->
         <div class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
             <div class="overflow-x-auto">
                 <table class="min-w-full border-collapse">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="border-b border-gray-200 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Fecha de Emisión</th>
-                            <th class="border-b border-gray-200 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Comprobante</th>
-                            <th class="border-b border-gray-200 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Serie - Folio</th>
-                            <th class="border-b border-gray-200 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">R.F.C. Receptor</th>
-                            <th class="border-b border-gray-200 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Moneda</th>
-                            <th class="border-b border-gray-200 px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-600">Importe</th>
-                            <th class="border-b border-gray-200 px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-600">Descargas</th>
-                            <th class="border-b border-gray-200 px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-600">Estatus</th>
+                            <th class="border-b border-gray-200 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">{{ 'INVOICE_SEARCH.COL_ISSUE_DATE' | translate }}</th>
+                            <th class="border-b border-gray-200 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">{{ 'INVOICE_SEARCH.COL_DOCUMENT_TYPE' | translate }}</th>
+                            <th class="border-b border-gray-200 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">{{ 'INVOICE_SEARCH.COL_SERIE_FOLIO' | translate }}</th>
+                            <th class="border-b border-gray-200 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">{{ 'INVOICE_SEARCH.COL_RECIPIENT_RFC' | translate }}</th>
+                            <th class="border-b border-gray-200 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">{{ 'INVOICE_SEARCH.COL_CURRENCY' | translate }}</th>
+                            <th class="border-b border-gray-200 px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-600">{{ 'INVOICE_SEARCH.COL_AMOUNT' | translate }}</th>
+                            <th class="border-b border-gray-200 px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-600">{{ 'INVOICE_SEARCH.COL_DOWNLOADS' | translate }}</th>
+                            <th class="border-b border-gray-200 px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-600">{{ 'INVOICE_SEARCH.COL_STATUS' | translate }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -153,8 +149,8 @@
                                         <lucide-icon name="download" size="12"></lucide-icon>
                                         {{ isDownloading(invoice.id + '-xml') ? '...' : 'XML' }}
                                     </button>
-                                    <button type="button"
-                                        class="flex items-center gap-1 rounded border border-red-300 bg-white px-2 py-1 text-xs font-medium text-red-700">
+                                    <button type="button" disabled
+                                        class="flex items-center gap-1 rounded border border-red-300 bg-white px-2 py-1 text-xs font-medium text-red-700 opacity-40 cursor-not-allowed">
                                         <lucide-icon name="download" size="12"></lucide-icon>
                                         PDF
                                     </button>
