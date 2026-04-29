@@ -169,6 +169,33 @@ export class BatchService {
     );
   }
 
+  createUsersBatch(file: File): Observable<BatchSummary | null> {
+    const resolvedBearer = this.resolveBearerToken();
+    const headers = resolvedBearer
+      ? new HttpHeaders({ Authorization: `Bearer ${resolvedBearer}` })
+      : undefined;
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('batchType', 'users');
+
+    return this.httpClient.post<ApiResponse<unknown>>(
+      `${this.baseApiUrl}/batches`,
+      formData,
+      { headers, withCredentials: true }
+    ).pipe(
+      map((response) => {
+        const data = (response.data ?? {}) as Record<string, unknown>;
+        const batchCandidate = data['batch'] ?? data;
+        return this.toBatchSummary(batchCandidate);
+      }),
+      catchError((error) => {
+        console.error('Error creating users batch', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
   createCreditsDataBatch(file: File, bearerToken?: string): Observable<BatchSummary | null> {
     const resolvedBearer = bearerToken ?? this.resolveBearerToken();
     const headers = resolvedBearer
