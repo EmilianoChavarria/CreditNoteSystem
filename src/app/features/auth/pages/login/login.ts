@@ -63,7 +63,10 @@ export class Login {
     this.authService.login(object).subscribe({
       next: (response) => {
         if (response.success) {
-          this.handleLoginSuccess(response.data?.user?.preferredLanguage);
+          this.handleLoginSuccess(
+            response.data?.user?.preferredLanguage,
+            response.data?.user?.mustChangePassword
+          );
         } else {
           this.handleLoginFailure(response.message || 'Error al iniciar sesión');
         }
@@ -85,7 +88,7 @@ export class Login {
     this.form.get('password')?.disable();
   }
 
-  private handleLoginSuccess(preferredLanguage: string | null | undefined): void {
+  private handleLoginSuccess(preferredLanguage: string | null | undefined, mustChangePassword?: boolean): void {
     if (preferredLanguage === 'es' || preferredLanguage === 'en') {
       this.translate.use(preferredLanguage);
       if (typeof localStorage !== 'undefined') {
@@ -93,8 +96,11 @@ export class Login {
       }
     }
 
-    console.log('Fué exitoso el login');
-    // La cookie ya fue guardada automáticamente
+    if (mustChangePassword) {
+      this.router.navigate(['/auth/change-password']);
+      return;
+    }
+
     this.router.navigate(['/app/dashboard']);
   }
 
