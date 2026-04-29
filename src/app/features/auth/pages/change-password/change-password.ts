@@ -5,7 +5,6 @@ import { finalize } from 'rxjs';
 import { LucideAngularModule } from 'lucide-angular';
 import { ToastrService } from 'ngx-toastr';
 import { AuthService } from '../../../../core/services/auth-service';
-import { HttpService } from '../../../../core/services/http-service';
 import { Spinner } from '../../../../shared/components/ui/spinner/spinner';
 
 function passwordMatchValidator(): ValidatorFn {
@@ -23,7 +22,6 @@ function passwordMatchValidator(): ValidatorFn {
     imports: [ReactiveFormsModule, LucideAngularModule, Spinner],
 })
 export class ChangePassword {
-    private readonly _http = inject(HttpService);
     private readonly _auth = inject(AuthService);
     private readonly _router = inject(Router);
     private readonly _toastr = inject(ToastrService);
@@ -54,7 +52,7 @@ export class ChangePassword {
 
         const { newPassword, newPassword_confirmation } = this.form.getRawValue();
 
-        this._http.post<null>('/auth/change-password', { newPassword, newPassword_confirmation }).pipe(
+        this._auth.changePassword(newPassword!, newPassword_confirmation!).pipe(
             finalize(() => this.isLoading = false)
         ).subscribe({
             next: () => {
@@ -62,7 +60,7 @@ export class ChangePassword {
                 this._auth.clearMustChangePassword();
                 this._router.navigate(['/app/dashboard']);
             },
-            error: (err) => {
+            error: (err: any) => {
                 const msg = err?.error?.message ?? 'Error al cambiar la contraseña.';
                 this._toastr.error(msg, 'Error');
             }
