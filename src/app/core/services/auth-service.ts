@@ -19,12 +19,14 @@ export interface AuthUser {
   roleName: string;
   preferredLanguage?: string;
   clientId?: string;
+  mustChangePassword?: boolean;
 }
 
 interface LoginData {
   user?: AuthUser;
   expiresIn?: number;
 }
+
 
 @Injectable({
   providedIn: 'root',
@@ -202,6 +204,17 @@ export class AuthService {
 
   getCurrentUser(): AuthUser | null {
     return this.userSubject.value;
+  }
+
+  mustChangePassword(): boolean {
+    return !!this.userSubject.value?.mustChangePassword;
+  }
+
+  clearMustChangePassword(): void {
+    const user = this.userSubject.value;
+    if (user) {
+      this.userSubject.next({ ...user, mustChangePassword: false });
+    }
   }
 
   private setUser(user: AuthUser, source: 'login' | 'verify' | 'unknown' = 'unknown'): void {
