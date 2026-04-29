@@ -55,11 +55,13 @@
                 {{'TABLE.EXCEL_BUTTON' | translate}}
             </button>
             @if (canAdd()) {
-            <button
-                class="w-full sm:w-auto rounded-md bg-[#ff8200] px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center">
+            @if (canBulk()) {
+            <button type="button" (click)="bulkClick.emit()"
+                class="w-full sm:w-auto rounded-md bg-[#ff8200] px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center hover:bg-[#db7201] cursor-pointer">
                 <lucide-icon name="file-up" size="18"></lucide-icon>
                 {{'TABLE.BULK_BUTTON' | translate}}
             </button>
+            }
             <button type="button" (click)="onAddClick()"
                 class="w-full sm:w-auto rounded-md bg-[#3c6194] hover:bg-[#2c5999] hover:cursor-pointer px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center">
                 <lucide-icon name="plus" size="18"></lucide-icon>
