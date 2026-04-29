@@ -206,6 +206,10 @@ export class AuthService {
     return this.userSubject.value;
   }
 
+  changePassword(newPassword: string, newPassword_confirmation: string): Observable<ApiResponse<null>> {
+    return this._httpService.post<null>('/auth/change-password', { newPassword, newPassword_confirmation });
+  }
+
   mustChangePassword(): boolean {
     return !!this.userSubject.value?.mustChangePassword;
   }
