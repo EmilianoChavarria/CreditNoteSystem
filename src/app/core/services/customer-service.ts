@@ -416,26 +416,12 @@ export class CustomerService {
       );
   }
 
-  downloadInvoiceXml(folio: string, clientId: string): Observable<Blob> {
-    const normalizedFolio = folio.trim();
-    if (!normalizedFolio) {
-      return throwError(() => new Error('Folio requerido'));
+  downloadInvoiceXml(id: string): Observable<Blob> {
+    const normalizedId = id.trim();
+    if (!normalizedId) {
+      return throwError(() => new Error('ID de factura requerido'));
     }
-    return this._httpService.getBlob(
-      `/invoices/${encodeURIComponent(normalizedFolio)}/download/xml`,
-      { clientId: clientId.trim() },
-    );
-  }
-
-  downloadInvoicePdf(folio: string, clientId: string): Observable<Blob> {
-    const normalizedFolio = folio.trim();
-    if (!normalizedFolio) {
-      return throwError(() => new Error('Folio requerido'));
-    }
-    return this._httpService.getBlob(
-      `/invoices/${encodeURIComponent(normalizedFolio)}/download/pdf`,
-      { clientId: clientId.trim() },
-    );
+    return this._httpService.getBlob(`/invoices/${encodeURIComponent(normalizedId)}/xml`);
   }
 
   getInvoiceProductHistory(
