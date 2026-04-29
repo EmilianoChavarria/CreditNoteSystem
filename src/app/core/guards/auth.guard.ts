@@ -19,6 +19,9 @@ export class AuthGuard implements CanActivate {
   ): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
 
     if (this.authService.isAuthenticated() && this.authService.getCurrentUser()) {
+      if (this.authService.mustChangePassword()) {
+        return this.router.createUrlTree(['/auth/change-password']);
+      }
       return this.resolveSuperAdminAccess(state.url);
     }
 
@@ -27,9 +30,11 @@ export class AuthGuard implements CanActivate {
       take(1),
       map(isAuthenticated => {
         if (isAuthenticated) {
+          if (this.authService.mustChangePassword()) {
+            return this.router.createUrlTree(['/auth/change-password']);
+          }
           return this.resolveSuperAdminAccess(state.url);
         } else {
-          // Redirige al login si no está autenticado
           return this.router.createUrlTree(['/auth/login']);
         }
       })
