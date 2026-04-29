@@ -8,7 +8,7 @@
             </p>
         </header>
 
-        <!-- Formulario de filtros -->
+        <!-- Filtros -->
         <section class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm" [formGroup]="searchForm"
             aria-label="Filtros de busqueda">
             <h2 class="mb-4 text-sm font-semibold text-gray-700">Filtros de busqueda</h2>
@@ -50,10 +50,6 @@
                         type="text" formControlName="moneda" placeholder="Ej. MXN, USD" />
                 </label>
 
-                <div class="flex flex-col gap-1 sm:col-span-2 lg:col-span-1">
-                    <!-- spacer on large screens; moneda already takes one col -->
-                </div>
-
                 <label class="flex flex-col gap-1">
                     <span class="text-xs font-medium text-gray-600">Fecha Inicial</span>
                     <input class="rounded-md border border-gray-300 px-3 py-2 text-sm"
@@ -88,7 +84,7 @@
             </div>
         </section>
 
-        <!-- Resultados -->
+        <!-- Estados de resultado -->
         @if (isSearching()) {
         <article class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
             <h2 class="text-lg font-semibold text-gray-800">Consultando facturas...</h2>
@@ -107,113 +103,76 @@
             </p>
         </article>
         } @else if (invoices().length > 0) {
-        <div class="flex flex-col gap-4">
-            @for (invoice of invoices(); track invoice.id + '-' + $index; let idx = $index) {
-            @let invoiceAccordionKey = invoiceKey(invoice, idx);
-            <article class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
-                <header class="flex items-center justify-between gap-3 border-b border-gray-200 px-4 py-3">
-                    <div>
-                        <p class="text-sm font-semibold text-gray-800">Factura {{ invoice.invoiceNumber }}</p>
-                        <p class="text-xs text-gray-500">Fecha: {{ invoice.date | date: 'dd/MM/yyyy' }}</p>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span
-                            class="rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-xs font-medium text-gray-600">
-                            {{ invoice.products.length }} productos
-                        </span>
-                        <button type="button"
-                            class="rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
-                            (click)="toggleInvoice(invoice, invoiceAccordionKey)">
-                            {{ isInvoiceExpanded(invoiceAccordionKey) ? 'Ocultar' : 'Mostrar' }}
-                        </button>
-                    </div>
-                </header>
 
-                @if (isInvoiceExpanded(invoiceAccordionKey)) {
-                <div class="w-full overflow-x-auto">
-                    <table class="min-w-225 w-full border-collapse bg-white">
-                        <thead class="bg-white text-xs uppercase tracking-wide text-gray-600">
-                            <tr>
-                                <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">No.PEDIDO /
-                                    CUST PO NBR</th>
-                                <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">REMISION /
-                                    DELIVERY NOTE</th>
-                                <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">No. PARTE /
-                                    PART NUMBER</th>
-                                <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">CANT EMB /
-                                    QTY SHIP</th>
-                                <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">PRECIO
-                                    UNITARIO / UNIT PRICE</th>
-                                <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">TOTAL NETO /
-                                    EXT PRICE</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @if (isInvoiceProductsLoading(invoiceAccordionKey)) {
-                            <tr>
-                                <td class="border-b border-gray-200 bg-white px-3 py-3 text-sm text-gray-600"
-                                    colspan="6">
-                                    Cargando productos de la factura...
-                                </td>
-                            </tr>
-                            } @else if (invoiceProductsErrorMessage(invoiceAccordionKey); as invoiceError) {
-                            <tr>
-                                <td class="border-b border-gray-200 bg-white px-3 py-3 text-sm text-red-700"
-                                    colspan="6">
-                                    {{ invoiceError }}
-                                </td>
-                            </tr>
-                            } @else if (invoice.products.length === 0) {
-                            <tr>
-                                <td class="border-b border-gray-200 bg-white px-3 py-3 text-sm text-gray-600"
-                                    colspan="6">
-                                    Esta factura no tiene productos disponibles.
-                                </td>
-                            </tr>
-                            } @else {
-                            @for (product of invoice.products; track product.id) {
-                            <tr class="hover:bg-gray-50">
-                                <td class="border-b border-gray-200 bg-white px-3 py-2 text-sm text-gray-700">
-                                    <strong>{{ product.orderNumber }}</strong><br />
-                                    {{ product.customerPoNumber }}
-                                </td>
-                                <td class="border-b border-gray-200 bg-white px-3 py-2 text-sm text-gray-700">
-                                    {{ product.deliveryNote }}
-                                </td>
-                                <td class="border-b border-gray-200 bg-white px-3 py-2 text-sm text-gray-700">
-                                    {{ product.partNumber }}
-                                </td>
-                                <td class="border-b border-gray-200 bg-white px-3 py-2 text-sm text-gray-700">
-                                    <div class="flex flex-row items-center justify-center gap-x-4">
-                                        <span>{{ product.qtyShipped }} {{ product.unit }}</span>
-                                        <button type="button"
-                                            class="rounded-md p-2 text-orange-500 hover:cursor-pointer hover:bg-orange-100"
-                                            (click)="openProductHistory(invoice, product)">
-                                            <lucide-icon name="history" size="20"></lucide-icon>
-                                        </button>
-                                    </div>
-                                </td>
-                                <td class="border-b border-gray-200 bg-white px-3 py-2 text-sm text-gray-700">
-                                    ${{ product.unitPrice | number : '1.2-2' }}
-                                </td>
-                                <td class="border-b border-gray-200 bg-white px-3 py-2 text-sm text-gray-700">
-                                    ${{ productTotal(product) | number : '1.2-2' }}
-                                </td>
-                            </tr>
-                            }
-                            }
-                        </tbody>
-                    </table>
-                </div>
-                }
-            </article>
-            }
+        <!-- Tabla de facturas -->
+        <div class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+            <div class="overflow-x-auto">
+                <table class="min-w-full border-collapse">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="border-b border-gray-200 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Fecha de Emisión</th>
+                            <th class="border-b border-gray-200 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Comprobante</th>
+                            <th class="border-b border-gray-200 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Serie - Folio</th>
+                            <th class="border-b border-gray-200 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">R.F.C. Receptor</th>
+                            <th class="border-b border-gray-200 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Moneda</th>
+                            <th class="border-b border-gray-200 px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-600">Importe</th>
+                            <th class="border-b border-gray-200 px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-600">Descargas</th>
+                            <th class="border-b border-gray-200 px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-600">Estatus</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (invoice of invoices(); track invoice.id; let odd = $odd) {
+                        <tr class="hover:bg-orange-50/30 transition-colors" [class.bg-gray-50]="odd">
+                            <td class="border-b border-gray-100 px-4 py-3 text-sm text-gray-700 whitespace-nowrap">
+                                {{ invoice.date | date: 'dd/MM/yyyy' }}
+                            </td>
+                            <td class="border-b border-gray-100 px-4 py-3 text-sm text-gray-700 whitespace-nowrap">
+                                {{ invoice.tipoComprobante || '—' }}
+                            </td>
+                            <td class="border-b border-gray-100 px-4 py-3 whitespace-nowrap">
+                                <span class="text-sm font-semibold text-gray-800">{{ invoice.invoiceNumber }}</span>
+                            </td>
+                            <td class="border-b border-gray-100 px-4 py-3 text-sm text-gray-700 whitespace-nowrap">
+                                <div>{{ invoice.receptorRfc }}</div>
+                                @if (invoice.receptorNombre) {
+                                <div class="text-xs text-gray-400 truncate max-w-48">{{ invoice.receptorNombre }}</div>
+                                }
+                            </td>
+                            <td class="border-b border-gray-100 px-4 py-3 text-sm text-gray-700">
+                                {{ invoice.moneda }}
+                            </td>
+                            <td class="border-b border-gray-100 px-4 py-3 text-sm text-gray-800 text-right whitespace-nowrap font-medium">
+                                {{ invoice.total | number: '1.2-2' }}
+                            </td>
+                            <td class="border-b border-gray-100 px-4 py-3">
+                                <div class="flex items-center justify-center gap-1.5">
+                                    <button type="button"
+                                        class="flex items-center gap-1 rounded border border-gray-300 bg-white px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 transition-colors"
+                                        [disabled]="isDownloading(invoice.folio + '-xml')"
+                                        (click)="downloadXml(invoice)">
+                                        <lucide-icon name="download" size="12"></lucide-icon>
+                                        {{ isDownloading(invoice.folio + '-xml') ? '...' : 'XML' }}
+                                    </button>
+                                    <button type="button"
+                                        class="flex items-center gap-1 rounded border border-red-300 bg-white px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40 transition-colors"
+                                        [disabled]="isDownloading(invoice.folio + '-pdf')"
+                                        (click)="downloadPdf(invoice)">
+                                        <lucide-icon name="download" size="12"></lucide-icon>
+                                        {{ isDownloading(invoice.folio + '-pdf') ? '...' : 'PDF' }}
+                                    </button>
+                                </div>
+                            </td>
+                            <td class="border-b border-gray-100 px-4 py-3 text-center">
+                                <span class="rounded-full px-2.5 py-0.5 text-xs font-medium" [class]="statusClass(invoice.status)">
+                                    {{ invoice.status || '—' }}
+                                </span>
+                            </td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
         </div>
         }
-
-        <app-product-history-modal [open]="isHistoryModalOpen()" [title]="historyModalTitle()"
-            [subtitle]="historyModalSubtitle()" [isLoading]="isLoadingProductHistory()"
-            [error]="productHistoryError()" [summary]="productHistorySummary()" [rows]="productHistoryRows()"
-            (openChange)="closeProductHistoryModal()"></app-product-history-modal>
     </div>
 </section>
