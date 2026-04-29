@@ -14,6 +14,9 @@ import { SecurityService } from '../../../../core/services/security-service';
 import { AutocompleteOption } from '../../../../shared/components/ui/autocomplete/autocomplete';
 import { CustomerService } from '../../../../core/services/customer-service';
 import { UserFormModalComponent } from './components/user-form-modal/user-form-modal';
+import { BatchService } from '../../../../core/services/batch-service';
+import { Router } from '@angular/router';
+import { LucideAngularModule } from 'lucide-angular';
 
 interface UserData {
     id: number;
@@ -25,7 +28,7 @@ interface UserData {
     selector: 'app-users',
     templateUrl: './users.html',
     styleUrl: './users.css',
-    imports: [Table, Modal, Badge, TranslatePipe, UserFormModalComponent],
+    imports: [Table, Modal, Badge, TranslatePipe, UserFormModalComponent, LucideAngularModule],
 })
 export class Users implements OnInit {
     toastr = inject(ToastrService);
@@ -39,6 +42,11 @@ export class Users implements OnInit {
     public isLoadingTable = signal<boolean>(true);
     public showDeleteModal = signal<boolean>(false);
     public selectedUserToDelete = signal<User | null>(null);
+    public showBulkUploadModal = signal<boolean>(false);
+    public isBulkUploading = signal<boolean>(false);
+    public bulkUploadFile = signal<File | null>(null);
+    public bulkUploadedAt = signal<string>('');
+    public isDragOver = signal<boolean>(false);
     public showUserModal = signal<boolean>(false);
     public isEditMode = signal<boolean>(false);
     public editUserId = signal<number | null>(null);
@@ -304,11 +312,98 @@ export class Users implements OnInit {
         this.cancelDelete();
     }
 
+    formatFileSize(bytes: number): string {
+        if (bytes < 1024) return `${bytes} B`;
+        if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+        return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    }
+
+    openBulkUploadModal(): void {
+        this.bulkUploadFile.set(null);
+        this.bulkUploadedAt.set('');
+        this.isDragOver.set(false);
+        this.showBulkUploadModal.set(true);
+    }
+
+    onBulkUploadModalChange(isOpen: boolean): void {
+        if (!this.isBulkUploading()) {
+            this.showBulkUploadModal.set(isOpen);
+            if (!isOpen) {
+                this.bulkUploadFile.set(null);
+                this.bulkUploadedAt.set('');
+                this.isDragOver.set(false);
+            }
+        }
+    }
+
+    onBulkFileChange(event: Event): void {
+        const input = event.target as HTMLInputElement;
+        const file = input.files?.[0] ?? null;
+        this.bulkUploadFile.set(file);
+        this.bulkUploadedAt.set(file ? moment().format('DD/MM/YYYY HH:mm:ss') : '');
+    }
+
+    onDragOver(event: DragEvent): void {
+        event.preventDefault();
+        this.isDragOver.set(true);
+    }
+
+    onDragLeave(event: DragEvent): void {
+        event.preventDefault();
+        this.isDragOver.set(false);
+    }
+
+    onDrop(event: DragEvent): void {
+        event.preventDefault();
+        this.isDragOver.set(false);
+        const file = event.dataTransfer?.files?.[0] ?? null;
+        if (file) {
+            this.bulkUploadFile.set(file);
+            this.bulkUploadedAt.set(moment().format('DD/MM/YYYY HH:mm:ss'));
+        }
+    }
+
+    removeBulkUploadFile(): void {
+        this.bulkUploadFile.set(null);
+        this.bulkUploadedAt.set('');
+    }
+
+    submitBulkUpload(): void {
+        const file = this.bulkUploadFile();
+        if (!file || this.isBulkUploading()) {
+            return;
+        }
+
+        this.isBulkUploading.set(true);
+
+        this._batchService.createUsersBatch(file).pipe(
+            finalize(() => this.isBulkUploading.set(false))
+        ).subscribe({
+            next: () => {
+                this.toastr.success(
+                    this._translateService.instant('USERS_PAGE.BULK_UPLOAD_SUCCESS'),
+                    this._translateService.instant('USERS_PAGE.SUCCESS')
+                );
+                this.showBulkUploadModal.set(false);
+                this.bulkUploadFile.set(null);
+                this._router.navigate(['/request/bulk-upload'], { queryParams: { tab: 'bulk-history' } });
+            },
+            error: (error) => {
+                this.toastr.error(
+                    error?.error?.message ?? this._translateService.instant('USERS_PAGE.BULK_UPLOAD_ERROR'),
+                    this._translateService.instant('USERS_PAGE.ERROR')
+                );
+            }
+        });
+    }
+
     constructor(
         private _userService: UserService,
         private _roleService: RoleService,
         private _securityService: SecurityService,
-        private _customerService: CustomerService
+        private _customerService: CustomerService,
+        private _batchService: BatchService,
+        private _router: Router
     ) { }
 
     ngOnInit(): void {
