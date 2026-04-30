@@ -39,6 +39,7 @@
 
     </div>
 
+    @if (!(isCustomer$ | async)) {
     <app-popover position="bottom-center" width="min(92vw,480px)">
       <div trigger
         class="transition-colors flex flex-row gap-x-2 items-center justify-center hover:bg-gray-200 px-2 sm:px-4 py-2 hover:cursor-pointer rounded-lg whitespace-nowrap shrink-0">
@@ -104,6 +105,7 @@
       </div>
 
     </app-popover>
+    }
 
     <app-popover position="bottom-right" width="min(92vw,240px)">
       <div trigger class="flex flex-row gap-x-2 items-center justify-center cursor-pointer whitespace-nowrap min-w-0">

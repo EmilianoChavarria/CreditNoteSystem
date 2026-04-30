@@ -42,6 +42,7 @@ export class Navbar implements OnDestroy {
   private readonly isBrowser: boolean;
   public user$: Observable<AuthUser | null>;
   public userInitials$: Observable<string>;
+  public isCustomer$: Observable<boolean>;
   readonly unreadNotifications = this.notificationService.unreadNotifications;
   readonly unreadCount = this.notificationService.unreadCount;
   readonly recentUnreadNotifications = computed(() => this.unreadNotifications().slice(0, 3));
@@ -84,6 +85,7 @@ export class Navbar implements OnDestroy {
     );
 
     this.userInitials$ = this.user$.pipe(map(user => this.getInitials(user?.fullName)));
+    this.isCustomer$ = this.user$.pipe(map(user => user?.roleName === 'CUSTOMER'));
     this.isBrowser = isPlatformBrowser(this.platformId);
 
     this.translate.addLangs(['es', 'en']);
