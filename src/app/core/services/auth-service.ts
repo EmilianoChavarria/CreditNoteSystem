@@ -307,6 +307,5 @@ export class AuthService {
       return;
     }
 
-    console.log(`aqui va tu endpoint llamando a clientId: ${clientId}`);
   }
 }
