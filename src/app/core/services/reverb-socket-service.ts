@@ -94,13 +94,13 @@ export class ReverbSocketService {
 
   connectToGlobalNotifications(): void {
     if (this.echo) {
-      console.info('[Reverb] Socket already initialized.');
+      // console.info('[Reverb] Socket already initialized.');
       return;
     }
 
     this.connectionState.set('connecting');
     this.connectionError.set(null);
-    console.info(`[Reverb] Connecting to ${this.wsProtocol}://${this.wsHost}:${this.wsPort} ...`);
+    // console.info(`[Reverb] Connecting to ${this.wsProtocol}://${this.wsHost}:${this.wsPort} ...`);
 
     (window as unknown as { Pusher: typeof Pusher }).Pusher = Pusher;
 
@@ -133,7 +133,7 @@ export class ReverbSocketService {
 
       this.echo.leave(this.channelName);
       this.echo.disconnect();
-      console.info('[Reverb] Disconnected from channel and socket.');
+      // console.info('[Reverb] Disconnected from channel and socket.');
     } finally {
       this.channel = null;
       this.echo = null;
@@ -152,10 +152,10 @@ export class ReverbSocketService {
       { headers }
     ).pipe(
       tap(() => {
-        console.info('[Reverb] Broadcast sent to backend endpoint.');
+        // console.info('[Reverb] Broadcast sent to backend endpoint.');
       }),
       catchError((error) => {
-        console.error('[Reverb] Broadcast endpoint failed:', error);
+        // console.error('[Reverb] Broadcast endpoint failed:', error);
         return throwError(() => error);
       })
     );
@@ -176,7 +176,7 @@ export class ReverbSocketService {
         this.batchFinishedSubject.next(payload);
       }
 
-      console.info('[Reverb] Incoming message:', payload);
+      // console.info('[Reverb] Incoming message:', payload);
     };
 
     this.channel.listen(this.eventName, onSocketMessage);
@@ -184,10 +184,10 @@ export class ReverbSocketService {
 
     this.channel.listen(this.notificationEventName, (payload: IncomingSocketMessage) => {
       this.notificationCreatedSubject.next(payload);
-      console.info('[Reverb] Incoming notification:', payload);
+      // console.info('[Reverb] Incoming notification:', payload);
     });
 
-    console.info(`[Reverb] Listening ${this.channelName} :: ${this.eventName} (+ legacy ${this.legacyEventName})`);
+    // console.info(`[Reverb] Listening ${this.channelName} :: ${this.eventName} (+ legacy ${this.legacyEventName})`);
   }
 
   private bindConnectionEvents(): void {
@@ -199,29 +199,29 @@ export class ReverbSocketService {
     const connection = connector?.pusher?.connection;
 
     if (!connection) {
-      console.warn('[Reverb] Could not bind low-level connection events.');
+      // console.warn('[Reverb] Could not bind low-level connection events.');
       return;
     }
 
     connection.bind('connected', () => {
       this.connectionState.set('connected');
       this.connectionError.set(null);
-      console.info('[Reverb] Connection established.');
+      // console.info('[Reverb] Connection established.');
     });
 
     connection.bind('connecting', () => {
       this.connectionState.set('connecting');
-      console.info('[Reverb] Connecting...');
+      // console.info('[Reverb] Connecting...');
     });
 
     connection.bind('disconnected', () => {
       this.connectionState.set('disconnected');
-      console.warn('[Reverb] Connection disconnected.');
+      // console.warn('[Reverb] Connection disconnected.');
     });
 
     connection.bind('unavailable', () => {
       this.connectionState.set('reconnecting');
-      console.warn('[Reverb] Connection unavailable, trying to reconnect...');
+      // console.warn('[Reverb] Connection unavailable, trying to reconnect...');
     });
 
     connection.bind('error', (errorPayload: unknown) => {
@@ -230,11 +230,11 @@ export class ReverbSocketService {
         ? errorPayload
         : JSON.stringify(errorPayload);
       this.connectionError.set(errorMessage);
-      console.error('[Reverb] Connection error:', errorPayload);
+      // console.error('[Reverb] Connection error:', errorPayload);
     });
 
     connection.bind('state_change', (states: unknown) => {
-      console.info('[Reverb] State changed:', states);
+      // console.info('[Reverb] State changed:', states);
     });
   }
 

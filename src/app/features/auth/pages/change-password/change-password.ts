@@ -41,7 +41,7 @@ export class ChangePassword {
         { label: 'Al menos una letra mayúscula',             test: v => /[A-Z]/.test(v ?? '') },
         { label: 'Al menos una letra minúscula',             test: v => /[a-z]/.test(v ?? '') },
         { label: 'Al menos un número',                       test: v => /[0-9]/.test(v ?? '') },
-        { label: 'Al menos un carácter especial (!@#$%^&*)', test: v => /[!@#$%^&*]/.test(v ?? '') },
+        { label: 'Al menos un carácter especial (.!@#$%^&*)', test: v => /[.!@#$%^&*]/.test(v ?? '') },
     ];
 
     onSubmit(): void {
