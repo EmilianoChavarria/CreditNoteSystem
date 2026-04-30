@@ -8,6 +8,7 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/services/auth-service';
 import { ImpersonationService } from '../../core/services/impersonation.service';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { map } from 'rxjs';
 
 @Component({
   selector: 'app-profile',
@@ -42,11 +43,16 @@ export class Profile {
     confirmPassword: new FormControl<string>('', { nonNullable: true, validators: [Validators.required, Validators.minLength(6)] })
   });
 
-  readonly passwordsMatch = computed(() => {
-    const newPassword = this.changePasswordForm.get('newPassword')?.value ?? '';
-    const confirmPassword = this.changePasswordForm.get('confirmPassword')?.value ?? '';
-    return newPassword === confirmPassword && newPassword.length > 0;
-  });
+  readonly passwordsMatch = toSignal(
+    this.changePasswordForm.valueChanges.pipe(
+      map(({ newPassword, confirmPassword }) => !!newPassword && newPassword === confirmPassword)
+    ),
+    { initialValue: false }
+  );
+
+  readonly showCurrentPassword = signal(false);
+  readonly showNewPassword = signal(false);
+  readonly showConfirmPassword = signal(false);
 
   readonly initials = computed(() => {
     const fullName = this.profile()?.fullName?.trim() ?? '';
@@ -153,17 +159,19 @@ export class Profile {
       return;
     }
 
+    const { currentPassword, newPassword, confirmPassword } = this.changePasswordForm.getRawValue();
     this.isChangingPassword.set(true);
 
-    // TODO: Call UserService.changePassword()
-    // For now, just simulate
-    console.log('Change password submitted:', this.changePasswordForm.value);
-    
-    setTimeout(() => {
-      this.isChangingPassword.set(false);
-      this.passwordFormVisible.set(false);
-      this.changePasswordForm.reset();
-    }, 1500);
+    this.userService.changePassword(currentPassword, newPassword, confirmPassword).subscribe({
+      next: () => {
+        this.isChangingPassword.set(false);
+        this.passwordFormVisible.set(false);
+        this.changePasswordForm.reset();
+      },
+      error: () => {
+        this.isChangingPassword.set(false);
+      }
+    });
   }
 
 }

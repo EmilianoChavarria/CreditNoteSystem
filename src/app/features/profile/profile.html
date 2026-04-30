@@ -238,8 +238,12 @@
                     <div class="absolute left-0 top-0 h-full flex items-center px-3 text-[#ff8200]">
                         <lucide-icon name="lock" size="18"></lucide-icon>
                     </div>
-                    <input type="password" formControlName="currentPassword" placeholder="Ingresa tu contraseña actual"
-                        class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#ff8200] focus:ring-1 focus:ring-[#ff8200]" />
+                    <input [type]="showCurrentPassword() ? 'text' : 'password'" formControlName="currentPassword" placeholder="Ingresa tu contraseña actual"
+                        class="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#ff8200] focus:ring-1 focus:ring-[#ff8200]" />
+                    <button type="button" (click)="showCurrentPassword.set(!showCurrentPassword())"
+                        class="absolute right-0 top-0 h-full flex items-center px-3 text-gray-400 hover:text-gray-600">
+                        <lucide-icon [name]="showCurrentPassword() ? 'eye-off' : 'eye'" size="18"></lucide-icon>
+                    </button>
                 </div>
                 @if (changePasswordForm.get('currentPassword')?.invalid &&
                 changePasswordForm.get('currentPassword')?.touched) {
@@ -258,8 +262,12 @@
                         <div class="absolute left-0 top-0 h-full flex items-center px-3 text-[#ff8200]">
                             <lucide-icon name="lock" size="18"></lucide-icon>
                         </div>
-                        <input type="password" formControlName="newPassword" placeholder="Ingresa tu nueva contraseña"
-                            class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#ff8200] focus:ring-1 focus:ring-[#ff8200]" />
+                        <input [type]="showNewPassword() ? 'text' : 'password'" formControlName="newPassword" placeholder="Ingresa tu nueva contraseña"
+                            class="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#ff8200] focus:ring-1 focus:ring-[#ff8200]" />
+                        <button type="button" (click)="showNewPassword.set(!showNewPassword())"
+                            class="absolute right-0 top-0 h-full flex items-center px-3 text-gray-400 hover:text-gray-600">
+                            <lucide-icon [name]="showNewPassword() ? 'eye-off' : 'eye'" size="18"></lucide-icon>
+                        </button>
                     </div>
                     @if (changePasswordForm.get('newPassword')?.invalid &&
                     changePasswordForm.get('newPassword')?.touched) {
@@ -280,15 +288,19 @@
                             [class.text-red-500]="!passwordsMatch() && changePasswordForm.get('confirmPassword')?.touched">
                             <lucide-icon name="lock" size="18"></lucide-icon>
                         </div>
-                        <input type="password" formControlName="confirmPassword"
+                        <input [type]="showConfirmPassword() ? 'text' : 'password'" formControlName="confirmPassword"
                             placeholder="Confirma tu nueva contraseña"
-                            class="w-full pl-10 pr-4 py-2 border rounded-md focus:outline-none transition-all"
+                            class="w-full pl-10 pr-10 py-2 border rounded-md focus:outline-none transition-all"
                             [class.border-gray-300]="!changePasswordForm.get('confirmPassword')?.touched || passwordsMatch()"
                             [class.border-red-500]="!passwordsMatch() && changePasswordForm.get('confirmPassword')?.touched"
                             [class.focus:border-[#ff8200]]="passwordsMatch()" [class.focus:ring-1]="passwordsMatch()"
                             [class.focus:ring-[#ff8200]]="passwordsMatch()"
                             [class.focus:border-red-500]="!passwordsMatch() && changePasswordForm.get('confirmPassword')?.touched"
                             [class.focus:ring-red-500]="!passwordsMatch() && changePasswordForm.get('confirmPassword')?.touched" />
+                        <button type="button" (click)="showConfirmPassword.set(!showConfirmPassword())"
+                            class="absolute right-0 top-0 h-full flex items-center px-3 text-gray-400 hover:text-gray-600">
+                            <lucide-icon [name]="showConfirmPassword() ? 'eye-off' : 'eye'" size="18"></lucide-icon>
+                        </button>
                     </div>
                     @if (!passwordsMatch() && changePasswordForm.get('confirmPassword')?.touched) {
                     <span class="text-xs text-red-500 flex items-center gap-x-1">
