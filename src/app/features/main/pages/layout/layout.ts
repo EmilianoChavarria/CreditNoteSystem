@@ -2,12 +2,13 @@ import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signa
 import { Sidebar } from '../../../../shared/components/sidebar/sidebar';
 import { Navbar } from '../../../../shared/components/navbar/navbar';
 import { RouterOutlet } from '@angular/router';
-import { Footer } from '../../../../shared/components/footer/footer';
+
 import { ImpersonationService } from '../../../../core/services/impersonation.service';
 import { UserService } from '../../../../core/services/user-service';
 import { User } from '../../../../data/interfaces/User';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { catchError, of, switchMap } from 'rxjs';
+import { Footer } from '../../../auth/components/footer/footer';
 
 @Component({
     selector: 'app-layout',
