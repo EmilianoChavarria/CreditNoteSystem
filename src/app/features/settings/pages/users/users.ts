@@ -14,6 +14,7 @@ import { SecurityService } from '../../../../core/services/security-service';
 import { AutocompleteOption } from '../../../../shared/components/ui/autocomplete/autocomplete';
 import { CustomerService } from '../../../../core/services/customer-service';
 import { UserFormModalComponent } from './components/user-form-modal/user-form-modal';
+import { ResetPasswordModal } from './components/reset-password-modal/reset-password-modal';
 import { BatchService } from '../../../../core/services/batch-service';
 import { Router } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
@@ -28,7 +29,7 @@ interface UserData {
     selector: 'app-users',
     templateUrl: './users.html',
     styleUrl: './users.css',
-    imports: [Table, Modal, Badge, TranslatePipe, UserFormModalComponent, LucideAngularModule],
+    imports: [Table, Modal, Badge, TranslatePipe, UserFormModalComponent, ResetPasswordModal, LucideAngularModule],
 })
 export class Users implements OnInit {
     toastr = inject(ToastrService);
@@ -42,6 +43,8 @@ export class Users implements OnInit {
     public isLoadingTable = signal<boolean>(true);
     public showDeleteModal = signal<boolean>(false);
     public selectedUserToDelete = signal<User | null>(null);
+    public showResetPasswordModal = signal<boolean>(false);
+    public selectedUserForReset = signal<User | null>(null);
     public showBulkUploadModal = signal<boolean>(false);
     public isBulkUploading = signal<boolean>(false);
     public bulkUploadFile = signal<File | null>(null);
@@ -136,8 +139,16 @@ export class Users implements OnInit {
         }
     ];
 
-    resetPassword(user: User) {
-        console.log('Reset', user.fullName);
+    resetPassword(user: User): void {
+        this.selectedUserForReset.set(user);
+        this.showResetPasswordModal.set(true);
+    }
+
+    onResetPasswordModalChange(isOpen: boolean): void {
+        this.showResetPasswordModal.set(isOpen);
+        if (!isOpen) {
+            this.selectedUserForReset.set(null);
+        }
     }
 
     toggleUser(user: User) {
