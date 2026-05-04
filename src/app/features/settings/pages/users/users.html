@@ -25,6 +25,12 @@
         </ng-template>
     </app-tabla-dinamica>
 
+    <app-reset-password-modal
+        [open]="showResetPasswordModal()"
+        [user]="selectedUserForReset()"
+        (openChange)="onResetPasswordModalChange($event)">
+    </app-reset-password-modal>
+
     <app-user-form-modal
         [open]="showUserModal()"
         [isEditMode]="isEditMode()"
