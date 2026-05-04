@@ -5,6 +5,7 @@ import { Classification, Reason, Request, RequestType } from '../../data/interfa
 import { ApiResponse } from '../../data/interfaces/ApiResponse-interface';
 import { CursorPagination } from './user-service';
 import { HttpClient } from '@angular/common/http';
+import { runtimeConfig } from '../config/runtime-config';
 import {
   ApproveMassResponse,
   MassActionRequestPayload,
@@ -274,13 +275,17 @@ export class RequestService {
     )
   }
 
-  saveRequest(object: any): Observable<ApiResponse<Request | null>> {
-    return this._httpService.post<Request>('/requests/newRequest', object).pipe(
+  saveRequest(formData: FormData): Observable<ApiResponse<Request | null>> {
+    return this.http.post<ApiResponse<Request | null>>(
+      `${runtimeConfig.apiBaseUrl}/requests/newRequest`,
+      formData,
+      { withCredentials: true }
+    ).pipe(
       catchError((error) => {
         console.log(error);
         throw error;
       })
-    )
+    );
   }
 
   linkReturnOrderToRequest(payload: ReturnOrderRequestLinkPayload): Observable<ApiResponse<unknown>> {
@@ -292,13 +297,18 @@ export class RequestService {
     );
   }
 
-  updateRequest(requestId: number, object: any): Observable<ApiResponse<Request | null>> {
-    return this._httpService.put<Request>(`/requests/${requestId}`, object).pipe(
+  updateRequest(requestId: number, formData: FormData): Observable<ApiResponse<Request | null>> {
+    formData.append('_method', 'PUT');
+    return this.http.post<ApiResponse<Request | null>>(
+      `${runtimeConfig.apiBaseUrl}/requests/${requestId}`,
+      formData,
+      { withCredentials: true }
+    ).pipe(
       catchError((error) => {
         console.log(error);
         throw error;
       })
-    )
+    );
   }
 
   saveDraft(object: any): Observable<ApiResponse<Request | null>> {
