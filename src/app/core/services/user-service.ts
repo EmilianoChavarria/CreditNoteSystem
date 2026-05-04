@@ -100,6 +100,15 @@ export class UserService {
     return this._httpService.patch<null>('/users/me/password', { currentPassword, newPassword, newPassword_confirmation });
   }
 
+  resetUserPassword(userId: number, newPassword: string, newPassword_confirmation: string): Observable<ApiResponse<null>> {
+    return this._httpService.patch<null>(`/users/${userId}/password`, { newPassword, newPassword_confirmation }).pipe(
+      catchError((error) => {
+        console.log(error);
+        throw error;
+      })
+    );
+  }
+
   saveUser(user: Partial<User>) {
     return this._httpService.post('/auth/register', user).pipe(
       tap(() => {
