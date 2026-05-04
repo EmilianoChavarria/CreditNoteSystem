@@ -42,6 +42,7 @@ export interface Request {
     reason: Reason;
     classification: Classification;
     workflowCurrentStep: WorkflowCurrentStep
+    attachments?: RequestAttachments;
 }
 
 export interface WorkflowStep {
@@ -92,4 +93,22 @@ export interface Classification {
     id: number;
     code: string;
     name: string;
+}
+
+export interface RequestAttachment {
+    id: number;
+    requestId: number;
+    fileName: string;
+    filePath: string;
+    fileExtension: string;
+    fileSize: number;
+    fileType: string;
+    isActive: boolean;
+    createdAt: string;
+    deletedAt: string | null;
+}
+
+export interface RequestAttachments {
+    sapScreen?: RequestAttachment[];
+    uploadSupport?: RequestAttachment[];
 }

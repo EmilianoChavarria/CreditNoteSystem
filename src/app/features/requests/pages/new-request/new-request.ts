@@ -77,6 +77,7 @@ export class NewRequest implements OnInit {
         const editRequest = navigationState?.editRequest ?? browserState?.editRequest;
 
         if (editRequest) {
+            console.log(editRequest);
             this.editingRequestData.set(editRequest);
 
             if ((this.selectedRequestTypeId === null || this.selectedRequestType === '') && Number(editRequest.requestTypeId) > 0) {

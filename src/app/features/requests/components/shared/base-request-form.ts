@@ -2,7 +2,7 @@ import { Directive, inject, Input, OnChanges, OnDestroy, OnInit, signal, SimpleC
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { forkJoin, map, Observable, of, Subscription, switchMap, take } from 'rxjs';
-import { Classification, Customer, Reason, Request } from '../../../../data/interfaces/Request';
+import { Classification, Customer, Reason, Request, RequestAttachment } from '../../../../data/interfaces/Request';
 import { ApiResponse } from '../../../../data/interfaces/ApiResponse-interface';
 import { RequestService } from '../../../../core/services/request-service';
 import { CustomerService } from '../../../../core/services/customer-service';
@@ -44,6 +44,9 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
   public isLoadingInitialData = signal<boolean>(false);
   public selectedCustomer = signal<Customer | null>(null);
   public selectedSupportFiles = signal<File[]>([]);
+  public selectedSapScreenFiles = signal<File[]>([]);
+  public existingSapScreenFiles = signal<RequestAttachment[]>([]);
+  public existingUploadSupportFiles = signal<RequestAttachment[]>([]);
 
   private subscriptions: Subscription[] = [];
   private amountSubscription: Subscription | null = null;
@@ -113,6 +116,10 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
     if (!this.initialRequestData) {
       return;
     }
+
+    const attachments = (this.initialRequestData as any)?.attachments;
+    this.existingSapScreenFiles.set(attachments?.sapScreen ?? []);
+    this.existingUploadSupportFiles.set(attachments?.uploadSupport ?? []);
 
     const patchValue: Record<string, unknown> = {};
     const requestDataEntries = Object.entries(this.initialRequestData as Record<string, unknown>);
@@ -594,6 +601,14 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
     return 'Error en el campo';
   }
 
+  onSapScreenChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const files = Array.from(input.files ?? []);
+    this.selectedSapScreenFiles.set(files);
+    this.form.get('sapScreen')?.setValue(files[0] ?? null);
+    this.form.get('sapScreen')?.markAsTouched();
+  }
+
   onAttachSupportsChange(event: Event): void {
     const input = event.target as HTMLInputElement;
     const files = Array.from(input.files ?? []);
@@ -648,6 +663,17 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
     return `${(kilobytes / 1024).toFixed(2)} MB`;
   }
 
+  private buildFormData(payload: Record<string, any>): FormData {
+    const formData = new FormData();
+    for (const [key, value] of Object.entries(payload)) {
+      if (value === null || value === undefined) {
+        continue;
+      }
+      formData.append(key, typeof value === 'boolean' ? (value ? '1' : '0') : String(value));
+    }
+    return formData;
+  }
+
   saveRequest(): void {
     this.submitted.set(true);
     this.logFormValidationState();
@@ -693,10 +719,14 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
     delete payload.attachSupports;
     delete payload.reviewComments;
 
+    const formData = this.buildFormData(payload);
+    this.selectedSapScreenFiles().forEach(file => formData.append('sapScreen[]', file));
+    this.selectedSupportFiles().forEach(file => formData.append('uploadSupport[]', file));
+
     const editingRequestId = this.resolveEditingRequestId();
     const request$ = editingRequestId !== null
-      ? this._requestService.updateRequest(editingRequestId, payload)
-      : this._requestService.saveRequest(payload);
+      ? this._requestService.updateRequest(editingRequestId, formData)
+      : this._requestService.saveRequest(formData);
 
     request$.pipe(
       take(1),
