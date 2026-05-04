@@ -2,7 +2,7 @@ import { Directive, inject, Input, OnChanges, OnDestroy, OnInit, signal, SimpleC
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { forkJoin, map, Observable, of, Subscription, switchMap, take } from 'rxjs';
-import { Classification, Customer, Reason, Request } from '../../../../data/interfaces/Request';
+import { Classification, Customer, Reason, Request, RequestAttachment } from '../../../../data/interfaces/Request';
 import { ApiResponse } from '../../../../data/interfaces/ApiResponse-interface';
 import { RequestService } from '../../../../core/services/request-service';
 import { CustomerService } from '../../../../core/services/customer-service';
@@ -44,6 +44,8 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
   public isLoadingInitialData = signal<boolean>(false);
   public selectedCustomer = signal<Customer | null>(null);
   public selectedSupportFiles = signal<File[]>([]);
+  public existingSapScreenFiles = signal<RequestAttachment[]>([]);
+  public existingUploadSupportFiles = signal<RequestAttachment[]>([]);
 
   private subscriptions: Subscription[] = [];
   private amountSubscription: Subscription | null = null;
@@ -113,6 +115,10 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
     if (!this.initialRequestData) {
       return;
     }
+
+    const attachments = (this.initialRequestData as any)?.attachments;
+    this.existingSapScreenFiles.set(attachments?.sapScreen ?? []);
+    this.existingUploadSupportFiles.set(attachments?.uploadSupport ?? []);
 
     const patchValue: Record<string, unknown> = {};
     const requestDataEntries = Object.entries(this.initialRequestData as Record<string, unknown>);
