@@ -416,12 +416,12 @@ export class CustomerService {
       );
   }
 
-  downloadInvoiceXml(id: string): Observable<Blob> {
+  downloadInvoiceFile(id: string, type: 'xml' | 'pdf'): Observable<Blob> {
     const normalizedId = id.trim();
     if (!normalizedId) {
       return throwError(() => new Error('ID de factura requerido'));
     }
-    return this._httpService.getBlob(`/invoices/${encodeURIComponent(normalizedId)}/xml`);
+    return this._httpService.getBlob(`/invoices/fesa/test/${type}?idTransaccion=${encodeURIComponent(normalizedId)}`);
   }
 
   getInvoiceProductHistory(
