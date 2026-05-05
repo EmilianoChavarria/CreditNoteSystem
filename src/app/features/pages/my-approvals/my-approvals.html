@@ -158,4 +158,11 @@
     <app-request-info-modal [open]="showInfoModal()" [request]="selectedRequestForInfo()"
         (openChange)="onInfoModalChange($event)">
     </app-request-info-modal>
+
+    <app-approve-confirm-modal
+        [open]="showApproveModal()"
+        [request]="requestToApprove()"
+        (openChange)="showApproveModal.set($event)"
+        (confirmed)="onApproveConfirmed()">
+    </app-approve-confirm-modal>
 </div>
