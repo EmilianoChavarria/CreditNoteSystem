@@ -424,6 +424,8 @@
     "CLEAR_SELECTION": "Clear selection",
     "BULK_APPROVE": "Bulk approve",
     "BULK_REJECT": "Bulk reject",
+    "APPROVE_MODAL_TITLE": "Confirm approval",
+    "APPROVE_MODAL_BODY": "Are you sure you want to approve request {{requestNumber}}?",
     "BULK_APPROVE_MODAL_TITLE": "Confirm bulk approval",
     "BULK_APPROVE_CONFIRM": "{{count}} selected requests will be approved.",
     "BULK_REJECT_MODAL_TITLE": "Confirm bulk rejection",
