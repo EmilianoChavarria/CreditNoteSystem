@@ -29,7 +29,7 @@
 
       @if (!isLast) {
         <div class="relative flex items-center w-12 justify-center">
-          <div class="h-[2px] w-full bg-slate-300"></div>
+          <div class="h-0.5 w-full bg-slate-300"></div>
 
           <button type="button"
             (click)="addStepBetween.emit({ workflow: workflow(), stepNumber: step.stepNumber })"
@@ -38,10 +38,16 @@
           </button>
 
           <div
-            class="absolute right-0 translate-x-[2px] w-0 h-0 border-y-[4px] border-y-transparent border-l-[6px] border-l-slate-300">
+            class="absolute right-0 translate-x-0.5 w-0 h-0 border-y-4 border-y-transparent border-l-[6px] border-l-slate-300">
           </div>
         </div>
       }
+    </div>
+  } @empty {
+    <div class="flex flex-col items-center justify-center w-full py-8 text-slate-400 gap-y-1">
+      <lucide-icon name="git-branch" size="28" class="opacity-40"></lucide-icon>
+      <p class="text-sm font-medium">Sin pasos configurados</p>
+      <p class="text-xs">Agrega un paso para comenzar el flujo</p>
     </div>
   }
 </div>

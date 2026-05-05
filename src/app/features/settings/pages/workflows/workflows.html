@@ -35,6 +35,11 @@
                             (editStep)="onEditStep($event)"
                             (deleteStep)="onDeleteStep($event)" />
                     </accordeon-item>
+                } @empty {
+                    <div class="flex flex-col items-center justify-center py-16 text-gray-400 gap-y-2">
+                        <p class="text-base font-medium">{{'WORKFLOWS_MANAGE.NO_WORKFLOWS' | translate}}</p>
+                        <p class="text-sm">{{'WORKFLOWS_MANAGE.NO_WORKFLOWS_HINT' | translate}}</p>
+                    </div>
                 }
             </accordeon-container>
         }

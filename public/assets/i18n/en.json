@@ -136,7 +136,8 @@
   },
   "WORKFLOWS_MANAGE": {
     "TITLE": "Approval Flows",
-    "DESCRIPTION": "Each type of note follows a sequential approval workflow. The note moves from one role to the next until it is released."
+    "DESCRIPTION": "Each type of note follows a sequential approval workflow. The note moves from one role to the next until it is released.",
+    "NO_WORKFLOWS": "No approval workflows have been created"
   },
   "WORKFLOWS_STEP_MODAL": {
     "TITLE_ADD": "Add Step",

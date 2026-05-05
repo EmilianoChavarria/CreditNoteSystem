@@ -136,7 +136,8 @@
   },
   "WORKFLOWS_MANAGE": {
     "TITLE": "Flujos de Aprobación",
-    "DESCRIPTION": "Cada tipo de nota sigue un flujo secuencial de aprobación. La nota avanza de un rol al siguiente hasta ser liberada."
+    "DESCRIPTION": "Cada tipo de nota sigue un flujo secuencial de aprobación. La nota avanza de un rol al siguiente hasta ser liberada.",
+    "NO_WORKFLOWS": "No se han creado flujos de aprobación"
   },
   "WORKFLOWS_STEP_MODAL": {
     "TITLE_ADD": "Agregar Paso",
