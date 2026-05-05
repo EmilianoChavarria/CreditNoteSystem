@@ -1,0 +1,47 @@
+<div class="flex items-center justify-between">
+  <div class="flex flex-row text-gray-600">
+    <button type="button"
+      class="hover:text-yellow-600 hover:bg-yellow-100 p-2 transition rounded-md hover:cursor-pointer">
+      <lucide-icon name="pencil" size="18"></lucide-icon>
+    </button>
+    <button type="button"
+      class="hover:text-red-500 hover:bg-red-200 p-2 transition rounded-md hover:cursor-pointer">
+      <lucide-icon name="trash" size="18"></lucide-icon>
+    </button>
+  </div>
+
+  <button type="button" (click)="addStep.emit(workflow())"
+    class="flex items-center justify-center bg-[#ff8200] rounded-md text-white px-3 py-1.5 gap-x-2 hover:cursor-pointer hover:bg-[#fd9628]">
+    <lucide-icon name="plus" size="16"></lucide-icon>
+    Agregar paso
+  </button>
+</div>
+
+<div
+  class="mt-4 flex flex-wrap items-start gap-y-10 p-6 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
+  @for (step of steps(); track step.stepNumber; let isLast = $last) {
+    <div class="flex items-center">
+      <app-workflow-step-card
+        [step]="step"
+        [isDeleting]="deletingStepIds().has(step.id)"
+        (editRequest)="editStep.emit({ workflow: workflow(), step })"
+        (deleteRequest)="deleteStep.emit({ workflow: workflow(), step })" />
+
+      @if (!isLast) {
+        <div class="relative flex items-center w-12 justify-center">
+          <div class="h-[2px] w-full bg-slate-300"></div>
+
+          <button type="button"
+            (click)="addStepBetween.emit({ workflow: workflow(), stepNumber: step.stepNumber })"
+            class="absolute z-10 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-white text-slate-400 shadow-sm transition-all hover:scale-125 hover:bg-[#ff8200] hover:text-white">
+            <lucide-icon name="plus" size="12"></lucide-icon>
+          </button>
+
+          <div
+            class="absolute right-0 translate-x-[2px] w-0 h-0 border-y-[4px] border-y-transparent border-l-[6px] border-l-slate-300">
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
