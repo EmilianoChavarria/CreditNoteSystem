@@ -1,87 +1,58 @@
 import { Routes } from '@angular/router';
-import { Dashboard } from './features/dashboard/pages/dashboard/dashboard';
-import { Layout } from './features/main/pages/layout/layout';
 import { AuthGuard } from './core/guards/auth.guard';
 import { LoginGuard } from './core/guards/login.guard';
-import { NewRequest } from './features/requests/pages/new-request/new-request';
-import { Drafts } from './features/requests/pages/drafts/drafts';
-import { BulkUpload } from './features/requests/pages/bulk-upload/bulk-upload';
-import { Pending } from './features/pending/pending';
-import { Notifications } from './features/notifications/notifications';
-import { History } from './features/history/history';
-import { Customers } from './features/settings/pages/customers/customers';
-import { Roles } from './features/settings/pages/roles/roles';
-import { SysConfig } from './features/settings/pages/sys-config/sys-config';
-import { SecurityManage } from './features/settings/pages/security-manage/security-manage';
-import { Users } from './features/settings/pages/users/users';
-import { NewCustomer } from './features/settings/pages/customers/new-customer/new-customer';
-import { NotFound } from './features/not-found/not-found';
-import { Workflows } from './features/settings/pages/workflows/workflows';
-import { MyApprovals } from './features/pages/my-approvals/my-approvals';
-import { Clients } from './features/clients/clients';
-import { ClientOrders } from './features/clients/client-orders';
-import { MyInvoices } from './features/clients/my-invoices/my-invoices';
-import { ManageRoles } from './features/settings/pages/roles/pages/manage-roles/manage-roles';
-import { ReturnOrdersApproval } from './features/approvals/return-orders-approval/return-orders-approval';
 import { ActionGuard } from './core/guards/action.guard';
-import { Profile } from './features/profile/profile';
-import { AssignUser } from './features/settings/pages/assign-user/assign-user';
 
 
 export const routes: Routes = [
-  { 
-    path: 'auth', 
-    // Si AuthModule sigue siendo un módulo, se deja así. 
-    // Si lo conviertes a standalone, usarías: loadComponent o loadChildren con un archivo de rutas.
+  {
+    path: 'auth',
     loadChildren: () => import('./features/auth/auth.routes').then(m => m.routes),
-    canActivate: [LoginGuard] 
+    canActivate: [LoginGuard]
   },
   {
     path: 'app',
-    component: Layout,
-    canActivate: [AuthGuard], 
+    loadComponent: () => import('./features/main/pages/layout/layout').then(m => m.Layout),
+    canActivate: [AuthGuard],
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-      { path: 'dashboard', component: Dashboard },
+      { path: 'dashboard', loadComponent: () => import('./features/dashboard/pages/dashboard/dashboard').then(m => m.Dashboard) },
       {
         path: 'request/new-request',
-        component: NewRequest,
+        loadComponent: () => import('./features/requests/pages/new-request/new-request').then(m => m.NewRequest),
         canActivate: [ActionGuard]
-        // data: { requiredAction: 'new_request' }
       },
       {
         path: 'request/drafts',
-        component: Drafts,
+        loadComponent: () => import('./features/requests/pages/drafts/drafts').then(m => m.Drafts),
         canActivate: [ActionGuard],
-        // data: { requiredAction: 'drafts' }
       },
       {
         path: 'request/bulk-upload',
-        component: BulkUpload,
+        loadComponent: () => import('./features/requests/pages/bulk-upload/bulk-upload').then(m => m.BulkUpload),
         canActivate: [ActionGuard],
-        // data: { requiredAction: 'bulk_load' }
       },
-      { path: 'my-approvals', component: MyApprovals },
-      { path: 'my-profile', component: Profile },
-      { path: 'approvals/return-orders', component: ReturnOrdersApproval },
-      { path: 'clients', component: Clients },
-      { path: 'clients/orders', component: ClientOrders },
-      { path: 'clients/my-invoices', component: MyInvoices },
-      { path: 'pending', component: Pending },
-      { path: 'history', component: History },
-      { path: 'notifications', component: Notifications },
-      { path: 'settings/users', component: Users},
+      { path: 'my-approvals', loadComponent: () => import('./features/pages/my-approvals/my-approvals').then(m => m.MyApprovals) },
+      { path: 'my-profile', loadComponent: () => import('./features/profile/profile').then(m => m.Profile) },
+      { path: 'approvals/return-orders', loadComponent: () => import('./features/approvals/return-orders-approval/return-orders-approval').then(m => m.ReturnOrdersApproval) },
+      { path: 'clients', loadComponent: () => import('./features/clients/clients').then(m => m.Clients) },
+      { path: 'clients/orders', loadComponent: () => import('./features/clients/client-orders').then(m => m.ClientOrders) },
+      { path: 'clients/my-invoices', loadComponent: () => import('./features/clients/my-invoices/my-invoices').then(m => m.MyInvoices) },
+      { path: 'pending', loadComponent: () => import('./features/pending/pending').then(m => m.Pending) },
+      { path: 'history', loadComponent: () => import('./features/history/history').then(m => m.History) },
+      { path: 'notifications', loadComponent: () => import('./features/notifications/notifications').then(m => m.Notifications) },
+      { path: 'settings/users', loadComponent: () => import('./features/settings/pages/users/users').then(m => m.Users) },
       { path: 'settings/newUser', redirectTo: 'settings/users', pathMatch: 'full' },
-      { path: 'settings/newCustomer', component: NewCustomer},
-      { path: 'settings/customers', component: Customers },
-      { path: 'settings/roles', component: Roles },
-      { path: 'settings/roles/manage-permissions', component: ManageRoles },
-      { path: 'settings/system-configuration', component: SysConfig },
-      { path: 'settings/security-management', component: SecurityManage },
-      { path: 'settings/workflows', component: Workflows },
-      { path: 'settings/assign-user', component: AssignUser },
-      { path: '404', component: NotFound },
-      { path: '**', component: NotFound },
+      { path: 'settings/newCustomer', loadComponent: () => import('./features/settings/pages/customers/new-customer/new-customer').then(m => m.NewCustomer) },
+      { path: 'settings/customers', loadComponent: () => import('./features/settings/pages/customers/customers').then(m => m.Customers) },
+      { path: 'settings/roles', loadComponent: () => import('./features/settings/pages/roles/roles').then(m => m.Roles) },
+      { path: 'settings/roles/manage-permissions', loadComponent: () => import('./features/settings/pages/roles/pages/manage-roles/manage-roles').then(m => m.ManageRoles) },
+      { path: 'settings/system-configuration', loadComponent: () => import('./features/settings/pages/sys-config/sys-config').then(m => m.SysConfig) },
+      { path: 'settings/security-management', loadComponent: () => import('./features/settings/pages/security-manage/security-manage').then(m => m.SecurityManage) },
+      { path: 'settings/workflows', loadComponent: () => import('./features/settings/pages/workflows/workflows').then(m => m.Workflows) },
+      { path: 'settings/assign-user', loadComponent: () => import('./features/settings/pages/assign-user/assign-user').then(m => m.AssignUser) },
+      { path: '404', loadComponent: () => import('./features/not-found/not-found').then(m => m.NotFound) },
+      { path: '**', loadComponent: () => import('./features/not-found/not-found').then(m => m.NotFound) },
     ]
   },
   { path: '', redirectTo: 'auth', pathMatch: 'full' },
