@@ -1,0 +1,12 @@
+<app-modal
+  size="sm"
+  [titleM]="'MY_APPROVALS.APPROVE_MODAL_TITLE' | translate"
+  [open]="open()"
+  [closeText]="'MY_APPROVALS.CANCEL' | translate"
+  [primaryText]="'MY_APPROVALS.APPROVE' | translate"
+  (openChange)="openChange.emit($event)"
+  (primaryAction)="confirmed.emit()">
+
+  <p class="text-sm text-gray-600">{{ 'MY_APPROVALS.APPROVE_MODAL_BODY' | translate : { requestNumber: request()?.requestNumber } }}</p>
+
+</app-modal>
