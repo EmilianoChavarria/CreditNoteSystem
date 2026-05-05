@@ -1,24 +1,25 @@
 @if (open()) {
   <div
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-3 sm:p-4"
     role="dialog"
     aria-modal="true"
-    (click)="onBackdropClick($event)"
+    (pointerdown)="onBackdropPointerDown($event)"
+    (pointerup)="onBackdropPointerUp($event)"
   >
     <section
       class="w-full overflow-hidden rounded-lg bg-white shadow-xl"
       [class]="sizeClasses()"
     >
-      <header class="px-5 py-4">
+      <header class="px-4 py-4 sm:px-5">
         <h2 [id]="titleId" class="text-lg font-semibold text-slate-900">{{ titleM() }}</h2>
         <ng-content select="[modal-title]"></ng-content>
       </header>
 
-      <div class="max-h-[70vh] overflow-auto px-5 py-4">
+      <div class="max-h-[72vh] sm:max-h-[70vh] overflow-auto px-4 py-4 sm:px-5">
         <ng-content></ng-content>
       </div>
 
-      <footer class="flex flex-wrap items-center justify-end gap-2  px-5 py-3">
+      <footer class="flex flex-wrap items-center justify-end gap-2 px-4 py-3 sm:px-5">
         <ng-content select="[modal-actions]"></ng-content>
 
         @if (showCloseButton()) {

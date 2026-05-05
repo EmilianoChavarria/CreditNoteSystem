@@ -1,3 +1,9 @@
+:host {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
 .autocomplete-wrapper {
   position: relative;
   width: 100%;
@@ -9,4 +15,10 @@ input {
 
 input:focus {
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+@media (max-width: 640px) {
+  .autocomplete-wrapper {
+    min-width: 0;
+  }
 }

@@ -1,5 +1,6 @@
-<app-modal size="lg" [titleM]="modalTitle()" [open]="open()" closeText="Cancelar" primaryText="Guardar"
-    (openChange)="openChange.emit($event)" (primaryAction)="primaryAction.emit()">
+<app-modal size="xl" [titleM]="modalTitle() | translate" [open]="open()" [closeText]="'COMMON.CANCEL' | translate"
+    [primaryText]="'COMMON.SAVE' | translate" (openChange)="openChange.emit($event)"
+    (primaryAction)="primaryAction.emit()">
 
     @if (isLoading()) {
     <div class="flex items-center justify-center py-16">
@@ -9,17 +10,19 @@
     <form [formGroup]="stepForm()" class="flex flex-col gap-5">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-                <label class="block font-medium text-[#2f3042] text-lg">Número de paso</label>
-                <input type="number" formControlName="stepOrder" min="1"
+                <label class="block font-medium text-[#2f3042] text-lg">{{ 'WORKFLOWS_STEP_MODAL.STEP_NUMBER' |
+                    translate }}</label>
+                <input type="number" formControlName="stepOrder" min="1" [disabled]="isStepNumberLocked()"
                     class="mt-2 w-full border border-gray-300 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Ej: 1">
+                    [placeholder]="'WORKFLOWS_STEP_MODAL.STEP_NUMBER_PLACEHOLDER' | translate">
             </div>
 
             <div>
-                <label class="block font-medium text-[#2f3042] text-lg">Rol</label>
+                <label class="block font-medium text-[#2f3042] text-lg">{{ 'WORKFLOWS_STEP_MODAL.ROLE' | translate
+                    }}</label>
                 <select formControlName="roleId"
                     class="mt-2 w-full border border-gray-300 rounded-md p-2 bg-white focus:ring-blue-500 focus:border-blue-500">
-                    <option [ngValue]="null" disabled>Selecciona un rol</option>
+                    <option [ngValue]="null" disabled>{{ 'WORKFLOWS_STEP_MODAL.SELECT_ROLE' | translate }}</option>
                     @for (role of availableRoles(); track role.id) {
                     <option [ngValue]="role.id">{{ role.roleName }}</option>
                     }
@@ -29,65 +32,122 @@
 
         <div class="border-t border-gray-300 pt-4">
             <div class="flex items-center justify-between mb-4">
-                <label class="block font-medium text-[#2f3042] text-lg">Condiciones especiales</label>
+                <label class="block font-medium text-[#2f3042] text-lg">{{ 'WORKFLOWS_STEP_MODAL.SPECIAL_CONDITIONS' |
+                    translate }}</label>
                 <button type="button" (click)="addTransition()"
                     class="flex items-center gap-1 bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600">
                     <lucide-icon name="plus" size="16"></lucide-icon>
-                    Agregar condición
+                    {{ 'WORKFLOWS_STEP_MODAL.ADD_CONDITION' | translate }}
                 </button>
+            </div>
+
+            <div
+                class="bg-blue-50 border border-blue-100 rounded-lg p-3 flex flex-row gap-3 text-sm text-blue-800 mb-4">
+                <lucide-icon name="info" size="16" />
+                <span>
+                    {{ 'WORKFLOWS_STEP_MODAL.HELP.LINE_1' | translate }}
+                    <strong>{{ 'WORKFLOWS_STEP_MODAL.HELP.HIGHLIGHT' | translate }}</strong>,
+                    {{ 'WORKFLOWS_STEP_MODAL.HELP.LINE_2' | translate }}
+                    {{ 'WORKFLOWS_STEP_MODAL.HELP.LINE_3' | translate }}
+                </span>
             </div>
 
             @if (transitions().length > 0) {
             <div class="space-y-3">
                 @for (transition of transitions(); track $index; let idx = $index) {
                 <div class="border border-gray-300 rounded-md p-3 space-y-3">
-                    <div class="grid grid-cols-2 gap-3">
+                    <div class="grid grid-cols-3 gap-3">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Campo</label>
-                            <input type="text" placeholder="ej: totalAmount" [(ngModel)]="transition.conditionField"
-                                [ngModelOptions]="{standalone: true}"
-                                class="w-full border border-gray-300 rounded-md p-2 text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Operador</label>
-                            <select [(ngModel)]="transition.conditionOperator" [ngModelOptions]="{standalone: true}"
+                            <label
+                                class="block text-sm font-medium text-gray-700 mb-1">{{'WORKFLOWS_STEP_MODAL.FIELD' | translate}}</label>
+                            <select [(ngModel)]="transition.conditionField" [ngModelOptions]="{standalone: true}"
                                 class="w-full border border-gray-300 rounded-md p-2 text-sm bg-white">
-                                <option value="">Selecciona operador</option>
-                                @for (op of operatorOptions; track op.value) {
-                                <option [value]="op.label">{{ op.value }}</option>
+                                <option value="" disabled>{{'WORKFLOWS_STEP_MODAL.FIELD_PLACEHOLDER' | translate}}</option>
+                                @for (field of conditionFieldOptions; track field.value) {
+                                <option [value]="field.value">{{ field.label }}</option>
                                 }
                             </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{
+                                'WORKFLOWS_STEP_MODAL.OPERATOR' | translate }}</label>
+                            <select [(ngModel)]="transition.conditionOperator" [ngModelOptions]="{standalone: true}"
+                                class="w-full border border-gray-300 rounded-md p-2 text-sm bg-white">
+                                <option value="">{{ 'WORKFLOWS_STEP_MODAL.SELECT_OPERATOR' | translate }}</option>
+                                @for (op of operatorOptions; track op.value) {
+                                <option [value]="op.label">{{ op.value | translate }}</option>
+                                }
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ 'WORKFLOWS_STEP_MODAL.VALUE'
+                                | translate }}</label>
+                            <input type="text" [placeholder]="'WORKFLOWS_STEP_MODAL.VALUE_PLACEHOLDER' | translate"
+                                [(ngModel)]="transition.conditionValue" [ngModelOptions]="{standalone: true}"
+                                class="w-full border border-gray-300 rounded-md p-2 text-sm">
                         </div>
                     </div>
                     <div class="grid grid-cols-2 gap-3">
 
+
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Valor</label>
-                            <input type="text" placeholder="ej: 1000" [(ngModel)]="transition.conditionValue"
-                                [ngModelOptions]="{standalone: true}"
-                                class="w-full border border-gray-300 rounded-md p-2 text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Paso destino</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{
+                                'WORKFLOWS_STEP_MODAL.DESTINATION_STEP' | translate }}</label>
                             <select [(ngModel)]="transition.toStepId" [ngModelOptions]="{standalone: true}"
                                 class="w-full border border-gray-300 rounded-md p-2 text-sm bg-white">
-                                <option [ngValue]="null">Selecciona un paso</option>
+                                <option [ngValue]="null">{{ 'WORKFLOWS_STEP_MODAL.SELECT_STEP' | translate }}</option>
                                 @for (step of availableSteps(); track step.id) {
-                                <option [ngValue]="step.id">{{ step.stepName }} (Paso {{ step.stepOrder }})</option>
+                                <option [ngValue]="step.id">{{ step.stepName }} ({{ 'WORKFLOWS_STEP_MODAL.STEP_LABEL' |
+                                    translate }} {{ step.stepOrder }})</option>
                                 }
                             </select>
                         </div>
-                    </div>
-                    <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Prioridad</label>
-                            <input type="number" placeholder="1" [(ngModel)]="transition.priority"
-                                [ngModelOptions]="{standalone: true}"
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{
+                                'WORKFLOWS_STEP_MODAL.PRIORITY' | translate }}</label>
+                            <input type="number" [placeholder]="'WORKFLOWS_STEP_MODAL.PRIORITY_PLACEHOLDER' | translate"
+                                [(ngModel)]="transition.priority" [ngModelOptions]="{standalone: true}"
                                 class="w-full border border-gray-300 rounded-md p-2 text-sm" min="1">
                         </div>
                     </div>
+
+                    @let destinationStep = getStepById(transition.toStepId);
+                    @let currentStepNumber = getCurrentStepNumber();
+                    <div class="rounded-xl border border-lime-100 bg-[#f4f8f3] p-3">
+                        <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                            <div class="flex min-w-20 flex-col items-center text-center">
+                                <div
+                                    class="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-200 text-lg font-extrabold text-amber-700">
+                                    {{ currentStepNumber ?? '-' }}
+                                </div>
+                                <span class="mt-1 text-sm text-slate-600">{{ 'WORKFLOWS_STEP_MODAL.VISUAL.CURRENT_STEP'
+                                    |
+                                    translate }}</span>
+                            </div>
+
+                            <div class="flex items-center gap-2 text-green-600">
+                                <span
+                                    class="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-1 text-sm text-slate-800 shadow-sm">
+                                    <lucide-icon name="zap" size="14" class="text-amber-500"></lucide-icon>
+                                    {{ 'WORKFLOWS_STEP_MODAL.VISUAL.CONDITIONAL_JUMP' | translate }}
+                                </span>
+                                <lucide-icon name="arrow-right" size="18"></lucide-icon>
+                            </div>
+
+                            <div class="flex min-w-36 flex-col items-center text-center md:items-end md:text-right">
+                                <div
+                                    class="flex h-10 w-10 items-center justify-center rounded-xl bg-green-200 text-lg font-extrabold text-green-700">
+                                    {{ destinationStep?.stepOrder ?? '?' }}
+                                </div>
+                                <span class="mt-1 text-sm text-slate-600">{{ destinationStep?.stepName ||
+                                    ('WORKFLOWS_STEP_MODAL.VISUAL.SELECT_DESTINATION' | translate) }}</span>
+                            </div>
+                        </div>
+                    </div>
+
                     <button type="button" (click)="removeTransition(idx)"
-                        class="text-red-500 text-sm hover:text-red-700">Remover</button>
+                        class="text-red-500 text-sm hover:text-red-700">{{ 'WORKFLOWS_STEP_MODAL.REMOVE' | translate
+                        }}</button>
                 </div>
                 }
             </div>

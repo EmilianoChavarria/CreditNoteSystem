@@ -7,13 +7,17 @@ import { Modal } from '../../../../shared/components/ui/modal/modal';
 import { ToastrService } from 'ngx-toastr';
 import { Badge } from '../../../../shared/components/ui/badge/badge';
 import moment from 'moment';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { catchError, debounceTime, distinctUntilChanged, finalize, forkJoin, map, Observable, of, switchMap } from 'rxjs';
 import { RoleService } from '../../../../core/services/role-service';
 import { SecurityService } from '../../../../core/services/security-service';
-import { Spinner } from '../../../../shared/components/ui/spinner/spinner';
-import { Autocomplete as UiAutocomplete, AutocompleteOption } from '../../../../shared/components/ui/autocomplete/autocomplete';
+import { AutocompleteOption } from '../../../../shared/components/ui/autocomplete/autocomplete';
 import { CustomerService } from '../../../../core/services/customer-service';
+import { UserFormModalComponent } from './components/user-form-modal/user-form-modal';
+import { ResetPasswordModal } from './components/reset-password-modal/reset-password-modal';
+import { BatchService } from '../../../../core/services/batch-service';
+import { Router } from '@angular/router';
+import { LucideAngularModule } from 'lucide-angular';
 
 interface UserData {
     id: number;
@@ -25,20 +29,27 @@ interface UserData {
     selector: 'app-users',
     templateUrl: './users.html',
     styleUrl: './users.css',
-    imports: [Table, Modal, Badge, TranslatePipe, ReactiveFormsModule, Spinner, UiAutocomplete],
+    imports: [Table, Modal, Badge, TranslatePipe, UserFormModalComponent, ResetPasswordModal, LucideAngularModule],
 })
 export class Users implements OnInit {
     toastr = inject(ToastrService);
+    private readonly _translateService = inject(TranslateService);
     public users = signal<User[]>([]);
     public pageSize = signal<number>(10);
     public currentPage = signal<number>(1);
+    public totalPages = signal<number>(1);
     public hasNextPage = signal<boolean>(false);
     public hasPrevPage = signal<boolean>(false);
     public isLoadingTable = signal<boolean>(true);
-    private nextCursor = signal<string | null>(null);
-    private prevCursor = signal<string | null>(null);
     public showDeleteModal = signal<boolean>(false);
     public selectedUserToDelete = signal<User | null>(null);
+    public showResetPasswordModal = signal<boolean>(false);
+    public selectedUserForReset = signal<User | null>(null);
+    public showBulkUploadModal = signal<boolean>(false);
+    public isBulkUploading = signal<boolean>(false);
+    public bulkUploadFile = signal<File | null>(null);
+    public bulkUploadedAt = signal<string>('');
+    public isDragOver = signal<boolean>(false);
     public showUserModal = signal<boolean>(false);
     public isEditMode = signal<boolean>(false);
     public editUserId = signal<number | null>(null);
@@ -49,6 +60,8 @@ export class Users implements OnInit {
     public isSavingUser = signal<boolean>(false);
     public roles = signal<Role[]>([]);
     public supervisors = signal<UserData[]>([]);
+    public searchTerm = signal<string>('');
+    private searchDebounceTimeout: ReturnType<typeof setTimeout> | null = null;
 
     // public headerButtons = [
     //     {
@@ -64,7 +77,7 @@ export class Users implements OnInit {
         email: new FormControl<string>('', [Validators.required, Validators.email]),
         password: new FormControl<string>('', [Validators.required], [this.passwordValidator()]),
         roleId: new FormControl<number>(0, [Validators.required, Validators.min(1)]),
-        customerId: new FormControl<any>(null),
+        clientId: new FormControl<any>(null),
         supervisorId: new FormControl<number>(0, [Validators.required, Validators.min(1)]),
         preferredLanguage: new FormControl<string>('DEF', [Validators.required, Validators.pattern(/^(en|es)$/)]),
     });
@@ -72,34 +85,34 @@ export class Users implements OnInit {
     public columns: Column<User>[] = [
         {
             key: 'fullName',
-            label: 'Nombre',
+            label: 'USERS_PAGE.NAME',
             sortable: true
         },
         {
             key: 'email',
-            label: 'Email',
+            label: 'USERS_PAGE.EMAIL_LABEL',
             sortable: true
         },
         {
             key: 'preferredLanguage',
-            label: 'Preferred Language',
+            label: 'USERS_PAGE.PREFERRED_LANGUAGE_LABEL',
             sortable: true
         },
         {
             key: 'role',
-            label: 'Rol',
+            label: 'USERS_PAGE.ROLE_LABEL',
             sortable: false,
-            render: (value, item) => item.role?.roleName ?? 'Sin rol'
+            render: (value, item) => item.role?.roleName ?? this._translateService.instant('USERS_PAGE.NO_ROLE')
         },
         {
             key: 'isActive',
-            label: 'Status',
+            label: 'USERS_PAGE.STATUS',
             sortable: true,
             customTemplate: true
         },
         {
             key: 'createdAt',
-            label: 'Fecha de Creación',
+            label: 'USERS_PAGE.CREATED_AT',
             sortable: true,
             render: (value) => value ? moment(value).format('DD/MM/YYYY HH:mm:ss') : '-'
         }
@@ -109,25 +122,33 @@ export class Users implements OnInit {
         {
             key: 'reset',
             icon: 'rotate-ccw',
-            label: 'Reset password',
+            label: 'USERS_PAGE.RESET_PASSWORD',
             accion: (user) => this.resetPassword(user)
         },
         {
             key: 'edit',
             icon: 'pencil',
-            label: 'Editar',
+            label: 'USERS_PAGE.EDIT',
             accion: (user) => this.openUserModalForEdit(user)
         },
         {
             key: 'delete',
             icon: 'trash',
-            label: 'Eliminar',
+            label: 'USERS_PAGE.DELETE',
             accion: (user) => this.openDeleteModal(user)
         }
     ];
 
-    resetPassword(user: User) {
-        console.log('Reset', user.fullName);
+    resetPassword(user: User): void {
+        this.selectedUserForReset.set(user);
+        this.showResetPasswordModal.set(true);
+    }
+
+    onResetPasswordModalChange(isOpen: boolean): void {
+        this.showResetPasswordModal.set(isOpen);
+        if (!isOpen) {
+            this.selectedUserForReset.set(null);
+        }
     }
 
     toggleUser(user: User) {
@@ -185,11 +206,11 @@ export class Users implements OnInit {
         }
 
         if (control.errors['required']) {
-            return 'Este campo es obligatorio';
+            return this._translateService.instant('USERS_PAGE.REQUIRED_FIELD');
         }
 
         if (control.errors['email']) {
-            return 'Ingresa un correo valido';
+            return this._translateService.instant('USERS_PAGE.INVALID_EMAIL');
         }
 
         if (control.errors['passwordInvalid']) {
@@ -197,14 +218,14 @@ export class Users implements OnInit {
         }
 
         if (control.errors['min']) {
-            return 'Selecciona una opcion valida';
+            return this._translateService.instant('USERS_PAGE.INVALID_OPTION');
         }
 
         if (control.errors['pattern']) {
-            return 'Selecciona un idioma valido';
+            return this._translateService.instant('USERS_PAGE.INVALID_LANGUAGE');
         }
 
-        return 'Valor no valido';
+        return this._translateService.instant('USERS_PAGE.INVALID_VALUE');
     }
 
     saveUserFromModal(): void {
@@ -222,12 +243,18 @@ export class Users implements OnInit {
                 finalize(() => this.isSavingUser.set(false))
             ).subscribe({
                 next: (response: any) => {
-                    this.toastr.success(response.message ?? 'Usuario actualizado', 'Exito');
+                    this.toastr.success(
+                        response.message ?? this._translateService.instant('USERS_PAGE.USER_UPDATED'),
+                        this._translateService.instant('USERS_PAGE.SUCCESS')
+                    );
                     this.closeUserModal();
                     this.getUsers();
                 },
                 error: (error) => {
-                    this.toastr.error(error?.error?.message ?? 'Error al actualizar usuario', 'Error');
+                    this.toastr.error(
+                        error?.error?.message ?? this._translateService.instant('USERS_PAGE.ERROR_UPDATING_USER'),
+                        this._translateService.instant('USERS_PAGE.ERROR')
+                    );
                 }
             });
 
@@ -238,12 +265,18 @@ export class Users implements OnInit {
             finalize(() => this.isSavingUser.set(false))
         ).subscribe({
             next: (response: any) => {
-                this.toastr.success(response.message ?? 'Usuario creado', 'Exito');
+                this.toastr.success(
+                    response.message ?? this._translateService.instant('USERS_PAGE.USER_CREATED'),
+                    this._translateService.instant('USERS_PAGE.SUCCESS')
+                );
                 this.closeUserModal();
                 this.getUsers();
             },
             error: (error) => {
-                this.toastr.error(error?.error?.message ?? 'Error al crear usuario', 'Error');
+                this.toastr.error(
+                    error?.error?.message ?? this._translateService.instant('USERS_PAGE.ERROR_CREATING_USER'),
+                    this._translateService.instant('USERS_PAGE.ERROR')
+                );
             }
         });
     }
@@ -274,37 +307,130 @@ export class Users implements OnInit {
         console.log('Delete', user.fullName);
         this._userService.deleteUser(user.id).subscribe(
             (response) => {
-                this.toastr.success(response.message ?? 'Usuario eliminado', 'Exito');
+                this.toastr.success(
+                    response.message ?? this._translateService.instant('USERS_PAGE.USER_DELETED'),
+                    this._translateService.instant('USERS_PAGE.SUCCESS')
+                );
                 this.getUsers();
             },
             (error) => {
-                this.toastr.error(error.message ?? 'Error al eliminar', 'Error');
+                this.toastr.error(
+                    error.message ?? this._translateService.instant('USERS_PAGE.ERROR_DELETING_USER'),
+                    this._translateService.instant('USERS_PAGE.ERROR')
+                );
             }
         )
         this.cancelDelete();
+    }
+
+    formatFileSize(bytes: number): string {
+        if (bytes < 1024) return `${bytes} B`;
+        if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+        return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    }
+
+    openBulkUploadModal(): void {
+        this.bulkUploadFile.set(null);
+        this.bulkUploadedAt.set('');
+        this.isDragOver.set(false);
+        this.showBulkUploadModal.set(true);
+    }
+
+    onBulkUploadModalChange(isOpen: boolean): void {
+        if (!this.isBulkUploading()) {
+            this.showBulkUploadModal.set(isOpen);
+            if (!isOpen) {
+                this.bulkUploadFile.set(null);
+                this.bulkUploadedAt.set('');
+                this.isDragOver.set(false);
+            }
+        }
+    }
+
+    onBulkFileChange(event: Event): void {
+        const input = event.target as HTMLInputElement;
+        const file = input.files?.[0] ?? null;
+        this.bulkUploadFile.set(file);
+        this.bulkUploadedAt.set(file ? moment().format('DD/MM/YYYY HH:mm:ss') : '');
+    }
+
+    onDragOver(event: DragEvent): void {
+        event.preventDefault();
+        this.isDragOver.set(true);
+    }
+
+    onDragLeave(event: DragEvent): void {
+        event.preventDefault();
+        this.isDragOver.set(false);
+    }
+
+    onDrop(event: DragEvent): void {
+        event.preventDefault();
+        this.isDragOver.set(false);
+        const file = event.dataTransfer?.files?.[0] ?? null;
+        if (file) {
+            this.bulkUploadFile.set(file);
+            this.bulkUploadedAt.set(moment().format('DD/MM/YYYY HH:mm:ss'));
+        }
+    }
+
+    removeBulkUploadFile(): void {
+        this.bulkUploadFile.set(null);
+        this.bulkUploadedAt.set('');
+    }
+
+    submitBulkUpload(): void {
+        const file = this.bulkUploadFile();
+        if (!file || this.isBulkUploading()) {
+            return;
+        }
+
+        this.isBulkUploading.set(true);
+
+        this._batchService.createUsersBatch(file).pipe(
+            finalize(() => this.isBulkUploading.set(false))
+        ).subscribe({
+            next: () => {
+                this.toastr.success(
+                    this._translateService.instant('USERS_PAGE.BULK_UPLOAD_SUCCESS'),
+                    this._translateService.instant('USERS_PAGE.SUCCESS')
+                );
+                this.showBulkUploadModal.set(false);
+                this.bulkUploadFile.set(null);
+                this._router.navigate(['/request/bulk-upload'], { queryParams: { tab: 'bulk-history' } });
+            },
+            error: (error) => {
+                this.toastr.error(
+                    error?.error?.message ?? this._translateService.instant('USERS_PAGE.BULK_UPLOAD_ERROR'),
+                    this._translateService.instant('USERS_PAGE.ERROR')
+                );
+            }
+        });
     }
 
     constructor(
         private _userService: UserService,
         private _roleService: RoleService,
         private _securityService: SecurityService,
-        private _customerService: CustomerService
+        private _customerService: CustomerService,
+        private _batchService: BatchService,
+        private _router: Router
     ) { }
 
     ngOnInit(): void {
         this.getUsers();
     }
 
-    getUsers(cursor?: string | null): void {
+    getUsers(page: number = this.currentPage()): void {
         this.isLoadingTable.set(true);
 
-        this._userService.getUsersPaginated(this.pageSize(), cursor).pipe(
+        this._userService.getUsersPaginated(this.pageSize(), page, this.searchTerm()).pipe(
             finalize(() => this.isLoadingTable.set(false))
         ).subscribe({
             next: (response) => {
                 this.users.set(response.data);
-                this.nextCursor.set(response.next_cursor ?? null);
-                this.prevCursor.set(response.prev_cursor ?? null);
+                this.currentPage.set(response.current_page ?? page);
+                this.totalPages.set(response.last_page ?? 1);
                 this.hasNextPage.set(!!response.next_cursor || !!response.next_page_url);
                 this.hasPrevPage.set(!!response.prev_cursor || !!response.prev_page_url);
                 console.log('✅ Usuarios cargados:', response);
@@ -315,34 +441,70 @@ export class Users implements OnInit {
         });
     }
 
+    onSearch(term: string): void {
+        if (this.searchDebounceTimeout) {
+            clearTimeout(this.searchDebounceTimeout);
+        }
+
+        this.searchDebounceTimeout = setTimeout(() => {
+            const normalizedTerm = term.trim();
+
+            if (normalizedTerm === this.searchTerm()) {
+                return;
+            }
+
+            this.searchTerm.set(normalizedTerm);
+            this.currentPage.set(1);
+            this.totalPages.set(1);
+            this.hasNextPage.set(false);
+            this.hasPrevPage.set(false);
+            this.getUsers(1);
+        }, 350);
+    }
+
     onNextPage(): void {
-        const cursor = this.nextCursor();
-        if (!cursor) {
+        if (!this.hasNextPage()) {
             return;
         }
 
-        this.currentPage.update((value) => value + 1);
-        this.getUsers(cursor);
+        const nextPage = this.currentPage() + 1;
+        this.getUsers(nextPage);
     }
 
     onPrevPage(): void {
-        const cursor = this.prevCursor();
-        if (!cursor) {
+        if (!this.hasPrevPage()) {
             return;
         }
 
-        this.currentPage.update((value) => Math.max(1, value - 1));
-        this.getUsers(cursor);
+        const prevPage = Math.max(1, this.currentPage() - 1);
+        this.getUsers(prevPage);
+    }
+
+    onFirstPage(): void {
+        if (this.currentPage() <= 1) {
+            return;
+        }
+
+        this.getUsers(1);
+    }
+
+    onLastPage(): void {
+        const lastPage = this.totalPages();
+
+        if (this.currentPage() >= lastPage) {
+            return;
+        }
+
+        this.getUsers(lastPage);
     }
 
     onPageSizeChange(size: number): void {
         this.pageSize.set(size);
         this.currentPage.set(1);
-        this.nextCursor.set(null);
-        this.prevCursor.set(null);
+        this.totalPages.set(1);
         this.hasNextPage.set(false);
         this.hasPrevPage.set(false);
-        this.getUsers();
+        this.getUsers(1);
     }
 
     private loadFormCatalogs(userId?: number): void {
@@ -373,7 +535,10 @@ export class Users implements OnInit {
                 this.updateCustomerControlState();
             },
             error: () => {
-                this.toastr.error('No fue posible cargar los datos del formulario', 'Error');
+                this.toastr.error(
+                    this._translateService.instant('USERS_PAGE.ERROR_LOADING_FORM_DATA'),
+                    this._translateService.instant('USERS_PAGE.ERROR')
+                );
             }
         });
     }
@@ -402,13 +567,13 @@ export class Users implements OnInit {
         const resolvedSupervisorId = typeof user.supervisorId === 'number'
             ? user.supervisorId
             : user.supervisorId?.id ?? 0;
-        const resolvedCustomer = (user as any).customer ?? (user as any).customerId ?? null;
+        const resolvedCustomer = this.resolveCustomerOption(user as any);
 
         this.userForm.patchValue({
             fullName: user.fullName ?? '',
             email: user.email ?? '',
             roleId: resolvedRoleId,
-            customerId: resolvedCustomer,
+            clientId: resolvedCustomer,
             supervisorId: resolvedSupervisorId,
             preferredLanguage: user.preferredLanguage ?? 'DEF',
             password: '',
@@ -459,7 +624,7 @@ export class Users implements OnInit {
                             if (error?.error?.errors?.errors) {
                                 this.passwordErrors.set(error.error.errors.errors);
                             } else {
-                                this.passwordErrors.set(['Error al validar la contrasena']);
+                                this.passwordErrors.set([this._translateService.instant('USERS_PAGE.ERROR_VALIDATING_PASSWORD')]);
                             }
 
                             return of({ passwordInvalid: true });
@@ -488,21 +653,21 @@ export class Users implements OnInit {
             email: '',
             password: '',
             roleId: 0,
-            customerId: null,
+            clientId: null,
             supervisorId: 0,
             preferredLanguage: 'DEF',
         });
     }
 
     private get userPayload(): Partial<User> {
-        const payload = { ...this.userForm.getRawValue() } as Partial<User> & { password?: string; customerId?: any };
+        const payload = { ...this.userForm.getRawValue() } as Partial<User> & { password?: string; clientId?: any };
 
-        if (payload.customerId && typeof payload.customerId === 'object') {
-            payload.customerId = payload.customerId.id;
+        if (payload.clientId && typeof payload.clientId === 'object') {
+            payload.clientId = payload.clientId.id;
         }
 
         if (!this.isCustomerRoleSelected()) {
-            delete payload.customerId;
+            delete payload.clientId;
         }
 
         if (this.isEditMode() && !payload.password) {
@@ -535,7 +700,7 @@ export class Users implements OnInit {
 
                 return customers.map((customer): AutocompleteOption => ({
                     id: customer.idCliente,
-                    label: customer.razonSocial,
+                    label: `${customer.idCliente} - ${customer.razonSocial}`,
                     customer,
                 }));
             }),
@@ -544,15 +709,30 @@ export class Users implements OnInit {
     }
 
     public displayCustomer(customer: any): string {
-        return customer?.label || customer?.customer?.razonSocial || customer?.razonSocial || '';
+        if (!customer) {
+            return '';
+        }
+
+        if (typeof customer.label === 'string' && customer.label.trim().length > 0) {
+            return customer.label;
+        }
+
+        const customerId = customer?.id ?? customer?.idCliente ?? customer?.customer?.idCliente;
+        const customerName = customer?.customer?.razonSocial ?? customer?.razonSocial;
+
+        if (customerId && customerName) {
+            return `${customerId} - ${customerName}`;
+        }
+
+        return customerName || String(customerId ?? '');
     }
 
     public onCustomerSelected(option: AutocompleteOption): void {
-        this.userForm.get('customerId')?.setValue(option, { emitEvent: false });
+        this.userForm.get('clientId')?.setValue(option, { emitEvent: false });
     }
 
     private updateCustomerControlState(): void {
-        const customerControl = this.userForm.get('customerId');
+        const customerControl = this.userForm.get('clientId');
         if (!customerControl) {
             return;
         }
@@ -565,5 +745,23 @@ export class Users implements OnInit {
         }
 
         customerControl.updateValueAndValidity({ emitEvent: false });
+    }
+
+    private resolveCustomerOption(user: any): AutocompleteOption | null {
+        const customerId = user?.clientId ?? user?.client?.idCliente ?? user?.customer?.idCliente ?? null;
+        const customerName = user?.client?.razonSocial ?? user?.customer?.razonSocial ?? '';
+
+        if (!customerId && !customerName) {
+            return null;
+        }
+
+        return {
+            id: customerId,
+            label: customerId && customerName ? `${customerId} - ${customerName}` : String(customerName || customerId || ''),
+            customer: {
+                idCliente: customerId,
+                razonSocial: customerName,
+            }
+        };
     }
 }

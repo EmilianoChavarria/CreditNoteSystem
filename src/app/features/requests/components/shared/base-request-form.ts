@@ -1,7 +1,9 @@
-import { Directive, Input, OnChanges, OnDestroy, OnInit, signal, SimpleChanges } from '@angular/core';
+import { Directive, inject, Input, OnChanges, OnDestroy, OnInit, signal, SimpleChanges } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { forkJoin, map, Observable, of, Subscription, switchMap } from 'rxjs';
-import { Classification, Customer, Reason, Request } from '../../../../data/interfaces/Request';
+import { Router } from '@angular/router';
+import { forkJoin, map, Observable, of, Subscription, switchMap, take } from 'rxjs';
+import { Classification, Customer, Reason, Request, RequestAttachment } from '../../../../data/interfaces/Request';
+import { ApiResponse } from '../../../../data/interfaces/ApiResponse-interface';
 import { RequestService } from '../../../../core/services/request-service';
 import { CustomerService } from '../../../../core/services/customer-service';
 import { ToastService } from '../../../../core/services/toast-service';
@@ -18,8 +20,15 @@ const DEFAULT_OPTIONS: RequestFormOptions = {
   includeStatus: true,
 };
 
+type SaveRequestResponse = ApiResponse<Request | null> & {
+  id?: number;
+  requestId?: number;
+};
+
 @Directive()
 export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
+  private readonly _router = inject(Router);
+
   constructor(
     protected readonly _requestService: RequestService,
     protected readonly _customerService: CustomerService,
@@ -35,11 +44,15 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
   public isLoadingInitialData = signal<boolean>(false);
   public selectedCustomer = signal<Customer | null>(null);
   public selectedSupportFiles = signal<File[]>([]);
+  public selectedSapScreenFiles = signal<File[]>([]);
+  public existingSapScreenFiles = signal<RequestAttachment[]>([]);
+  public existingUploadSupportFiles = signal<RequestAttachment[]>([]);
 
   private subscriptions: Subscription[] = [];
   private amountSubscription: Subscription | null = null;
   private ivaSubscription: Subscription | null = null;
   private currencySubscription: Subscription | null = null;
+  private initialLoadTriggered = false;
 
   public form: FormGroup = this.createForm();
 
@@ -48,13 +61,16 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
   }
 
   ngOnInit(): void {
-    this.loadInitialData();
+    if (!this.initialLoadTriggered) {
+      this.loadInitialData();
+    }
     this.setupTotalAmountListener();
     this.setupCurrencyExchangeRateListener();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['requestTypeId'] && this.requestTypeId !== null) {
+      this.initialLoadTriggered = true;
       this.loadInitialData();
     }
 
@@ -75,7 +91,7 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
 
     forkJoin({
       requestNumber: this._requestService.getNextRequestNumber(this.requestTypeId),
-      reasons: this._requestService.getReasons(),
+      reasons: this._requestService.getReasons(this.requestTypeId),
       classifications: this._requestService.getClassificationsByType(this.requestTypeId),
     }).subscribe({
       next: ({ requestNumber, reasons, classifications }) => {
@@ -100,6 +116,10 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
     if (!this.initialRequestData) {
       return;
     }
+
+    const attachments = (this.initialRequestData as any)?.attachments;
+    this.existingSapScreenFiles.set(attachments?.sapScreen ?? []);
+    this.existingUploadSupportFiles.set(attachments?.uploadSupport ?? []);
 
     const patchValue: Record<string, unknown> = {};
     const requestDataEntries = Object.entries(this.initialRequestData as Record<string, unknown>);
@@ -161,9 +181,14 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
     }
 
     if ('customerNumber' in this.form.controls) {
-      const inferredCustomerId = this.resolveCustomerIdFromRequestData(this.initialRequestData);
-      if (String(inferredCustomerId ?? '').trim().length > 0) {
-        patchValue['customerNumber'] = String(inferredCustomerId);
+      const inferredCustomerNumber = this.resolveCustomerNumberFromRequestData(this.initialRequestData);
+      if (String(inferredCustomerNumber ?? '').trim().length > 0) {
+        patchValue['customerNumber'] = String(inferredCustomerNumber);
+      } else {
+        const rawCustomerId = this.resolveInternalCustomerIdFromRequestData(this.initialRequestData);
+        if (rawCustomerId !== null) {
+          this.populateCustomerNumberFromService(rawCustomerId);
+        }
       }
     }
 
@@ -196,18 +221,36 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
 
   private normalizeCustomerId(value: unknown): string | number {
     if (typeof value === 'string' || typeof value === 'number') {
-      return value;
+      return this.normalizeCustomerCodeCandidate(value);
     }
 
     if (value && typeof value === 'object') {
       const objectValue = value as Record<string, unknown>;
       const nestedId = objectValue['id'] ?? objectValue['idCliente'];
       if (typeof nestedId === 'string' || typeof nestedId === 'number') {
-        return nestedId;
+        return this.normalizeCustomerCodeCandidate(nestedId);
       }
     }
 
     return '';
+  }
+
+  private normalizeCustomerCodeCandidate(value: string | number): string | number {
+    if (typeof value === 'number') {
+      return value;
+    }
+
+    const rawValue = value.trim();
+    if (!rawValue) {
+      return '';
+    }
+
+    const leadingCodeMatch = rawValue.match(/^(\d+)\s*-/);
+    if (leadingCodeMatch?.[1]) {
+      return leadingCodeMatch[1];
+    }
+
+    return rawValue;
   }
 
   private resolveCustomerIdFromRequestData(requestData: Partial<Request>): string | number {
@@ -215,11 +258,11 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
     const customer = requestDataRecord['customer'] as Record<string, unknown> | undefined;
 
     const candidates = [
+      customer?.['customerNumber'],
+      customer?.['idCliente'],
+      requestDataRecord['customerNumber'],
       requestDataRecord['customerId'],
       requestDataRecord['customer_id'],
-      requestDataRecord['customerNumber'],
-      customer?.['idCliente'],
-      customer?.['customerNumber'],
       customer?.['id'],
     ];
 
@@ -227,6 +270,96 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
       const normalized = this.normalizeCustomerId(candidate);
       if (String(normalized).trim().length > 0) {
         return normalized;
+      }
+    }
+
+    return '';
+  }
+
+  private resolveCustomerNumberFromRequestData(requestData: Partial<Request>): string | number {
+    const requestDataRecord = requestData as Record<string, unknown>;
+    const customer = requestDataRecord['customer'] as Record<string, unknown> | undefined;
+
+    const candidates = [
+      customer?.['customerNumber'],
+      customer?.['idCliente'],
+      requestDataRecord['customerNumber'],
+    ];
+
+    for (const candidate of candidates) {
+      const normalized = this.normalizeCustomerId(candidate);
+      if (String(normalized).trim().length > 0) {
+        return normalized;
+      }
+    }
+
+    return '';
+  }
+
+  private resolveInternalCustomerIdFromRequestData(requestData: Partial<Request>): number | null {
+    const requestDataRecord = requestData as Record<string, unknown>;
+    const rawCustomerId = requestDataRecord['customerId'];
+
+    if (typeof rawCustomerId === 'number' && Number.isFinite(rawCustomerId) && rawCustomerId > 0) {
+      return rawCustomerId;
+    }
+
+    if (typeof rawCustomerId === 'string') {
+      const parsedCustomerId = Number(rawCustomerId.trim());
+      if (Number.isFinite(parsedCustomerId) && parsedCustomerId > 0) {
+        return parsedCustomerId;
+      }
+    }
+
+    return null;
+  }
+
+  private populateCustomerNumberFromService(customerId: number): void {
+    const subscription = this._customerService.getCustomerById(customerId).subscribe({
+      next: (response: any) => {
+        const customerData = response?.data ?? response;
+        const resolvedCustomerNumber = customerData?.customerNumber ?? customerData?.idCliente;
+        if (resolvedCustomerNumber === null || resolvedCustomerNumber === undefined) {
+          return;
+        }
+
+        const normalizedCustomerNumber = String(resolvedCustomerNumber).trim();
+        if (!normalizedCustomerNumber) {
+          return;
+        }
+
+        this.form.get('customerNumber')?.setValue(normalizedCustomerNumber, { emitEvent: false });
+      },
+      error: () => {
+        // Keep the field empty if the customer lookup fails.
+      }
+    });
+
+    this.subscriptions.push(subscription);
+  }
+
+  private resolveCustomerNumberFromSelection(option: any): string {
+    if (!option) {
+      return '';
+    }
+
+    const data = option.data as Record<string, unknown> | undefined;
+    const candidates = [
+      data?.['customerNumber'],
+      data?.['idCliente'],
+      option.customerNumber,
+      option.label,
+      option.id,
+    ];
+
+    for (const candidate of candidates) {
+      if (candidate === null || candidate === undefined) {
+        continue;
+      }
+
+      const normalized = this.normalizeCustomerId(candidate);
+      if (String(normalized).trim().length > 0) {
+        return String(normalized).trim();
       }
     }
 
@@ -313,6 +446,8 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
       deliveryNote: new FormControl<string>(''),
       invoiceNumber: new FormControl<string>('', [Validators.required]),
       invoiceDate: new FormControl<string>('', [Validators.required]),
+      newInvoice: new FormControl<string>(''),
+      warehouseCode: new FormControl<string>(''),
       sapScreen: new FormControl<File | null>(null),
       currency: new FormControl<string>('', [Validators.required]),
       exchangeRate: new FormControl<number | null>(null, [Validators.required, Validators.min(0)]),
@@ -321,6 +456,12 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
       totalAmount: new FormControl<string>({ value: '', disabled: true }, []),
       attachSupports: new FormControl<File[] | null>(null),
       comments: new FormControl<string>(''),
+      replenishmentAmount: new FormControl<string>(''),
+      hasReplenishmentIva: new FormControl<boolean>(false),
+      warehouseAmount: new FormControl<string>(''),
+      warehouseTotal: new FormControl<string>(''),
+      replenishmentTotal: new FormControl<string>(''),
+      hasWarehouseIva: new FormControl<boolean>(false),
       reviewComments: new FormControl<string>({ value: '', disabled: true }, []),
     };
 
@@ -352,7 +493,12 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
   }
 
   getReasons(): void {
-    this._requestService.getReasons().subscribe({
+    if (this.requestTypeId === null) {
+      this.reasons.set([]);
+      return;
+    }
+
+    this._requestService.getReasons(this.requestTypeId).subscribe({
       next: (response: Reason[]) => {
         this.reasons.set(response);
       },
@@ -455,6 +601,14 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
     return 'Error en el campo';
   }
 
+  onSapScreenChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const files = Array.from(input.files ?? []);
+    this.selectedSapScreenFiles.set(files);
+    this.form.get('sapScreen')?.setValue(files[0] ?? null);
+    this.form.get('sapScreen')?.markAsTouched();
+  }
+
   onAttachSupportsChange(event: Event): void {
     const input = event.target as HTMLInputElement;
     const files = Array.from(input.files ?? []);
@@ -509,6 +663,17 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
     return `${(kilobytes / 1024).toFixed(2)} MB`;
   }
 
+  private buildFormData(payload: Record<string, any>): FormData {
+    const formData = new FormData();
+    for (const [key, value] of Object.entries(payload)) {
+      if (value === null || value === undefined) {
+        continue;
+      }
+      formData.append(key, typeof value === 'boolean' ? (value ? '1' : '0') : String(value));
+    }
+    return formData;
+  }
+
   saveRequest(): void {
     this.submitted.set(true);
     this.logFormValidationState();
@@ -554,21 +719,76 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
     delete payload.attachSupports;
     delete payload.reviewComments;
 
-    this._requestService.saveRequest(payload).subscribe({
-      next: (response: any) => {
-        if (response?.success) {
-          this._toastService.success(response?.message ?? 'Solicitud guardada correctamente', 'Exito');
-          this.submitted.set(false);
-          return;
+    const formData = this.buildFormData(payload);
+    this.selectedSapScreenFiles().forEach(file => formData.append('sapScreen[]', file));
+    this.selectedSupportFiles().forEach(file => formData.append('uploadSupport[]', file));
+
+    const editingRequestId = this.resolveEditingRequestId();
+    const request$ = editingRequestId !== null
+      ? this._requestService.updateRequest(editingRequestId, formData)
+      : this._requestService.saveRequest(formData);
+
+    request$.pipe(
+      take(1),
+      switchMap((response: SaveRequestResponse) => {
+        if (!response?.success) {
+          throw new Error(response?.message ?? 'No se pudo guardar la solicitud');
         }
 
-        this._toastService.error(response?.message ?? 'No se pudo guardar la solicitud', 'Error');
+        if (editingRequestId !== null) {
+          return this.onRequestUpdated(editingRequestId, response).pipe(
+            map(() => response)
+          );
+        }
+
+        const createdRequestId = this.resolveRequestIdFromResponse(response);
+        if (!createdRequestId) {
+          throw new Error('La solicitud se creó, pero no se pudo obtener su id.');
+        }
+
+        return this.onRequestCreated(createdRequestId, response).pipe(
+          map(() => response)
+        );
+      })
+    ).subscribe({
+      next: (response: SaveRequestResponse) => {
+        const successMessage = editingRequestId !== null
+          ? 'Solicitud actualizada correctamente'
+          : 'Solicitud guardada correctamente';
+
+        this._toastService.success(response?.message ?? successMessage, 'Exito');
+        this.submitted.set(false);
+        if (editingRequestId !== null) {
+          this._router.navigate(['/app/pending']);
+        }
       },
-      error: (error: any) => {
-        const message = error?.error?.message ?? error?.message ?? 'No se pudo guardar la solicitud';
+      error: (error: unknown) => {
+        const message = (error as { error?: { message?: string }; message?: string })?.error?.message
+          ?? (error as { message?: string })?.message
+          ?? 'No se pudo guardar la solicitud';
         this._toastService.error(message, 'Error');
       }
     });
+  }
+
+  protected onRequestCreated(_requestId: number, _response: SaveRequestResponse): Observable<unknown> {
+    return of(null);
+  }
+
+  protected onRequestUpdated(_requestId: number, _response: SaveRequestResponse): Observable<unknown> {
+    return of(null);
+  }
+
+  private resolveEditingRequestId(): number | null {
+    const requestId = Number(this.initialRequestData?.id);
+    return Number.isFinite(requestId) && requestId > 0 ? requestId : null;
+  }
+
+  private resolveRequestIdFromResponse(response: SaveRequestResponse): number | null {
+    const candidateId = response?.data?.id ?? response?.id ?? response?.requestId;
+    const requestId = Number(candidateId);
+
+    return Number.isFinite(requestId) && requestId > 0 ? requestId : null;
   }
 
   saveDraft(): void {
@@ -606,7 +826,7 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
     delete payload.reviewComments;
 
     this._requestService.saveDraft(payload).subscribe({
-      next: (response: any) => {
+      next: (response: ApiResponse<Request | null>) => {
         if (response?.success) {
           this._toastService.success(response?.message ?? 'Borrador guardado correctamente', 'Exito');
           this.submitted.set(false);
@@ -615,8 +835,10 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
 
         this._toastService.error(response?.message ?? 'No se pudo guardar el borrador', 'Error');
       },
-      error: (error: any) => {
-        const message = error?.error?.message ?? error?.message ?? 'No se pudo guardar el borrador';
+      error: (error: unknown) => {
+        const message = (error as { error?: { message?: string }; message?: string })?.error?.message
+          ?? (error as { message?: string })?.message
+          ?? 'No se pudo guardar el borrador';
         this._toastService.error(message, 'Error');
       }
     });
@@ -670,8 +892,9 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
   }
 
   onCustomerSelected(option: any): void {
+    console.log(option);
     if (option) {
-      this.form.controls['customerNumber'].setValue(option.id);
+      this.form.controls['customerNumber'].setValue(this.resolveCustomerNumberFromSelection(option));
     }
   }
 

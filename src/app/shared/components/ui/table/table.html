@@ -1,20 +1,29 @@
-<div class="mt-6 p-4 ">
+<div class="pt-3 md:mt-6 md:p-3 sm:p-4">
 
     <!-- BUSCADOR Y FILTRO -->
-    <div class="flex flex-col sm:flex-row items-center justify-between gap-3 mb-4">
-        <div class="w-full flex flex-row gap-3">
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
+        <div class="w-full flex flex-col sm:flex-row gap-3">
             <!-- BUSCADOR -->
-            <div class="relative w-1/2">
+            <div class="relative w-full" [class.sm:w-full]="searchFullWidth()" [class.sm:w-1/2]="!searchFullWidth()">
                 <div class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
                     <lucide-icon name="search"></lucide-icon>
                 </div>
-                <input type="text" placeholder="Buscar..."
-                    class="w-full text-sm pl-10 pr-4 py-2 border border-gray-300 rounded-lg"
-                    (input)="busqueda.set($any($event.target).value); paginaActual.set(1)" />
+                <input type="text" [placeholder]="'TABLE.SEARCH' | translate"
+                    [value]="busqueda()"
+                    class="w-full text-sm pl-10 pr-10 py-2 border border-gray-300 rounded-lg"
+                    (input)="onSearchInput($any($event.target).value)" />
+                @if (busqueda().length > 0) {
+                <button type="button"
+                    class="absolute right-2 top-1/2 -translate-y-1/2 text-red-500 hover:text-red-600 hover:cursor-pointer"
+                    (click)="clearSearch()"
+                    [attr.aria-label]="'Clear search'">
+                    <lucide-icon name="x" size="18"></lucide-icon>
+                </button>
+                }
             </div>
 
             <!-- FILTRO -->
-            <div *ngIf="enableFilter() && filterField()" class="relative min-w-45">
+            <div *ngIf="enableFilter() && filterField()" class="relative w-full sm:min-w-45 sm:w-auto">
                 <div class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
                     <lucide-icon name="filter"></lucide-icon>
                 </div>
@@ -22,7 +31,7 @@
                 <select
                     class="appearance-none w-full bg-white text-sm pl-10 pr-8 py-2 border border-gray-300 rounded-lg"
                     [value]="filterValue()" (change)="filterValue.set($any($event.target).value); paginaActual.set(1)">
-                    <option value="all">Todos</option>
+                    <option value="all">{{ 'TABLE.ALL' | translate }}</option>
                     <option *ngFor="let opt of computedFilterOptions()" [value]="opt.value">
                         {{ opt.label }}
                     </option>
@@ -33,27 +42,30 @@
                 </div>
             </div>
         </div>
-        <div class="flex gap-x-6">
+        @if (!hideHeaderActions()) {
+        <div class="grid grid-cols-2 gap-2 sm:flex sm:flex-row sm:gap-x-4 w-full sm:w-auto justify-start sm:justify-end">
             <button
-                class="rounded-md bg-[#328e9f] px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center">
+                class="w-full sm:w-auto rounded-md bg-[#328e9f] px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center">
                 <lucide-icon name="folder-archive" size="18"></lucide-icon>
                 {{'TABLE.ZIP_BUTTON' | translate}}
             </button>
             <button
-                class="rounded-md bg-[#21760e] px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center">
+                class="w-full sm:w-auto rounded-md bg-[#21760e] px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center">
                 <lucide-icon name="sheet" size="18"></lucide-icon>
                 {{'TABLE.EXCEL_BUTTON' | translate}}
             </button>
             @if (canAdd()) {
-            <button
-                class="rounded-md bg-[#ff8200] px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center">
+            @if (canBulk()) {
+            <button type="button" (click)="bulkClick.emit()"
+                class="w-full sm:w-auto rounded-md bg-[#ff8200] px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center hover:bg-[#db7201] cursor-pointer">
                 <lucide-icon name="file-up" size="18"></lucide-icon>
                 {{'TABLE.BULK_BUTTON' | translate}}
             </button>
+            }
             <button type="button" (click)="onAddClick()"
-                class="rounded-md bg-[#3c6194] hover:bg-[#2c5999] hover:cursor-pointer px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center">
+                class="w-full sm:w-auto rounded-md bg-[#3c6194] hover:bg-[#2c5999] hover:cursor-pointer px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center">
                 <lucide-icon name="plus" size="18"></lucide-icon>
-                {{'TABLE.ADD_BUTTON' | translate}} {{ addLabel() }}
+                {{'TABLE.ADD_BUTTON' | translate}} {{ addLabel() | translate }}
             </button>
             }
 
@@ -65,30 +77,31 @@
                 </ng-container>
                 }@else{
                 <button type="button" (click)="ejecutarAccionCabecera(boton)" [disabled]="boton.disabled"
-                    class="rounded-md px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                    class="w-full sm:w-auto rounded-md px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                     [ngClass]="boton.className ?? 'bg-[#3c6194]'">
                     @if (boton.icon) {
                     <lucide-icon [name]="boton.icon" size="18"></lucide-icon>
                     }
-                    {{ boton.label }}
+                    {{ boton.label | translate }}
                 </button>
                 }
             </ng-container>
         </div>
+        }
 
 
     </div>
 
     <!-- TABLA -->
-    <div class=" border border-gray-200 rounded-lg bg-white">
-        <table class="min-w-full divide-y divide-gray-200">
+    <div class="border border-gray-200 rounded-lg bg-white overflow-x-auto">
+        <table class="w-full min-w-max md:min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
                 <tr>
                     <th *ngFor="let col of columnasInterno()"
                         (click)="col.sortable !== false && manejarOrdenamiento(col.key)"
-                        class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase cursor-pointer hover:bg-gray-200 text-nowrap">
+                        class="px-4 md:px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase cursor-pointer hover:bg-gray-200 text-nowrap">
                         <div class="flex items-center gap-2">
-                            {{ col.label }}
+                            {{ col.label | translate }}
 
                             <ng-container *ngIf="ordenarPor() === col.key">
                                 <lucide-icon [name]="ordenAscendente() ? 'arrow-up' : 'arrow-down'" size="18">
@@ -98,8 +111,8 @@
                     </th>
 
                     <th *ngIf="!sinAcciones()"
-                        class="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase">
-                        Acciones
+                        class="px-4 md:px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase">
+                        {{ 'TABLE.ACTIONS' | translate }}
                     </th>
                 </tr>
             </thead>
@@ -107,12 +120,12 @@
             <tbody class="divide-y divide-gray-200">
                 @if(loading()){
                 <td [attr.colspan]="columnasInterno().length + (sinAcciones() ? 0 : 1)"
-                    class="px-6 py-8 text-center text-gray-500 italic">
+                    class="px-4 md:px-6 py-8 text-center text-gray-500 italic">
                     <app-spinner></app-spinner>
                 </td>
                 } @else {
                 <tr *ngFor="let item of datosPaginados()" class="hover:bg-blue-50 transition">
-                    <td *ngFor="let col of columnasInterno()" class="px-6 text-sm text-gray-700 ">
+                    <td *ngFor="let col of columnasInterno()" class="px-4 md:px-6 text-sm text-gray-700 ">
                         @if (col.customTemplate && cellTemplate) {
                         <ng-container
                             *ngTemplateOutlet="cellTemplate; context: { $implicit: item, column: col }"></ng-container>
@@ -123,15 +136,15 @@
                         }
                     </td>
 
-                    <td *ngIf="!sinAcciones()" class="px-6 py-2 text-right">
+                    <td *ngIf="!sinAcciones()" class="px-4 md:px-6 py-2 text-right">
 
                         <!-- INLINE -->
-                        <div *ngIf="actionMode() === 'inline'" class="flex justify-end gap-2">
+                        <div *ngIf="actionMode() === 'inline'" class="grid grid-cols-2 gap-2 sm:flex sm:justify-end">
 
                             <!-- ACCIONES PERSONALIZADAS -->
                             <button *ngFor="let accion of accionesPersonalizadas()"
                                 (click)="ejecutarAccion(accion, item)"
-                                class="p-1.5 rounded-md text-[#ff8200] hover:bg-[#ff82001A] transition hover:cursor-pointer"
+                                class="w-full sm:w-auto p-1.5 rounded-md text-[#ff8200] hover:bg-[#ff82001A] transition hover:cursor-pointer flex items-center justify-center"
                                 [ngClass]="accion.className">
                                 <lucide-icon *ngIf="accion.icon" [name]="accion.icon"></lucide-icon>
                             </button>
@@ -157,7 +170,7 @@
                                     class="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-gray-100 transition"
                                     [ngClass]="accion.className">
                                     <lucide-icon *ngIf="accion.icon" [name]="accion.icon" size="18"></lucide-icon>
-                                    <span>{{ accion.label }}</span>
+                                    <span>{{ accion.label | translate}}</span>
                                 </button>
 
 
@@ -172,8 +185,8 @@
 
                 <tr *ngIf="!loading() && datosPaginados().length === 0">
                     <td [attr.colspan]="columnasInterno().length + (sinAcciones() ? 0 : 1)"
-                        class="px-6 py-8 text-center text-gray-500 italic">
-                        Sin registros
+                        class="px-4 md:px-6 py-8 text-center text-gray-500 italic">
+                        {{ emptyMessageKey() | translate }}
                     </td>
                 </tr>
             </tbody>
@@ -182,7 +195,7 @@
 
     <!-- PAGINACIÓN -->
     <div class="flex justify-end items-center mt-4">
-        <div class="flex items-center gap-3 text-sm text-gray-500">
+        <div class="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-3 text-sm text-gray-500 w-full sm:w-auto justify-end">
             <label for="page-size" class="whitespace-nowrap">{{'TABLE.REG_PER_PAGE' | translate}}</label>
             <div class="relative">
                 <select id="page-size"

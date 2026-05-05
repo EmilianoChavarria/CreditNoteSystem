@@ -3,6 +3,7 @@ import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
 import { Observable, Subject, catchError, tap, throwError } from 'rxjs';
 import { HttpService } from './http-service';
+import { runtimeConfig } from '../config/runtime-config';
 
 export type SocketConnectionState =
   | 'idle'
@@ -29,6 +30,8 @@ export interface BatchFinishedMessage extends IncomingSocketMessage {
   title?: string;
   type?: string;
   batch?: BatchInfo;
+  targetUserId?: number | string;
+  target_user_id?: number | string;
 }
 
 export interface BroadcastPayload {
@@ -57,24 +60,30 @@ interface EchoChannelLike {
   stopListening(event: string): EchoChannelLike;
 }
 
+type UnknownRecord = Record<string, unknown>;
+
 @Injectable({
   providedIn: 'root'
 })
 export class ReverbSocketService {
   private readonly reverbKey = 'bfxplq8qmwryrdoi38pw';
-//   private readonly wsHost = 'localhost';
-  private readonly wsHost = '192.168.2.52';
-  private readonly wsPort = 8080;
+  private readonly wsHost = runtimeConfig.socketHost;
+  private readonly wsPort = runtimeConfig.socketPort;
+  private readonly wsProtocol = runtimeConfig.socketProtocol;
   private readonly channelName = 'notifications.global';
-  private readonly eventName = '.socket.message.sent';
-  private readonly broadcastEndpoint = 'http://192.168.2.52:8000/api/socket/broadcast';
+  private readonly eventName = 'socket.message.sent';
+  private readonly legacyEventName = '.socket.message.sent';
+  private readonly notificationEventName = 'notification.created';
+  private readonly broadcastEndpoint = runtimeConfig.broadcastEndpoint;
 
   private echo: Echo<'reverb'> | null = null;
   private channel: EchoChannelLike | null = null;
   private readonly messagesSubject = new Subject<IncomingSocketMessage>();
+  private readonly notificationCreatedSubject = new Subject<IncomingSocketMessage>();
   private readonly batchFinishedSubject = new Subject<BatchFinishedMessage>();
 
   readonly messages$: Observable<IncomingSocketMessage> = this.messagesSubject.asObservable();
+  readonly notificationCreated$: Observable<IncomingSocketMessage> = this.notificationCreatedSubject.asObservable();
   readonly batchFinished$: Observable<BatchFinishedMessage> = this.batchFinishedSubject.asObservable();
   readonly messages = signal<IncomingSocketMessage[]>([]);
   readonly lastMessage = signal<IncomingSocketMessage | null>(null);
@@ -85,13 +94,13 @@ export class ReverbSocketService {
 
   connectToGlobalNotifications(): void {
     if (this.echo) {
-      console.info('[Reverb] Socket already initialized.');
+      // console.info('[Reverb] Socket already initialized.');
       return;
     }
 
     this.connectionState.set('connecting');
     this.connectionError.set(null);
-    console.info(`[Reverb] Connecting to ws://${this.wsHost}:${this.wsPort} ...`);
+    // console.info(`[Reverb] Connecting to ${this.wsProtocol}://${this.wsHost}:${this.wsPort} ...`);
 
     (window as unknown as { Pusher: typeof Pusher }).Pusher = Pusher;
 
@@ -101,7 +110,7 @@ export class ReverbSocketService {
       wsHost: this.wsHost,
       wsPort: this.wsPort,
       wssPort: this.wsPort,
-      forceTLS: false,
+      forceTLS: this.wsProtocol === 'wss',
       enabledTransports: ['ws', 'wss'],
       disableStats: true,
     });
@@ -118,11 +127,13 @@ export class ReverbSocketService {
     try {
       if (this.channel) {
         this.channel.stopListening(this.eventName);
+        this.channel.stopListening(this.legacyEventName);
+        this.channel.stopListening(this.notificationEventName);
       }
 
       this.echo.leave(this.channelName);
       this.echo.disconnect();
-      console.info('[Reverb] Disconnected from channel and socket.');
+      // console.info('[Reverb] Disconnected from channel and socket.');
     } finally {
       this.channel = null;
       this.echo = null;
@@ -141,10 +152,10 @@ export class ReverbSocketService {
       { headers }
     ).pipe(
       tap(() => {
-        console.info('[Reverb] Broadcast sent to backend endpoint.');
+        // console.info('[Reverb] Broadcast sent to backend endpoint.');
       }),
       catchError((error) => {
-        console.error('[Reverb] Broadcast endpoint failed:', error);
+        // console.error('[Reverb] Broadcast endpoint failed:', error);
         return throwError(() => error);
       })
     );
@@ -156,7 +167,7 @@ export class ReverbSocketService {
     }
 
     this.channel = this.echo.channel(this.channelName) as unknown as EchoChannelLike;
-    this.channel.listen(this.eventName, (payload: IncomingSocketMessage) => {
+    const onSocketMessage = (payload: IncomingSocketMessage): void => {
       this.lastMessage.set(payload);
       this.messages.update((current) => [payload, ...current].slice(0, 50));
       this.messagesSubject.next(payload);
@@ -165,10 +176,18 @@ export class ReverbSocketService {
         this.batchFinishedSubject.next(payload);
       }
 
-      console.info('[Reverb] Incoming message:', payload);
+      // console.info('[Reverb] Incoming message:', payload);
+    };
+
+    this.channel.listen(this.eventName, onSocketMessage);
+    this.channel.listen(this.legacyEventName, onSocketMessage);
+
+    this.channel.listen(this.notificationEventName, (payload: IncomingSocketMessage) => {
+      this.notificationCreatedSubject.next(payload);
+      // console.info('[Reverb] Incoming notification:', payload);
     });
 
-    console.info(`[Reverb] Listening ${this.channelName} :: ${this.eventName}`);
+    // console.info(`[Reverb] Listening ${this.channelName} :: ${this.eventName} (+ legacy ${this.legacyEventName})`);
   }
 
   private bindConnectionEvents(): void {
@@ -180,29 +199,29 @@ export class ReverbSocketService {
     const connection = connector?.pusher?.connection;
 
     if (!connection) {
-      console.warn('[Reverb] Could not bind low-level connection events.');
+      // console.warn('[Reverb] Could not bind low-level connection events.');
       return;
     }
 
     connection.bind('connected', () => {
       this.connectionState.set('connected');
       this.connectionError.set(null);
-      console.info('[Reverb] Connection established.');
+      // console.info('[Reverb] Connection established.');
     });
 
     connection.bind('connecting', () => {
       this.connectionState.set('connecting');
-      console.info('[Reverb] Connecting...');
+      // console.info('[Reverb] Connecting...');
     });
 
     connection.bind('disconnected', () => {
       this.connectionState.set('disconnected');
-      console.warn('[Reverb] Connection disconnected.');
+      // console.warn('[Reverb] Connection disconnected.');
     });
 
     connection.bind('unavailable', () => {
       this.connectionState.set('reconnecting');
-      console.warn('[Reverb] Connection unavailable, trying to reconnect...');
+      // console.warn('[Reverb] Connection unavailable, trying to reconnect...');
     });
 
     connection.bind('error', (errorPayload: unknown) => {
@@ -211,15 +230,25 @@ export class ReverbSocketService {
         ? errorPayload
         : JSON.stringify(errorPayload);
       this.connectionError.set(errorMessage);
-      console.error('[Reverb] Connection error:', errorPayload);
+      // console.error('[Reverb] Connection error:', errorPayload);
     });
 
     connection.bind('state_change', (states: unknown) => {
-      console.info('[Reverb] State changed:', states);
+      // console.info('[Reverb] State changed:', states);
     });
   }
 
   private isBatchFinishedMessage(payload: IncomingSocketMessage): payload is BatchFinishedMessage {
-    return payload['event'] === 'batch.finished';
+    const rootEvent = String(payload['event'] ?? '');
+    if (rootEvent === 'batch.finished') {
+      return true;
+    }
+
+    const data = (payload as UnknownRecord)['data'];
+    if (!data || typeof data !== 'object') {
+      return false;
+    }
+
+    return String((data as UnknownRecord)['event'] ?? '') === 'batch.finished';
   }
 }

@@ -1,12 +1,25 @@
-import { Component, Inject, PLATFORM_ID } from '@angular/core'; // Añade Inject y PLATFORM_ID
-import { isPlatformBrowser, AsyncPipe } from '@angular/common'; // Añade isPlatformBrowser
+import { AsyncPipe, isPlatformBrowser } from '@angular/common';
+import { Component, Inject, OnDestroy, PLATFORM_ID, computed, inject } from '@angular/core';
 import { AuthService } from '../../../core/services/auth-service';
+import { NotificationService } from '../../../core/services/notification-service';
 import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 import { Popover } from '../ui/popover/popover';
 import { LucideAngularModule } from 'lucide-angular';
-import { map, Observable } from 'rxjs';
+import { catchError, map, Observable, of, shareReplay, switchMap } from 'rxjs';
 import { AuthUser } from '../../../core/services/auth-service';
-import { RouterLink } from "@angular/router";
+import { Router, RouterLink } from "@angular/router";
+import { AppNotification } from '../../../data/interfaces/Notification';
+import { LayoutShellService } from '../../../core/services/layout-shell-service';
+import { ImpersonationService } from '../../../core/services/impersonation.service';
+import { toObservable } from '@angular/core/rxjs-interop';
+import { UserService } from '../../../core/services/user-service';
+import { User } from '../../../data/interfaces/User';
+import {
+  extractRequestNumberFromNotification,
+  isAssignedRequestBulkNotification,
+  isAssignedRequestNotification,
+  isBulkUploadNotification,
+} from '../../utils/notification-navigation';
 
 @Component({
     selector: 'app-navbar',
@@ -20,18 +33,59 @@ import { RouterLink } from "@angular/router";
     RouterLink
 ],
 })
-export class Navbar {
+export class Navbar implements OnDestroy {
+  private readonly notificationService = inject(NotificationService);
+  private readonly router = inject(Router);
+  private readonly layoutShellService = inject(LayoutShellService);
+  private readonly impersonationService = inject(ImpersonationService);
+  private readonly userService = inject(UserService);
   private readonly isBrowser: boolean;
   public user$: Observable<AuthUser | null>;
   public userInitials$: Observable<string>;
+  public isCustomer$: Observable<boolean>;
+  readonly unreadNotifications = this.notificationService.unreadNotifications;
+  readonly unreadCount = this.notificationService.unreadCount;
+  readonly recentUnreadNotifications = computed(() => this.unreadNotifications().slice(0, 3));
+  readonly impersonatedUserId = this.impersonationService.impersonatedUserId;
+  readonly isImpersonating = computed(() => this.impersonatedUserId() !== null);
+  private readonly keydownHandler = (event: KeyboardEvent) => {
+    if (!this.isBrowser || this.shouldIgnoreKeyboardShortcut(event)) {
+      return;
+    }
+
+    const isToggleLanguageShortcut = (event.ctrlKey || event.metaKey)
+      && event.shiftKey
+      && event.key.toLowerCase() === 'l';
+
+    if (!isToggleLanguageShortcut) {
+      return;
+    }
+
+    event.preventDefault();
+    this.switchLang(this.translate.currentLang === 'en' ? 'es' : 'en');
+  };
 
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object,
     public translate: TranslateService,
     private _authService: AuthService,
   ) {
-    this.user$ = this._authService.user$;
+    this.user$ = toObservable(this.impersonatedUserId).pipe(
+      switchMap((impersonatedUserId) => {
+        if (!impersonatedUserId) {
+          return this._authService.user$;
+        }
+
+        return this.userService.getAuthenticatedUserProfile().pipe(
+          map((user) => this.mapUserToAuthUser(user)),
+          catchError(() => of(this._authService.getCurrentUser()))
+        );
+      }),
+      shareReplay({ bufferSize: 1, refCount: true })
+    );
+
     this.userInitials$ = this.user$.pipe(map(user => this.getInitials(user?.fullName)));
+    this.isCustomer$ = this.user$.pipe(map(user => user?.roleName === 'CUSTOMER'));
     this.isBrowser = isPlatformBrowser(this.platformId);
 
     this.translate.addLangs(['es', 'en']);
@@ -43,8 +97,15 @@ export class Navbar {
       const userLang = this._authService.getCurrentUser()?.preferredLanguage;
       const language = savedLang || (userLang === 'en' || userLang === 'es' ? userLang : null) || (browserLang?.match(/en|es/) ? browserLang : 'es');
       this.translate.use(language);
+      window.addEventListener('keydown', this.keydownHandler);
     } else {
       this.translate.use('es');
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.isBrowser) {
+      window.removeEventListener('keydown', this.keydownHandler);
     }
   }
 
@@ -55,11 +116,85 @@ export class Navbar {
     }
   }
 
+  getLanguageShortcutHint(): string {
+    return this.translate.currentLang === 'en'
+      ? 'Toggle language (Ctrl/Cmd + Shift + L)'
+      : 'Cambiar idioma (Ctrl/Cmd + Shift + L)';
+  }
+
   logout() {
+    if (this.isImpersonating()) {
+      return;
+    }
+
     this._authService.logout().subscribe({
       next: (response: any) => console.log(response),
       error: (error: any) => console.log(error)
     });
+  }
+
+  getLogoutTitle(): string {
+    if (!this.isImpersonating()) {
+      return '';
+    }
+
+    return 'Para salir, primero usa "Salir de visualización".';
+  }
+
+  toggleMobileSidebar(): void {
+    this.layoutShellService.toggleMobileSidebar();
+  }
+
+  markAsRead(notification: AppNotification, event?: Event): void {
+    event?.stopPropagation();
+
+    if (this.notificationService.isRead(notification)) {
+      return;
+    }
+
+    this.notificationService.markAsRead(notification.id).subscribe({
+      error: (error) => console.error('[Navbar] Failed to mark notification as read:', error)
+    });
+  }
+
+  openNotification(notification: AppNotification): void {
+    const isAssignedRequestBulk = isAssignedRequestBulkNotification(notification);
+    const isAssignedRequest = isAssignedRequestNotification(notification);
+    const isBulkUpload = isBulkUploadNotification(notification);
+    const requestNumber = extractRequestNumberFromNotification(notification);
+
+    const routePath = isAssignedRequest || isAssignedRequestBulk
+      ? ['/app/my-approvals']
+      : isBulkUpload
+        ? ['/app/request/bulk-upload']
+        : ['/app/notifications'];
+
+    const queryParams = isAssignedRequest && requestNumber
+      ? { requestNumber }
+      : isBulkUpload && !isAssignedRequestBulk
+        ? this.buildBulkHistoryQuery(notification)
+        : undefined;
+
+    this.router.navigate(routePath, { queryParams }).catch((error) => {
+      console.error('[Navbar] Notification navigation failed:', error);
+    });
+  }
+
+  formatNotificationDate(value?: string | null): string {
+    if (!value) {
+      return 'Reciente';
+    }
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+      return value;
+    }
+
+    return new Intl.DateTimeFormat(this.translate.currentLang || 'es', {
+      dateStyle: 'short',
+      timeStyle: 'short'
+    }).format(date);
   }
 
   private getInitials(fullName?: string): string {
@@ -72,5 +207,53 @@ export class Navbar {
     const second = names[1]?.[0] ?? '';
 
     return `${first}${second}`.toUpperCase();
+  }
+
+  private mapUserToAuthUser(user: User | null | undefined): AuthUser | null {
+    if (!user) {
+      return null;
+    }
+
+    return {
+      id: user.id,
+      fullName: user.fullName,
+      email: user.email,
+      roleId: Number(user.roleId),
+      roleName: user.role?.roleName ?? '',
+      preferredLanguage: user.preferredLanguage,
+    };
+  }
+
+  private buildBulkHistoryQuery(notification: AppNotification): Record<string, string | number> {
+    const raw = notification as Record<string, unknown>;
+    const data = (raw['data'] ?? null) as Record<string, unknown> | null;
+    const batch = (raw['batch'] ?? null) as Record<string, unknown> | null;
+    const batchId = raw['batchId']
+      ?? raw['batch_id']
+      ?? data?.['batchId']
+      ?? data?.['batch_id']
+      ?? batch?.['id'];
+
+    if (batchId === undefined || batchId === null || String(batchId).length === 0) {
+      return { tab: 'bulk-history' };
+    }
+
+    return {
+      tab: 'bulk-history',
+      batchId: String(batchId),
+    };
+  }
+
+  private shouldIgnoreKeyboardShortcut(event: KeyboardEvent): boolean {
+    const target = event.target as HTMLElement | null;
+
+    if (!target) {
+      return false;
+    }
+
+    const tagName = target.tagName.toLowerCase();
+    const isFormField = tagName === 'input' || tagName === 'textarea' || tagName === 'select';
+
+    return isFormField || target.isContentEditable;
   }
 }

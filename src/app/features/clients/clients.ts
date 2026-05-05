@@ -1,11 +1,27 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { startWith } from 'rxjs';
+import { AuthService } from '../../core/services/auth-service';
+import {
+  ChargeTypeOption,
+  CreateReturnOrderRequest,
+  CustomerInvoiceProduct,
+  CustomerInvoiceSummary,
+  CustomerService,
+  ProductReturnHistoryData,
+  ProductReturnHistoryEntry,
+  ReturnOrderCreated,
+} from '../../core/services/customer-service';
+import { catchError, combineLatest, distinctUntilChanged, map, of, startWith, switchMap, take } from 'rxjs';
+import { LucideAngularModule } from "lucide-angular";
+import { UiProductHistoryModal } from './components/product-history-modal/product-history-modal';
 
 interface InvoiceProduct {
   id: string;
+  conceptoIndex: number;
+  invoiceFolio: string;
+  invoiceClientId: number;
   orderNumber: string;
   customerPoNumber: string;
   deliveryNote: string;
@@ -22,6 +38,7 @@ interface InvoiceProduct {
 
 interface CustomerInvoice {
   id: string;
+  folio: string;
   invoiceNumber: string;
   date: string;
   products: InvoiceProduct[];
@@ -30,8 +47,11 @@ interface CustomerInvoice {
 interface ReturnOrderItem {
   key: string;
   invoiceId: string;
+  invoiceFolio: string;
+  invoiceClientId: number;
   invoiceNumber: string;
   invoiceDate: string;
+  conceptoIndex: number;
   deliveryNote: string;
   partNumber: string;
   customerPart: string;
@@ -44,6 +64,7 @@ interface ReturnOrderItem {
 
 interface GroupedReturnItems {
   invoiceId: string;
+  invoiceFolio: string;
   invoiceNumber: string;
   invoiceDate: string;
   deliveryNote: string;
@@ -51,21 +72,54 @@ interface GroupedReturnItems {
 }
 
 interface GeneratedReturnOrder {
-  number: string;
-  createdAt: Date;
+  id: number;
+  clientId: number;
+  status: string;
+  notes?: string | null;
+  createdAt: string;
   items: ReturnOrderItem[];
+}
+
+interface ProductHistorySummaryView {
+  totalSent: number;
+  totalReturned: number;
+  available: number;
+  unit: string;
 }
 
 @Component({
   selector: 'app-clients',
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, LucideAngularModule, UiProductHistoryModal],
   templateUrl: './clients.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Clients {
+  private readonly authService = inject(AuthService);
+  private readonly customerService = inject(CustomerService);
+  private readonly destroyRef = inject(DestroyRef);
+
   protected readonly taxRate = 0.16;
+  protected readonly invoiceChargeType = new FormControl<number | null>(null, { nonNullable: true });
+  protected readonly invoiceChargeTypeOptions = signal<ChargeTypeOption[]>([]);
   protected readonly collapsedInvoiceKeys = signal<Set<string>>(new Set());
   protected readonly draftQuantities = signal<Record<string, number>>({});
+  protected readonly isLoadingInvoices = signal<boolean>(false);
+  protected readonly invoicesLoadError = signal<string | null>(null);
+  protected readonly invoiceProductsLoading = signal<Record<string, boolean>>({});
+  protected readonly invoiceProductsError = signal<Record<string, string | null>>({});
+  private readonly loadedInvoiceKeys = signal<Set<string>>(new Set());
+  private readonly currentClientId = signal<string>('');
+  private readonly currentClientIdNumber = signal<number | null>(null);
+  protected readonly returnOrderNotes = new FormControl<string>('', { nonNullable: true });
+  protected readonly isCreatingReturnOrder = signal<boolean>(false);
+  protected readonly returnOrderError = signal<string | null>(null);
+  protected readonly isHistoryModalOpen = signal<boolean>(false);
+  protected readonly isLoadingProductHistory = signal<boolean>(false);
+  protected readonly productHistoryError = signal<string | null>(null);
+  protected readonly historyModalTitle = signal<string>('Historial de devoluciones');
+  protected readonly historyModalSubtitle = signal<string>('');
+  protected readonly productHistorySummary = signal<ProductHistorySummaryView | null>(null);
+  protected readonly productHistoryRows = signal<ProductReturnHistoryEntry[]>([]);
 
   protected readonly filtersForm = new FormGroup({
     from: new FormControl<string>('2026-01-01', { nonNullable: true }),
@@ -77,156 +131,7 @@ export class Clients {
     { initialValue: this.filtersForm.getRawValue() },
   );
 
-  protected readonly invoices = signal<CustomerInvoice[]>([
-    {
-      id: 'INV-1001',
-      invoiceNumber: 'F001-000981',
-      date: '2026-01-14',
-      products: [
-        {
-          id: 'LN-1',
-          orderNumber: 'PO-48011',
-          customerPoNumber: 'CPO-99811',
-          deliveryNote: 'REM-7750',
-          qtyOrdered: 120,
-          qtyShipped: 120,
-          qtyBackorder: 0,
-          partNumber: 'AXL-RED-10',
-          customerPart: 'C-AXL-100A',
-          satCode: '53131600',
-          unit: 'PZA',
-          origin: 'MX',
-          unitPrice: 43.7,
-        },
-        {
-          id: 'LN-2',
-          orderNumber: 'PO-48011',
-          customerPoNumber: 'CPO-99811',
-          deliveryNote: 'REM-7750',
-          qtyOrdered: 55,
-          qtyShipped: 48,
-          qtyBackorder: 7,
-          partNumber: 'SWT-PLUG-22',
-          customerPart: 'C-SWT-22',
-          satCode: '39121400',
-          unit: 'PZA',
-          origin: 'US',
-          unitPrice: 158.2,
-        },
-      ],
-    },
-    {
-      id: 'INV-1002',
-      invoiceNumber: 'F001-001025',
-      date: '2026-02-02',
-      products: [
-        {
-          id: 'LN-1',
-          orderNumber: 'PO-48100',
-          customerPoNumber: 'CPO-100220',
-          deliveryNote: 'REM-7802',
-          qtyOrdered: 300,
-          qtyShipped: 300,
-          qtyBackorder: 0,
-          partNumber: 'VAL-08-BR',
-          customerPart: 'CLI-VAL-BR08',
-          satCode: '40141600',
-          unit: 'PZA',
-          origin: 'CN',
-          unitPrice: 22.9,
-        },
-        {
-          id: 'LN-2',
-          orderNumber: 'PO-48100',
-          customerPoNumber: 'CPO-100220',
-          deliveryNote: 'REM-7802',
-          qtyOrdered: 60,
-          qtyShipped: 58,
-          qtyBackorder: 2,
-          partNumber: 'SEAL-90-XL',
-          customerPart: 'CUS-SEAL-90X',
-          satCode: '31181600',
-          unit: 'KIT',
-          origin: 'MX',
-          unitPrice: 91.4,
-        },
-      ],
-    },
-    {
-      id: 'INV-1003',
-      invoiceNumber: 'F001-001188',
-      date: '2026-03-16',
-      products: [
-        {
-          id: 'LN-1',
-          orderNumber: 'PO-48302',
-          customerPoNumber: 'CPO-100991',
-          deliveryNote: 'REM-7887',
-          qtyOrdered: 45,
-          qtyShipped: 41,
-          qtyBackorder: 4,
-          partNumber: 'HSG-200-GY',
-          customerPart: 'CLI-HSG2-00',
-          satCode: '24112400',
-          unit: 'PZA',
-          origin: 'DE',
-          unitPrice: 314.65,
-        },
-        {
-          id: 'LN-2',
-          orderNumber: 'PO-48302',
-          customerPoNumber: 'CPO-100991',
-          deliveryNote: 'REM-7887',
-          qtyOrdered: 16,
-          qtyShipped: 16,
-          qtyBackorder: 0,
-          partNumber: 'BRG-STD-05',
-          customerPart: 'PART-BRG-05',
-          satCode: '31171500',
-          unit: 'PZA',
-          origin: 'JP',
-          unitPrice: 204.11,
-        },
-      ],
-    },
-    {
-      id: 'INV-1003',
-      invoiceNumber: 'F001-001188',
-      date: '2026-03-16',
-      products: [
-        {
-          id: 'LN-1',
-          orderNumber: 'PO-48302',
-          customerPoNumber: 'CPO-100991',
-          deliveryNote: 'REM-7887',
-          qtyOrdered: 45,
-          qtyShipped: 41,
-          qtyBackorder: 4,
-          partNumber: 'HSG-200-GY',
-          customerPart: 'CLI-HSG2-00',
-          satCode: '24112400',
-          unit: 'PZA',
-          origin: 'DE',
-          unitPrice: 314.65,
-        },
-        {
-          id: 'LN-2',
-          orderNumber: 'PO-48302',
-          customerPoNumber: 'CPO-100991',
-          deliveryNote: 'REM-7887',
-          qtyOrdered: 16,
-          qtyShipped: 16,
-          qtyBackorder: 0,
-          partNumber: 'BRG-STD-05',
-          customerPart: 'PART-BRG-05',
-          satCode: '31171500',
-          unit: 'PZA',
-          origin: 'JP',
-          unitPrice: 204.11,
-        },
-      ],
-    },
-  ]);
+  protected readonly invoices = signal<CustomerInvoice[]>([]);
 
   protected readonly returnItems = signal<ReturnOrderItem[]>([]);
   protected readonly generatedOrder = signal<GeneratedReturnOrder | null>(null);
@@ -256,15 +161,37 @@ export class Clients {
     () => new Set(this.filteredInvoices().map(invoice => invoice.id)),
   );
 
+  private static readonly CHARGE_RATES: Record<string, number> = {
+    annual: 0.25,
+    sporadic: 0.12,
+  };
+
+  private readonly chargeTypeIdSignal = toSignal(
+    this.invoiceChargeType.valueChanges.pipe(startWith(this.invoiceChargeType.getRawValue())),
+    { initialValue: this.invoiceChargeType.getRawValue() },
+  );
+
+  protected readonly selectedChargeOption = computed(() =>
+    this.invoiceChargeTypeOptions().find(o => o.id == this.chargeTypeIdSignal()) ?? null,
+  );
+
+  protected readonly chargeRate = computed(() =>
+    Clients.CHARGE_RATES[this.selectedChargeOption()?.name ?? ''] ?? 0,
+  );
+
   protected readonly canGenerateOrder = computed(() => this.returnItems().length > 0);
 
   protected readonly returnOrderSubtotal = computed(() => {
     return this.returnItems().reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
   });
 
+  protected readonly returnOrderCharge = computed(() => this.returnOrderSubtotal() * this.chargeRate());
+
   protected readonly returnOrderTax = computed(() => this.returnOrderSubtotal() * this.taxRate);
 
-  protected readonly returnOrderTotal = computed(() => this.returnOrderSubtotal() + this.returnOrderTax());
+  protected readonly returnOrderTotal = computed(() =>
+    this.returnOrderSubtotal() + this.returnOrderTax() + this.returnOrderCharge(),
+  );
 
   protected readonly groupedReturnItems = computed<GroupedReturnItems[]>(() => {
     const groups = new Map<string, GroupedReturnItems>();
@@ -276,6 +203,7 @@ export class Clients {
       } else {
         groups.set(item.invoiceId, {
           invoiceId: item.invoiceId,
+          invoiceFolio: item.invoiceFolio,
           invoiceNumber: item.invoiceNumber,
           invoiceDate: item.invoiceDate,
           deliveryNote: item.deliveryNote,
@@ -290,10 +218,24 @@ export class Clients {
     }));
   });
 
+  constructor() {
+    this.customerService.getChargeTypes().pipe(take(1)).subscribe({
+      next: options => {
+        this.invoiceChargeTypeOptions.set(options);
+        if (options.length > 0) {
+          this.invoiceChargeType.setValue(options[0].id);
+        }
+      },
+    });
+    this.syncInvoicesFromAuthenticatedClient();
+  }
+
+
   protected addToReturnOrder(invoice: CustomerInvoice, product: InvoiceProduct): void {
     if (product.qtyShipped <= 0) {
       return;
     }
+
 
     const key = this.returnItemKey(invoice, product);
     const selectedQuantity = this.getDraftQuantity(invoice, product);
@@ -314,8 +256,11 @@ export class Clients {
     const item: ReturnOrderItem = {
       key,
       invoiceId: invoice.id,
+      invoiceFolio: invoice.folio,
+      invoiceClientId: this.currentClientIdNumber() ?? 0,
       invoiceNumber: invoice.invoiceNumber,
       invoiceDate: invoice.date,
+      conceptoIndex: product.conceptoIndex,
       deliveryNote: product.deliveryNote,
       partNumber: product.partNumber,
       customerPart: product.customerPart,
@@ -338,7 +283,13 @@ export class Clients {
     return !this.collapsedInvoiceKeys().has(key);
   }
 
-  protected toggleInvoice(key: string): void {
+  protected toggleInvoice(invoice: CustomerInvoice, key: string): void {
+    const isCollapsed = this.collapsedInvoiceKeys().has(key);
+
+    if (isCollapsed) {
+      this.loadInvoiceProducts(invoice, key);
+    }
+
     this.collapsedInvoiceKeys.update(current => {
       const next = new Set(current);
       if (next.has(key)) {
@@ -348,6 +299,14 @@ export class Clients {
       }
       return next;
     });
+  }
+
+  protected isInvoiceProductsLoading(key: string): boolean {
+    return this.invoiceProductsLoading()[key] ?? false;
+  }
+
+  protected invoiceProductsErrorMessage(key: string): string | null {
+    return this.invoiceProductsError()[key] ?? null;
   }
 
   protected getDraftQuantity(invoice: CustomerInvoice, product: InvoiceProduct): number {
@@ -372,6 +331,54 @@ export class Clients {
   protected adjustDraftQuantity(invoice: CustomerInvoice, product: InvoiceProduct, delta: number): void {
     const next = this.getDraftQuantity(invoice, product) + delta;
     this.setDraftQuantity(invoice, product, next);
+  }
+
+  protected openProductHistory(invoice: CustomerInvoice, product: InvoiceProduct): void {
+    const clientId = this.currentClientId();
+
+    if (!clientId || !invoice.folio) {
+      return;
+    }
+
+    this.isHistoryModalOpen.set(true);
+    this.isLoadingProductHistory.set(true);
+    this.productHistoryError.set(null);
+    this.productHistorySummary.set(null);
+    this.productHistoryRows.set([]);
+
+    this.historyModalTitle.set('Historial de Devoluciones');
+    this.historyModalSubtitle.set(`${product.partNumber} - Factura ${invoice.folio}`);
+
+    this.customerService
+      .getInvoiceProductHistory(invoice.folio, clientId, product.conceptoIndex)
+      .pipe(take(1))
+      .subscribe({
+        next: (historyData: ProductReturnHistoryData | null) => {
+          if (!historyData) {
+            this.productHistoryError.set('No se encontró historial para este producto.');
+            this.isLoadingProductHistory.set(false);
+            return;
+          }
+
+          this.productHistorySummary.set({
+            totalSent: Number(historyData.summary?.totalSent) || 0,
+            totalReturned: Number(historyData.summary?.totalReturned) || 0,
+            available: Number(historyData.summary?.available) || 0,
+            unit: historyData.summary?.unidad || product.unit || 'PC',
+          });
+          this.productHistoryRows.set(historyData.history ?? []);
+          this.isLoadingProductHistory.set(false);
+        },
+        error: (error: unknown) => {
+          const apiMessage = (error as { error?: { message?: string } })?.error?.message;
+          this.productHistoryError.set(apiMessage?.trim() || 'No fue posible cargar el historial de devoluciones.');
+          this.isLoadingProductHistory.set(false);
+        },
+      });
+  }
+
+  protected closeProductHistoryModal(): void {
+    this.isHistoryModalOpen.set(false);
   }
 
   protected updateItemQuantity(key: string, rawQuantity: string): void {
@@ -405,20 +412,68 @@ export class Clients {
   protected clearReturnOrder(): void {
     this.returnItems.set([]);
     this.generatedOrder.set(null);
+    this.returnOrderError.set(null);
+    this.returnOrderNotes.setValue('');
   }
 
   protected generateReturnOrder(): void {
-    if (!this.canGenerateOrder()) {
+    if (!this.canGenerateOrder() || this.isCreatingReturnOrder()) {
       return;
     }
 
-    const now = new Date();
-    const orderNumber = `DEV-${now.getFullYear()}-${String(now.getTime()).slice(-6)}`;
+    const clientId = this.currentClientIdNumber();
 
-    this.generatedOrder.set({
-      number: orderNumber,
-      createdAt: now,
-      items: this.returnItems(),
+    if (!clientId) {
+      this.returnOrderError.set('No se pudo determinar el clientId del usuario autenticado.');
+      return;
+    }
+
+    const chargeTypeId = this.invoiceChargeType.value;
+
+    if (!clientId || !chargeTypeId) {
+      this.returnOrderError.set('No se ha seleccionado un tipo de facturación.');
+      return;
+    }
+
+    const items = this.returnItems().map(item => ({
+      invoiceFolio: item.invoiceFolio,
+      invoiceClientId: item.invoiceClientId || clientId,
+      conceptoIndex: item.conceptoIndex,
+      requestedQuantity: item.quantity,
+    }));
+
+    const payload: CreateReturnOrderRequest = {
+      clientId,
+      chargeTypeId,
+      items,
+    };
+
+    const notes = this.returnOrderNotes.value.trim();
+
+    if (notes) {
+      payload.notes = notes;
+    }
+
+    this.isCreatingReturnOrder.set(true);
+    this.returnOrderError.set(null);
+
+    this.customerService.createReturnOrder(payload).pipe(take(1)).subscribe({
+      next: response => {
+        this.generatedOrder.set({
+          id: response.id,
+          clientId: response.clientId,
+          status: response.status,
+          notes: response.notes ?? null,
+          createdAt: response.createdAt,
+          items: this.returnItems(),
+        });
+        this.isCreatingReturnOrder.set(false);
+      },
+      error: (error: unknown) => {
+        const apiMessage = (error as { error?: { message?: string } })?.error?.message;
+        this.returnOrderError.set(apiMessage?.trim() || 'No fue posible crear la orden de devolución.');
+        this.isCreatingReturnOrder.set(false);
+      },
     });
   }
 
@@ -428,5 +483,202 @@ export class Clients {
 
   private returnItemKey(invoice: CustomerInvoice, product: InvoiceProduct): string {
     return `${invoice.id}-${invoice.invoiceNumber}-${product.id}`;
+  }
+
+  private syncInvoicesFromAuthenticatedClient(): void {
+    combineLatest([
+      this.authService.user$.pipe(
+        map(user => {
+          const clientId = user?.clientId;
+          return typeof clientId === 'string' ? clientId.trim() : '';
+        }),
+        distinctUntilChanged(),
+      ),
+      this.invoiceChargeType.valueChanges.pipe(
+        startWith(this.invoiceChargeType.getRawValue()),
+        distinctUntilChanged(),
+      ),
+    ])
+      .pipe(
+        switchMap(([clientId, chargeTypeId]) => {
+          const chargeTypeName = this.invoiceChargeTypeOptions().find(o => { 
+            return o.id == chargeTypeId 
+          })?.name;
+
+          this.currentClientId.set(clientId);
+          this.currentClientIdNumber.set(Number(clientId) || null);
+          this.collapsedInvoiceKeys.set(new Set());
+          this.loadedInvoiceKeys.set(new Set());
+          this.invoiceProductsLoading.set({});
+          this.invoiceProductsError.set({});
+          this.returnItems.set([]);
+          this.generatedOrder.set(null);
+          this.returnOrderError.set(null);
+          this.returnOrderNotes.setValue('');
+          this.invoices.set([]);
+          this.invoicesLoadError.set(null);
+          this.isLoadingInvoices.set(false);
+
+          if (!clientId || !chargeTypeName) {
+            return of<CustomerInvoice[]>([]);
+          }
+
+          this.isLoadingInvoices.set(true);
+
+          return this.customerService.getInvoicesByClientId(clientId, chargeTypeName).pipe(
+            map(invoices => invoices.map(invoice => this.toCustomerInvoice(invoice))),
+            catchError(() => {
+              this.invoicesLoadError.set('No fue posible cargar las facturas del cliente.');
+              return of<CustomerInvoice[]>([]);
+            }),
+          );
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(invoices => {
+        this.invoices.set(invoices);
+        this.collapsedInvoiceKeys.set(new Set(invoices.map((invoice, index) => this.invoiceKey(invoice, index))));
+        this.isLoadingInvoices.set(false);
+      });
+  }
+
+  private toCustomerInvoice(invoice: CustomerInvoiceSummary): CustomerInvoice {
+    const serie = (invoice.serie ?? '').trim();
+    const folio = (invoice.folio ?? '').trim();
+    const emissionDate = (invoice.fechaEmision ?? '').trim();
+
+    return {
+      id: invoice.id,
+      folio,
+      invoiceNumber: [serie, folio].filter(Boolean).join('-') || invoice.id,
+      date: emissionDate ? emissionDate.slice(0, 10) : '',
+      products: [],
+    };
+  }
+
+  private loadInvoiceProducts(invoice: CustomerInvoice, invoiceKey: string): void {
+    const clientId = this.currentClientId();
+
+    if (!clientId || !invoice.folio) {
+      return;
+    }
+
+    if (this.loadedInvoiceKeys().has(invoiceKey) || this.isInvoiceProductsLoading(invoiceKey)) {
+      return;
+    }
+
+    this.invoiceProductsLoading.update(current => ({
+      ...current,
+      [invoiceKey]: true,
+    }));
+
+    this.invoiceProductsError.update(current => ({
+      ...current,
+      [invoiceKey]: null,
+    }));
+
+    this.customerService
+      .getInvoiceProductsByFolio(invoice.folio, clientId)
+      .pipe(
+        map(products => products.map((product, index) => this.toInvoiceProduct(invoice, product, index))),
+        catchError((error: unknown) => {
+          const apiMessage = (error as { error?: { message?: string } })?.error?.message;
+          this.invoiceProductsError.update(current => ({
+            ...current,
+            [invoiceKey]: apiMessage?.trim() || 'No fue posible cargar los productos de la factura.',
+          }));
+          return of<InvoiceProduct[]>([]);
+        }),
+        take(1),
+      )
+      .subscribe(products => {
+        this.invoices.update(currentInvoices =>
+          currentInvoices.map(item => {
+            if (item.id !== invoice.id || item.folio !== invoice.folio) {
+              return item;
+            }
+
+            return {
+              ...item,
+              products,
+            };
+          }),
+        );
+
+        this.loadedInvoiceKeys.update(current => {
+          const next = new Set(current);
+          next.add(invoiceKey);
+          return next;
+        });
+
+        this.invoiceProductsLoading.update(current => ({
+          ...current,
+          [invoiceKey]: false,
+        }));
+      });
+  }
+
+  private toInvoiceProduct(invoice: CustomerInvoice, product: CustomerInvoiceProduct, index: number): InvoiceProduct {
+    const descriptionParts = this.parseDescriptionParts(product.descripcion);
+    const quantityOrdered = Number(product.cantidad) || 0;
+    const quantityAvailable = Number(product.availableQuantity) || 0;
+    const returnedQuantity = Number(product.returnedQuantity) || 0;
+
+    return {
+      id: `${invoice.id}-${product.conceptoIndex}-${index}`,
+      conceptoIndex: product.conceptoIndex,
+      invoiceFolio: invoice.folio,
+      invoiceClientId: this.currentClientIdNumber() ?? 0,
+      orderNumber: descriptionParts.orderNumber,
+      customerPoNumber: descriptionParts.customerPoNumber,
+      deliveryNote: descriptionParts.deliveryNote,
+      qtyOrdered: quantityOrdered,
+      qtyShipped: quantityAvailable,
+      qtyBackorder: Math.max(0, returnedQuantity),
+      partNumber: descriptionParts.partNumber,
+      customerPart: descriptionParts.customerPart,
+      satCode: product.claveProdServ || '',
+      unit: product.unidad || product.claveUnidad || '',
+      origin: '-',
+      unitPrice: Number(product.valorUnitario) || 0,
+    };
+  }
+
+  private parseDescriptionParts(rawDescription: string): {
+    partNumber: string;
+    customerPart: string;
+    orderNumber: string;
+    customerPoNumber: string;
+    deliveryNote: string;
+  } {
+    const normalized = (rawDescription ?? '').trim();
+
+    if (!normalized) {
+      return {
+        partNumber: '-',
+        customerPart: '-',
+        orderNumber: '-',
+        customerPoNumber: '-',
+        deliveryNote: '-',
+      };
+    }
+
+    const tokens = normalized
+      .split('^')
+      .map(token => token.trim())
+      .filter(Boolean);
+
+    const firstToken = tokens[0] ?? '';
+    const partNumber = firstToken.includes(';') ? firstToken.split(';')[0].trim() : firstToken;
+    const orderNumber = tokens[1] ?? '-';
+    const deliveryNote = tokens[2] ?? '-';
+
+    return {
+      partNumber: partNumber || '-',
+      customerPart: partNumber || '-',
+      orderNumber,
+      customerPoNumber: orderNumber,
+      deliveryNote,
+    };
   }
 }

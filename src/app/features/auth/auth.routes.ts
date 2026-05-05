@@ -1,15 +1,13 @@
 import { Routes } from '@angular/router';
-import { Layout } from './pages/layout/layout';
-import { LoginGuard } from '../../core/guards/login.guard';
-import { Login } from './pages/login/login';
 
 
 export const routes: Routes = [
   {
     path: '',
-    component: Layout, 
+    loadComponent: () => import('./pages/layout/layout').then(m => m.Layout),
     children: [
-      { path: 'login', component: Login },
+      { path: 'login', loadComponent: () => import('./pages/login/login').then(m => m.Login) },
+      { path: 'change-password', loadComponent: () => import('./pages/change-password/change-password').then(m => m.ChangePassword) },
       { path: '', redirectTo: 'login', pathMatch: 'full' }
     ]
   }

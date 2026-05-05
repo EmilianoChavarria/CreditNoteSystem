@@ -6,6 +6,8 @@ import { ApiResponse } from '../../data/interfaces/ApiResponse-interface';
 
 export interface CursorPagination<T> {
   data: T[];
+  current_page?: number;
+  last_page?: number;
   per_page?: number;
   next_cursor?: string | null;
   next_page_url?: string | null;
@@ -26,11 +28,7 @@ export class UserService {
 
   getUsers(): Observable<User[]> {
     return this._httpService.get<User[]>('/users').pipe(
-      tap((response: ApiResponse<User[]>) => {
-        if (response.success) {
-          // console.log(response);
-        }
-      }),
+
       map((response: ApiResponse<User[]>) => response.data ?? []),
       catchError(error => {
         console.log(error);
@@ -41,11 +39,6 @@ export class UserService {
 
   getManagers(): Observable<User[]> {
     return this._httpService.get<User[]>('users/managers').pipe(
-      tap((response: ApiResponse<User[]>) => {
-        if (response.success) {
-
-        }
-      }),
       map((response: ApiResponse<User[]>) => response.data ?? []),
       catchError((error) => {
         console.log(error);
@@ -54,11 +47,11 @@ export class UserService {
     )
   }
 
-  getUsersPaginated(perPage = 10, cursor?: string | null): Observable<CursorPagination<User>> {
-    const params: { perPage: number; cursor?: string } = { perPage };
+  getUsersPaginated(per_page = 10, page = 1, search?: string): Observable<CursorPagination<User>> {
+    const params: { per_page: number; page: number; search?: string } = { per_page, page };
 
-    if (cursor) {
-      params.cursor = cursor;
+    if (search && search.trim().length > 0) {
+      params.search = search.trim();
     }
 
     return this._httpService.get<CursorPagination<User>>('/usersPag', { params }).pipe(
@@ -67,6 +60,8 @@ export class UserService {
 
         return {
           data: payload?.data ?? [],
+          current_page: payload?.current_page,
+          last_page: payload?.last_page,
           per_page: payload?.per_page,
           next_cursor: payload?.next_cursor ?? null,
           next_page_url: payload?.next_page_url ?? null,
@@ -83,13 +78,31 @@ export class UserService {
 
   getUserById(userId: number): Observable<User> {
     return this._httpService.get<User>(`/users/${userId}`).pipe(
-      tap((response: ApiResponse<User>) => {
-        if (response.success) {
-          // console.log(response);
-        }
-      }),
       map((response: ApiResponse<User>) => response.data as User),
       catchError(error => {
+        console.log(error);
+        throw error;
+      })
+    );
+  }
+
+  getAuthenticatedUserProfile(): Observable<User> {
+    return this._httpService.get<User>('/users/me').pipe(
+      map((response: ApiResponse<User>) => response.data as User),
+      catchError(error => {
+        console.log(error);
+        throw error;
+      })
+    );
+  }
+
+  changePassword(currentPassword: string, newPassword: string, newPassword_confirmation: string): Observable<ApiResponse<null>> {
+    return this._httpService.patch<null>('/users/me/password', { currentPassword, newPassword, newPassword_confirmation });
+  }
+
+  resetUserPassword(userId: number, newPassword: string, newPassword_confirmation: string): Observable<ApiResponse<null>> {
+    return this._httpService.patch<null>(`/users/${userId}/password`, { newPassword, newPassword_confirmation }).pipe(
+      catchError((error) => {
         console.log(error);
         throw error;
       })

@@ -3,10 +3,13 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { catchError, map, Observable, throwError } from 'rxjs';
 import { ApiResponse } from '../../data/interfaces/ApiResponse-interface';
 import { HttpService, RequestOptions } from './http-service';
+import { runtimeConfig } from '../config/runtime-config';
 
 export interface BatchSummary {
   id: number | string;
   batchType: string;
+  requestTypeId?: number | null;
+  requestTypeName?: string | null;
   status: string;
   totalRecords: number;
   processedRecords: number;
@@ -60,7 +63,7 @@ export interface BatchRequestsResponse {
   providedIn: 'root'
 })
 export class BatchService {
-  private readonly baseApiUrl = 'http://192.168.2.52:8000/api';
+  private readonly baseApiUrl = runtimeConfig.apiBaseUrl;
 
   constructor(
     private readonly httpService: HttpService,
@@ -98,8 +101,133 @@ export class BatchService {
     );
   }
 
-  getBatches(perPage = 15, page = 1, bearerToken?: string): Observable<PagePagination<BatchSummary>> {
-    const options = this.buildOptions({ perPage, page }, bearerToken);
+  createUploadSupportBatch(
+    files: File[],
+    requestTypeId: number,
+    minRange: number,
+    maxRange: number,
+    bearerToken?: string,
+  ): Observable<BatchSummary | null> {
+    const resolvedBearer = bearerToken ?? this.resolveBearerToken();
+    const headers = resolvedBearer
+      ? new HttpHeaders({ Authorization: `Bearer ${resolvedBearer}` })
+      : undefined;
+
+    const formData = new FormData();
+    formData.append('batchType', 'uploadSupport');
+    formData.append('requestTypeId', String(requestTypeId));
+    formData.append('minRange', String(minRange));
+    formData.append('maxRange', String(maxRange));
+
+    files.forEach((file) => {
+      formData.append('file[]', file);
+    });
+
+    return this.httpClient.post<ApiResponse<unknown>>(
+      `${this.baseApiUrl}/batches`,
+      formData,
+      {
+        headers,
+        withCredentials: true,
+      }
+    ).pipe(
+      map((response) => {
+        const data = (response.data ?? {}) as Record<string, unknown>;
+        const batchCandidate = data['batch'] ?? data;
+        return this.toBatchSummary(batchCandidate);
+      }),
+      catchError((error) => {
+        console.error('Error creating uploadSupport batch', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  createSapReturnOrderBatch(formData: FormData, bearerToken?: string): Observable<BatchSummary | null> {
+    const resolvedBearer = bearerToken ?? this.resolveBearerToken();
+    const headers = resolvedBearer
+      ? new HttpHeaders({ Authorization: `Bearer ${resolvedBearer}` })
+      : undefined;
+
+    return this.httpClient.post<ApiResponse<unknown>>(
+      `${this.baseApiUrl}/batches`,
+      formData,
+      {
+        headers,
+        withCredentials: true,
+      }
+    ).pipe(
+      map((response) => {
+        const data = (response.data ?? {}) as Record<string, unknown>;
+        const batchCandidate = data['batch'] ?? data;
+        return this.toBatchSummary(batchCandidate);
+      }),
+      catchError((error) => {
+        console.error('Error creating sapReturnOrder batch', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  createUsersBatch(file: File): Observable<BatchSummary | null> {
+    const resolvedBearer = this.resolveBearerToken();
+    const headers = resolvedBearer
+      ? new HttpHeaders({ Authorization: `Bearer ${resolvedBearer}` })
+      : undefined;
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('batchType', 'users');
+
+    return this.httpClient.post<ApiResponse<unknown>>(
+      `${this.baseApiUrl}/batches`,
+      formData,
+      { headers, withCredentials: true }
+    ).pipe(
+      map((response) => {
+        const data = (response.data ?? {}) as Record<string, unknown>;
+        const batchCandidate = data['batch'] ?? data;
+        return this.toBatchSummary(batchCandidate);
+      }),
+      catchError((error) => {
+        console.error('Error creating users batch', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  createCreditsDataBatch(file: File, bearerToken?: string): Observable<BatchSummary | null> {
+    const resolvedBearer = bearerToken ?? this.resolveBearerToken();
+    const headers = resolvedBearer
+      ? new HttpHeaders({ Authorization: `Bearer ${resolvedBearer}` })
+      : undefined;
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('batchType', 'creditsData');
+
+    return this.httpClient.post<ApiResponse<unknown>>(
+      `${this.baseApiUrl}/batches`,
+      formData,
+      {
+        headers,
+        withCredentials: true,
+      }
+    ).pipe(
+      map((response) => {
+        const data = (response.data ?? {}) as Record<string, unknown>;
+        const batchCandidate = data['batch'] ?? data;
+        return this.toBatchSummary(batchCandidate);
+      }),
+      catchError((error) => {
+        console.error('Error creating creditsData batch', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  getBatches(perPage = 15, page = 1, requestTypeId?: number, bearerToken?: string): Observable<PagePagination<BatchSummary>> {
+    const options = this.buildOptions({ perPage, page, requestTypeId }, bearerToken);
 
     return this.httpService.get<PagePagination<BatchSummary>>('/batches', options).pipe(
       map((response: ApiResponse<PagePagination<BatchSummary>>) => this.toPagination<BatchSummary>(response.data)),
@@ -146,12 +274,15 @@ export class BatchService {
     );
   }
 
-  private buildOptions(params: { perPage: number; page: number }, bearerToken?: string): RequestOptions {
+  private buildOptions(params: Record<string, string | number | boolean | null | undefined>, bearerToken?: string): RequestOptions {
     const resolvedBearer = bearerToken ?? this.resolveBearerToken();
     const headers = resolvedBearer ? { Authorization: `Bearer ${resolvedBearer}` } : undefined;
+    const sanitizedParams = Object.fromEntries(
+      Object.entries(params).filter(([, value]) => value !== undefined && value !== null && value !== '')
+    ) as Record<string, string | number | boolean>;
 
     return {
-      params,
+      params: sanitizedParams,
       headers,
     };
   }
@@ -192,6 +323,16 @@ export class BatchService {
     return {
       id: (raw['id'] as number | string) ?? '',
       batchType: String(raw['batchType'] ?? ''),
+      requestTypeId: raw['requestTypeId'] !== undefined
+        ? Number(raw['requestTypeId'])
+        : raw['request_type_id'] !== undefined
+          ? Number(raw['request_type_id'])
+          : null,
+      requestTypeName: raw['requestTypeName'] !== undefined
+        ? String(raw['requestTypeName'])
+        : raw['request_type_name'] !== undefined
+          ? String(raw['request_type_name'])
+          : null,
       status: String(raw['status'] ?? ''),
       totalRecords: Number(raw['totalRecords'] ?? 0),
       processedRecords: Number(raw['processedRecords'] ?? 0),

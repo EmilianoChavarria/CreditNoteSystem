@@ -1,0 +1,22 @@
+@if (isActive()) {
+<aside class="fixed top-3 left-1/2 z-[85] -translate-x-1/2 rounded-xl border border-amber-300 bg-amber-50/95 px-4 py-3 shadow-lg backdrop-blur-sm">
+  <div class="flex flex-col gap-2 md:flex-row md:items-center md:gap-4">
+    <div class="text-sm text-amber-900">
+      <span class="font-semibold">Modo visualización activo:</span>
+      @if (impersonatedUser(); as user) {
+      <span class="ml-1">{{ user.fullName }} ({{ user.email }})</span>
+      <span class="ml-1 text-amber-700">ID {{ user.id }}</span>
+      } @else {
+      <span class="ml-1">User ID {{ impersonatedUserId() }}</span>
+      }
+    </div>
+
+    <button
+      type="button"
+      (click)="stopImpersonation()"
+      class="rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700">
+      Salir de visualización
+    </button>
+  </div>
+</aside>
+}

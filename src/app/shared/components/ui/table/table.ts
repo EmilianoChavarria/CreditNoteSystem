@@ -63,6 +63,7 @@ export class Table<T extends Record<string, any>>
   readonly hasNextPage = input(false);
   readonly hasPrevPage = input(false);
   readonly loading = input(false);
+  readonly emptyMessageKey = input('TABLE.NO_RECORDS');
 
   readonly enableFilter = input<boolean>(false);
   readonly filterField = input<string>(); // Permite propiedades anidadas como "role.roleName"
@@ -76,16 +77,22 @@ export class Table<T extends Record<string, any>>
   readonly actionMode = input<'inline' | 'menu'>('inline');
   readonly accionesPersonalizadas = input<AccionPersonalizada<T>[]>();
   readonly canAdd = input<boolean>(true);
+  readonly canBulk = input<boolean>(false);
   readonly addLabel = input('User');
   readonly addRoute = input<string>();
   readonly botonesCabeceraPersonalizados = input<BotonCabeceraPersonalizado[]>([]);
+  readonly hideHeaderActions = input<boolean>(false);
+  readonly searchFullWidth = input<boolean>(false);
+  readonly searchValue = input<string>('');
 
   readonly paginaSiguiente = output<void>();
   readonly paginaAnterior = output<void>();
   readonly paginaPrimera = output<void>();
   readonly paginaUltima = output<void>();
   readonly registrosPorPaginaChange = output<number>();
+  readonly searchChange = output<string>();
   readonly addClick = output<void>();
+  readonly bulkClick = output<void>();
 
   // Template personalizado para celdas
   @ContentChild('cellTemplate', { static: false }) cellTemplate?: TemplateRef<any>;
@@ -102,6 +109,16 @@ export class Table<T extends Record<string, any>>
   filterValue = signal<any>('all');
   registrosPorPaginaInterno = signal(10);
   pageSizeOptions: number[] = [5, 10, 20];
+
+  private readonly syncExternalSearchEffect = effect(() => {
+    const externalValue = this.searchValue() ?? '';
+
+    if (externalValue === this.busqueda()) {
+      return;
+    }
+
+    this.busqueda.set(externalValue);
+  });
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['filterDefault']) {
@@ -162,13 +179,15 @@ export class Table<T extends Record<string, any>>
     }
 
     // BUSQUEDA
-    resultado = resultado.filter(item =>
-      Object.values(item).some(v =>
-        String(v ?? '')
-          .toLowerCase()
-          .includes(this.busqueda().toLowerCase())
-      )
-    );
+    if (!this.serverPagination()) {
+      resultado = resultado.filter(item =>
+        Object.values(item).some(v =>
+          String(v ?? '')
+            .toLowerCase()
+            .includes(this.busqueda().toLowerCase())
+        )
+      );
+    }
 
     // ORDENAMIENTO
     if (this.ordenarPor()) {
@@ -240,6 +259,24 @@ export class Table<T extends Record<string, any>>
     }
 
     this.paginaActual.set(1);
+  }
+
+  onSearchInput(value: string): void {
+    this.busqueda.set(value);
+    this.paginaActual.set(1);
+
+    if (this.serverPagination()) {
+      this.searchChange.emit(value.trim());
+    }
+  }
+
+
+  clearSearch(): void {
+    if (!this.busqueda()) {
+      return;
+    }
+
+    this.onSearchInput('');
   }
 
   irPaginaAnterior() {

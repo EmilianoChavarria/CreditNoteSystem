@@ -1,1 +1,248 @@
-<p>sys-config works!</p>
+<section class="flex flex-col w-full">
+    <header class="w-full flex items-center justify-end">
+        <div class="flex flex-col">
+            <span class="text-4xl tracking-wider text-[#ff8200] font-semibold">{{'SYS_CONFIG.TITLE' |
+                translate}}</span>
+            <span class="text-orange-400">{{'SYS_CONFIG.DESCRIPTION' | translate}}</span>
+        </div>
+    </header>
+
+    <div class="mt-8 flex flex-col items-center justify-center gap-8 w-full">
+        @if (isLoading()) {
+        <div class="max-w-5xl w-full bg-white border border-slate-200 shadow-sm rounded-2xl py-8 px-6 text-slate-600">
+            {{ 'SYS_CONFIG.LOADING' | translate }}
+        </div>
+        } @else {
+
+        <article class="max-w-5xl bg-white border border-slate-200 shadow-sm rounded-2xl w-full overflow-hidden">
+            <div class="px-6 py-5 border-b border-slate-200">
+                <h2 class="text-lg font-semibold text-gray-800">{{ 'SYS_CONFIG.PASSWORD_SECTION_TITLE' | translate }}</h2>
+                <p class="text-gray-600">{{ 'SYS_CONFIG.PASSWORD_SECTION_DESC' | translate }}</p>
+            </div>
+
+            <div class="px-6">
+                <div class="py-5 border-b border-slate-200 flex items-start justify-between gap-4">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <p class="font-semibold text-slate-800">{{ 'SYS_CONFIG.MIN_LENGTH_LABEL' | translate }}</p>
+                            <span class="inline-flex items-center justify-center w-4 h-4 rounded-full border border-red-400 text-red-400 text-[10px] font-semibold">i</span>
+                        </div>
+                        <p class="text-slate-400 mt-1">{{ minLengthHelperText() }}</p>
+                    </div>
+
+                    <div class="inline-flex items-center rounded-lg border border-slate-300 overflow-hidden bg-white shrink-0">
+                        <button type="button" (click)="decrement('minimumPasswordLength')"
+                            class="w-10 h-10 text-slate-500 text-xl leading-none border-r border-slate-300">-</button>
+                        <input type="number" [min]="getMin('minimumPasswordLength')" [value]="minimumPasswordLength"
+                            (input)="onNumberInput('minimumPasswordLength', $event)"
+                            class="w-16 h-10 text-center font-semibold text-slate-700 outline-none" />
+                        <button type="button" (click)="increment('minimumPasswordLength')"
+                            class="w-10 h-10 text-slate-500 text-xl leading-none border-l border-slate-300">+</button>
+                    </div>
+                </div> 
+
+                <div class="py-5 border-b border-slate-200 flex items-center justify-between gap-4">
+                    <div>
+                        <p class="font-semibold text-slate-800">{{ 'SYS_CONFIG.REQUIRE_UPPERCASE_LABEL' | translate }}</p>
+                        <p class="text-slate-400 mt-1">{{ 'SYS_CONFIG.REQUIRE_UPPERCASE_HELP' | translate }}</p>
+                    </div>
+                    <app-switch [checked]="requireUppercase" [ariaLabel]="('SYS_CONFIG.REQUIRE_UPPERCASE_LABEL' | translate)" (checkedChange)="requireUppercase = $event"></app-switch>
+                </div>
+
+                <div class="py-5 border-b border-slate-200 flex items-center justify-between gap-4">
+                    <div>
+                        <p class="font-semibold text-slate-800">{{ 'SYS_CONFIG.REQUIRE_LOWERCASE_LABEL' | translate }}</p>
+                        <p class="text-slate-400 mt-1">{{ 'SYS_CONFIG.REQUIRE_LOWERCASE_HELP' | translate }}</p>
+                    </div>
+                    <app-switch [checked]="requireLowercase" [ariaLabel]="('SYS_CONFIG.REQUIRE_LOWERCASE_LABEL' | translate)" (checkedChange)="requireLowercase = $event"></app-switch>
+                </div>
+
+                <div class="py-5 flex items-center justify-between gap-4">
+                    <div>
+                        <p class="font-semibold text-slate-800">{{ 'SYS_CONFIG.REQUIRE_NUMBERS_LABEL' | translate }}</p>
+                        <p class="text-slate-400 mt-1">{{ 'SYS_CONFIG.REQUIRE_NUMBERS_HELP' | translate }}</p>
+                    </div>
+                    <app-switch [checked]="requireNumbers" [ariaLabel]="('SYS_CONFIG.REQUIRE_NUMBERS_LABEL' | translate)" (checkedChange)="requireNumbers = $event"></app-switch>
+                </div>
+
+                <div class="py-5 border-t border-slate-200 flex items-start justify-between gap-4">
+                    <div>
+                        <p class="font-semibold text-slate-800">{{ 'SYS_CONFIG.REQUIRE_SPECIAL_LABEL' | translate }}</p>
+                        <p class="text-slate-400 mt-1">{{ specialCharsDescription() }}</p>
+
+                        @if (requireSpecialCharacters) {
+                        <div class="mt-3 max-w-sm">
+                            <label for="special_chars" class="block text-xs font-semibold text-slate-500 mb-1">{{ 'SYS_CONFIG.ALLOWED_SPECIAL_LABEL' | translate }}</label>
+                            <input
+                                type="text"
+                                id="special_chars"
+                                name="special_chars"
+                                [value]="allowedSpecialChars"
+                                (input)="onAllowedSpecialCharsInput($event)"
+                                [placeholder]="'SYS_CONFIG.ALLOWED_SPECIAL_PLACEHOLDER' | translate"
+                                class="w-full h-10 px-3 rounded-lg border border-gray-300  text-gray-700 font-medium outline-none focus:ring-2 focus:ring-orange-200" />
+                        </div>
+                        }
+                    </div>
+                    <app-switch [checked]="requireSpecialCharacters" [ariaLabel]="('SYS_CONFIG.REQUIRE_SPECIAL_LABEL' | translate)" (checkedChange)="requireSpecialCharacters = $event"></app-switch>
+                </div>
+            </div>
+        </article>
+
+        <article class="max-w-5xl bg-white border border-slate-200 shadow-sm rounded-2xl w-full overflow-hidden">
+            <div class="px-6 py-5 border-b border-slate-200">
+                <h2 class="text-lg font-semibold text-gray-800">{{ 'SYS_CONFIG.SESSION_SECTION_TITLE' | translate }}</h2>
+                <p class="text-gray-600">{{ 'SYS_CONFIG.SESSION_SECTION_DESC' | translate }}</p>
+            </div>
+
+            <div class="px-6">
+                <div class="py-5 border-b border-slate-200 flex items-start justify-between gap-4">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <p class="font-semibold text-slate-800">{{ 'SYS_CONFIG.INACTIVITY_LABEL' | translate }}</p>
+                            <span class="inline-flex items-center justify-center w-4 h-4 rounded-full border border-red-400 text-red-400 text-[10px] font-semibold">i</span>
+                        </div>
+                        <p class="text-slate-400 mt-1">{{ 'SYS_CONFIG.INACTIVITY_HELP' | translate:{ minutes: inactivityTimeoutMinutes } }}</p>
+                    </div>
+
+                    <div class="inline-flex items-center rounded-lg border border-slate-300 overflow-hidden bg-white shrink-0">
+                        <button type="button" (click)="decrement('inactivityTimeoutMinutes')"
+                            class="w-10 h-10 text-slate-500 text-xl leading-none border-r border-slate-300">-</button>
+                        <input type="number" [min]="getMin('inactivityTimeoutMinutes')" [value]="inactivityTimeoutMinutes"
+                            (input)="onNumberInput('inactivityTimeoutMinutes', $event)"
+                            class="w-16 h-10 text-center font-semibold text-slate-700 outline-none" />
+                        <button type="button" (click)="increment('inactivityTimeoutMinutes')"
+                            class="w-10 h-10 text-slate-500 text-xl leading-none border-l border-slate-300">+</button>
+                    </div>
+                </div>
+
+                <div class="py-5 border-b border-slate-200 flex items-start justify-between gap-4">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <p class="font-semibold text-slate-800">{{ 'SYS_CONFIG.MAX_AUTH_USER_LABEL' | translate }}</p>
+                            <span class="inline-flex items-center justify-center w-4 h-4 rounded-full border border-red-400 text-red-400 text-[10px] font-semibold">i</span>
+                        </div>
+                        <p class="text-slate-400 mt-1">{{ 'SYS_CONFIG.MAX_AUTH_USER_HELP' | translate }}</p>
+                    </div>
+
+                    <div class="inline-flex items-center rounded-lg border border-slate-300 overflow-hidden bg-white shrink-0">
+                        <button type="button" (click)="decrement('maxAuthFailuresUser')"
+                            class="w-10 h-10 text-slate-500 text-xl leading-none border-r border-slate-300">-</button>
+                        <input type="number" [min]="getMin('maxAuthFailuresUser')" [value]="maxAuthFailuresUser"
+                            (input)="onNumberInput('maxAuthFailuresUser', $event)"
+                            class="w-16 h-10 text-center font-semibold text-slate-700 outline-none" />
+                        <button type="button" (click)="increment('maxAuthFailuresUser')"
+                            class="w-10 h-10 text-slate-500 text-xl leading-none border-l border-slate-300">+</button>
+                    </div>
+                </div>
+
+                <div class="py-5 flex items-start justify-between gap-4">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <p class="font-semibold text-slate-800">{{ 'SYS_CONFIG.MAX_AUTH_IP_LABEL' | translate }}</p>
+                            <span class="inline-flex items-center justify-center w-4 h-4 rounded-full border border-red-400 text-red-400 text-[10px] font-semibold">i</span>
+                        </div>
+                        <p class="text-slate-400 mt-1">{{ 'SYS_CONFIG.MAX_AUTH_IP_HELP' | translate }}</p>
+                    </div>
+
+                    <div class="inline-flex items-center rounded-lg border border-slate-300 overflow-hidden bg-white shrink-0">
+                        <button type="button" (click)="decrement('maxAuthFailuresIp')"
+                            class="w-10 h-10 text-slate-500 text-xl leading-none border-r border-slate-300">-</button>
+                        <input type="number" [min]="getMin('maxAuthFailuresIp')" [value]="maxAuthFailuresIp"
+                            (input)="onNumberInput('maxAuthFailuresIp', $event)"
+                            class="w-16 h-10 text-center font-semibold text-slate-700 outline-none" />
+                        <button type="button" (click)="increment('maxAuthFailuresIp')"
+                            class="w-10 h-10 text-slate-500 text-xl leading-none border-l border-slate-300">+</button>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <article class="max-w-5xl bg-white border border-slate-200 shadow-sm rounded-2xl w-full overflow-hidden">
+            <div class="px-6 py-5 border-b border-slate-200">
+                <h2 class="text-lg font-semibold text-gray-800">{{ 'SYS_CONFIG.CHARGE_SECTION_TITLE' | translate }}</h2>
+                <p class="text-gray-600">{{ 'SYS_CONFIG.CHARGE_SECTION_DESC' | translate }}</p>
+            </div>
+
+            <div class="px-6 py-3">
+                <div class="w-full flex flex-col divide-y divide-slate-200 border-b border-slate-200">
+                    @for (policy of chargePolicies; track $index; let policyIndex = $index) {
+                    <div class="py-5 flex items-center justify-between gap-4">
+                        <div>
+                            <p class="font-semibold text-slate-800">{{ 'SYS_CONFIG.CHARGE_RULE_LABEL' | translate:{ index: policyIndex + 1 } }}</p>
+                            <p class="mt-1 text-slate-400">{{ chargePolicySummary(policy) }}</p>
+                        </div>
+
+                        <div class="inline-flex items-center gap-2 sm:gap-3 shrink-0">
+                            <div class="inline-flex items-center rounded-lg border border-slate-300 overflow-hidden bg-white h-10">
+                                <select
+                                    [value]="policy.conditional"
+                                    (change)="onChargePolicyInput(policyIndex, 'conditional', $event)"
+                                    class="h-full px-3 text-slate-700 font-medium outline-none bg-transparent">
+                                    <option value="<">{{ 'SYS_CONFIG.CHARGE_BEFORE' | translate }}</option>
+                                    <option value=">">{{ 'SYS_CONFIG.CHARGE_AFTER' | translate }}</option>
+                                </select>
+                            </div>
+                            <div class="inline-flex items-center rounded-lg border border-slate-300 overflow-hidden bg-white h-10">
+                                <input
+                                    type="number"
+                                    min="0"
+                                    [value]="policy.days"
+                                    (input)="onChargePolicyInput(policyIndex, 'days', $event)"
+                                    class="w-16 h-full px-3 text-center text-slate-700 font-medium outline-none" />
+                            </div>
+                            <span class="text-slate-600">{{ 'SYS_CONFIG.CHARGE_DAYS_UNIT' | translate }}</span>
+                            <span class="text-slate-300">→</span>
+
+                            <div class="inline-flex items-center rounded-lg border border-slate-300 overflow-hidden bg-white h-10">
+                                <input
+                                    type="number"
+                                    min="0"
+                                    max="100"
+                                    [value]="policy.percentage"
+                                    (input)="onChargePolicyInput(policyIndex, 'percentage', $event)"
+                                    class="w-16 h-full px-3 text-center text-slate-700 font-medium outline-none" />
+                            </div>
+                            <span class="text-slate-600">%</span>
+
+                            <button
+                                type="button"
+                                (click)="removeChargePolicy(policyIndex)"
+                                [disabled]="chargePolicies.length <= 1 || !!(policy.id && deletingPolicyIds().has(policy.id))"
+                                class="h-8 w-8 rounded-md text-slate-300 hover:text-red-400 hover:bg-red-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                                aria-label="Remove charge policy row">
+                                <svg viewBox="0 0 24 24" class="h-4 w-4 mx-auto" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M3 6h18"></path>
+                                    <path d="M8 6V4h8v2"></path>
+                                    <path d="M19 6l-1 14H6L5 6"></path>
+                                    <path d="M10 11v6"></path>
+                                    <path d="M14 11v6"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    }
+                </div>
+
+                <button
+                    type="button"
+                    (click)="addChargePolicy()"
+                    class="mt-4 mb-1 inline-flex items-center gap-2 text-[#ff8200] font-semibold hover:text-[#e87500] transition-colors">
+                    <span class="text-xl leading-none">+</span>
+                    <span>{{ 'SYS_CONFIG.CHARGE_ADD_RULE' | translate }}</span>
+                </button>
+            </div>
+        </article>
+
+        <div class="max-w-5xl w-full flex justify-end">
+            <button
+                type="button"
+                [disabled]="isSaving() || isLoading()"
+                (click)="saveSettings()"
+                class="inline-flex items-center justify-center h-11 px-6 rounded-lg bg-[#ff8200] text-white font-semibold hover:bg-[#e87500] disabled:opacity-60 disabled:cursor-not-allowed">
+                {{ isSaving() ? ('SYS_CONFIG.SAVING' | translate) : ('SYS_CONFIG.SAVE' | translate) }}
+            </button>
+        </div>
+        }
+    </div>
+</section>

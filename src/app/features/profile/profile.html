@@ -1,4 +1,18 @@
-<section class="max-w-5xl mx-auto flex flex-col h-full items-center justify-center">
+<section
+    class="max-w-5xl mx-auto flex flex-col min-h-screen py-8 md:py-10 px-4 sm:px-6 lg:px-8 gap-y-4">
+    @if (isLoading()) {
+    <div class="w-full bg-white rounded-xl shadow-lg p-8 text-center text-gray-600">
+        {{ 'PROFILE.LOADING' | translate }}
+    </div>
+    }
+
+    @if (hasError()) {
+    <div class="w-full bg-red-50 border border-red-200 rounded-xl p-6 text-red-700 text-center">
+        {{ 'PROFILE.LOAD_ERROR' | translate }}
+    </div>
+    }
+
+    @if (!isLoading() && !hasError() && profile(); as user) {
 
     <!-- Contenedor de arriba -->
     <div class="border border-gray-200 w-full bg-white rounded-xl shadow-lg">
@@ -8,21 +22,27 @@
             <div class="flex flex-row gap-x-4 items-center">
                 <div
                     class="-mt-10 h-30 w-30 rounded-full flex items-center justify-center text-white bg-[#ff8200] border-4 border-white shadow-sm">
-                    <span class="text-3xl font-bold">EC</span>
+                    <span class="text-3xl font-bold">{{ initials() }}</span>
                 </div>
                 <div class="flex flex-col">
                     <div class="flex flex-row items-center gap-x-2">
-                        <span class="text-2xl font-bold">Emiliano Chavarría</span>
-                        <div class="px-2 py-1 h-fit bg-green-100 text-green-500 text-xs w-fit rounded-lg flex gap-x-1">
+                        <span class="text-2xl font-bold">{{ user.fullName }}</span>
+                        <div class="px-2 py-1 h-fit text-xs w-fit rounded-lg flex gap-x-1"
+                            [class.bg-green-100]="user.isActive" [class.text-green-500]="user.isActive"
+                            [class.bg-red-100]="!user.isActive" [class.text-red-500]="!user.isActive">
                             <lucide-icon name="badge-check" size="15"></lucide-icon>
-                            <span>Activo</span>
+                            <span>{{ user.isActive ? ('PROFILE.ACTIVE' | translate) : ('PROFILE.INACTIVE' | translate)
+                                }}</span>
                         </div>
                     </div>
-                    <span class="text-md text-gray-600">aldrick@ittec.mx</span>
-                    <div
-                        class="px-1 py-1 bg-red-100 border border-red-500  text-red-500 text-xs w-fit rounded-lg flex gap-x-1">
+                    <span class="text-md text-gray-600">{{ user.email }}</span>
+                    <div class="px-1 py-1 text-xs w-fit rounded-lg flex gap-x-1"
+                        [class.bg-green-100]="(user.role?.color || '').toUpperCase() === '#22C55E'"
+                        [class.text-green-700]="(user.role?.color || '').toUpperCase() === '#22C55E'"
+                        [class.bg-red-100]="(user.role?.color || '').toUpperCase() !== '#22C55E'"
+                        [class.text-red-500]="(user.role?.color || '').toUpperCase() !== '#22C55E'">
                         <lucide-icon name="shield" size="15"></lucide-icon>
-                        <span>ADMIN</span>
+                        <span>{{ user.role?.roleName || ('PROFILE.NO_ROLE' | translate) }}</span>
                     </div>
                 </div>
             </div>
@@ -30,14 +50,14 @@
     </div>
 
     <!-- Contenedor dividido -->
-    <div class="w-full flex flex-row gap-x-4 mt-8">
-        <div class="bg-white shadow-lg w-1/2 rounded-xl h-fit">
+    <div class="w-full flex flex-col md:flex-row gap-y-4 md:gap-x-4 mt-2">
+        <div class="bg-white shadow-lg md:w-1/2 rounded-xl h-fit">
             <div class="w-full px-8 py-6 text border-b border-gray-300 flex flex-col">
                 <div class="text-[#ff8200] flex flex-row gap-x-2 font-semibold text-lg">
                     <lucide-icon name="user"></lucide-icon>
-                    <span>Información Personal</span>
+                    <span>{{ 'PROFILE.PERSONAL_INFO_TITLE' | translate }}</span>
                 </div>
-                <span class="text-sm text-gray-600">Datos básicos de tu cuenta de usuario</span>
+                <span class="text-sm text-gray-600">{{ 'PROFILE.PERSONAL_INFO_DESC' | translate }}</span>
             </div>
             <div class="w-full px-8 py-6 text flex flex-col">
                 <div class="flex flex-row gap-x-4 border-b border-gray-300 py-4">
@@ -45,8 +65,8 @@
                         <lucide-icon name="user"></lucide-icon>
                     </div>
                     <div class="flex flex-col">
-                        <span class="text-sm text-gray-700">Nombre Completo</span>
-                        <span>Emiliano Chavarría</span>
+                        <span class="text-sm text-gray-700">{{ 'PROFILE.FULL_NAME' | translate }}</span>
+                        <span>{{ user.fullName }}</span>
                     </div>
                 </div>
                 <div class="flex flex-row gap-x-4 border-b border-gray-300 py-4">
@@ -54,8 +74,8 @@
                         <lucide-icon name="mail"></lucide-icon>
                     </div>
                     <div class="flex flex-col">
-                        <span class="text-sm text-gray-700">Correo Electrónico</span>
-                        <span>aldrick@ittec.mx</span>
+                        <span class="text-sm text-gray-700">{{ 'PROFILE.EMAIL' | translate }}</span>
+                        <span>{{ user.email }}</span>
                     </div>
                 </div>
                 <div class="flex flex-row gap-x-4 border-b border-gray-300 py-4">
@@ -63,8 +83,9 @@
                         <lucide-icon name="globe"></lucide-icon>
                     </div>
                     <div class="flex flex-col">
-                        <span class="text-sm text-gray-700">Idioma Preferido</span>
-                        <span>Español</span>
+                        <span class="text-sm text-gray-700">{{ 'PROFILE.PREFERRED_LANGUAGE' | translate }}</span>
+                        <span>{{ user.preferredLanguage.toLowerCase() === 'es' ? ('USER_FORM.SPANISH' | translate) :
+                            ('USER_FORM.ENGLISH' | translate) }}</span>
                     </div>
                 </div>
                 <div class="flex flex-row gap-x-4  py-4">
@@ -72,21 +93,25 @@
                         <lucide-icon name="shield"></lucide-icon>
                     </div>
                     <div class="flex flex-col">
-                        <span class="text-sm text-gray-700">Rol</span>
-                        <div class="px-1.5 py-1 bg-red-100 text-red-500 text-xs w-fit rounded-md flex ">
-                            <span>ADMIN</span>
+                        <span class="text-sm text-gray-700">{{ 'PROFILE.ROLE' | translate }}</span>
+                        <div class="px-1.5 py-1 text-xs w-fit rounded-md flex"
+                            [class.bg-green-100]="(user.role?.color || '').toUpperCase() === '#22C55E'"
+                            [class.text-green-700]="(user.role?.color || '').toUpperCase() === '#22C55E'"
+                            [class.bg-red-100]="(user.role?.color || '').toUpperCase() !== '#22C55E'"
+                            [class.text-red-500]="(user.role?.color || '').toUpperCase() !== '#22C55E'">
+                            <span>{{ user.role?.roleName || ('PROFILE.NO_ROLE' | translate) }}</span>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="bg-white shadow-lg w-1/2 rounded-xl h-fit">
+        <div class="bg-white shadow-lg md:w-1/2 rounded-xl h-fit">
             <div class="w-full px-8 py-6 text border-b border-gray-300 flex flex-col">
                 <div class="text-[#ff8200] flex flex-row gap-x-2 font-semibold text-lg">
                     <lucide-icon name="user"></lucide-icon>
-                    <span>Información de Cuenta</span>
+                    <span>{{ 'PROFILE.ACCOUNT_INFO_TITLE' | translate }}</span>
                 </div>
-                <span class="text-sm text-gray-600">Detalles de configuración y estado de la cuenta</span>
+                <span class="text-sm text-gray-600">{{ 'PROFILE.ACCOUNT_INFO_DESC' | translate }}</span>
             </div>
             <div class="w-full px-8 py-6 text flex flex-col">
                 <div class="flex flex-row gap-x-4 border-b border-gray-300 py-4">
@@ -94,8 +119,8 @@
                         <lucide-icon name="user"></lucide-icon>
                     </div>
                     <div class="flex flex-col">
-                        <span class="text-sm text-gray-700">Supervisor</span>
-                        <span>Edgar Alegría</span>
+                        <span class="text-sm text-gray-700">{{ 'PROFILE.SUPERVISOR' | translate }}</span>
+                        <span>{{ user.supervisor?.fullName || ('PROFILE.NO_SUPERVISOR' | translate) }}</span>
                     </div>
                 </div>
                 <div class="flex flex-row gap-x-4 border-b border-gray-300 py-4">
@@ -103,8 +128,8 @@
                         <lucide-icon name="calendar"></lucide-icon>
                     </div>
                     <div class="flex flex-col">
-                        <span class="text-sm text-gray-700">Fecha de Creación</span>
-                        <span>25/02/2026, 09:32 a.m.</span>
+                        <span class="text-sm text-gray-700">{{ 'PROFILE.CREATED_AT' | translate }}</span>
+                        <span>{{ formatDate(user.createdAt) }}</span>
                     </div>
                 </div>
                 <div class="flex flex-row gap-x-4 border-b border-gray-300 py-4">
@@ -112,8 +137,8 @@
                         <lucide-icon name="clock-4"></lucide-icon>
                     </div>
                     <div class="flex flex-col">
-                        <span class="text-sm text-gray-700">Última Actualización</span>
-                        <span>25/02/2026, 09:32 a.m.</span>
+                        <span class="text-sm text-gray-700">{{ 'PROFILE.UPDATED_AT' | translate }}</span>
+                        <span>{{ formatDate(user.updatedAt) }}</span>
                     </div>
                 </div>
                 <div class="flex flex-row gap-x-4  py-4">
@@ -121,14 +146,198 @@
                         <lucide-icon name="badge-check"></lucide-icon>
                     </div>
                     <div class="flex flex-col">
-                        <span class="text-sm text-gray-700">Estado de la Cuenta</span>
-                        <div class="px-2 py-1 h-fit bg-green-100 text-green-500 text-xs w-fit rounded-lg flex gap-x-1">
+                        <span class="text-sm text-gray-700">{{ 'PROFILE.ACCOUNT_STATUS' | translate }}</span>
+                        <div class="px-2 py-1 h-fit text-xs w-fit rounded-lg flex gap-x-1"
+                            [class.bg-green-100]="user.isActive" [class.text-green-500]="user.isActive"
+                            [class.bg-red-100]="!user.isActive" [class.text-red-500]="!user.isActive">
                             <lucide-icon name="badge-check" size="15"></lucide-icon>
-                            <span>Activo</span>
+                            <span>{{ user.isActive ? ('PROFILE.ACTIVE' | translate) : ('PROFILE.INACTIVE' | translate)
+                                }}</span>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    @if (isSuperAdmin()) {
+    <div class="border border-gray-200 w-full bg-white rounded-xl shadow-lg mt-2">
+        <div class="w-full px-8 py-6 border-b border-gray-300 flex flex-col gap-y-1">
+            <div class="text-[#ff8200] flex flex-row gap-x-2 font-semibold text-lg items-center">
+                <lucide-icon name="user-cog" size="20"></lucide-icon>
+                <span>Impersonación de usuario</span>
+            </div>
+            <span class="text-sm text-gray-600">Visualiza la sesión de otro usuario en modo lectura sin cerrar tu sesión de SUPERADMIN.</span>
+        </div>
+
+        <div class="w-full px-8 py-6 flex flex-col gap-y-4">
+            @if (isImpersonating()) {
+            <div class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-amber-800 text-sm">
+                Modo impersonación activo para User ID: <strong>{{ impersonatedUserId() }}</strong>
+            </div>
+            }
+
+            <form [formGroup]="impersonationForm" class="flex flex-col md:flex-row gap-3 md:items-end">
+                <div class="flex flex-col gap-y-2 md:w-72">
+                    <label class="text-sm font-semibold text-gray-700">User ID a impersonar</label>
+                    <input
+                        type="number"
+                        min="1"
+                        formControlName="userId"
+                        placeholder="Ej. 123"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#ff8200] focus:ring-1 focus:ring-[#ff8200]" />
+                    @if (impersonationForm.get('userId')?.invalid && impersonationForm.get('userId')?.touched) {
+                    <span class="text-xs text-red-500">Ingresa un User ID valido.</span>
+                    }
+                </div>
+
+                <button
+                    type="button"
+                    (click)="startImpersonation()"
+                    class="px-4 py-2 bg-[#ff8200] text-white rounded-lg hover:bg-[#e67e00] transition-colors font-semibold">
+                    Activar
+                </button>
+
+                <button
+                    type="button"
+                    (click)="stopImpersonation()"
+                    [disabled]="!isImpersonating()"
+                    class="px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
+                    Desactivar
+                </button>
+            </form>
+        </div>
+    </div>
+    }
+
+    <!-- Change Password Section -->
+    <div class="border border-gray-200 w-full bg-white rounded-xl shadow-lg mt-2">
+        <div class="w-full px-8 py-6 border-b border-gray-300 flex flex-row items-center justify-between">
+            <div class="flex flex-col gap-y-1">
+                <div class="text-[#ff8200] flex flex-row gap-x-2 font-semibold text-lg items-center">
+                    <lucide-icon name="shield-user" size="20"></lucide-icon>
+                    <span>{{ 'PROFILE.PASSWORD' | translate }}</span>
+                </div>
+                <span class="text-sm text-gray-600">{{ 'PROFILE.CHANGE_PASSWORD_DESC' | translate }}</span>
+            </div>
+            <button (click)="togglePasswordForm()" type="button"
+                class="px-4 py-2 bg-[#ff8200] text-white rounded-lg hover:bg-[#e67e00] transition-colors flex items-center gap-x-1">
+                <lucide-icon name="pencil" size="16"></lucide-icon>
+                <span class="text-sm font-semibold">{{ passwordFormVisible() ? ('PROFILE.CANCEL_BUTTON' | translate) :
+                    'Editar' }}</span>
+            </button>
+        </div>
+
+        @if (passwordFormVisible()) {
+        <form [formGroup]="changePasswordForm" (ngSubmit)="submitPasswordChange()"
+            class="w-full px-8 py-6 flex flex-col gap-y-6">
+            <!-- Current Password Field -->
+            <div class="flex flex-col gap-y-2">
+                <label class="text-sm font-semibold text-gray-700">{{ 'PROFILE.CURRENT_PASSWORD' | translate }}</label>
+                <div class="relative">
+                    <div class="absolute left-0 top-0 h-full flex items-center px-3 text-[#ff8200]">
+                        <lucide-icon name="lock" size="18"></lucide-icon>
+                    </div>
+                    <input [type]="showCurrentPassword() ? 'text' : 'password'" formControlName="currentPassword" placeholder="Ingresa tu contraseña actual"
+                        class="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#ff8200] focus:ring-1 focus:ring-[#ff8200]" />
+                    <button type="button" (click)="showCurrentPassword.set(!showCurrentPassword())"
+                        class="absolute right-0 top-0 h-full flex items-center px-3 text-gray-400 hover:text-gray-600">
+                        <lucide-icon [name]="showCurrentPassword() ? 'eye-off' : 'eye'" size="18"></lucide-icon>
+                    </button>
+                </div>
+                @if (changePasswordForm.get('currentPassword')?.invalid &&
+                changePasswordForm.get('currentPassword')?.touched) {
+                <span class="text-xs text-red-500 flex items-center gap-x-1">
+                    <lucide-icon name="circle-alert" size="14"></lucide-icon>
+                    {{ 'PROFILE.PASSWORD_REQUIRED' | translate }}
+                </span>
+                }
+            </div>
+
+            <div class="flex flex-col md:flex-row gap-y-4 md:gap-x-4">
+                <!-- New Password Field -->
+                <div class="flex flex-col gap-y-2 md:w-1/2">
+                    <label class="text-sm font-semibold text-gray-700">{{ 'PROFILE.NEW_PASSWORD' | translate }}</label>
+                    <div class="relative">
+                        <div class="absolute left-0 top-0 h-full flex items-center px-3 text-[#ff8200]">
+                            <lucide-icon name="lock" size="18"></lucide-icon>
+                        </div>
+                        <input [type]="showNewPassword() ? 'text' : 'password'" formControlName="newPassword" placeholder="Ingresa tu nueva contraseña"
+                            class="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#ff8200] focus:ring-1 focus:ring-[#ff8200]" />
+                        <button type="button" (click)="showNewPassword.set(!showNewPassword())"
+                            class="absolute right-0 top-0 h-full flex items-center px-3 text-gray-400 hover:text-gray-600">
+                            <lucide-icon [name]="showNewPassword() ? 'eye-off' : 'eye'" size="18"></lucide-icon>
+                        </button>
+                    </div>
+                    @if (changePasswordForm.get('newPassword')?.invalid &&
+                    changePasswordForm.get('newPassword')?.touched) {
+                    <span class="text-xs text-red-500 flex items-center gap-x-1">
+                        <lucide-icon name="circle-alert" size="14"></lucide-icon>
+                        {{ 'PROFILE.PASSWORD_REQUIRED' | translate }}
+                    </span>
+                    }
+                </div>
+
+                <!-- Confirm Password Field -->
+                <div class="flex flex-col gap-y-2 md:w-1/2">
+                    <label class="text-sm font-semibold text-gray-700">{{ 'PROFILE.CONFIRM_PASSWORD' | translate
+                        }}</label>
+                    <div class="relative">
+                        <div class="absolute left-0 top-0 h-full flex items-center px-3"
+                            [class.text-[#ff8200]]="passwordsMatch()"
+                            [class.text-red-500]="!passwordsMatch() && changePasswordForm.get('confirmPassword')?.touched">
+                            <lucide-icon name="lock" size="18"></lucide-icon>
+                        </div>
+                        <input [type]="showConfirmPassword() ? 'text' : 'password'" formControlName="confirmPassword"
+                            placeholder="Confirma tu nueva contraseña"
+                            class="w-full pl-10 pr-10 py-2 border rounded-md focus:outline-none transition-all"
+                            [class.border-gray-300]="!changePasswordForm.get('confirmPassword')?.touched || passwordsMatch()"
+                            [class.border-red-500]="!passwordsMatch() && changePasswordForm.get('confirmPassword')?.touched"
+                            [class.focus:border-[#ff8200]]="passwordsMatch()" [class.focus:ring-1]="passwordsMatch()"
+                            [class.focus:ring-[#ff8200]]="passwordsMatch()"
+                            [class.focus:border-red-500]="!passwordsMatch() && changePasswordForm.get('confirmPassword')?.touched"
+                            [class.focus:ring-red-500]="!passwordsMatch() && changePasswordForm.get('confirmPassword')?.touched" />
+                        <button type="button" (click)="showConfirmPassword.set(!showConfirmPassword())"
+                            class="absolute right-0 top-0 h-full flex items-center px-3 text-gray-400 hover:text-gray-600">
+                            <lucide-icon [name]="showConfirmPassword() ? 'eye-off' : 'eye'" size="18"></lucide-icon>
+                        </button>
+                    </div>
+                    @if (!passwordsMatch() && changePasswordForm.get('confirmPassword')?.touched) {
+                    <span class="text-xs text-red-500 flex items-center gap-x-1">
+                        <lucide-icon name="circle-alert" size="14"></lucide-icon>
+                        {{ 'PROFILE.PASSWORDS_DONT_MATCH' | translate }}
+                    </span>
+                    }
+                    @if (passwordsMatch() && changePasswordForm.get('confirmPassword')?.touched) {
+                    <span class="text-xs text-green-500 flex items-center gap-x-1">
+                        <lucide-icon name="check-circle" size="14"></lucide-icon>
+                        Las contraseñas coinciden
+                    </span>
+                    }
+                </div>
+            </div>
+
+
+
+            <!-- Action Buttons -->
+            <div class="flex flex-row gap-x-3 pt-4 border-t border-gray-200">
+                <button type="submit"
+                    [disabled]="!changePasswordForm.valid || !passwordsMatch() || isChangingPassword()"
+                    class="flex-1 px-4 py-2 bg-[#ff8200] text-white rounded-lg font-semibold hover:bg-[#e67e00] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-x-2">
+                    @if (isChangingPassword()) {
+                    <lucide-icon name="loader-circle" size="16" class="animate-spin"></lucide-icon>
+                    } @else {
+                    <lucide-icon name="check" size="16"></lucide-icon>
+                    }
+                    {{ 'PROFILE.CHANGE_BUTTON' | translate }}
+                </button>
+                <button type="button" (click)="togglePasswordForm()" [disabled]="isChangingPassword()"
+                    class="flex-1 px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                    {{ 'PROFILE.CANCEL_BUTTON' | translate }}
+                </button>
+            </div>
+        </form>
+        }
+    </div>
+    }
 </section>

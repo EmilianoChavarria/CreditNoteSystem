@@ -15,6 +15,8 @@ import { AddWorkflowModal } from './components/add-workflow-modal/add-workflow-m
 import { Workflow } from '../../../../data/interfaces/Workflow';
 import { Spinner } from '../../../../shared/components/ui/spinner/spinner';
 import { ToastService } from '../../../../core/services/toast-service';
+import { Modal as UiModal } from '../../../../shared/components/ui/modal/modal';
+import { ApiResponse } from '../../../../data/interfaces/ApiResponse-interface';
 
 interface Color {
   name: string;
@@ -38,6 +40,7 @@ interface WorkflowStep {
   badgeColor?: string;
   badgeBgColor?: string;
   badgeBorderColor?: string;
+  outgoingTransitions: WorkflowTransition[];
 }
 
 interface WorkflowGroup {
@@ -57,9 +60,18 @@ interface BranchRule {
   id: number;
 }
 
+interface WorkflowTransition {
+  id?: number;
+  toStepId: number | null;
+  conditionField: string;
+  conditionOperator: string;
+  conditionValue: string;
+  priority: number;
+}
+
 @Component({
   selector: 'app-workflows',
-  imports: [TranslatePipe, AccordeonContainer, AccordeonItem, LucideAngularModule, RolesManageModal, RoleFormModal, AddStepModal, AddWorkflowModal, Spinner],
+  imports: [TranslatePipe, AccordeonContainer, AccordeonItem, LucideAngularModule, RolesManageModal, RoleFormModal, AddStepModal, AddWorkflowModal, Spinner, UiModal],
   templateUrl: './workflows.html',
   styleUrl: './workflows.css'
 })
@@ -69,11 +81,14 @@ export class Workflows {
   public isOpenRoleModal = signal<boolean>(false);
   public isOpenAddStepModal = signal<boolean>(false);
   public isOpenAddWorkflowModal = signal<boolean>(false);
+  public isOpenDeleteStepConfirmModal = signal<boolean>(false);
   public isStepNumberLocked = signal<boolean>(false);
   public editingStepId = signal<number | null>(null);
   public isLoadingWorkflows = signal<boolean>(true);
   public isLoadingStepModal = signal<boolean>(false);
   public isSavingStep = signal<boolean>(false);
+  public deletingStepIds = signal<Set<number>>(new Set<number>());
+  public stepPendingDeletion = signal<WorkflowStep | null>(null);
   public roles = signal<Role[]>([]);
   public isLoadingRoles = signal<boolean>(true);
   public submitted = signal(false);
@@ -186,6 +201,16 @@ export class Workflows {
             steps: sortedSteps.map((step) => {
               const action = step.isInitialStep ? 'Inicio' : step.isFinalStep ? 'Finalización' : 'Aprobación';
               const roleColor = step.role?.color;
+              const outgoingTransitions = ((step as any).outgoingTransitions ?? (step as any).outgoing_transitions ?? [])
+                .map((transition: any, index: number) => ({
+                  id: transition.id,
+                  toStepId: transition.toStepId ?? transition.to_step?.id ?? null,
+                  conditionField: transition.conditionField ?? '',
+                  conditionOperator: transition.conditionOperator ?? '',
+                  conditionValue: transition.conditionValue ?? '',
+                  priority: transition.priority ?? index + 1
+                }))
+                .sort((a: WorkflowTransition, b: WorkflowTransition) => a.priority - b.priority);
 
               return {
                 id: step.id,
@@ -203,7 +228,8 @@ export class Workflows {
                 iconColor: roleColor,
                 badgeColor: roleColor,
                 badgeBgColor: this.hexToRgba(roleColor, 0.12),
-                badgeBorderColor: roleColor
+                badgeBorderColor: roleColor,
+                outgoingTransitions
               };
             })
           } as WorkflowGroup;
@@ -311,7 +337,6 @@ export class Workflows {
   private getRoles() {
     this._roleService.getRoles().subscribe({
       next: (response) => {
-        // console.log(response);
         this.isLoadingRoles.set(false);
         this.roles.set(response);
         console.log(this.roles());
@@ -363,16 +388,18 @@ export class Workflows {
 
   public openEditStepModal(workflow: WorkflowGroup, step: WorkflowStep) {
     this.activeWorkflow.set(workflow);
-    this.isStepNumberLocked.set(false);
+    console.log(this.activeWorkflow());
+    this.isStepNumberLocked.set(true);
     this.isOpenAddStepModal.set(true);
     this.resetStepModalData();
     this.editingStepId.set(step.id);
-    this.stepForm.controls.stepOrder.enable();
+    this.stepForm.controls.stepOrder.disable();
     this.stepForm.patchValue({
       stepOrder: step.stepNumber,
       roleId: step.roleId,
       isFinalStep: step.isFinalStep
     });
+    this.transitions.set(step.outgoingTransitions ?? []);
     this.loadModalData(workflow.id);
   }
 
@@ -458,8 +485,9 @@ export class Workflows {
       : this._workflowService.storeWorkflowStep(stepPayload);
 
     request$.subscribe({
-      next: (response) => {
-        console.log(response);
+      next: (response: ApiResponse<any>) => {
+        // console.log(response);
+        this._toastService.success(response.message ?? `Paso ${editId !== null ? 'actualizado' : 'creado'} correctamente.`, 'Éxito');
         this.isSavingStep.set(false);
         this.isOpenAddStepModal.set(false);
         this.resetStepModalData();
@@ -468,6 +496,61 @@ export class Workflows {
       error: (error) => {
         console.log(error);
         this.isSavingStep.set(false);
+      }
+    });
+  }
+
+  public requestDeleteStep(step: WorkflowStep) {
+    this.stepPendingDeletion.set(step);
+    this.isOpenDeleteStepConfirmModal.set(true);
+  }
+
+  public showDeleteStepConfirmModal(isOpen: boolean) {
+    this.isOpenDeleteStepConfirmModal.set(isOpen);
+
+    if (!isOpen) {
+      this.stepPendingDeletion.set(null);
+    }
+  }
+
+  public confirmDeleteStep() {
+    const step = this.stepPendingDeletion();
+
+    if (!step) {
+      return;
+    }
+
+    if (!step.id) {
+      this._toastService.error('No se pudo identificar el paso a eliminar.', 'Error');
+      this.showDeleteStepConfirmModal(false);
+      return;
+    }
+
+    this.showDeleteStepConfirmModal(false);
+
+    this.deletingStepIds.update((ids) => {
+      const next = new Set(ids);
+      next.add(step.id);
+      return next;
+    });
+
+    this._workflowService.deleteWorkflowStep(step.id).subscribe({
+      next: (response) => {
+        this._toastService.success(response.message ?? 'Paso eliminado correctamente.', 'Éxito');
+        this.getWorkflows();
+        this.deletingStepIds.update((ids) => {
+          const next = new Set(ids);
+          next.delete(step.id);
+          return next;
+        });
+      },
+      error: (error) => {
+        this._toastService.error(error?.error?.message ?? 'No se pudo eliminar el paso.', 'Error');
+        this.deletingStepIds.update((ids) => {
+          const next = new Set(ids);
+          next.delete(step.id);
+          return next;
+        });
       }
     });
   }

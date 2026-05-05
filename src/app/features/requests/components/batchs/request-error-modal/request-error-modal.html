@@ -1,0 +1,12 @@
+<app-modal size="md" [titleM]="'BULK.REQUEST_ERROR.TITLE' | translate" [open]="open()" [closeText]="'BULK.CLOSE' | translate"
+    [showPrimaryButton]="false" (openChange)="openChange.emit($event)">
+    <div class="flex flex-col gap-3">
+        <div class="text-sm text-gray-700 leading-snug">
+            <span class="font-semibold">{{ 'BULK.REQUEST_ERROR.REQUEST' | translate }}:</span>
+            <span class="ml-2">{{ selectedRequestError()?.requestNumber || '-' }}</span>
+        </div>
+        <div class="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700 leading-snug">
+            {{ errorMessage || ('BULK.REQUEST_ERROR.NO_DETAIL' | translate) }}
+        </div>
+    </div>
+</app-modal>

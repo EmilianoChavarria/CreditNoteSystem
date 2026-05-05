@@ -1,32 +1,29 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
-import { TabsContainer } from "../../../../shared/components/ui/tab/tab-container/tab-container";
-import { Tab } from "../../../../shared/components/ui/tab/tab";
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormGroup, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
-import { CommonModule, JsonPipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import formFieldsConfig from '../../../../data/form-fields-config.json';
 import { RequestService } from '../../../../core/services/request-service';
 import { CustomerService } from '../../../../core/services/customer-service';
-import { Spinner } from "../../../../shared/components/ui/spinner/spinner";
-import { Autocomplete, AutocompleteOption } from '../../../../shared/components/ui/autocomplete/autocomplete';
+import { AutocompleteOption } from '../../../../shared/components/ui/autocomplete/autocomplete';
 import { Observable, of, forkJoin, combineLatest, Subscription } from 'rxjs';
 import { map, catchError, startWith } from 'rxjs/operators';
-import { Classification, Reason, RequestType } from '../../../../data/interfaces/Request';
+import { Classification, Reason, RequestType, Request } from '../../../../data/interfaces/Request';
 import { ToastrService } from 'ngx-toastr';
-import { CreditForm } from "../../components/credit-form/credit-form";
-import { AuthService } from '../../../../core/services/auth-service';
+import { CreditForm } from "../../components/forms/credit-form/credit-form";
 import { PermissionAction, RequestTypePermissionRecord, RoleService } from '../../../../core/services/role-service';
-import { DebitForm } from "../../components/debit-form/debit-form";
-import { AuditorCreditForm } from "../../components/auditor-credit-form/auditor-credit-form";
-import { AuditorDebitForm } from "../../components/auditor-debit-form/auditor-debit-form";
+import { DebitForm } from "../../components/forms/debit-form/debit-form";
+import { AuditorCreditForm } from "../../components/forms/auditor-credit-form/auditor-credit-form";
+import { AuditorDebitForm } from "../../components/forms/auditor-debit-form/auditor-debit-form";
 import { ActivatedRoute, Router } from '@angular/router';
-import { Request } from '../../../../data/interfaces/Request';
+import { MaterialReturnForm } from "../../components/forms/material-return-form/material-return-form";
+import { ReInvoicingForm } from "../../components/forms/re-invoicing-form/re-invoicing-form";
 
 @Component({
     selector: 'app-new-request',
     templateUrl: './new-request.html',
     styleUrl: './new-request.css',
-    imports: [ReactiveFormsModule, TranslatePipe, CommonModule, CreditForm, DebitForm, AuditorCreditForm, AuditorDebitForm],
+    imports: [ReactiveFormsModule, TranslatePipe, CommonModule, CreditForm, DebitForm, AuditorCreditForm, AuditorDebitForm, MaterialReturnForm, ReInvoicingForm],
 })
 export class NewRequest implements OnInit {
     public profileForm: FormGroup;
@@ -42,15 +39,18 @@ export class NewRequest implements OnInit {
     public classifications = signal<Classification[]>([]);
     public availableRequestTypes = signal<RequestType[]>([]);
     public editingRequestData = signal<Partial<Request> | null>(null);
+    public isEditingRequest = computed(() => {
+        const requestId = Number(this.editingRequestData()?.id);
+        return Number.isFinite(requestId) && requestId > 0;
+    });
     private computedSubscriptions: Subscription[] = [];
     private requestTypeActionPermissions = signal<Record<number, Record<string, boolean>>>({});
     private toastr = inject(ToastrService);
-    private authService = inject(AuthService);
     private roleService = inject(RoleService);
     constructor(
         private fb: FormBuilder,
         private _requestService: RequestService,
-        private _customerService: CustomerService,
+
         private readonly route: ActivatedRoute,
         private readonly router: Router,
 
@@ -77,7 +77,13 @@ export class NewRequest implements OnInit {
         const editRequest = navigationState?.editRequest ?? browserState?.editRequest;
 
         if (editRequest) {
+            console.log(editRequest);
             this.editingRequestData.set(editRequest);
+
+            if ((this.selectedRequestTypeId === null || this.selectedRequestType === '') && Number(editRequest.requestTypeId) > 0) {
+                this.selectedRequestTypeId = Number(editRequest.requestTypeId);
+                this.selectedRequestType = this.resolveRequestTypeModuleKey(this.selectedRequestTypeId);
+            }
         }
     }
 
@@ -95,34 +101,14 @@ export class NewRequest implements OnInit {
     }
 
     private loadAllowedRequestTypes(): void {
-        const currentRoleId = this.authService.getCurrentUser()?.roleId;
-
-        if (currentRoleId) {
-            this.loadRequestTypesByRole(currentRoleId);
-            return;
-        }
-
-        this.authService.checkSession().subscribe({
-            next: () => {
-                const resolvedRoleId = this.authService.getCurrentUser()?.roleId;
-                if (!resolvedRoleId) {
-                    this.availableRequestTypes.set([]);
-                    return;
-                }
-
-                this.loadRequestTypesByRole(resolvedRoleId);
-            },
-            error: () => {
-                this.availableRequestTypes.set([]);
-            }
-        });
+        this.loadRequestTypesByContext();
     }
 
-    private loadRequestTypesByRole(roleId: number): void {
+    private loadRequestTypesByContext(): void {
         forkJoin({
             actions: this.roleService.getActions(),
             requestTypes: this._requestService.getRequestTypes(),
-            permissions: this.roleService.getRequestTypePermissionsByRole(roleId),
+            permissions: this.roleService.getRequestTypePermissionsForCurrentContext(),
         }).subscribe({
             next: ({ actions, requestTypes, permissions }) => {
                 const permissionMatrix = this.buildRequestTypeActionPermissions(actions, permissions);
@@ -187,28 +173,6 @@ export class NewRequest implements OnInit {
 
     }
 
-    getReasons() {
-        this._requestService.getReasons().subscribe({
-            next: (response) => {
-                this.reasons.set(response);
-            },
-            error: (error) => {
-                console.log(error);
-            }
-        })
-    }
-
-    getClassifications(requestTypeId: number) {
-        this._requestService.getClassificationsByType(requestTypeId).subscribe({
-            next: (response) => {
-                this.classifications.set(response);
-            },
-            error: (error) => {
-                console.log(error);
-            }
-        })
-    }
-
     onRequestTypeChange(event: any) {
         const value = event.target.value;
         const numericRequestTypeId = Number(value);
@@ -219,44 +183,7 @@ export class NewRequest implements OnInit {
         console.log(moduleKey);
         this.selectedRequestType = moduleKey;
         this.selectedRequestTypeId = Number.isNaN(numericRequestTypeId) ? null : numericRequestTypeId;
-        // if (moduleKey && this.formConfig[moduleKey]) {
-        //     const requestTypeId = Number(this.selectedRequestType);
 
-        //     // Combinar los 3 observables
-        //     forkJoin({
-        //         requestNumber: this._requestService.getNextRequestNumber(requestTypeId),
-        //         reasons: this._requestService.getReasons(),
-        //         classifications: this._requestService.getClassificationsByType(requestTypeId)
-        //     }).subscribe({
-        //         next: (results) => {
-        //             // Actualizar los signals con los datos
-        //             this.requestNumber.set(results.requestNumber.requestNumber);
-        //             this.reasons.set(results.reasons);
-        //             this.classifications.set(results.classifications);
-
-        //             // Actualizar tabs y form
-        //             this.currentTabs = this.formConfig[moduleKey].tabs;
-        //             this.buildForm(moduleKey);
-
-        //             // Establecer el request number en el form
-        //             const requestNumberControl = this.profileForm.get('requestNumber');
-        //             if (requestNumberControl) {
-        //                 requestNumberControl.setValue(results.requestNumber.requestNumber);
-        //                 requestNumberControl.disable({ emitEvent: false });
-        //             }
-
-        //             this.isLoadingForm.set(false);
-        //         },
-        //         error: (error) => {
-        //             console.error('Error cargando datos del form:', error);
-        //             this.isLoadingForm.set(false);
-        //         }
-        //     });
-        // } else {
-        //     this.currentTabs = [];
-        //     this.profileForm = this.fb.group({});
-        //     this.isLoadingForm.set(false);
-        // }
     }
 
     buildForm(moduleKey: string) {
@@ -430,22 +357,19 @@ export class NewRequest implements OnInit {
 
         if (this.profileForm.valid) {
             const formValue = this.profileForm.getRawValue();
-            // console.log('FormData capturado con profileForm:', formValue);
-            // console.log('Tipo de request:', this.selectedRequestType);
+
             delete formValue.sapScreen;
             delete formValue.attachSupports;
             delete formValue.reviewComments;
             delete formValue.creditNumber;
             delete formValue.orderNumber;
             const newObject = {
-                requestTypeId: this.selectedRequestType,
+                requestTypeId: this.selectedRequestTypeId,
                 ...formValue,
                 customerId: formValue.customerId.id,
                 totalAmount: formValue.totalAmount.toFixed(2),
                 status: 'created'
             }
-            // console.log("Form parseado", newObject);
-            // alert('Datos impresos en consola');
             this.saveRequest(newObject);
             this.submitted = false; // Resetear después de guardar exitosamente
         } else {
@@ -475,7 +399,7 @@ export class NewRequest implements OnInit {
         delete formValue.orderNumber;
         
         const newObject = {
-            requestTypeId: this.selectedRequestType,
+            requestTypeId: this.selectedRequestTypeId,
             ...formValue,
             customerId: formValue.customerId?.id || null,
             totalAmount: formValue.totalAmount ? formValue.totalAmount.toFixed(2) : 0,
@@ -486,54 +410,4 @@ export class NewRequest implements OnInit {
         this.submitted = false;
     }
 
-    searchCustomers(term: string): Observable<AutocompleteOption[]> {
-        if (!term || term.trim().length === 0) {
-            return of([]);
-        }
-        return this._customerService.getCustomersByName(term).pipe(
-            map(customers => {
-                // Validar que customers sea un array
-                if (!Array.isArray(customers)) {
-                    console.warn('Expected array but got:', customers);
-                    return [];
-                }
-                return customers.map((customer): AutocompleteOption => ({
-                    id: customer.idCliente,
-                    label: customer.razonSocial,
-                    customer
-                }));
-            }),
-            catchError(error => {
-                console.error('Error searching customers:', error);
-                return of([]);
-            })
-        );
-    }
-
-    displayCustomer(customer: any) {
-        // console.log(customer);
-        return customer?.label || customer?.customer?.razonSocial || customer?.razonSocial || '';
-    }
-
-    onCustomerSelected(option: AutocompleteOption) {
-        console.log('Cliente seleccionado:', option);
-        const salesManagerId = option?.['customer']?.clienteExt?.salesManagerId;
-        const salesEngineerId = option?.['customer']?.clienteExt?.salesEngineerId;
-        const financeManagerId = option?.['customer']?.clienteExt?.financeManagerId;
-        const marketingManagerId = option?.['customer']?.clienteExt?.marketingManagerId;
-        const customerServiceManagerId = option?.['customer']?.clienteExt?.customerServiceManagerId;
-        const hasAssignedWorkflow = [
-            salesManagerId,
-            salesEngineerId,
-            financeManagerId,
-            marketingManagerId,
-            customerServiceManagerId
-        ].every((id) => id !== null && id !== undefined);
-
-        this.isRegisterRequestDisabled.set(!hasAssignedWorkflow);
-
-        if (!hasAssignedWorkflow) {
-            this.toastr.error('El cliente no tiene un flujo de aprobación asignado, favor de avisar al administrador', 'Error');
-        }
-    }
 }

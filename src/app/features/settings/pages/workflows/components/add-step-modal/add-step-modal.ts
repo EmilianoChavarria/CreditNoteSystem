@@ -4,10 +4,11 @@ import { Modal } from '../../../../../../shared/components/ui/modal/modal';
 import { Role } from '../../../../../../data/interfaces/User';
 import { LucideAngularModule } from 'lucide-angular';
 import { Spinner } from '../../../../../../shared/components/ui/spinner/spinner';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-add-step-modal',
-  imports: [Modal, ReactiveFormsModule, FormsModule, LucideAngularModule, Spinner],
+  imports: [Modal, ReactiveFormsModule, FormsModule, LucideAngularModule, Spinner, TranslatePipe],
   templateUrl: './add-step-modal.html'
 })
 export class AddStepModal {
@@ -26,10 +27,14 @@ export class AddStepModal {
   readonly transitionsChange = output<any[]>();
 
   operatorOptions = [
-    { label: '>', value: 'Mayor que (>)' },
-    { label: '<', value: 'Menor que (<)' },
-    { label: '>=', value: 'Mayor o igual que (>=)' },
-    { label: '<=', value: 'Menor o igual que (<=)' }
+    { label: '>', value: 'WORKFLOWS_STEP_MODAL.OPERATORS.GREATER_THAN' },
+    { label: '<', value: 'WORKFLOWS_STEP_MODAL.OPERATORS.LESS_THAN' },
+    { label: '>=', value: 'WORKFLOWS_STEP_MODAL.OPERATORS.GREATER_OR_EQUAL' },
+    { label: '<=', value: 'WORKFLOWS_STEP_MODAL.OPERATORS.LESS_OR_EQUAL' }
+  ];
+
+  conditionFieldOptions = [
+    { value: 'totalAmount', label: 'Total Amount' },
   ];
 
   addTransition() {
@@ -47,6 +52,19 @@ export class AddStepModal {
   removeTransition(index: number) {
     const updatedTransitions = this.transitions().filter((_, i) => i !== index);
     this.transitionsChange.emit(updatedTransitions);
+  }
+
+  getCurrentStepNumber(): number | null {
+    const value = this.stepForm().getRawValue() as { stepOrder?: number | null };
+    return value.stepOrder ?? null;
+  }
+
+  getStepById(stepId: number | null | undefined): any | null {
+    if (stepId === null || stepId === undefined) {
+      return null;
+    }
+
+    return this.availableSteps().find((step) => step.id === stepId) ?? null;
   }
 
   updateTransition(index: number, transition: any) {

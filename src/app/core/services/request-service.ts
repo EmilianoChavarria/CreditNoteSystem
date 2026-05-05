@@ -1,156 +1,53 @@
 import { Injectable } from '@angular/core';
 import { HttpService } from './http-service';
-import { catchError, map, Observable, tap } from 'rxjs';
+import { catchError, map, Observable, shareReplay } from 'rxjs';
 import { Classification, Reason, Request, RequestType } from '../../data/interfaces/Request';
 import { ApiResponse } from '../../data/interfaces/ApiResponse-interface';
 import { CursorPagination } from './user-service';
 import { HttpClient } from '@angular/common/http';
+import { runtimeConfig } from '../config/runtime-config';
+import {
+  ApproveMassResponse,
+  MassActionRequestPayload,
+  PagePagination,
+  RejectMassResponse,
+  RequestAttachment,
+  RequestHistoryData,
+  RequestNumber,
+} from '../../data/interfaces/RequestService';
 
-export interface PagePagination<T> {
-  data: T[];
-  current_page: number;
-  last_page: number;
-  per_page?: number;
+export type {
+  ApproveMassResponse,
+  MassActionFailedRequest,
+  MassActionRequestPayload,
+  PagePagination,
+  RejectMassResponse,
+  RequestAttachment,
+  RequestHistoryData,
+  RequestHistoryLog,
+  RequestHistoryRole,
+  RequestHistoryStep,
+  RequestHistoryTimelineItem,
+  RequestNumber,
+} from '../../data/interfaces/RequestService';
+
+interface RequestAttachmentsPayload {
+  requestId?: number;
+  request_id?: number;
   total?: number;
-  next_page_url?: string | null;
-  prev_page_url?: string | null;
+  attachments?: RequestAttachment[];
 }
 
-export interface RequestNumber {
-  requestTypeId: number;
-  requestNumber: string;
-  prefix: string;
+interface RequestAttachmentFilePayload {
+  fileUrl?: string;
+  file_url?: string;
+  url?: string;
+  path?: string;
 }
 
-export interface RequestHistoryRole {
-  id: number;
-  roleName: string;
-}
-
-export interface RequestHistoryStep {
-  id: number;
-  stepName: string;
-  stepOrder: number;
-  role: RequestHistoryRole;
-  isInitialStep: boolean;
-  isFinalStep: boolean;
-  isCurrent: boolean;
-  wasVisited: boolean;
-  latestStatus: string | null;
-  latestStartedAt: string | null;
-  latestCompletedAt: string | null;
-}
-
-export interface RequestHistoryLog {
-  id: number;
-  requestWorkflowStepId: number;
+export interface ReturnOrderRequestLinkPayload {
+  returnOrderId: number;
   requestId: number;
-  workflowStepId: number;
-  actionUserId: number;
-  actionType: string;
-  comments: string | null;
-  createdAt: string;
-  workflow_step: {
-    id: number;
-    workflowId: number;
-    stepName: string;
-    stepOrder: number;
-    roleId: number;
-    isInitialStep: boolean;
-    isFinalStep: boolean;
-  };
-  action_user: {
-    id: number;
-    fullName: string;
-    email: string;
-    roleId: number;
-  };
-  request_step: {
-    id: number;
-    requestId: number;
-    workflowStepId: number;
-    assignedRoleId: number;
-    status: string;
-    startedAt: string | null;
-    completedAt: string | null;
-  };
-}
-
-export interface RequestHistoryTimelineItem {
-  sequence: number;
-  timestamp: string;
-  actionType: string;
-  message: string;
-  comments: string | null;
-  step: {
-    id: number;
-    name: string;
-    order: number;
-  };
-  fromStep: {
-    id: number;
-    name: string;
-    order: number;
-  } | null;
-  toStep: {
-    id: number;
-    name: string;
-    order: number;
-  } | null;
-  actionUser: {
-    id: number;
-    fullName: string;
-    email: string;
-    roleId: number;
-  };
-}
-
-export interface RequestHistoryData {
-  request: Request;
-  workflow: {
-    id: number;
-    name: string | null;
-  };
-  progress: {
-    currentStepOrder: number;
-    totalSteps: number;
-    percent: number;
-  };
-  steps: RequestHistoryStep[];
-  history: RequestHistoryLog[];
-  timeline?: RequestHistoryTimelineItem[];
-  currentStep: {
-    id: number;
-    requestId: number;
-    workflowId: number;
-    workflowStepId: number;
-    assignedRoleId: number;
-    status: string;
-    createdAt: string;
-    updatedAt: string;
-    workflow_step: {
-      id: number;
-      workflowId: number;
-      stepName: string;
-      stepOrder: number;
-      roleId: number;
-      isInitialStep: boolean;
-      isFinalStep: boolean;
-      role: RequestHistoryRole;
-    };
-    assigned_role: RequestHistoryRole;
-    workflow: {
-      id: number;
-      name: string;
-      description: string;
-      isActive: boolean;
-      requestTypeId: number;
-      classificationType: string;
-      createdAt: string;
-      updatedAt: string;
-      deletedAt: string | null;
-    };
-  };
 }
 
 @Injectable({
@@ -159,6 +56,7 @@ export interface RequestHistoryData {
 export class RequestService {
 
   private token = 'df86e3c71f798ed791afff85b7074abefeb34558903553b6e1aa37f0214aa0bb';
+  private reasonsByType = new Map<number, Observable<Reason[]>>();
 
   constructor(
     private _httpService: HttpService,
@@ -175,14 +73,53 @@ export class RequestService {
     )
   }
 
-  getReasons(): Observable<Reason[]> {
-    return this._httpService.get<Reason[]>('/requests/reasons').pipe(
-      tap((response: ApiResponse<Reason[]>) => {
-        if (response.success) {
+  getReasons(requestTypeId: number): Observable<Reason[]> {
+    const cachedReasons = this.reasonsByType.get(requestTypeId);
+    if (cachedReasons) {
+      return cachedReasons;
+    }
 
-        }
+    const reasons$ = this._httpService.get<Reason[]>(`/requests/reasons/${requestTypeId}`).pipe(
+        map((response: ApiResponse<Reason[]>) => response.data ?? []),
+        catchError((error) => {
+          this.reasonsByType.delete(requestTypeId);
+          console.log(error);
+          throw error;
+        }),
+        shareReplay(1),
+      );
+
+    this.reasonsByType.set(requestTypeId, reasons$);
+    return reasons$;
+  }
+
+  getMyPendingRequests(requestTypeId: number, perPage = 10, page = 1, search?: string): Observable<PagePagination<Request>> {
+    const params: { requestTypeId: number; per_page: number; page: number; search?: string } = {
+      requestTypeId,
+      per_page: perPage,
+      page,
+    };
+
+    if (search && search.trim().length > 0) {
+      params.search = search.trim();
+    }
+
+    return this._httpService.get<PagePagination<Request>>('/requests/pending/me', {
+      params
+    }).pipe(
+      map((response: ApiResponse<PagePagination<Request>>) => {
+        const payload = response.data;
+
+        return {
+          data: payload?.data ?? [],
+          current_page: payload?.current_page ?? 1,
+          last_page: payload?.last_page ?? 1,
+          per_page: payload?.per_page,
+          total: payload?.total,
+          next_page_url: payload?.next_page_url ?? null,
+          prev_page_url: payload?.prev_page_url ?? null,
+        };
       }),
-      map((response: ApiResponse<Reason[]>) => response.data ?? []),
       catchError((error) => {
         console.log(error);
         throw error;
@@ -190,29 +127,30 @@ export class RequestService {
     )
   }
 
-  getMyPendingRequests(): Observable<Request[]> {
-    return this._httpService.get<Request[]>('requests/pending/1').pipe(
-      tap((response: ApiResponse<Request[]>) => {
-        if (response.success) {
+  getRequestsByCustomerId(customerId: number | string): Observable<PagePagination<Request>> {
+    return this._httpService.get<PagePagination<Request>>(`/requests/customer/${customerId}`).pipe(
+      map((response: ApiResponse<PagePagination<Request>>) => {
+        const payload = response.data;
 
-        }
+        return {
+          data: payload?.data ?? [],
+          current_page: payload?.current_page ?? 1,
+          last_page: payload?.last_page ?? 1,
+          per_page: payload?.per_page,
+          total: payload?.total,
+          next_page_url: payload?.next_page_url ?? null,
+          prev_page_url: payload?.prev_page_url ?? null,
+        };
       }),
-      map((response: ApiResponse<Request[]>) => response.data ?? []),
       catchError((error) => {
         console.log(error);
         throw error;
       })
-    )
-
+    );
   }
 
   getRequestHistory(requestId: number): Observable<RequestHistoryData | null> {
     return this._httpService.get<RequestHistoryData>(`/requests/${requestId}/history`).pipe(
-      tap((response: ApiResponse<RequestHistoryData>) => {
-        if (response.success) {
-
-        }
-      }),
       map((response: ApiResponse<RequestHistoryData>) => response.data ?? null),
       catchError((error) => {
         console.log(error);
@@ -223,11 +161,6 @@ export class RequestService {
 
   getClassificationsByType(id: number): Observable<Classification[]> {
     return this._httpService.get<Classification[]>(`classifications/requestType/${id}`).pipe(
-      tap((response: ApiResponse<Classification[]>) => {
-        if (response.success) {
-          // console.log(response);
-        }
-      }),
       map((response: ApiResponse<Classification[]>) => response.data ?? []),
       catchError(error => {
         console.log(error);
@@ -238,11 +171,6 @@ export class RequestService {
 
   getRequestsByType(id: number): Observable<Request[]> {
     return this._httpService.get<Request[]>(`/requests/${id}`).pipe(
-      tap((response: ApiResponse<Request[]>) => {
-        if (response.success) {
-          // console.log(response);
-        }
-      }),
       map((response: ApiResponse<Request[]>) => response.data ?? []),
       catchError(error => {
         console.log(error);
@@ -278,8 +206,12 @@ export class RequestService {
     );
   }
 
-  getRequestsByTypeWithPagePagination(id: number, perPage = 10, page = 1): Observable<PagePagination<Request>> {
-    const params = { per_page: perPage, page };
+  getRequestsByTypeWithPagePagination(id: number, perPage = 10, page = 1, search?: string): Observable<PagePagination<Request>> {
+    const params: { per_page: number; page: number; search?: string } = { per_page: perPage, page };
+
+    if (search && search.trim().length > 0) {
+      params.search = search.trim();
+    }
 
     return this._httpService.get<PagePagination<Request>>(`/requests/${id}`, { params }).pipe(
       map((response: ApiResponse<PagePagination<Request>>) => {
@@ -331,11 +263,6 @@ export class RequestService {
 
   getNextRequestNumber(requestTypeId: number): Observable<RequestNumber> {
     return this._httpService.get<RequestNumber>(`/requests/next-number/${requestTypeId}`).pipe(
-      tap((response: ApiResponse<RequestNumber>) => {
-        if (response.success) {
-
-        }
-      }),
       map((response: ApiResponse<RequestNumber>) => response.data ?? {
         requestTypeId,
         requestNumber: '',
@@ -348,27 +275,44 @@ export class RequestService {
     )
   }
 
-  saveRequest(object: any) {
-    return this._httpService.post('/requests/newRequest', object).pipe(
-      tap((response) => {
-        if (response.success) {
-          console.log(response);
-        }
-      }),
+  saveRequest(formData: FormData): Observable<ApiResponse<Request | null>> {
+    return this.http.post<ApiResponse<Request | null>>(
+      `${runtimeConfig.apiBaseUrl}/requests/newRequest`,
+      formData,
+      { withCredentials: true }
+    ).pipe(
       catchError((error) => {
         console.log(error);
         throw error;
       })
-    )
+    );
   }
 
-  saveDraft(object: any) {
-    return this._httpService.post('/requests/draft', object).pipe(
-      tap((response) => {
-        if (response.success) {
-          console.log('Draft saved successfully', response);
-        }
-      }),
+  linkReturnOrderToRequest(payload: ReturnOrderRequestLinkPayload): Observable<ApiResponse<unknown>> {
+    return this._httpService.post<unknown>('/return-order-requests', payload).pipe(
+      catchError((error) => {
+        console.log(error);
+        throw error;
+      })
+    );
+  }
+
+  updateRequest(requestId: number, formData: FormData): Observable<ApiResponse<Request | null>> {
+    formData.append('_method', 'PUT');
+    return this.http.post<ApiResponse<Request | null>>(
+      `${runtimeConfig.apiBaseUrl}/requests/${requestId}`,
+      formData,
+      { withCredentials: true }
+    ).pipe(
+      catchError((error) => {
+        console.log(error);
+        throw error;
+      })
+    );
+  }
+
+  saveDraft(object: any): Observable<ApiResponse<Request | null>> {
+    return this._httpService.post<Request>('/requests/draft', object).pipe(
       catchError((error) => {
         console.log(error);
         throw error;
@@ -378,26 +322,16 @@ export class RequestService {
 
   getRequestTypes(): Observable<RequestType[]> {
     return this._httpService.get<RequestType[]>('/requestType').pipe(
-      tap((response: ApiResponse<RequestType[]>) => {
-        if (response.success) {
-        }
-      }),
       map((response: ApiResponse<RequestType[]>) => response.data ?? []),
       catchError((error) => {
         console.log(error);
         throw error;
       })
     )
-
   }
 
   approveRequest(requestId: number): Observable<any> {
     return this._httpService.post(`/requests/${requestId}/approve`, {}).pipe(
-      tap((response: ApiResponse<any>) => {
-        if (response.success) {
-          console.log('Request approved successfully');
-        }
-      }),
       catchError((error) => {
         console.log(error);
         throw error;
@@ -407,16 +341,98 @@ export class RequestService {
 
   rejectRequest(requestId: number, comments: string): Observable<any> {
     return this._httpService.post(`/requests/${requestId}/reject`, { comments }).pipe(
-      tap((response: ApiResponse<any>) => {
-        if (response.success) {
-          console.log('Request rejected successfully');
-        }
-      }),
       catchError((error) => {
         console.log(error);
         throw error;
       })
     )
+  }
+
+  approveMassRequests(requestIds: number[], comments?: string): Observable<ApproveMassResponse> {
+    const payload: MassActionRequestPayload = {
+      requestIds,
+      comments,
+    };
+
+    return this._httpService.post<ApproveMassResponse>('/requests/approve-mass', payload).pipe(
+      map((response: ApiResponse<ApproveMassResponse>) => response.data ?? {
+        totalReceived: requestIds.length,
+        totalApproved: 0,
+        totalFailed: requestIds.length,
+        approvedRequestIds: [],
+        failedRequests: []
+      }),
+      catchError((error) => {
+        console.log(error);
+        throw error;
+      })
+    );
+  }
+
+  rejectMassRequests(requestIds: number[], comments: string): Observable<RejectMassResponse> {
+    const payload: MassActionRequestPayload = {
+      requestIds,
+      comments,
+    };
+
+    return this._httpService.post<RejectMassResponse>('/requests/reject-mass', payload).pipe(
+      map((response: ApiResponse<RejectMassResponse>) => response.data ?? {
+        totalReceived: requestIds.length,
+        totalRejected: 0,
+        totalFailed: requestIds.length,
+        rejectedRequestIds: [],
+        failedRequests: [],
+      }),
+      catchError((error) => {
+        console.log(error);
+        throw error;
+      })
+    );
+  }
+
+  getRequestAttachments(requestId: number): Observable<RequestAttachment[]> {
+    return this._httpService.get<RequestAttachment[] | RequestAttachmentsPayload>(`/requests/${requestId}/attachments`).pipe(
+      map((response: ApiResponse<RequestAttachment[] | RequestAttachmentsPayload>) => {
+        const payload = response.data;
+
+        if (Array.isArray(payload)) {
+          return payload;
+        }
+
+        if (payload?.attachments && Array.isArray(payload.attachments)) {
+          return payload.attachments;
+        }
+
+        return [];
+      }),
+      catchError((error) => {
+        console.log(error);
+        throw error;
+      })
+    );
+  }
+
+  getRequestAttachmentFileUrl(attachmentId: number): Observable<string | null> {
+    return this._httpService.get<RequestAttachmentFilePayload>(`/requests/attachments/${attachmentId}`).pipe(
+      map((response: ApiResponse<RequestAttachmentFilePayload>) => {
+        const payload = response.data;
+        return payload?.fileUrl ?? payload?.file_url ?? payload?.url ?? payload?.path ?? null;
+      }),
+      catchError((error) => {
+        console.log(error);
+        throw error;
+      })
+    );
+  }
+
+  deleteRequestAttachment(requestId: number, attachmentId: number): Observable<ApiResponse<boolean>> {
+    return this._httpService.delete<boolean>(`/requests/${requestId}/attachments/${attachmentId}`).pipe(
+      map((response: ApiResponse<boolean>) => response),
+      catchError((error) => {
+        console.log(error);
+        throw error;
+      })
+    );
   }
 
 }

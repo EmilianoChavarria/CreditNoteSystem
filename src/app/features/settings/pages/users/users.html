@@ -6,177 +6,139 @@
         </div>
     </header>
     <app-tabla-dinamica [datos]="users()" [columnas]="columns" [accionesPersonalizadas]="acciones" actionMode="menu"
-        [enableFilter]="true" filterField="role.roleName" [canAdd]="true"
-        [addLabel]="'User'"
+        [enableFilter]="true" filterField="role.roleName" [canAdd]="true" [canBulk]="true"
+        [addLabel]="'USERS_PAGE.USER'"
         [registrosPorPagina]="pageSize()" [serverPagination]="true" [paginaActualExterna]="currentPage()"
+        [totalPaginasExterno]="totalPages()"
         [hasNextPage]="hasNextPage()" [hasPrevPage]="hasPrevPage()" [loading]="isLoadingTable()"
         (paginaSiguiente)="onNextPage()" (paginaAnterior)="onPrevPage()"
+        (paginaPrimera)="onFirstPage()" (paginaUltima)="onLastPage()"
         (registrosPorPaginaChange)="onPageSizeChange($event)"
-        (addClick)="openUserModalForCreate()">
+        (searchChange)="onSearch($event)"
+        (addClick)="openUserModalForCreate()"
+        (bulkClick)="openBulkUploadModal()">
         
         <ng-template #cellTemplate let-item let-column="column">
             @if (column.key === 'isActive') {
-                <app-badge [color]="item.isActive ? 'green' : 'red'" [text]="item.isActive ? 'Activo' : 'Inactivo'" />
+                <app-badge [color]="item.isActive ? 'green' : 'red'" [text]="item.isActive ? ('USERS_PAGE.ACTIVE' | translate) : ('USERS_PAGE.INACTIVE' | translate)" />
             }
         </ng-template>
     </app-tabla-dinamica>
 
+    <app-reset-password-modal
+        [open]="showResetPasswordModal()"
+        [user]="selectedUserForReset()"
+        (openChange)="onResetPasswordModalChange($event)">
+    </app-reset-password-modal>
+
+    <app-user-form-modal
+        [open]="showUserModal()"
+        [isEditMode]="isEditMode()"
+        [isUserModalLoading]="isUserModalLoading()"
+        [isSavingUser]="isSavingUser()"
+        [showPassword]="showPassword()"
+        [passwordErrors]="passwordErrors()"
+        [userForm]="userForm"
+        [roles]="roles()"
+        [supervisors]="supervisors()"
+        [isCustomerRoleSelected]="isCustomerRoleSelected()"
+        [campoVacioFn]="campoVacio.bind(this)"
+        [getErrorMessageFn]="getErrorMessage.bind(this)"
+        [searchCustomersFn]="searchCustomers.bind(this)"
+        [displayCustomerFn]="displayCustomer.bind(this)"
+        (openChange)="onUserModalChange($event)"
+        (save)="saveUserFromModal()"
+        (togglePassword)="togglePassword()"
+        (roleChange)="onRoleChange()"
+        (customerSelected)="onCustomerSelected($event)">
+    </app-user-form-modal>
+
     <app-modal
         size="lg"
-        [titleM]="isEditMode() ? 'Editar usuario' : 'Nuevo usuario'"
-        [open]="showUserModal()"
-        closeText="Cancelar"
-        [primaryText]="isSavingUser() ? 'Guardando...' : (isEditMode() ? 'Actualizar' : 'Guardar')"
-        [showPrimaryButton]="!isUserModalLoading()"
-        (openChange)="onUserModalChange($event)"
-        (primaryAction)="saveUserFromModal()"
+        [titleM]="'TABLE.BULK_BUTTON' | translate"
+        [open]="showBulkUploadModal()"
+        [closeText]="'USERS_PAGE.CANCEL' | translate"
+        [primaryText]="isBulkUploading() ? ('USERS_PAGE.UPLOADING' | translate) : ('USERS_PAGE.UPLOAD' | translate)"
+        (openChange)="onBulkUploadModalChange($event)"
+        (primaryAction)="submitBulkUpload()"
     >
-        @if (isUserModalLoading()) {
-            <div class="py-8">
-                <app-spinner size="large"></app-spinner>
+        <div class="flex flex-col gap-4">
+            <!-- Download template -->
+            <div class="flex items-center justify-between rounded-md border border-gray-200 bg-gray-50 px-3 py-2">
+                <span class="text-xs text-gray-500">{{'USERS_PAGE.BULK_TEMPLATE_HINT' | translate}}</span>
+                <a href="/assets/templates/users-template.xlsx" download
+                    class="flex items-center gap-1.5 rounded border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50">
+                    <lucide-icon name="download" size="13"></lucide-icon>
+                    {{'USERS_PAGE.BULK_DOWNLOAD_TEMPLATE' | translate}}
+                </a>
             </div>
-        } @else {
-            <form [formGroup]="userForm" (ngSubmit)="saveUserFromModal()" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block font-medium text-[#395f93] text-sm">Nombre completo <span class="text-red-500">*</span></label>
-                    <input
-                        type="text"
-                        placeholder="Juan Perez"
-                        formControlName="fullName"
-                        [class]="campoVacio('fullName') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'"
-                    />
-                    @if (campoVacio('fullName')) {
-                        <span class="text-sm text-red-500">{{ getErrorMessage('fullName') }}</span>
-                    }
-                </div>
 
-                <div>
-                    <label class="block font-medium text-[#395f93] text-sm">Correo <span class="text-red-500">*</span></label>
-                    <input
-                        type="text"
-                        placeholder="example@email.com"
-                        formControlName="email"
-                        [class]="campoVacio('email') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'"
-                    />
-                    @if (campoVacio('email')) {
-                        <span class="text-sm text-red-500">{{ getErrorMessage('email') }}</span>
-                    }
-                </div>
-
-                @if (!isEditMode()) {
-                    <div class="md:col-span-2">
-                        <label class="block font-medium text-[#395f93] text-sm">Password <span class="text-red-500">*</span></label>
-                        <div class="relative mt-2">
-                            <input
-                                [type]="showPassword() ? 'text' : 'password'"
-                                placeholder="********"
-                                formControlName="password"
-                                [class]="campoVacio('password') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'"
-                            />
-                            <button
-                                type="button"
-                                (click)="togglePassword()"
-                                class="absolute inset-y-0 end-0 flex items-center px-3 text-xs text-slate-600"
-                            >
-                                {{ showPassword() ? 'Ocultar' : 'Mostrar' }}
-                            </button>
-                        </div>
-
-                        @if (campoVacio('password')) {
-                            @if (passwordErrors().length > 0) {
-                                @for (error of passwordErrors(); track $index) {
-                                    <span class="text-sm text-red-500 block">- {{ error }}</span>
-                                }
-                            } @else {
-                                <span class="text-sm text-red-500">{{ getErrorMessage('password') }}</span>
-                            }
-                        }
+            <!-- Dropzone -->
+            <div class="flex items-center justify-center w-full">
+                <label for="bulk-users-input"
+                    class="flex flex-col items-center justify-center w-full min-h-48 bg-blue-50 border border-dashed border-blue-600 rounded-md cursor-pointer px-4 py-6 transition-colors"
+                    [class.bg-blue-100]="isDragOver()"
+                    [class.border-orange-400]="isDragOver()"
+                    (dragover)="onDragOver($event)"
+                    (dragleave)="onDragLeave($event)"
+                    (drop)="onDrop($event)">
+                    <div class="flex flex-col items-center justify-center text-center pt-5 pb-4">
+                        <img src="assets/svg/cloud.svg" alt="" class="w-full max-w-20 h-auto object-contain my-3">
+                        <p class="mb-2 text-sm leading-snug">
+                            {{'USERS_PAGE.BULK_DROP_HINT' | translate}}
+                            <span class="font-semibold text-[#ff8200]">{{'BULK.COMMON.CLICK_UPLOAD' | translate}}</span>
+                        </p>
+                        <span class="text-xs text-gray-400">.csv · .xlsx</span>
                     </div>
-                }
+                    <input id="bulk-users-input" type="file" accept=".csv,.xlsx" class="hidden"
+                        (change)="onBulkFileChange($event)" />
+                </label>
+            </div>
 
-                <div>
-                    <label class="block font-medium text-[#395f93] text-sm">Rol <span class="text-red-500">*</span></label>
-                    <select
-                        formControlName="roleId"
-                        (change)="onRoleChange()"
-                        [class]="campoVacio('roleId') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'"
-                    >
-                        <option [ngValue]="0">Selecciona un rol</option>
-                        @for (item of roles(); track item.id) {
-                            <option [ngValue]="item.id">{{ item.roleName }}</option>
-                        }
-                    </select>
-                    @if (campoVacio('roleId')) {
-                        <span class="text-sm text-red-500">{{ getErrorMessage('roleId') }}</span>
-                    }
-                </div>
-
-                <div [class.hidden]="!isCustomerRoleSelected()">
-                    <app-autocomplete
-                        [control]="$any(userForm.get('customerId'))"
-                        label="Cliente"
-                        placeholder="Buscar cliente"
-                        [isRequired]="isCustomerRoleSelected()"
-                        [searchFn]="searchCustomers.bind(this)"
-                        [displayFn]="displayCustomer.bind(this)"
-                        [debounceMs]="500"
-                        [minCharacters]="1"
-                        [hasError]="campoVacio('customerId')"
-                        (optionSelected)="onCustomerSelected($event)">
-                    </app-autocomplete>
-
-                    @if (campoVacio('customerId')) {
-                        <span class="text-sm text-red-500">{{ getErrorMessage('customerId') }}</span>
-                    }
-                </div>
-
-                <div>
-                    <label class="block font-medium text-[#395f93] text-sm">Supervisor <span class="text-red-500">*</span></label>
-                    <select
-                        formControlName="supervisorId"
-                        [class]="campoVacio('supervisorId') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'"
-                    >
-                        <option [ngValue]="0">Selecciona un supervisor</option>
-                        @for (item of supervisors(); track item.id) {
-                            <option [ngValue]="item.id">{{ item.fullName }} ({{ item.role.roleName }})</option>
-                        }
-                    </select>
-                    @if (campoVacio('supervisorId')) {
-                        <span class="text-sm text-red-500">{{ getErrorMessage('supervisorId') }}</span>
-                    }
-                </div>
-
-                <div class="md:col-span-2">
-                    <label class="block font-medium text-[#395f93] text-sm">Idioma preferido <span class="text-red-500">*</span></label>
-                    <select
-                        formControlName="preferredLanguage"
-                        [class]="campoVacio('preferredLanguage') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'"
-                    >
-                        <option value="DEF">Selecciona un idioma</option>
-                        <option value="es">Espanol</option>
-                        <option value="en">Ingles</option>
-                    </select>
-                    @if (campoVacio('preferredLanguage')) {
-                        <span class="text-sm text-red-500">{{ getErrorMessage('preferredLanguage') }}</span>
-                    }
-                </div>
-
-                <button type="submit" class="hidden"></button>
-            </form>
-        }
+            <!-- File table -->
+            @if (bulkUploadFile(); as file) {
+            <div class="w-full overflow-x-auto rounded-md border border-gray-200">
+                <table class="w-full border-collapse">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="border-b border-gray-200 px-4 py-2 text-left text-xs font-semibold text-gray-600">{{'BULK.COMMON.FILE_NAME' | translate}}</th>
+                            <th class="border-b border-gray-200 px-4 py-2 text-left text-xs font-semibold text-gray-600">{{'BULK.COMMON.SIZE' | translate}}</th>
+                            <th class="border-b border-gray-200 px-4 py-2 text-left text-xs font-semibold text-gray-600">{{'BULK.COMMON.TYPE' | translate}}</th>
+                            <th class="border-b border-gray-200 px-4 py-2 text-left text-xs font-semibold text-gray-600">{{'BULK.COMMON.UPLOADED_AT' | translate}}</th>
+                            <th class="border-b border-gray-200 px-4 py-2 text-left text-xs font-semibold text-gray-600">{{'BULK.COMMON.ACTIONS' | translate}}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="hover:bg-gray-50">
+                            <td class="border-b border-gray-100 px-4 py-2 text-sm text-gray-700 max-w-48 truncate">{{ file.name }}</td>
+                            <td class="border-b border-gray-100 px-4 py-2 text-sm text-gray-700 whitespace-nowrap">{{ formatFileSize(file.size) }}</td>
+                            <td class="border-b border-gray-100 px-4 py-2 text-sm text-gray-700 uppercase">{{ file.name.split('.').pop() }}</td>
+                            <td class="border-b border-gray-100 px-4 py-2 text-sm text-gray-700 whitespace-nowrap">{{ bulkUploadedAt() }}</td>
+                            <td class="border-b border-gray-100 px-4 py-2 text-gray-700">
+                                <button type="button" (click)="removeBulkUploadFile()"
+                                    class="p-1 text-[#fb2c36] bg-[#fb2c361a] rounded-md hover:cursor-pointer">
+                                    <lucide-icon name="trash" size="18"></lucide-icon>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            }
+        </div>
     </app-modal>
 
     <app-modal
         size="md"
-        titleM="Eliminar usuario"
+        [titleM]="'USERS_PAGE.DELETE_USER' | translate"
         [open]="showDeleteModal()"
-        closeText="Cancelar"
-        primaryText="Eliminar"
+        [closeText]="'USERS_PAGE.CANCEL' | translate"
+        [primaryText]="'USERS_PAGE.DELETE' | translate"
         (openChange)="onDeleteModalChange($event)"
         (primaryAction)="confirmDelete()"
     >
         <p class="text-slate-700">
-            ¿Seguro que quieres eliminar a
+            {{ 'USERS_PAGE.CONFIRM_DELETE' | translate }}
             <span class="font-semibold">{{ selectedUserToDelete()?.fullName }}</span>?
         </p>
 

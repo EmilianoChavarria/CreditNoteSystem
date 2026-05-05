@@ -1,1 +1,110 @@
-<p>security-manage works!</p>
+<section class="flex flex-col w-full">
+	<header class="flex w-full items-center justify-start">
+		<div class="flex flex-col">
+			<span class="text-4xl font-semibold tracking-wider text-[#ff8200]">{{ 'SECURITY_MANAGE.TITLE' | translate }}</span>
+			<span class="mt-1 text-orange-400">{{ 'SECURITY_MANAGE.DESCRIPTION' | translate }}</span>
+		</div>
+	</header>
+
+	<div class="mt-6 grid max-w-170 grid-cols-1 gap-5 md:grid-cols-2">
+		<article class="flex items-center justify-between rounded-xl border border-gray-300 bg-white px-6 py-5">
+			<div>
+				<p class="text-[22px] text-slate-500">{{ 'SECURITY_MANAGE.CARDS.BLOCKED_USERS' | translate }}</p>
+				<p class="mt-1 text-5xl font-bold leading-none text-slate-900">{{ blockedUsers().length }}</p>
+			</div>
+			<lucide-icon name="lock" size="46" class="text-[#e35a5a]"></lucide-icon>
+		</article>
+
+		<article class="flex items-center justify-between rounded-xl border border-gray-300 bg-white px-6 py-5">
+			<div>
+				<p class="text-[22px] text-slate-500">{{ 'SECURITY_MANAGE.CARDS.BLOCKED_IPS' | translate }}</p>
+				<p class="mt-1 text-5xl font-bold leading-none text-slate-900">{{ blockedIps().length }}</p>
+			</div>
+			<lucide-icon name="globe" size="46" class="text-[#ed8936]"></lucide-icon>
+		</article>
+	</div>
+
+	<div class="mt-6 w-full ">
+		<app-tabs-container [showBottomButtons]="false">
+			<app-tab [titleT]="'SECURITY_MANAGE.TABS.BLOCKED_USERS' | translate">
+				<div class="p-1">
+					<div class="mb-3 flex justify-end">
+						<button type="button"
+							class="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+							[disabled]="isLoadingBlockedUsers()" (click)="loadBlockedUsers()">
+							<lucide-icon name="refresh-ccw" size="14" [class.animate-spin]="isLoadingBlockedUsers()"></lucide-icon>
+							{{ 'SECURITY_MANAGE.ACTIONS.REFRESH' | translate }}
+						</button>
+					</div>
+					<app-tabla-dinamica [datos]="blockedUsers()" [columnas]="userColumns" [sinAcciones]="true"
+						[enableFilter]="true" filterField="reason" [canAdd]="false" [registrosPorPagina]="5"
+						[hideHeaderActions]="true" [searchFullWidth]="true" [loading]="isLoadingBlockedUsers()">
+						<ng-template #cellTemplate let-item let-column="column">
+							@if (column.key === 'reason') {
+							<span class="font-medium text-[#ff6f1a]">{{ item.reason }}</span>
+							}
+							@if (column.key === 'actionLabel') {
+							<button type="button"
+								class="text-xs inline-flex items-center gap-2 rounded-lg border border-[#ff7a1a] my-2 px-3 py-2 font-semibold text-[#ff7a1a] transition hover:bg-orange-50"
+								(click)="unblockUser(item)">
+								{{ item.actionLabel | translate }}
+								<lucide-icon name="lock-open" size="16"></lucide-icon>
+							</button>
+							}
+						</ng-template>
+					</app-tabla-dinamica>
+				</div>
+			</app-tab>
+
+			<app-tab [titleT]="'SECURITY_MANAGE.TABS.BLOCKED_IPS' | translate">
+				<div class="p-1">
+					<div class="mb-3 flex justify-end">
+						<button type="button"
+							class="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+							[disabled]="isLoadingBlockedIps()" (click)="loadBlockedIps()">
+							<lucide-icon name="refresh-ccw" size="14" [class.animate-spin]="isLoadingBlockedIps()"></lucide-icon>
+							{{ 'SECURITY_MANAGE.ACTIONS.REFRESH' | translate }}
+						</button>
+					</div>
+					<app-tabla-dinamica [datos]="blockedIps()" [columnas]="ipColumns" [sinAcciones]="true"
+						[enableFilter]="true" filterField="reason" [canAdd]="false" [registrosPorPagina]="5"
+						[hideHeaderActions]="true" [searchFullWidth]="true" [loading]="isLoadingBlockedIps()">
+						<ng-template #cellTemplate let-item let-column="column">
+							@if (column.key === 'reason') {
+							<span class="font-medium text-[#ff6f1a]">{{ item.reason }}</span>
+							}
+							@if (column.key === 'actionLabel') {
+							<button type="button"
+								class="text-xs inline-flex items-center gap-2 rounded-lg border border-[#ff7a1a] my-2 px-3 py-2 font-semibold text-[#ff7a1a] transition hover:bg-orange-50"
+								(click)="unblockIp(item)">
+								{{ item.actionLabel | translate }}
+								<lucide-icon name="shield-off" size="16"></lucide-icon>
+							</button>
+							}
+						</ng-template>
+					</app-tabla-dinamica>
+				</div>
+			</app-tab>
+		</app-tabs-container>
+	</div>
+
+	<app-modal size="md" [titleM]="'SECURITY_MANAGE.MODAL.UNLOCK_USER_TITLE' | translate" [open]="showUnlockUserModal()"
+		[closeText]="'SECURITY_MANAGE.MODAL.CANCEL' | translate"
+		[primaryText]="(isUnlockingUser() ? 'SECURITY_MANAGE.MODAL.UNLOCKING' : 'SECURITY_MANAGE.MODAL.UNLOCK_USER') | translate"
+		[closeOnBackdrop]="!isUnlockingUser()"
+		(openChange)="onUnlockUserModalChange($event)" (primaryAction)="confirmUnlockUser()">
+		<p class="text-slate-700">
+			{{ 'SECURITY_MANAGE.MODAL.UNLOCK_USER_MESSAGE' | translate:{ user: selectedBlockedUser()?.user } }}
+		</p>
+	</app-modal>
+
+	<app-modal size="md" [titleM]="'SECURITY_MANAGE.MODAL.UNLOCK_IP_TITLE' | translate" [open]="showUnlockIpModal()"
+		[closeText]="'SECURITY_MANAGE.MODAL.CANCEL' | translate"
+		[primaryText]="(isUnlockingIp() ? 'SECURITY_MANAGE.MODAL.UNLOCKING' : 'SECURITY_MANAGE.MODAL.UNLOCK_IP') | translate"
+		[closeOnBackdrop]="!isUnlockingIp()"
+		(openChange)="onUnlockIpModalChange($event)" (primaryAction)="confirmUnlockIp()">
+		<p class="text-slate-700">
+			{{ 'SECURITY_MANAGE.MODAL.UNLOCK_IP_MESSAGE' | translate:{ ip: selectedBlockedIp()?.ipAddress } }}
+		</p>
+	</app-modal>
+</section>

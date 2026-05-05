@@ -13,6 +13,7 @@ type ModalSize = 'sm' | 'md' | 'lg' | 'xl' | 'full';
 })
 export class Modal {
   private static nextId = 0;
+  private backdropPointerDown = false;
 
   readonly titleM = input<string>('');
   readonly size = input<ModalSize>('md');
@@ -47,7 +48,7 @@ export class Modal {
     }
   });
 
-  onBackdropClick(event: MouseEvent): void {
+  onBackdropPointerDown(event: PointerEvent): void {
     if (!this.closeOnBackdrop()) {
       return;
     }
@@ -55,9 +56,23 @@ export class Modal {
     const target = event.target as HTMLElement | null;
     const currentTarget = event.currentTarget as HTMLElement | null;
 
-    if (target && currentTarget && target === currentTarget) {
+    this.backdropPointerDown = Boolean(target && currentTarget && target === currentTarget);
+  }
+
+  onBackdropPointerUp(event: PointerEvent): void {
+    if (!this.closeOnBackdrop()) {
+      this.backdropPointerDown = false;
+      return;
+    }
+
+    const target = event.target as HTMLElement | null;
+    const currentTarget = event.currentTarget as HTMLElement | null;
+
+    if (this.backdropPointerDown && target && currentTarget && target === currentTarget) {
       this.close();
     }
+
+    this.backdropPointerDown = false;
   }
 
   onCloseClick(): void {

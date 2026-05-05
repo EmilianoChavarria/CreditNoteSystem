@@ -1,4 +1,4 @@
-import { Component, inject, NgZone, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, NgZone, ChangeDetectorRef, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
 import { NavigationEnd, Router } from '@angular/router';
@@ -8,6 +8,9 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SidebarItem, SidebarService } from '../../../core/services/sidebar.service';
 import { ToastService } from '../../../core/services/toast-service';
 import { filter } from 'rxjs/operators';
+import { fromEvent } from 'rxjs';
+import { LayoutShellService } from '../../../core/services/layout-shell-service';
+import { FullSpinnerComponent } from '../ui/full-spinner/full-spinner';
 
 interface SidebarOptions {
   iconName: string,
@@ -20,7 +23,7 @@ interface SidebarOptions {
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, TranslateModule],
+  imports: [CommonModule, LucideAngularModule, TranslateModule, FullSpinnerComponent],
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.css',
 })
@@ -31,15 +34,36 @@ export class Sidebar {
   public openedOptionIndex: number | null = null;
   public hoveredOptionIndexOnCollapse: number | null = null;
   public sidebarOptions: SidebarOptions[] = [];
+  public isMobileView = false;
   private _sidebarService = inject(SidebarService);
   private _ngZone = inject(NgZone);
   private _cdr = inject(ChangeDetectorRef);
+  private readonly layoutShellService = inject(LayoutShellService);
+  private readonly collapseBreakpoint = 1024;
 
   constructor(
     private router: Router,
     private _authService: AuthService,
     private _toastService: ToastService,
   ) {
+    if (typeof window !== 'undefined') {
+      this.applySidebarViewport(window.innerWidth);
+      fromEvent(window, 'resize')
+        .pipe(takeUntilDestroyed())
+        .subscribe(() => this.syncSidebarViewport(window.innerWidth));
+    }
+
+    effect(() => {
+      const isMobileSidebarOpen = this.layoutShellService.isMobileSidebarOpen();
+
+      if (!this.isMobileView) {
+        return;
+      }
+
+      this.isOpen = isMobileSidebarOpen;
+      this._cdr.detectChanges();
+    });
+
     this._authService.user$
       .pipe(takeUntilDestroyed())
       .subscribe(user => {
@@ -54,6 +78,12 @@ export class Sidebar {
       .subscribe(event => {
         this._ngZone.runOutsideAngular(() => {
           this.setActiveOption(event.urlAfterRedirects);
+
+          if (this.isMobileView) {
+            this.layoutShellService.closeMobileSidebar();
+            this.isOpen = false;
+          }
+
           this._cdr.detectChanges();
         });
       });
@@ -61,10 +91,42 @@ export class Sidebar {
     this.loadSidebarOptions(this._authService.getCurrentUser());
   }
 
+  private applySidebarViewport(viewportWidth: number): void {
+    const mobile = viewportWidth < this.collapseBreakpoint;
+
+    this.isMobileView = mobile;
+
+    if (this.isMobileView) {
+      this.isOpen = false;
+      this.openedOptionIndex = null;
+      this.layoutShellService.closeMobileSidebar();
+    } else {
+      this.isOpen = true;
+    }
+  }
+
+  private syncSidebarViewport(viewportWidth: number): void {
+    const previousMobileView = this.isMobileView;
+
+    this.applySidebarViewport(viewportWidth);
+
+    if (previousMobileView === this.isMobileView) {
+      return;
+    }
+
+    this._cdr.detectChanges();
+  }
+
 
 
 
   onToggleSidebar() {
+    if (this.isMobileView) {
+      this.layoutShellService.toggleMobileSidebar();
+      this.isOpen = this.layoutShellService.isMobileSidebarOpen();
+      return;
+    }
+
     this.isOpen = !this.isOpen;
     if (!this.isOpen) {
       this.openedOptionIndex = null;
@@ -75,11 +137,20 @@ export class Sidebar {
     // Run all state mutations outside Angular zone to avoid change detection errors
     this._ngZone.runOutsideAngular(() => {
       if (!this.isOpen) {
+        if (this.isMobileView) {
+          this.layoutShellService.openMobileSidebar();
+        }
+
         this.isOpen = true;
         this.openedOptionIndex = index;
         if (!hasChildren) {
           this.setActiveOption(route);
           this.router.navigate([route]);
+
+          if (this.isMobileView) {
+            this.layoutShellService.closeMobileSidebar();
+            this.isOpen = false;
+          }
         }
         // Force change detection explicitly
         this._cdr.detectChanges();
@@ -88,6 +159,11 @@ export class Sidebar {
       if (!hasChildren) {
         this.setActiveOption(route);
         this.router.navigate([route]);
+
+        if (this.isMobileView) {
+          this.layoutShellService.closeMobileSidebar();
+          this.isOpen = false;
+        }
       } else {
         this.openedOptionIndex = this.openedOptionIndex === index ? null : index;
       }
@@ -176,12 +252,12 @@ export class Sidebar {
         url: item.url,
         children: item.children?.length
           ? [...item.children]
-              .sort((a, b) => a.orderIndex - b.orderIndex)
-              .map(child => ({
-                iconName: child.icon,
-                optionName: child.name,
-                url: child.url,
-              }))
+            .sort((a, b) => a.orderIndex - b.orderIndex)
+            .map(child => ({
+              iconName: child.icon,
+              optionName: child.name,
+              url: child.url,
+            }))
           : undefined,
       }));
   }
@@ -224,6 +300,7 @@ export class Sidebar {
       {
         iconName: 'settings', optionName: 'SIDEBAR.SETTINGS', url: '/app/settings', children: [
           { iconName: 'users', optionName: 'SIDEBAR.USER_MANAGEMENT', url: '/app/settings/users' },
+          { iconName: 'user-plus', optionName: 'SIDEBAR.ASSIGN_USER', url: '/app/settings/assign-user' },
           { iconName: 'building-2', optionName: 'SIDEBAR.CLIENT_MANAGEMENT', url: '/app/settings/customers' },
           { iconName: 'grid-3x2', optionName: 'SIDEBAR.ROLES', url: '/app/settings/roles' },
           { iconName: 'network', optionName: 'SIDEBAR.WORKFLOWS', url: '/app/settings/workflows' },
@@ -261,6 +338,7 @@ export class Sidebar {
   }
 
   private isCustomer(user: AuthUser | null): boolean {
+    console.log(user);
     const roleName = user?.roleName?.trim().toUpperCase();
     return roleName === 'CUSTOMER';
   }
@@ -317,9 +395,25 @@ export class Sidebar {
     this._ngZone.runOutsideAngular(() => {
       this.setActiveOption(route);
       this.router.navigate([route]);
+
+      if (this.isMobileView) {
+        this.layoutShellService.closeMobileSidebar();
+        this.isOpen = false;
+      }
+
       // Force change detection explicitly
       this._cdr.detectChanges();
     });
+  }
+
+  closeMobileSidebar(): void {
+    if (!this.isMobileView) {
+      return;
+    }
+
+    this.layoutShellService.closeMobileSidebar();
+    this.isOpen = false;
+    this.openedOptionIndex = null;
   }
 
 }

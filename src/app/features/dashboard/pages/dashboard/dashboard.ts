@@ -1,14 +1,15 @@
-import { isPlatformBrowser } from '@angular/common';
-import { Component, Inject, PLATFORM_ID, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
-import { ChartConfiguration, ChartData, ChartOptions, ChartType } from 'chart.js';
-import { ReactiveFormsModule } from '@angular/forms';
+import { Component, computed, inject, signal } from '@angular/core';
+import { ChartData, ChartDataset, ChartOptions, ChartType } from 'chart.js';
 import { LucideAngularModule } from 'lucide-angular';
 import { BaseChartDirective } from 'ng2-charts';
 import { Badge } from '../../../../shared/components/ui/badge/badge';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { DashboardService } from '../../../../core/services/dashboard-service';
-import { Spinner } from "../../../../shared/components/ui/spinner/spinner";
+import { ToastService } from '../../../../core/services/toast-service';
+import { Spinner } from '../../../../shared/components/ui/spinner/spinner';
+import { finalize } from 'rxjs';
+import { DashboardChartQueryParams, DashboardChartSeries, DashboardChartTotals } from '../../../../data/interfaces/DashboardChart';
+import { StatCard } from "../../components/stat-card/stat-card";
 
 interface RequestItem {
   id: string;
@@ -25,54 +26,81 @@ interface DashboardSection {
   requests: RequestItem[];
 }
 
-export interface ChartDataS {
-  dia: string;
-  cantidad: number;
+interface DashboardStatCard {
+  title: string;
+  value: string;
+  iconName: string;
+  color: string;
 }
+
+interface DashboardStatMeta {
+  titleKey: string;
+  iconName: string;
+  color: string;
+}
+
+type LineChartDataset = ChartDataset<'line', Array<number | null>>;
+type LineChartData = ChartData<'line', Array<number | null>, string>;
 
 @Component({
   selector: 'app-dashboard',
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
   imports: [
-    ReactiveFormsModule,
     LucideAngularModule,
     BaseChartDirective,
-    Badge,
     TranslatePipe,
-    Spinner
-  ],
+    Spinner,
+    StatCard
+],
 })
 export class Dashboard {
 
   private _translate = inject(TranslateService);
+  private _dashboardService = inject(DashboardService);
+  private _toastService = inject(ToastService);
+  private readonly chartColors = ['#ff8200', '#2563eb', '#dc2626', '#16a34a', '#7c3aed'];
+  private readonly statMetaByKey: Record<string, DashboardStatMeta> = {
+    created: { titleKey: 'DASHBOARD.STATS.CREATED', iconName: 'calendar-clock', color: "#ff8200" },
+    approved: { titleKey: 'DASHBOARD.STATS.APPROVED', iconName: 'badge-check', color: "#00d68f" },
+    declined: { titleKey: 'DASHBOARD.STATS.DECLINED', iconName: 'circle-x', color: "#FF0000" },
+    rejected: { titleKey: 'DASHBOARD.STATS.DECLINED', iconName: 'circle-x', color: "#ef4444" },
+    processed: { titleKey: 'DASHBOARD.STATS.PROCESSED', iconName: 'file-check', color: "#3b82f6" },
+    pending: { titleKey: 'DASHBOARD.STATS.PENDING', iconName: 'file-clock', color: "#f59e0b" },
+    released: { titleKey: 'DASHBOARD.STATS.RELEASED', iconName: 'play', color: "#22c55e" },
+  };
 
-  public selectedDateOption = signal('1');
+  public selectedRequestType = signal<string>('todas');
+  public selectedDateOption = signal<'1' | '2' | 'custom'>('1');
   public startDate = signal('');
   public endDate = signal('');
 
   public lineChartType: ChartType = 'line';
 
-  public chartData: ChartDataS[] = [];
-
-  public lineChartData = signal<ChartConfiguration<'line'>['data']>({
+  public lineChartData = signal<LineChartData>({
     labels: [],
-    datasets: [
-      {
-        data: [],
-        label: this._translate.instant('DASHBOARD.LABEL'),
-        fill: false,
-        tension: 0.4
-      }
-    ]
+    datasets: []
   });
 
-  public lineChartOptions: ChartConfiguration<'line'>['options'] = {
+  public lineChartOptions: ChartOptions<'line'> = {
     responsive: true,
     maintainAspectRatio: false,
+    interaction: {
+      mode: 'index',
+      intersect: false,
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          precision: 0,
+        },
+      },
+    },
     plugins: {
       legend: {
-        display: true
+        display: true,
+        position: 'top',
       }
     }
   };
@@ -115,62 +143,238 @@ export class Dashboard {
     }
   ];
 
+  public statCards: DashboardStatCard[] = [
+    // { title: 'Created', value: '07', iconName: 'calendar-clock' },
+    // { title: 'In Process', value: '07', iconName: 'calendar-clock' },
+    // { title: 'Approved', value: '07', iconName: 'calendar-clock' },
+    // { title: 'Released', value: '07', iconName: 'calendar-clock' },
+  ];
+
   public isLoadingChart = signal<boolean>(true)
 
-  public title = signal<string>('')
+  public chartHeader = computed(() => {
+    const requestTypeKey = this.getRequestTypeTranslationKey(this.selectedRequestType());
+    const requestTypeLabel = this._translate.instant(requestTypeKey);
+    const selectedDateOption = this.selectedDateOption();
+
+    if (selectedDateOption === 'custom' && this.startDate() && this.endDate()) {
+      return `Orders (${requestTypeLabel}) ${this.startDate()} - ${this.endDate()}`;
+    }
+
+    const periodLabel = selectedDateOption === '1'
+      ? this._translate.instant('DASHBOARD.DATE_OPTION1')
+      : this._translate.instant('DASHBOARD.DATE_OPTION2');
+
+    return `Orders (${requestTypeLabel}) - ${periodLabel}`;
+  });
 
 
-  constructor(
-    private _dashboardService: DashboardService
-  ) {
+  constructor() {
     this.getDays();
   }
 
   getDays(): void {
-    this._dashboardService.getDaysChart().subscribe({
+    this.isLoadingChart.set(true);
+    const params = this.buildChartQueryParams();
+
+    this._dashboardService.getDaysChart(params).pipe(
+      finalize(() => this.isLoadingChart.set(false))
+    ).subscribe({
       next: (response) => {
-        this.chartData = response;
-        const days: string[] = [];
-        const count: number[] = [];
-        this.chartData.map((day) => {
-          days.push(day.dia);
-          count.push(day.cantidad);
-        });
+        const series = response?.series ?? [];
+        const days = this.getOrderedDays(series);
+        const datasets = this.buildDatasets(series, days);
+        this.statCards = this.buildStatCards(response?.totals);
+
         this.lineChartData.set({
           labels: days,
-          datasets: [
-            {
-              ...this.lineChartData().datasets[0],
-              label: this._translate.instant('DASHBOARD.LABEL'),
-              data: count,
-            },
-          ],
+          datasets,
         });
-        this.isLoadingChart.set(false);
       },
       error: (error) => {
         console.log(error);
+        this.statCards = [];
+        this.lineChartData.set({ labels: [], datasets: [] });
       }
     })
   }
 
+  private buildStatCards(totals?: DashboardChartTotals | null): DashboardStatCard[] {
+    if (!totals) {
+      return [];
+    }
+
+    return Object.entries(totals).map(([rawKey, rawValue]) => {
+      const normalizedKey = rawKey.trim().toLowerCase();
+      const meta = this.statMetaByKey[normalizedKey];
+      const title = meta?.titleKey ?? this.humanizeStatKey(rawKey);
+
+      return {
+        title,
+        value: String(rawValue ?? 0),
+        iconName: meta?.iconName ?? 'calendar-clock',
+        color: meta?.color ?? '#ff8200',
+      };
+    });
+  }
+
+  private humanizeStatKey(value: string): string {
+    return value
+      .replace(/[_-]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .replace(/\b\w/g, (char) => char.toUpperCase());
+  }
+
+  private buildChartQueryParams(): DashboardChartQueryParams {
+    const params: DashboardChartQueryParams = {};
+    const requestType = this.selectedRequestType();
+    const selectedDateOption = this.selectedDateOption();
+
+    if (requestType !== 'todas') {
+      params.request_type_id = requestType;
+    }
+
+    if (selectedDateOption === '1') {
+      params.days = 30;
+      return params;
+    }
+
+    if (selectedDateOption === '2') {
+      params.days = 60;
+      return params;
+    }
+
+    const startDate = this.startDate();
+    const endDate = this.endDate();
+
+    if (startDate && endDate) {
+      params.from = startDate;
+      params.to = endDate;
+    }
+
+    return params;
+  }
+
+  private getOrderedDays(series: DashboardChartSeries[]): string[] {
+    const uniqueDays = new Set<string>();
+
+    for (const serie of series) {
+      for (const point of serie.data) {
+        uniqueDays.add(point.dia);
+      }
+    }
+
+    return Array.from(uniqueDays).sort((firstDay, secondDay) => firstDay.localeCompare(secondDay));
+  }
+
+  private buildDatasets(series: DashboardChartSeries[], days: string[]): LineChartDataset[] {
+    return series.map((serie, index) => {
+      const color = this.chartColors[index % this.chartColors.length];
+      const valuesByDay = new Map(serie.data.map((point) => [point.dia, point.cantidad]));
+
+      return {
+        label: serie.label || this._translate.instant('DASHBOARD.LABEL'),
+        data: days.map((day) => valuesByDay.get(day) ?? null),
+        fill: false,
+        tension: 0.4,
+        spanGaps: true,
+        borderColor: color,
+        backgroundColor: color,
+        pointBackgroundColor: color,
+        pointBorderColor: color,
+      };
+    });
+  }
+
+  private getRequestTypeTranslationKey(requestTypeId: string): string {
+    const translationMap: Record<string, string> = {
+      '1': 'REQUEST_TYPES.CREDIT',
+      '2': 'REQUEST_TYPES.DEBIT',
+      '3': 'REQUEST_TYPES.AUDITOR_CREDIT',
+      '4': 'REQUEST_TYPES.AUDITOR_DEBIT',
+      '5': 'REQUEST_TYPES.RE_INVOICING',
+      '6': 'REQUEST_TYPES.MATERIAL_RETURN',
+      todas: 'REQUEST_TYPES.ALL_TYPES',
+    };
+
+    return translationMap[requestTypeId] ?? 'REQUEST_TYPES.ALL_TYPES';
+  }
+
   public onDateOptionChange(event: Event): void {
     const target = event.target as HTMLSelectElement;
-    this.selectedDateOption.set(target.value);
+    if (target.value === '1' || target.value === '2' || target.value === 'custom') {
+      this.selectedDateOption.set(target.value);
+    }
 
     if (target.value !== 'custom') {
       this.startDate.set('');
       this.endDate.set('');
+      this.getDays();
     }
+  }
+
+  public onRequestTypeChange(event: Event): void {
+    const target = event.target as HTMLSelectElement;
+    this.selectedRequestType.set(target.value);
+    this.getDays();
   }
 
   public onStartDateChange(event: Event): void {
     const target = event.target as HTMLInputElement;
+
+    if (this.isDateGreaterThanToday(target.value)) {
+      this._toastService.warning('La fecha inicial no puede ser mayor que hoy.', 'Advertencia');
+      target.value = '';
+      this.startDate.set('');
+      return;
+    }
+
     this.startDate.set(target.value);
+    this.fetchWhenCustomRangeIsComplete();
   }
 
   public onEndDateChange(event: Event): void {
     const target = event.target as HTMLInputElement;
+
+    if (this.isDateGreaterThanToday(target.value)) {
+      this._toastService.warning('La fecha final no puede ser mayor que hoy.', 'Advertencia');
+      target.value = '';
+      this.endDate.set('');
+      return;
+    }
+
     this.endDate.set(target.value);
+    this.fetchWhenCustomRangeIsComplete();
+  }
+
+  private isDateGreaterThanToday(dateValue: string): boolean {
+    if (!dateValue) {
+      return false;
+    }
+
+    const today = this.getTodayDateString();
+    return dateValue > today;
+  }
+
+  private getTodayDateString(): string {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+  }
+
+  private fetchWhenCustomRangeIsComplete(): void {
+    if (this.selectedDateOption() !== 'custom') {
+      return;
+    }
+
+    if (!this.startDate() || !this.endDate()) {
+      return;
+    }
+
+    this.getDays();
   }
 }

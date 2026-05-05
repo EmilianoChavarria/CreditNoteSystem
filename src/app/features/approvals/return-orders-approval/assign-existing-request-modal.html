@@ -1,0 +1,95 @@
+<app-modal size="xl" titleM="Agregar a solicitud existente" [open]="open()" closeText="Cancelar"
+    [showPrimaryButton]="true" [primaryText]="isAssigningOrder() ? 'Asignando...' : 'Asignar orden'"
+    (openChange)="onModalOpenChange($event)" (primaryAction)="assignOrderToSelectedRequest()">
+    <div class="space-y-3 text-sm text-gray-700">
+        <p>
+            Selecciona una solicitud de devolución de material para asignarle la órden de devolución:
+            <span class="font-semibold text-gray-900">{{ orderNumber() ?? '-' }}</span>
+
+        </p>
+
+        @if (isLoadingExistingRequests()) {
+        <div class="rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-600">
+            Cargando solicitudes del cliente...
+        </div>
+        } @else if (existingRequestsError(); as errorMessage) {
+        <div class="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+            {{ errorMessage }}
+        </div>
+        } @else if (existingRequests().length === 0) {
+        <div class="rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-600">
+            No hay solicitudes disponibles para este cliente.
+        </div>
+        } @else {
+        <div class=" overflow-y-auto rounded-md  flex flex-col gap-y-4 px-2 py-4">
+            @for (request of existingRequests(); track request.id) {
+            <div class="rounded-lg py-6 px-4 flex flex-col gap-3 cursor-pointer transition-all duration-200" [ngClass]="isRequestSelected(request.id)
+                  ? 'border-2 border-orange-400 bg-orange-50/60 shadow-md shadow-orange-200/70'
+                  : 'border-2 border-gray-200 bg-white hover:shadow-md'" (click)="selectRequest(request.id)">
+                <div class="flex flex-row justify-between items-center">
+                    <div class="flex flex-row gap-x-4">
+                        <div class="rounded-md px-2 py-2 h-fit my-auto transition-colors duration-200"
+                            [ngClass]="isRequestSelected(request.id) ? 'bg-orange-500 text-white' : 'bg-[#9291911a] text-gray-500'">
+                            <lucide-icon [name]="isRequestSelected(request.id) ?'circle-check': 'file-spreadsheet'"
+                                [size]="18"></lucide-icon>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="font-bold text-gray-700 text-lg">{{ request.requestNumber }}</span>
+                            <span class="text-xs text-gray-500">Creada: {{ request.createdAt | date:'dd/MM/yyyy'
+                                }}</span>
+                        </div>
+                    </div>
+                    <div class="flex flex-col justify-end items-end">
+                        <span class="font-bold text-gray-700 text-lg">{{ request.totalAmount | currency: 'MXN' :
+                            'symbol' : '1.2-2' }}</span>
+                        <div class="rounded-full px-2 py-1 font-semibold text-xs bg-yellow-100 text-yellow-600">
+                            {{ request.workflowStepName }}
+                        </div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 ">
+                    <div class="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 border border-gray-100">
+                        <div class="text-[#727272]">
+                            <lucide-icon name="tag" class="my-auto" size="14"></lucide-icon>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-xs text-gray-500 font-bold">
+                                RAZÓN
+                            </span>
+                            <span class="text-black">{{ request.reason }}</span>
+
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 border border-gray-100">
+                        <div class="text-[#727272]">
+                            <lucide-icon name="tag" class="my-auto" size="14"></lucide-icon>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-xs text-gray-500 font-bold">
+                                AREA
+                            </span>
+                            <span class="text-black">{{ request.area }}</span>
+
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 border border-gray-100">
+                        <div class="text-[#727272]">
+                            <lucide-icon name="tag" class="my-auto" size="14"></lucide-icon>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-xs text-gray-500 font-bold">
+                                CLASSIFICATION
+                            </span>
+                            <span class="text-black">{{ request.classification }}</span>
+
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+            }
+        </div>
+        }
+    </div>
+</app-modal>

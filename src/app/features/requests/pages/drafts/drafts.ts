@@ -1,12 +1,10 @@
 import { Component, inject, signal } from '@angular/core';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { RequestService } from '../../../../core/services/request-service';
 import { Request } from '../../../../data/interfaces/Request';
 import { AccionPersonalizada, Column, Table } from "../../../../shared/components/ui/table/table";
 import { Spinner } from '../../../../shared/components/ui/spinner/spinner';
 import moment from 'moment';
-import { Badge } from "../../../../shared/components/ui/badge/badge";
-import { UpperCasePipe } from '@angular/common';
 import { finalize } from 'rxjs';
 import { Router } from '@angular/router';
 
@@ -14,9 +12,11 @@ import { Router } from '@angular/router';
     selector: 'app-drafts',
     templateUrl: './drafts.html',
     styleUrl: './drafts.css',
-    imports: [Table, Spinner],
+    imports: [Table, Spinner, TranslatePipe],
 })
 export class Drafts {
+
+    private _translate = inject(TranslateService);
 
     public drafts = signal<Request[]>([]);
     public pageSize = signal<number>(10);
@@ -28,43 +28,13 @@ export class Drafts {
     private prevCursor = signal<string | null>(null);
     public isLoading = signal<boolean>(false);
 
-    public columns: Column<Request>[] = [
-        {
-            key: 'requestNumber',
-            label: 'Request Number',
-            sortable: true
-        },
-        {
-            key: 'request_type.name',
-            label: 'Request Type',
-            sortable: true,
-            render: (value, item) => item?.request_type?.name || '-'
-        },
-        {
-            key: 'status',
-            label: 'Status',
-            sortable: true,
-            render: () => 'Borrador'
-        },
-        {
-            key: 'createdAt',
-            label: 'Fecha de Creación',
-            sortable: true,
-            render: (value) => value ? moment(value).format('DD/MM/YYYY HH:mm:ss') : '-'
-        },
-        {
-            key: 'updatedAt',
-            label: 'Fecha de Actualización',
-            sortable: true,
-            render: (value) => value ? moment(value).format('DD/MM/YYYY HH:mm:ss') : '-'
-        },
-    ];
+    public columns: Column<Request>[] = [];
 
     private readonly baseAcciones: AccionPersonalizada<Request>[] = [
         {
             key: 'edit',
             icon: 'pencil',
-            label: 'Editar',
+            label: 'DRAFTS.EDIT',
             accion: (request) => this.editRequest(request)
         }
     ];
@@ -75,6 +45,37 @@ export class Drafts {
         private _requestsService: RequestService,
         private readonly router: Router,
     ) {
+        this.columns = [
+            {
+                key: 'requestNumber',
+                label: 'DRAFTS.REQUEST_NUMBER',
+                sortable: true
+            },
+            {
+                key: 'request_type.name',
+                label: 'DRAFTS.REQUEST_TYPE',
+                sortable: true,
+                render: (value, item) => item?.requestType?.name || '-'
+            },
+            {
+                key: 'status',
+                label: 'DRAFTS.STATUS',
+                sortable: true,
+                render: () => this._translate.instant('DRAFTS.STATUS_DRAFT')
+            },
+            {
+                key: 'createdAt',
+                label: 'DRAFTS.CREATED_AT',
+                sortable: true,
+                render: (value) => value ? moment(value).format('DD/MM/YYYY HH:mm:ss') : '-'
+            },
+            {
+                key: 'updatedAt',
+                label: 'DRAFTS.UPDATED_AT',
+                sortable: true,
+                render: (value) => value ? moment(value).format('DD/MM/YYYY HH:mm:ss') : '-'
+            },
+        ];
         this.loadDrafts();
     }
 

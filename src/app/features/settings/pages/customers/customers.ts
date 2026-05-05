@@ -1,10 +1,10 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { AccionPersonalizada, Column, Table } from "../../../../shared/components/ui/table/table";
 import { Customer } from '../../../../data/interfaces/Customer';
 import { CustomerService } from '../../../../core/services/customer-service';
 import { LucideAngularModule } from "lucide-angular";
 import { finalize } from 'rxjs';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AssignManagersPayload, AssignModal } from "./components/assign-modal/assign-modal";
 
 @Component({
@@ -14,6 +14,7 @@ import { AssignManagersPayload, AssignModal } from "./components/assign-modal/as
     imports: [Table, LucideAngularModule, TranslatePipe, AssignModal],
 })
 export class Customers {
+    private readonly _translateService = inject(TranslateService);
 
     public pageSize = signal<number>(10);
     public currentPage = signal<number>(1);
@@ -23,13 +24,20 @@ export class Customers {
     public isLoadingTable = signal<boolean>(true);
     public customers = signal<Customer[]>([]);
     public customer?: Customer;
+    public searchTerm = signal<string>('');
+    private searchDebounceTimeout: ReturnType<typeof setTimeout> | null = null;
 
     public isOpenModal = signal<boolean>(false);
 
     public columns: Column<Customer>[] = [
         {
+            key: 'idCliente',
+            label: 'CUSTOMERS_PAGE.CUSTOMER_ID',
+            sortable: true
+        },
+        {
             key: 'razonSocial',
-            label: 'Customer Name',
+            label: 'CUSTOMERS_PAGE.CUSTOMER_NAME',
             sortable: true
         },
         // {
@@ -44,56 +52,34 @@ export class Customers {
             sortable: true
         },
         {
-            key: 'area',
-            label: 'Area',
-            sortable: true,
-            render: (value, item) => item.customer?.area ?? '-'
-        },
-        {
             key: 'salesEngineerId',
-            label: 'Sales Engineer',
+            label: 'CUSTOMERS_PAGE.SALES_ENGINEER',
             sortable: true,
             render: (value, item) => item.customer?.salesEngineer?.fullName ?? '-'
         },
         {
             key: 'salesManagerId',
-            label: 'Sales Manager',
+            label: 'CUSTOMERS_PAGE.SALES_MANAGER',
             sortable: true,
             render: (value, item) => item.customer?.salesManager?.fullName ?? '-'
         },
         {
             key: 'financeManagerId',
-            label: 'Finance Manager',
+            label: 'CUSTOMERS_PAGE.FINANCE_MANAGER',
             sortable: true,
             render: (value, item) => item.customer?.financeManager?.fullName ?? '-'
         },
         {
             key: 'marketingManagerId',
-            label: 'Marketing Manager',
+            label: 'CUSTOMERS_PAGE.MARKETING_MANAGER',
             sortable: true,
             render: (value, item) => item.customer?.marketingManager?.fullName ?? '-'
         },
         {
             key: 'customerServiceManagerId',
-            label: 'CS Manager',
+            label: 'Customer Service Manager',
             sortable: true,
             render: (value, item) => item.customer?.customerServiceManager?.fullName ?? '-'
-        },
-        {
-            key: 'estatus',
-            label: 'Activo',
-            sortable: true,
-            render: (value) => value ? 'Activo' : 'Inactivo'
-        }
-    ];
-
-    headerButtons = [
-        {
-            label: 'Asignar Manager',
-            icon: 'plus',
-            className: 'bg-[#0f766e]',
-            accion: () => this.toggleUser(),
-            useTemplate: true
         }
     ];
 
@@ -101,7 +87,7 @@ export class Customers {
         {
             key: 'reset',
             icon: 'user-plus',
-            label: 'See Info',
+            label: 'CUSTOMERS_PAGE.SEE_INFO',
             accion: (user) => this.openModal(user)
         }
     ];
@@ -204,10 +190,31 @@ export class Customers {
         this.getUsers(1);
     }
 
+    onSearch(term: string): void {
+        if (this.searchDebounceTimeout) {
+            clearTimeout(this.searchDebounceTimeout);
+        }
+
+        this.searchDebounceTimeout = setTimeout(() => {
+            const normalizedTerm = term.trim();
+
+            if (normalizedTerm === this.searchTerm()) {
+                return;
+            }
+
+            this.searchTerm.set(normalizedTerm);
+            this.currentPage.set(1);
+            this.hasNextPage.set(false);
+            this.hasPrevPage.set(false);
+            this.totalPages.set(1);
+            this.getUsers(1);
+        }, 350);
+    }
+
     getUsers(page = 1): void {
         this.isLoadingTable.set(true);
 
-        this._customerService.getCustomersPaginated(this.pageSize(), page).pipe(
+        this._customerService.getCustomersPaginated(this.pageSize(), page, this.searchTerm()).pipe(
             finalize(() => this.isLoadingTable.set(false))
         ).subscribe({
             next: (response) => {

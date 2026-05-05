@@ -18,13 +18,13 @@
   >
     @if (detail(); as workflowDetail) {
       <header class="flex items-center justify-between border-b border-gray-200 bg-white px-5 py-4">
-        <h2 class="text-xl font-semibold text-[#0d1b3f]">Historial — {{ workflowDetail.code }}</h2>
+        <h2 class="text-xl font-semibold text-[#0d1b3f]">{{ 'HISTORY.WORKFLOW_DRAWER.TITLE' | translate }} — {{ workflowDetail.code }}</h2>
         <button
           type="button"
           class="rounded-md px-2 py-1 text-sm text-gray-500 hover:bg-gray-100"
           (click)="closeDrawer()"
         >
-          Cerrar
+          {{ 'HISTORY.WORKFLOW_DRAWER.CLOSE' | translate }}
         </button>
       </header>
 
@@ -35,19 +35,19 @@
               <h3 class="text-3xl font-bold leading-none text-[#0d1b3f]">{{ workflowDetail.code }}</h3>
               <p class="mt-2 text-base text-[#1f355f]">{{ workflowDetail.company }}</p>
             </div>
-            <span class="rounded-full border px-3 py-1 text-xs font-semibold" [class]="getMainStatusClasses(workflowDetail.statusLabel)">
+            <span class="rounded-full border px-3 py-1 text-xs font-semibold" [class]="getMainStatusClasses(workflowDetail.statusKey)">
               {{ workflowDetail.statusLabel }}
             </span>
           </div>
 
           <div class="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-[#0d1b3f]">
-            <p><span class="font-semibold">Monto:</span> {{ workflowDetail.amount }}</p>
-            <p><span class="font-semibold">Clasificación:</span> {{ workflowDetail.classification }}</p>
+            <p><span class="font-semibold">{{ 'HISTORY.WORKFLOW_DRAWER.AMOUNT' | translate }}:</span> {{ workflowDetail.amount }}</p>
+            <p><span class="font-semibold">{{ 'HISTORY.WORKFLOW_DRAWER.CLASSIFICATION' | translate }}:</span> {{ workflowDetail.classification }}</p>
             <p class="col-span-2"><span class="font-semibold">{{ workflowDetail.flow }}</span></p>
           </div>
 
           <div class="mt-4 flex items-center justify-between text-sm text-[#2f436c]">
-            <span class="font-medium">Progreso del flujo</span>
+            <span class="font-medium">{{ 'HISTORY.WORKFLOW_DRAWER.FLOW_PROGRESS' | translate }}</span>
             <span>{{ workflowDetail.progressText }}</span>
           </div>
 
@@ -68,7 +68,7 @@
                 [class.hover:bg-slate-100]="activeTab() !== 'flow'"
                 (click)="selectTab('flow')"
               >
-                Flujo
+                {{ 'HISTORY.WORKFLOW_DRAWER.FLOW' | translate }}
               </button>
               <button
                 type="button"
@@ -79,7 +79,7 @@
                 [class.hover:bg-slate-100]="activeTab() !== 'comments'"
                 (click)="selectTab('comments')"
               >
-                Historial de comentarios
+                {{ 'HISTORY.WORKFLOW_DRAWER.COMMENTS_HISTORY' | translate }}
               </button>
             </div>
           </div>
@@ -92,9 +92,9 @@
                 <div class="relative mb-5">
                   <div
                     class="absolute -left-11 top-3 flex h-8 w-8 items-center justify-center rounded-full border text-sm"
-                    [class]="getStepMarkerClasses(step.status)"
+                    [class]="getStepMarkerClasses(step.statusKey)"
                   >
-                    <lucide-icon [name]="getStepIcon(step.status)"></lucide-icon>
+                    <lucide-icon [name]="getStepIcon(step.statusKey)"></lucide-icon>
                   </div>
 
                   <article class="rounded-xl border border-gray-300 bg-white p-4 shadow-sm">
@@ -103,7 +103,7 @@
                         <h4 class="text-lg font-bold leading-none text-[#0d1b3f]">{{ step.title }}</h4>
                         <span
                           class="rounded-full px-3 py-1 text-xs font-semibold"
-                          [class]="getStepStatusClasses(step.status)"
+                          [class]="getStepStatusClasses(step.statusKey)"
                         >
                           {{ step.status }}
                         </span>
@@ -149,7 +149,7 @@
                 }
               } @else {
                 <div class="rounded-xl border border-dashed border-gray-300 bg-white p-6 text-center text-sm text-gray-500">
-                  No hay comentarios en el historial.
+                  {{ 'HISTORY.WORKFLOW_DRAWER.NO_COMMENTS' | translate }}
                 </div>
               }
             </div>

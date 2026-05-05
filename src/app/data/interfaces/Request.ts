@@ -1,4 +1,5 @@
 import { Role, User } from './User';
+
 export interface Request {
     id?: number;
     requestNumber: string;
@@ -35,24 +36,41 @@ export interface Request {
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
-    request_type: RequestType;
+    requestType: RequestType;
     user: User;
     customer: Customer;
     reason: Reason;
     classification: Classification;
-    workflow_current_step: WorkflowCurrentStep
+    workflowCurrentStep: WorkflowCurrentStep
+    attachments?: RequestAttachments;
 }
 
-interface WorkflowCurrentStep {
+export interface WorkflowStep {
+    id: number
+    workflowId: number
+    stepName: string
+    stepOrder: number
+    roleId: number
+    isInitialStep: boolean
+    isFinalStep: boolean
+    createdAt: string
+    updatedAt: string
+    deletedAt: string | null
+}
+
+export interface WorkflowCurrentStep {
     id: number
     requestId: number
     workflowId: number
     workflowStepId: number
     assignedRoleId: number
+    assignedUserId: number
     status: string
     createdAt: string
     updatedAt: string
+    workflow_step: WorkflowStep
     assigned_role: Role
+    assigned_user: User
 }
 
 export interface RequestType {
@@ -75,4 +93,22 @@ export interface Classification {
     id: number;
     code: string;
     name: string;
+}
+
+export interface RequestAttachment {
+    id: number;
+    requestId: number;
+    fileName: string;
+    filePath: string;
+    fileExtension: string;
+    fileSize: number;
+    fileType: string;
+    isActive: boolean;
+    createdAt: string;
+    deletedAt: string | null;
+}
+
+export interface RequestAttachments {
+    sapScreen?: RequestAttachment[];
+    uploadSupport?: RequestAttachment[];
 }

@@ -1,49 +1,62 @@
 <section class="notifications-page">
+	<app-full-spinner [isLoading]="isNavigatingToApprovals()" />
+	
 	<header class="notifications-header">
-		<h1>Laravel Reverb Notifications</h1>
-		<p>Canal: <strong>notifications.global</strong> · Evento: <strong>.socket.message.sent</strong></p>
+		<div>
+			<p class="eyebrow">{{ 'NOTIFICATIONS.CENTER' | translate }}</p>
+			<h1>{{ 'NOTIFICATIONS.TITLE' | translate }}</h1>
+		</div>
+
+		<div class="header-actions">
+			<div class="count-card">
+				<span class="count-value">{{ unreadCount() }}</span>
+				<span class="count-label">{{ 'NOTIFICATIONS.UNREAD' | translate }}</span>
+			</div>
+			<button type="button" (click)="refresh()">{{ 'NOTIFICATIONS.REFRESH' | translate }}</button>
+		</div>
 	</header>
 
-	<div class="status-panel">
-		<p><strong>Estado:</strong> {{ connectionState() }}</p>
-		@if (connectionError()) {
-			<p class="error">Error: {{ connectionError() }}</p>
-		}
-		@if (lastBatchFinished()) {
-			<p><strong>Ultimo batch finalizado:</strong> {{ lastBatchFinished()?.batch?.id ?? 'N/A' }}</p>
-			<p><strong>Status final:</strong> {{ lastBatchFinished()?.batch?.status ?? 'unknown' }}</p>
-		}
-		<div class="button-row">
-			<button type="button" (click)="connect()">Conectar</button>
-			<button type="button" (click)="disconnect()">Desconectar</button>
+	@if (lastError()) {
+		<div class="error-banner">
+			{{ lastError() }}
 		</div>
-	</div>
+	}
 
-	<form class="broadcast-form" [formGroup]="broadcastForm" (ngSubmit)="sendBroadcast()">
-		<label for="message">Mensaje para /api/socket/broadcast</label>
-		<input id="message" type="text" formControlName="message" placeholder="Escribe un mensaje" />
-
-		<label for="bearerToken">JWT Bearer (opcional en este demo)</label>
-		<input id="bearerToken" type="text" formControlName="bearerToken" placeholder="eyJ0eXAiOiJK..." />
-
-		<button type="submit" [disabled]="sending()">
-			{{ sending() ? 'Enviando...' : 'Emitir Mensaje' }}
-		</button>
-	</form>
-
-	<section class="messages-panel">
-		<h2>Mensajes Entrantes</h2>
-
-		@if (messages().length === 0) {
-			<p>No hay mensajes aún.</p>
+	<section class="notifications-list">
+		@if (notifications().length === 0) {
+			<div class="empty-state">
+				<p>{{ 'NOTIFICATIONS.EMPTY' | translate }}</p>
+			</div>
 		} @else {
-			<ul>
-				@for (message of messages(); track $index) {
-					<li>
-						<pre>{{ message | json }}</pre>
-					</li>
-				}
-			</ul>
+			@for (notification of notifications(); track trackByNotificationId($index, notification)) {
+				<article
+					class="notification-card"
+					role="button"
+					tabindex="0"
+					[class.unread]="!notification.isRead"
+					(click)="openNotification(notification)"
+					(keydown)="onCardKeydown($event, notification)">
+					<div class="notification-card__header">
+						<div class="notification-card__title-group">
+							<h2>{{ notification.title }}</h2>
+							<p>{{ notification.message }}</p>
+						</div>
+						<span class="notification-status">{{ notification.isRead ? ('NOTIFICATIONS.READ' | translate) : ('NOTIFICATIONS.NEW' | translate) }}</span>
+					</div>
+
+					<div class="notification-card__footer">
+						<span>{{ formatNotificationDate(notification.createdAt) }}</span>
+						<button
+							type="button"
+							class="mark-read-button"
+							[disabled]="notification.isRead"
+							[attr.title]="'NOTIFICATIONS.MARK_AS_READ' | translate"
+							(click)="markAsRead(notification, $event)">
+							<lucide-icon name="check" size="16"></lucide-icon>
+						</button>
+					</div>
+				</article>
+			}
 		}
 	</section>
 </section>

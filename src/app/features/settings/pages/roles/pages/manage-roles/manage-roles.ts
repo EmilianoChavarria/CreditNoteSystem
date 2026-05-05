@@ -91,6 +91,43 @@ export class ManageRoles {
     return this.requestTypeSwitches()[requestTypeId]?.[actionSlug] ?? false;
   }
 
+  public isRequestTypeFullySelected(requestTypeId: number): boolean {
+    const requestState = this.requestTypeSwitches()[requestTypeId];
+
+    if (!requestState) {
+      return false;
+    }
+
+    const actionSlugs = this.actions().map(action => action.slug);
+
+    return actionSlugs.length > 0 && actionSlugs.every(actionSlug => requestState[actionSlug] ?? false);
+  }
+
+  public isRequestTypePartiallySelected(requestTypeId: number): boolean {
+    const requestState = this.requestTypeSwitches()[requestTypeId];
+
+    if (!requestState) {
+      return false;
+    }
+
+    const actionSlugs = this.actions().map(action => action.slug);
+    const selectedCount = actionSlugs.filter(actionSlug => requestState[actionSlug] ?? false).length;
+
+    return selectedCount > 0 && selectedCount < actionSlugs.length;
+  }
+
+  public toggleRequestTypeSelection(requestTypeId: number, checked: boolean): void {
+    const nextRowState = this.actions().reduce<Record<string, boolean>>((acc, action) => {
+      acc[action.slug] = checked;
+      return acc;
+    }, {});
+
+    this.requestTypeSwitches.update(current => ({
+      ...current,
+      [requestTypeId]: nextRowState,
+    }));
+  }
+
   public setRequestPermissionActive(requestTypeId: number, actionSlug: string, event: Event): void {
     const checked = (event.target as HTMLInputElement).checked;
 

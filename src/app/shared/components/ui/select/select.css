@@ -1,7 +1,15 @@
+:host {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
 .app-select {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  width: 100%;
+  min-width: 0;
 }
 
 .app-select__label {
@@ -59,4 +67,10 @@
 .app-select__icon svg {
   width: 100%;
   height: 100%;
+}
+
+@media (max-width: 640px) {
+  .app-select__control {
+    font-size: 0.8125rem;
+  }
 }

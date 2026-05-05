@@ -1,0 +1,44 @@
+<accordeon-item [titleM]="'BULK.NEW_REQUESTS.TITLE' | translate" [description]="'BULK.NEW_REQUESTS.DESCRIPTION' | translate"
+    [openButtonText]="'BULK.OPEN' | translate" [closeButtonText]="'BULK.CLOSE' | translate">
+    <div class="w-full flex flex-col p-3 sm:p-4">
+        <div class="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-end justify-start gap-3 sm:gap-4">
+            <div class="flex flex-col gap-1 w-full sm:min-w-44 sm:w-auto">
+                <span class="text-sm font-medium text-[#395f93]">{{ 'BULK.COMMON.BATCH_TYPE' | translate }}</span>
+                <input
+                    type="text"
+                    value="newRequest"
+                    disabled
+                    class="h-10 w-full border border-gray-200 rounded-md px-2 bg-gray-100 text-gray-600" />
+            </div>
+
+            <button class="w-full sm:w-auto bg-[#ff8200] text-white rounded-md px-3 py-2 hover:cursor-pointer hover:bg-[#fc9629]">{{ 'BULK.NEW_REQUESTS.TEMPLATE' | translate }}</button>
+
+            <button
+                type="button"
+                (click)="createBatch()"
+                [disabled]="isCreatingBatch()"
+                class="w-full sm:w-auto bg-[#395f93] text-white rounded-md px-4 py-2 hover:cursor-pointer hover:bg-[#4d6ea5] disabled:opacity-70 disabled:cursor-not-allowed">
+                {{ isCreatingBatch() ? ('BULK.COMMON.PROCESSING' | translate) : ('BULK.NEW_REQUESTS.PROCESS_BUTTON' | translate) }}
+            </button>
+        </div>
+        <app-bulk-file-dropzone
+            [inputId]="'dropzone-file-new-request'"
+            [dropHint]="'BULK.NEW_REQUESTS.DROP_HINT' | translate"
+            [clickUploadText]="'BULK.COMMON.CLICK_UPLOAD' | translate"
+            [isDragOver]="isDragOver()"
+            [accept]="'.csv'"
+            (dragOver)="onDragOver($event)"
+            (dragLeave)="onDragLeave($event)"
+            (dropFile)="onDrop($event)"
+            (fileChange)="onFileInputChange($event)">
+        </app-bulk-file-dropzone>
+
+        @if (uploadedFiles().length > 0) {
+        <app-bulk-uploaded-files-table
+            [rows]="uploadedFiles()"
+            [caption]="'Listado de solicitudes cargadas'"
+            (remove)="removeUploadedFile($event)">
+        </app-bulk-uploaded-files-table>
+        }
+    </div>
+</accordeon-item>
