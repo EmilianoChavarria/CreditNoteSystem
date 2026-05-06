@@ -318,11 +318,11 @@
       "DROP_HINT_REINVOICING": "Drag and drop CSV/XLSX for re-invoicing here or"
     },
     "SAP": {
-      "TITLE": "Upload SAP Return Order",
-      "DESCRIPTION": "Bulk upload of SAP Return Order files (images, Word, PDF)",
+      "TITLE": "Upload SAP Screen",
+      "DESCRIPTION": "Your file name must start with the request number after a underscore '_'",
       "FORMAT_VALUE": "Images, Word, PDF",
       "PROCESS_BUTTON": "Process Files",
-      "HELP_TEXT": "Files will be sent as batchType=sapReturnOrder with file and selected requestTypeId. Filename is used to match the corresponding request.",
+      "HELP_TEXT": "Your file name must start with the request number after a underscore '_'. Filename is used to match the corresponding request.",
       "DROP_HINT": "Drag and drop files here or",
       "NO_LIMIT_HINT": "No file limit. Formats: JPG, PNG, GIF, WebP, BMP, SVG, DOC, DOCX, PDF"
     },

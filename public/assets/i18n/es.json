@@ -318,11 +318,11 @@
       "DROP_HINT_REINVOICING": "Arrastra y suelta CSV/XLSX para re-invoicing aquí o"
     },
     "SAP": {
-      "TITLE": "Subir SAP Return Order",
-      "DESCRIPTION": "Carga masiva de archivos de SAP Return Order (imágenes, Word, PDF)",
+      "TITLE": "Subir SAP Screen",
+      "DESCRIPTION": "El nombre de tu archivo debe empezar con el número de solicitud seguido de un guión bajo '_'",
       "FORMAT_VALUE": "Imágenes, Word, PDF",
       "PROCESS_BUTTON": "Procesar Archivos",
-      "HELP_TEXT": "Se enviarán archivos como batchType=sapReturnOrder con el archivo y el requestTypeId seleccionado. Se leerá el nombre del archivo para asignar a la solicitud correspondiente.",
+      "HELP_TEXT": "El nombre de tu archivo debe empezar con el número de solicitud seguido de un guión bajo '_'. Se leerá el nombre del archivo para asignar a la solicitud correspondiente.",
       "DROP_HINT": "Arrastra y suelta archivos aquí o",
       "NO_LIMIT_HINT": "Sin límite de archivos. Formatos: JPG, PNG, GIF, WebP, BMP, SVG, DOC, DOCX, PDF"
     },
