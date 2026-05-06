@@ -259,7 +259,15 @@
       "OF": "de",
       "RECORDS": "registros",
       "SIZE": "Tamaño",
-      "PAGE": "Página"
+      "PAGE": "Página",
+      "BATCH_TYPES": {
+        "SAP_SCREEN": "SAP Screen",
+        "CREDITS_DATA": "Datos de Créditos",
+        "ORDER_NUMBERS": "Números de Orden",
+        "NEW_REQUEST": "Nueva Solicitud",
+        "UPLOAD_SUPPORT": "Soportes",
+        "USERS": "Usuarios"
+      }
     },
     "BATCH_REQUESTS": {
       "TITLE": "Solicitudes del Batch",

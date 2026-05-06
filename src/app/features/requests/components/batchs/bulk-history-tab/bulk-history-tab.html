@@ -5,8 +5,8 @@
                 <thead class="bg-gray-50">
                     <tr>
                         <th class="border-b border-gray-200 px-4 py-2 text-left text-xs font-semibold text-gray-600">{{ 'BULK.HISTORY.ID_BATCH' | translate }}</th>
-                        <th class="border-b border-gray-200 px-4 py-2 text-left text-xs font-semibold text-gray-600">{{ 'BULK.HISTORY.STATUS' | translate }}</th>
                         <th class="border-b border-gray-200 px-4 py-2 text-left text-xs font-semibold text-gray-600">{{ 'BULK.HISTORY.BATCH_TYPE' | translate }}</th>
+                        <th class="border-b border-gray-200 px-4 py-2 text-left text-xs font-semibold text-gray-600">{{ 'BULK.HISTORY.STATUS' | translate }}</th>
                         <th class="border-b border-gray-200 px-4 py-2 text-left text-xs font-semibold text-gray-600">{{ 'BULK.HISTORY.DATE' | translate }}</th>
                         <th class="border-b border-gray-200 px-4 py-2 text-left text-xs font-semibold text-gray-600">{{ 'BULK.HISTORY.REQUESTS' | translate }}</th>
                         <th class="border-b border-gray-200 px-4 py-2 text-left text-xs font-semibold text-gray-600">{{ 'BULK.HISTORY.EMITTED' | translate }}</th>
@@ -30,7 +30,7 @@
                     @for (batch of bulkHistoryRows(); track batch.idBatch) {
                     <tr class="hover:bg-gray-50">
                         <td class="border-b border-gray-100 px-4 py-2 text-sm text-gray-700 font-medium">{{ batch.idBatch }}</td>
-                        <td class="border-b border-gray-100 px-4 py-2 text-sm text-gray-700 font-medium">{{ batch.batchType }}</td>
+                        <td class="border-b border-gray-100 px-4 py-2 text-sm text-gray-700 font-medium">{{ batchTypeLabel(batch.batchType) | translate }}</td>
                         <td class="border-b border-gray-100 px-4 py-2 text-sm text-gray-700">
                             <span [class]="'inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ' + onStatusClass(batch.status)">
                                 {{ batch.status }}
