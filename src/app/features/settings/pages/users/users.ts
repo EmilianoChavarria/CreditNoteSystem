@@ -397,7 +397,7 @@ export class Users implements OnInit {
                 );
                 this.showBulkUploadModal.set(false);
                 this.bulkUploadFile.set(null);
-                this._router.navigate(['/request/bulk-upload'], { queryParams: { tab: 'bulk-history' } });
+                this._router.navigate(['/app/request/bulk-upload'], { queryParams: { tab: 'bulk-history' } });
             },
             error: (error) => {
                 this.toastr.error(
