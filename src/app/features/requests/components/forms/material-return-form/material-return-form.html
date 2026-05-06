@@ -140,7 +140,7 @@
                 </div>
                 <div class="md:md:col-span-2">
                     <label for="sapScreen"
-                        class="block text-sm font-medium text-[#395f93]">{{'NEW_REQUEST_FORM.SAP_SCREEN' |
+                        class="block text-sm font-medium text-[#395f93]">{{'NEW_REQUEST_FORM.RGA_FILES' |
                         translate}}<span class="text-red-500">*</span></label>
                     <input type="file" id="sapScreen" formControlName="sapScreen" (change)="onSapScreenChange($event)"
                         [class]="campoVacio('sapScreen') ? 'border-red-500 mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-md file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100' : 'mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-md file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 border border-gray-300 shadow-sm rounded-md'">
@@ -169,7 +169,7 @@
 
         <app-tab titleT="Financial Data">
             <div class="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-4 md:gap-8">
-                <div>
+                <div class="col-span-1 md:col-span-2">
                     <label for="currency" class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.CURRENCY'
                         | translate}}<span class="text-red-500">*</span></label>
                     <select id="currency" formControlName="currency"
@@ -182,7 +182,7 @@
                     <span class="text-sm text-red-500">{{ getErrorMessage('currency') }}</span>
                     }
                 </div>
-                <div>
+                <div class="col-span-1 md:col-span-2">
                     <label for="exchangeRate"
                         class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.EXCHANGE_RATE' |
                         translate}}<span class="text-red-500">*</span></label>
@@ -192,36 +192,7 @@
                     <span class="text-sm text-red-500">{{ getErrorMessage('exchangeRate') }}</span>
                     }
                 </div>
-                <div>
-                    <label for="amount" class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.AMOUNT' |
-                        translate}}<span class="text-red-500">*</span></label>
-                    <input id="amount" type="number" formControlName="amount"
-                        [class]="campoVacio('amount') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
-                    @if (campoVacio('amount')) {
-                    <span class="text-sm text-red-500">{{ getErrorMessage('amount') }}</span>
-                    }
-                </div>
-                <div class="flex flex-col justify-center">
-                    <div class="flex items-center gap-3 mt-1">
-                        <input id="hasIva" type="checkbox" formControlName="hasIva"
-                            [class]="campoVacio('hasIva') ? 'w-5 h-5 border-red-500 text-blue-600 focus:ring-red-500 rounded' : 'w-5 h-5 rounded text-blue-600 focus:ring-blue-500'" />
-                        <label for="hasIva" class="font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.HAS_IVA' |
-                            translate}}<span class="text-red-500">*</span></label>
-                    </div>
-                    @if (campoVacio('hasIva')) {
-                    <span class="text-sm text-red-500">{{ getErrorMessage('hasIva') }}</span>
-                    }
-                </div>
-                <div>
-                    <label for="totalAmount"
-                        class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.TOTAL_AMOUNT' |
-                        translate}}</label>
-                    <input id="totalAmount" type="text" formControlName="totalAmount"
-                        [class]="campoVacio('totalAmount') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
-                    @if (campoVacio('totalAmount')) {
-                    <span class="text-sm text-red-500">{{ getErrorMessage('totalAmount') }}</span>
-                    }
-                </div>
+                
             </div>
         </app-tab>
 

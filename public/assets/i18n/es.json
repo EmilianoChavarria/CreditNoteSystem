@@ -657,6 +657,8 @@
     "INVOICE_DATE": "Fecha de Factura",
     "WAREHOUSE_CODE": "Almacén",
     "SAP_SCREEN": "Pantalla de SAP",
+    "HAS_RGA": "¿Tiene RGA?",
+    "RGA_FILES": "Archivos RGA",
     "CURRENCY": "Moneda",
     "EXCHANGE_RATE": "Tipo de Cambio",
     "AMOUNT": "Monto",

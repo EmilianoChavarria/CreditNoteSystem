@@ -657,6 +657,8 @@
     "INVOICE_DATE": "Invoice Date",
     "WAREHOUSE_CODE": "Warehouse",
     "SAP_SCREEN": "SAP Screen",
+    "HAS_RGA": "Has RGA?",
+    "RGA_FILES": "RGA Files",
     "CURRENCY": "Currency",
     "EXCHANGE_RATE": "Exchange Rate",
     "AMOUNT": "Amount",
