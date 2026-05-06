@@ -2,7 +2,7 @@
     [openButtonText]="'BULK.OPEN' | translate" [closeButtonText]="'BULK.CLOSE' | translate">
     <div class="w-full flex flex-col p-3 sm:p-4">
         <div class="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-end justify-start gap-3 sm:gap-4">
-            <div class="flex flex-col gap-1 w-full sm:min-w-44 sm:w-auto">
+            <div class="gap-1 w-full sm:min-w-44 sm:w-auto hidden">
                 <span class="text-sm font-medium text-[#395f93]">{{ 'BULK.COMMON.BATCH_TYPE' | translate }}</span>
                 <input
                     type="text"
@@ -11,7 +11,7 @@
                     class="h-10 w-full border border-gray-200 rounded-md px-2 bg-gray-100 text-gray-600" />
             </div>
 
-            <button class="w-full sm:w-auto bg-[#ff8200] text-white rounded-md px-3 py-2 hover:cursor-pointer hover:bg-[#fc9629]">{{ 'BULK.NEW_REQUESTS.TEMPLATE' | translate }}</button>
+            <a href="/assets/templates/template-new-requests.csv" download="template-new-requests.csv" class="w-full sm:w-auto bg-[#ff8200] text-white rounded-md px-3 py-2 hover:cursor-pointer hover:bg-[#fc9629] inline-block text-center">{{ 'BULK.NEW_REQUESTS.TEMPLATE' | translate }}</a>
 
             <button
                 type="button"

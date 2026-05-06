@@ -6,12 +6,13 @@ import { LucideAngularModule } from "lucide-angular";
 import { finalize } from 'rxjs';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AssignManagersPayload, AssignModal } from "./components/assign-modal/assign-modal";
+import { CustomerInfoModal } from "./components/customer-info-modal/customer-info-modal";
 
 @Component({
     selector: 'app-customers',
     templateUrl: './customers.html',
     styleUrl: './customers.css',
-    imports: [Table, LucideAngularModule, TranslatePipe, AssignModal],
+    imports: [Table, LucideAngularModule, TranslatePipe, AssignModal, CustomerInfoModal],
 })
 export class Customers {
     private readonly _translateService = inject(TranslateService);
@@ -28,6 +29,7 @@ export class Customers {
     private searchDebounceTimeout: ReturnType<typeof setTimeout> | null = null;
 
     public isOpenModal = signal<boolean>(false);
+    public isOpenInfoModal = signal<boolean>(false);
 
     public columns: Column<Customer>[] = [
         {
@@ -85,10 +87,13 @@ export class Customers {
 
     acciones: AccionPersonalizada<Customer>[] = [
         {
-            key: 'reset',
-            icon: 'user-plus',
+            key: 'info',
+            icon: 'info',
             label: 'CUSTOMERS_PAGE.SEE_INFO',
-            accion: (user) => this.openModal(user)
+            accion: (customer) => {
+                this.customer = customer;
+                this.isOpenInfoModal.set(true);
+            }
         }
     ];
 

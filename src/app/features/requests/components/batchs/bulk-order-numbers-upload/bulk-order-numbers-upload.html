@@ -1,8 +1,8 @@
-<accordeon-item [titleM]="'BULK.ORDER.TITLE' | translate" [description]="'BULK.ORDER.DESCRIPTION' | translate"
+<accordeon-item [titleM]="titleTranslationKey | translate" [description]="'BULK.ORDER.DESCRIPTION' | translate"
     [openButtonText]="'BULK.OPEN' | translate" [closeButtonText]="'BULK.CLOSE' | translate">
     <div class="w-full flex flex-col p-3 sm:p-4">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 items-stretch md:items-end">
-            <div class="flex flex-col gap-1 w-full sm:min-w-44 sm:w-auto">
+            <div class="hidden gap-1 w-full sm:min-w-44 sm:w-auto">
                 <span class="text-sm font-medium text-[#395f93]">{{ 'BULK.COMMON.BATCH_TYPE' | translate }}</span>
                 <input
                     type="text"
@@ -20,6 +20,8 @@
                     class="h-10 w-full border border-gray-200 rounded-md px-2 bg-gray-100 text-gray-600" />
             </div>
 
+            <a href="/assets/templates/template-order-numbers.csv" download="template-order-numbers.csv" class="w-full sm:w-auto bg-[#ff8200] text-white rounded-md px-3 py-2 hover:cursor-pointer hover:bg-[#fc9629] inline-block text-center">{{ 'BULK.NEW_REQUESTS.TEMPLATE' | translate }}</a>
+
             <button
                 type="button"
                 (click)="createBatch()"
@@ -29,7 +31,7 @@
             </button>
         </div>
 
-        <p class="text-xs text-gray-500 mt-3">{{ 'BULK.ORDER.HELP_TEXT' | translate }}</p>
+        <!-- <p class="text-xs text-gray-500 mt-3">{{ 'BULK.ORDER.HELP_TEXT' | translate }}</p> -->
 
         <app-bulk-file-dropzone
             [inputId]="'dropzone-file-order-numbers'"

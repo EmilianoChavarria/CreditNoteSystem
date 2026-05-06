@@ -71,6 +71,7 @@ export class MyInvoices {
   }
 
   protected search(): void {
+    console.log("si pica");
     const clientId = this.currentClientId();
     if (!clientId || this.isSearching()) return;
 
@@ -119,19 +120,18 @@ export class MyInvoices {
     return this.downloadingKeys().has(key);
   }
 
-  protected downloadXml(invoice: CustomerInvoice): void {
-    const key = `${invoice.id}-xml`;
+  protected downloadFile(invoice: CustomerInvoice, type: 'xml' | 'pdf'): void {
+    const key = `${invoice.id}-${type}`;
     if (!invoice.id || this.downloadingKeys().has(key)) return;
 
     this.downloadingKeys.update(s => new Set([...s, key]));
 
-    this.customerService.downloadInvoiceXml(invoice.id).pipe(take(1)).subscribe({
+    this.customerService.downloadInvoiceFile(invoice.id, type).pipe(take(1)).subscribe({
       next: (blob) => {
-        const filename = `Factura_${invoice.invoiceNumber}.xml`;
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = filename;
+        a.download = `Factura_${invoice.invoiceNumber}.${type}`;
         a.click();
         URL.revokeObjectURL(url);
         this.downloadingKeys.update(s => { const n = new Set(s); n.delete(key); return n; });

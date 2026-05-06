@@ -18,4 +18,7 @@
 
     <app-assign-modal [open]="isOpenModal()" (openChange)="showModal($event)"
         (primaryAction)="assignManagers($event)" />
+
+    <app-customer-info-modal [open]="isOpenInfoModal()" [customer]="customer"
+        (openChange)="isOpenInfoModal.set($event)" />
 </section>

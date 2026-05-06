@@ -49,6 +49,35 @@ export class BulkHistoryTab {
     this.historyPageSizeChange.emit(value);
   }
 
+  batchTypeLabel(batchType: string): string {
+    const normalizedBatchType = (batchType ?? '').trim();
+
+    switch (normalizedBatchType) {
+      case 'sapScreen':
+        return 'BULK.HISTORY.BATCH_TYPES.SAP_SCREEN';
+      case 'creditsData':
+        return 'BULK.HISTORY.BATCH_TYPES.CREDITS_DATA';
+      case 'orderNumbers':
+        return 'BULK.HISTORY.BATCH_TYPES.ORDER_NUMBERS';
+      case 'newRequest':
+        return 'BULK.HISTORY.BATCH_TYPES.NEW_REQUEST';
+      case 'uploadSupport':
+        return 'BULK.HISTORY.BATCH_TYPES.UPLOAD_SUPPORT';
+      case 'users':
+        return 'BULK.HISTORY.BATCH_TYPES.USERS';
+      default:
+        return this.toTitleCase(normalizedBatchType.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/[_-]+/g, ' '));
+    }
+  }
+
+  private toTitleCase(value: string): string {
+    return value
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  }
+
   onStatusClass(status: string): string {
     const normalizedStatus = (status ?? '').toLowerCase();
 

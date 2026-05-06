@@ -22,6 +22,7 @@ interface UploadedFileRow {
   templateUrl: './bulk-sap-return-order-upload.html',
 })
 export class BulkSapReturnOrderUpload {
+  private readonly materialReturnRequestTypeId = 6;
   private readonly batchService = inject(BatchService);
   private readonly toastService = inject(ToastService);
   private readonly translateService = inject(TranslateService);
@@ -29,6 +30,12 @@ export class BulkSapReturnOrderUpload {
 
   selectedRequestTypeId = input<number | null>(null);
   batchCreated = output<void>();
+
+  protected get titleTranslationKey(): string {
+    return this.isMaterialReturnRequestType()
+      ? 'BULK.SAP.MATERIAL_RETURN_TITLE'
+      : 'BULK.SAP.TITLE';
+  }
 
   isDragOver = signal(false);
   isCreatingBatch = signal(false);
@@ -62,14 +69,15 @@ export class BulkSapReturnOrderUpload {
   createBatch(): void {
     const selectedFiles = this.files();
     const requestTypeId = this.selectedRequestTypeId();
+    const title = this.translateService.instant(this.titleTranslationKey);
 
     if (selectedFiles.length === 0) {
-      this.toastService.warning(this.translateService.instant('BULK.TOAST.SAP_SELECT_AT_LEAST_ONE'), this.translateService.instant('BULK.SAP.TITLE'));
+      this.toastService.warning(this.translateService.instant('BULK.TOAST.SAP_SELECT_AT_LEAST_ONE'), title);
       return;
     }
 
     if (!requestTypeId) {
-      this.toastService.warning(this.translateService.instant('BULK.TOAST.SELECT_REQUEST_TYPE'), this.translateService.instant('BULK.SAP.TITLE'));
+      this.toastService.warning(this.translateService.instant('BULK.TOAST.SELECT_REQUEST_TYPE'), title);
       return;
     }
 
@@ -94,7 +102,7 @@ export class BulkSapReturnOrderUpload {
           const batchId = batch?.id;
           this.toastService.success(
             this.translateService.instant('BULK.TOAST.SAP_CREATED', { id: batchId ?? '' }),
-            this.translateService.instant('BULK.SAP.TITLE')
+            title
           );
 
           if (batchId !== undefined && batchId !== null && batchId !== '') {
@@ -106,7 +114,7 @@ export class BulkSapReturnOrderUpload {
         error: (error) => {
           this.isCreatingBatch.set(false);
           const message = error?.error?.message ?? this.translateService.instant('BULK.TOAST.SAP_CREATE_ERROR');
-          this.toastService.error(message, this.translateService.instant('BULK.SAP.TITLE'));
+          this.toastService.error(message, title);
         }
       });
   }
@@ -158,8 +166,13 @@ export class BulkSapReturnOrderUpload {
     this.uploadedFiles.set(currentUploadedFiles);
   }
 
+  private isMaterialReturnRequestType(): boolean {
+    return this.selectedRequestTypeId() === this.materialReturnRequestTypeId;
+  }
+
   private startBatchPolling(batchId: number | string): void {
     this.isPollingBatch.set(true);
+    const title = this.translateService.instant(this.titleTranslationKey);
 
     timer(0, 3000).pipe(
       switchMap(() => this.batchService.getBatchDetail(batchId, 1, 1)),
@@ -174,19 +187,19 @@ export class BulkSapReturnOrderUpload {
 
         if (status === 'completed') {
           this.isPollingBatch.set(false);
-          this.toastService.success(this.translateService.instant('BULK.TOAST.SAP_COMPLETED'), this.translateService.instant('BULK.SAP.TITLE'));
+          this.toastService.success(this.translateService.instant('BULK.TOAST.SAP_COMPLETED'), title);
           this.batchCreated.emit();
         }
 
         if (status === 'failed') {
           this.isPollingBatch.set(false);
-          this.toastService.error(this.translateService.instant('BULK.TOAST.SAP_FAILED'), this.translateService.instant('BULK.SAP.TITLE'));
+          this.toastService.error(this.translateService.instant('BULK.TOAST.SAP_FAILED'), title);
           this.batchCreated.emit();
         }
       },
       error: () => {
         this.isPollingBatch.set(false);
-        this.toastService.warning(this.translateService.instant('BULK.TOAST.SAP_POLLING_WARNING'), this.translateService.instant('BULK.SAP.TITLE'));
+        this.toastService.warning(this.translateService.instant('BULK.TOAST.SAP_POLLING_WARNING'), title);
         this.batchCreated.emit();
       },
       complete: () => {

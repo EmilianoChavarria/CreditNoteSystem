@@ -1,0 +1,148 @@
+<app-modal
+  size="lg"
+  titleM="Información del Cliente"
+  [open]="open()"
+  [showPrimaryButton]="false"
+  closeText="Cerrar"
+  (openChange)="openChange.emit($event)">
+
+  @if (customer(); as c) {
+    <div class="flex flex-col gap-y-5 max-h-[65vh] overflow-y-auto px-1 pb-1">
+
+      <!-- General -->
+      <div>
+        <p class="text-xs font-semibold uppercase tracking-widest text-orange-400 mb-2">General</p>
+        <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
+          <div>
+            <dt class="text-xs text-gray-500">ID Cliente</dt>
+            <dd class="text-sm font-medium text-gray-800 break-all">{{ c.idCliente || '—' }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs text-gray-500">Razón Social</dt>
+            <dd class="text-sm font-medium text-gray-800">{{ c.razonSocial || '—' }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs text-gray-500">RFC</dt>
+            <dd class="text-sm font-medium text-gray-800">{{ c.rfc || '—' }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs text-gray-500">Estatus</dt>
+            <dd class="text-sm font-medium text-gray-800">{{ c.estatus || '—' }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs text-gray-500">Moneda</dt>
+            <dd class="text-sm font-medium text-gray-800">{{ c.moneda || '—' }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs text-gray-500">Régimen Capital</dt>
+            <dd class="text-sm font-medium text-gray-800">{{ c.RegimenCapital || '—' }}</dd>
+          </div>
+          <div class="sm:col-span-2">
+            <dt class="text-xs text-gray-500">Dirección</dt>
+            <dd class="text-sm font-medium text-gray-800">{{ c.direccion || '—' }}</dd>
+          </div>
+        </dl>
+      </div>
+
+      <div class="border-t border-gray-100"></div>
+
+      <!-- Fiscal -->
+      <div>
+        <p class="text-xs font-semibold uppercase tracking-widest text-orange-400 mb-2">Datos Fiscales</p>
+        <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
+          <div>
+            <dt class="text-xs text-gray-500">Régimen Fiscal</dt>
+            <dd class="text-sm font-medium text-gray-800">{{ c.RegimenFiscal || '—' }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs text-gray-500">Residencia Fiscal</dt>
+            <dd class="text-sm font-medium text-gray-800">{{ c.ResidenciaFiscal || '—' }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs text-gray-500">Núm. Reg. Id. Trib.</dt>
+            <dd class="text-sm font-medium text-gray-800">{{ c.NumRegIdTrib || '—' }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs text-gray-500">Uso CFDI</dt>
+            <dd class="text-sm font-medium text-gray-800">{{ c.UsoCFDI || '—' }}</dd>
+          </div>
+        </dl>
+      </div>
+
+      <div class="border-t border-gray-100"></div>
+
+      <!-- Pago -->
+      <div>
+        <p class="text-xs font-semibold uppercase tracking-widest text-orange-400 mb-2">Pago</p>
+        <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
+          <div>
+            <dt class="text-xs text-gray-500">Método de Pago</dt>
+            <dd class="text-sm font-medium text-gray-800">{{ c.MetodoPago || '—' }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs text-gray-500">Forma de Pago</dt>
+            <dd class="text-sm font-medium text-gray-800">{{ c.FormaPago || '—' }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs text-gray-500">Condiciones de Pago</dt>
+            <dd class="text-sm font-medium text-gray-800">{{ c.condicionesPago || '—' }}</dd>
+          </div>
+        </dl>
+      </div>
+
+      <div class="border-t border-gray-100"></div>
+
+      <!-- Contacto -->
+      <div>
+        <p class="text-xs font-semibold uppercase tracking-widest text-orange-400 mb-2">Contacto</p>
+        <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
+          <div class="sm:col-span-2">
+            <dt class="text-xs text-gray-500">Correos</dt>
+            <dd class="text-sm font-medium text-gray-800 break-all">{{ c.correos || '—' }}</dd>
+          </div>
+          <div class="sm:col-span-2">
+            <dt class="text-xs text-gray-500">Correos de Pagos</dt>
+            <dd class="text-sm font-medium text-gray-800 break-all">{{ c.correosPagos || '—' }}</dd>
+          </div>
+        </dl>
+      </div>
+
+      @if (c.customer) {
+        <div class="border-t border-gray-100"></div>
+
+        <!-- Managers -->
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-widest text-orange-400 mb-2">Managers Asignados</p>
+          <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
+            <div>
+              <dt class="text-xs text-gray-500">Sales Engineer</dt>
+              <dd class="text-sm font-medium text-gray-800">{{ c.customer.salesEngineer?.fullName || '—' }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs text-gray-500">Sales Manager</dt>
+              <dd class="text-sm font-medium text-gray-800">{{ c.customer.salesManager?.fullName || '—' }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs text-gray-500">Finance Manager</dt>
+              <dd class="text-sm font-medium text-gray-800">{{ c.customer.financeManager?.fullName || '—' }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs text-gray-500">Marketing Manager</dt>
+              <dd class="text-sm font-medium text-gray-800">{{ c.customer.marketingManager?.fullName || '—' }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs text-gray-500">Customer Service Manager</dt>
+              <dd class="text-sm font-medium text-gray-800">{{ c.customer.customerServiceManager?.fullName || '—' }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs text-gray-500">Área</dt>
+              <dd class="text-sm font-medium text-gray-800">{{ c.customer.area || '—' }}</dd>
+            </div>
+          </dl>
+        </div>
+      }
+
+    </div>
+  }
+
+</app-modal>
