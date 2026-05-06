@@ -1,5 +1,5 @@
 import { ApplicationConfig, importProvidersFrom } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import { provideRouter, withHashLocation } from '@angular/router';
 import { provideHttpClient, withInterceptors, HttpClient } from '@angular/common/http';
 import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
 import { LucideAngularModule, Eye, User, Settings, CalendarClock, PanelLeftClose, PanelLeftOpen, LayoutDashboard, CreditCard, ChevronDown, Plus, Eraser, FolderUp, ClipboardCheck, ClipboardList, Bell, Users, Building2, Grid3x2, MonitorCog, ShieldCheck, LogOut, Trash, Search, Filter, ArrowUp, Pencil, FolderArchive, Sheet, FileUp, UserCheck, MoreVertical, Key, RotateCcw, ArrowDown, ChevronRight, ChevronLeft, Info, CircleX, Check, X, FileText, Network, History, CornerDownLeft, CloudUpload, ArrowRight, UserPlus, ChevronsRight, ChevronsLeft, Play, FileCheck, FileClock, EyeClosed, Receipt, Shield, Save, SquareArrowDown, BadgeCheck, Mail, Globe, Calendar, Clock4, ShieldUser, Lock, CircleAlert, UserCog, Paperclip, LockOpen, ShieldOff, RefreshCcw, UsersRound, Menu, Zap, Tag, CircleCheck, FileSpreadsheet, Clock, Download } from 'lucide-angular';
@@ -27,7 +27,7 @@ export function HttpLoaderFactory(http: HttpClient) {
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideRouter(routes),
+    provideRouter(routes, withHashLocation()),
     provideHttpClient(withInterceptors([impersonationInterceptor, authExpirationInterceptor])),
     // Solución para Lucide en versiones anteriores/estables
     importProvidersFrom(

@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, inject, signal } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, computed, inject, signal } from '@angular/core';
 import { TabsContainer } from "../../../../shared/components/ui/tab/tab-container/tab-container";
 import { Tab } from "../../../../shared/components/ui/tab/tab";
 import { AccordeonContainer } from "../../../../shared/components/ui/accordeon/accordeon-container";
@@ -61,6 +61,7 @@ interface RequestHistoryRow {
     ]
 })
 export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
+    private readonly reInvoicingRequestTypeId = 5;
 
     @ViewChild(TabsContainer) private tabsContainer?: TabsContainer;
 
@@ -80,6 +81,7 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
     public initialTabIndex = signal(0);
     public availableRequestTypes = signal<RequestType[]>([]);
     public selectedRequestTypeId = signal<number | null>(null);
+    public isReInvoicingSelected = computed(() => this.selectedRequestTypeId() === this.reInvoicingRequestTypeId);
     public isBatchDetailModalOpen = signal(false);
     public isLoadingHistory = signal(false);
     public isLoadingBatchDetail = signal(false);

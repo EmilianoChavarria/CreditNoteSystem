@@ -125,8 +125,8 @@ export class MaterialReturnForm extends BaseRequestForm {
 
   protected override getFormOptions() {
     return {
-      includeOrderNumber: false,
-      includeCreditNumber: false,
+      includeOrderNumber: true,
+      includeCreditNumber: true,
       includeStatus: false,
     };
   }

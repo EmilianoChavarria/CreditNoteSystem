@@ -136,7 +136,8 @@
   },
   "WORKFLOWS_MANAGE": {
     "TITLE": "Flujos de Aprobación",
-    "DESCRIPTION": "Cada tipo de nota sigue un flujo secuencial de aprobación. La nota avanza de un rol al siguiente hasta ser liberada."
+    "DESCRIPTION": "Cada tipo de nota sigue un flujo secuencial de aprobación. La nota avanza de un rol al siguiente hasta ser liberada.",
+    "NO_WORKFLOWS": "No se han creado flujos de aprobación"
   },
   "WORKFLOWS_STEP_MODAL": {
     "TITLE_ADD": "Agregar Paso",
@@ -258,7 +259,15 @@
       "OF": "de",
       "RECORDS": "registros",
       "SIZE": "Tamaño",
-      "PAGE": "Página"
+      "PAGE": "Página",
+      "BATCH_TYPES": {
+        "SAP_SCREEN": "SAP Screen",
+        "CREDITS_DATA": "Datos de Créditos",
+        "ORDER_NUMBERS": "Números de Orden",
+        "NEW_REQUEST": "Nueva Solicitud",
+        "UPLOAD_SUPPORT": "Soportes",
+        "USERS": "Usuarios"
+      }
     },
     "BATCH_REQUESTS": {
       "TITLE": "Solicitudes del Batch",
@@ -295,6 +304,7 @@
     },
     "ORDER": {
       "TITLE": "Subir Números de Orden",
+      "TITLE_MATERIAL_RETURN": "Upload SAP Return Order",
       "DESCRIPTION": "Carga masiva de números de orden por CSV",
       "PROCESS_BUTTON": "Procesar Order Numbers",
       "HELP_TEXT": "Se enviará como batchType=orderNumbers usando file y el requestTypeId seleccionado.",
@@ -317,11 +327,12 @@
       "DROP_HINT_REINVOICING": "Arrastra y suelta CSV/XLSX para re-invoicing aquí o"
     },
     "SAP": {
-      "TITLE": "Subir SAP Return Order",
-      "DESCRIPTION": "Carga masiva de archivos de SAP Return Order (imágenes, Word, PDF)",
+      "TITLE": "Subir SAP Screen",
+      "MATERIAL_RETURN_TITLE": "Subir Archivos RGA",
+      "DESCRIPTION": "El nombre de tu archivo debe empezar con el número de solicitud seguido de un guión bajo '_'",
       "FORMAT_VALUE": "Imágenes, Word, PDF",
       "PROCESS_BUTTON": "Procesar Archivos",
-      "HELP_TEXT": "Se enviarán archivos como batchType=sapReturnOrder con el archivo y el requestTypeId seleccionado. Se leerá el nombre del archivo para asignar a la solicitud correspondiente.",
+      "HELP_TEXT": "El nombre de tu archivo debe empezar con el número de solicitud seguido de un guión bajo '_'. Se leerá el nombre del archivo para asignar a la solicitud correspondiente.",
       "DROP_HINT": "Arrastra y suelta archivos aquí o",
       "NO_LIMIT_HINT": "Sin límite de archivos. Formatos: JPG, PNG, GIF, WebP, BMP, SVG, DOC, DOCX, PDF"
     },
@@ -424,6 +435,8 @@
     "CLEAR_SELECTION": "Limpiar selección",
     "BULK_APPROVE": "Aprobación masiva",
     "BULK_REJECT": "Rechazo masivo",
+    "APPROVE_MODAL_TITLE": "Confirmar aprobación",
+    "APPROVE_MODAL_BODY": "¿Estás seguro de que quieres aprobar la solicitud {{requestNumber}}?",
     "BULK_APPROVE_MODAL_TITLE": "Confirmar aprobación masiva",
     "BULK_APPROVE_CONFIRM": "Se aprobarán {{count}} solicitudes seleccionadas.",
     "BULK_REJECT_MODAL_TITLE": "Confirmar rechazo masivo",
@@ -455,6 +468,7 @@
     "APPROVE": "Aprobar",
     "DECLINE": "Rechazar",
     "PDF": "PDF",
+    "SEE_INFO": "Ver Solicitud",
     "EDIT": "Editar",
     "SEE_HISTORY": "Ver historial",
     "SEE_ATTACHMENTS": "Ver adjuntos",
@@ -637,6 +651,7 @@
   "NEW_REQUEST_FORM": {
     "REQUEST_NUMBER": "Número de Solicitud",
     "ORDER_NUMBER": "Número de Orden",
+    "SAP_RETURN_ORDER": "SAP Return Order",
     "CREDIT_NUMBER": "Número de Crédito",
     "CREDIT_DEBIT_NUMBER": "Número de Crédito/Débito",
     "NEW_INVOICE": "New Invoice",
@@ -653,6 +668,8 @@
     "INVOICE_DATE": "Fecha de Factura",
     "WAREHOUSE_CODE": "Almacén",
     "SAP_SCREEN": "Pantalla de SAP",
+    "HAS_RGA": "¿Tiene RGA?",
+    "RGA_FILES": "Archivos RGA",
     "CURRENCY": "Moneda",
     "EXCHANGE_RATE": "Tipo de Cambio",
     "AMOUNT": "Monto",

@@ -17,10 +17,11 @@ import { normalizeRequestNumber } from '../../../shared/utils/notification-navig
 import { FullSpinnerComponent } from '../../../shared/components/ui/full-spinner/full-spinner';
 import { RequestListBase } from '../../../shared/base/request-list.base';
 import { RequestInfoModal } from '../../pending/components/request-info-modal/request-info-modal';
+import { ApproveConfirmModal } from './components/approve-confirm-modal/approve-confirm-modal';
 
 @Component({
     selector: 'app-my-approvals',
-    imports: [TranslatePipe, WorkflowHistoryDrawer, Modal, Table, Badge, UpperCasePipe, Spinner, ReactiveFormsModule, FullSpinnerComponent, RequestInfoModal],
+    imports: [TranslatePipe, WorkflowHistoryDrawer, Modal, Table, Badge, UpperCasePipe, Spinner, ReactiveFormsModule, FullSpinnerComponent, RequestInfoModal, ApproveConfirmModal],
     templateUrl: './my-approvals.html',
     styleUrl: './my-approvals.css',
 })
@@ -42,6 +43,8 @@ export class MyApprovals extends RequestListBase {
         return pageIds.every((id) => selectedIds.has(id));
     });
 
+    public showApproveModal = signal<boolean>(false);
+    public requestToApprove = signal<Request | null>(null);
     public showBulkApproveModal = signal<boolean>(false);
     public showBulkDeclineModal = signal<boolean>(false);
     public isBulkProcessing = signal<boolean>(false);
@@ -64,13 +67,12 @@ export class MyApprovals extends RequestListBase {
     ];
 
     acciones: AccionPersonalizada<Request>[] = [
-        { key: 'approve', icon: 'check', label: 'MY_APPROVALS.APPROVE', accion: (request) => this.approveRequest(request) },
+        { key: 'approve', icon: 'check', label: 'MY_APPROVALS.APPROVE', accion: (request) => this.openApproveModal(request) },
         { key: 'decline', icon: 'x', label: 'MY_APPROVALS.DECLINE', accion: (request) => this.onDeclineModalChange(true, request) },
         { key: 'pdf', icon: 'file-text', label: 'MY_APPROVALS.PDF', accion: (request) => this.generatePdf(request) },
         { key: 'see_info', icon: 'info', label: 'PENDING_PAGE.SEE_INFO', accion: (request) => this.openInfoModal(request) },
         { key: 'edit', icon: 'pencil', label: 'MY_APPROVALS.EDIT', accion: (request) => this.editRequest(request) },
         { key: 'history', icon: 'history', label: 'MY_APPROVALS.SEE_HISTORY', accion: (request) => this.logAction(request) },
-        { key: 'delete', icon: 'trash', label: 'MY_APPROVALS.DELETE', accion: (request) => this.logAction(request) }
     ];
 
     constructor() {
@@ -267,6 +269,18 @@ export class MyApprovals extends RequestListBase {
                 this.cdr.markForCheck();
             }
         });
+    }
+
+    openApproveModal(request: Request): void {
+        this.requestToApprove.set(request);
+        this.showApproveModal.set(true);
+    }
+
+    onApproveConfirmed(): void {
+        const request = this.requestToApprove();
+        if (!request) return;
+        this.showApproveModal.set(false);
+        this.approveRequest(request);
     }
 
     onDeclineModalChange(isOpen: boolean = true, request?: Request): void {
