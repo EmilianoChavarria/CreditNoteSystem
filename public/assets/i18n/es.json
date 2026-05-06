@@ -319,6 +319,7 @@
     },
     "SAP": {
       "TITLE": "Subir SAP Screen",
+      "MATERIAL_RETURN_TITLE": "Subir Archivos RGA",
       "DESCRIPTION": "El nombre de tu archivo debe empezar con el número de solicitud seguido de un guión bajo '_'",
       "FORMAT_VALUE": "Imágenes, Word, PDF",
       "PROCESS_BUTTON": "Procesar Archivos",

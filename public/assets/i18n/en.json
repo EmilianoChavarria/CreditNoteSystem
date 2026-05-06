@@ -319,6 +319,7 @@
     },
     "SAP": {
       "TITLE": "Upload SAP Screen",
+      "MATERIAL_RETURN_TITLE": "Upload RGA Files",
       "DESCRIPTION": "Your file name must start with the request number after a underscore '_'",
       "FORMAT_VALUE": "Images, Word, PDF",
       "PROCESS_BUTTON": "Process Files",
