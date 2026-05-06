@@ -20,6 +20,9 @@
                     class="h-10 w-full border border-gray-200 rounded-md px-2 bg-gray-100 text-gray-600" />
             </div>
 
+            <!-- TODO: Switch between order number template and sap return order template -->
+            <a href="/assets/templates/template-sap-return-order.zip" download="template-sap-return-order.zip" class="w-full sm:w-auto bg-[#ff8200] text-white rounded-md px-3 py-2 hover:cursor-pointer hover:bg-[#fc9629] inline-block text-center">{{ 'BULK.NEW_REQUESTS.TEMPLATE' | translate }}</a>
+
             <button
                 type="button"
                 (click)="createBatch()"

@@ -296,6 +296,7 @@
     },
     "ORDER": {
       "TITLE": "Subir Números de Orden",
+      "TITLE_MATERIAL_RETURN": "Upload SAP Return Order",
       "DESCRIPTION": "Carga masiva de números de orden por CSV",
       "PROCESS_BUTTON": "Procesar Order Numbers",
       "HELP_TEXT": "Se enviará como batchType=orderNumbers usando file y el requestTypeId seleccionado.",

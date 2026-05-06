@@ -27,6 +27,8 @@ export class BulkOrderNumbersUpload {
   private readonly translateService = inject(TranslateService);
   private readonly destroyRef = inject(DestroyRef);
 
+  private readonly materialReturnRequestTypeId = 6;
+
   selectedRequestTypeId = input<number | null>(null);
   batchCreated = output<void>();
 
@@ -100,6 +102,14 @@ export class BulkOrderNumbersUpload {
           this.toastService.error(message, this.translateService.instant('BULK.TABS.UPLOAD'));
         }
       });
+  }
+
+  protected get titleTranslationKey(): string {
+    return this.isMaterialReturnRequestType() ? 'BULK.ORDER.TITLE_MATERIAL_RETURN' : 'BULK.ORDER.TITLE';
+  }
+
+  private isMaterialReturnRequestType(): boolean {
+    return this.selectedRequestTypeId() === this.materialReturnRequestTypeId;
   }
 
   removeUploadedFile(index: number): void {
