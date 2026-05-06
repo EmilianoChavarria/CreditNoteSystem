@@ -71,6 +71,7 @@ export class MyInvoices {
   }
 
   protected search(): void {
+    console.log("si pica");
     const clientId = this.currentClientId();
     if (!clientId || this.isSearching()) return;
 
