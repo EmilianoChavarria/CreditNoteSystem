@@ -138,10 +138,21 @@
                     <span class="text-sm text-red-500">{{ getErrorMessage('warehouseCode') }}</span>
                     }
                 </div>
+                <div class="flex flex-col justify-center">
+                    <div class="flex items-center gap-3 mt-1">
+                        <input id="hasRga" type="checkbox" formControlName="hasRga"
+                            [class]="campoVacio('hasRga') ? 'w-5 h-5 border-red-500 text-blue-600 focus:ring-red-500 rounded' : 'w-5 h-5 rounded text-blue-600 focus:ring-blue-500'" />
+                        <label for="hasRga" class="font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.HAS_RGA' |
+                            translate}}<span class="text-red-500">*</span></label>
+                    </div>
+                    @if (campoVacio('hasRga')) {
+                    <span class="text-sm text-red-500">{{ getErrorMessage('hasRga') }}</span>
+                    }
+                </div>
                 <div class="md:md:col-span-2">
                     <label for="sapScreen"
                         class="block text-sm font-medium text-[#395f93]">{{'NEW_REQUEST_FORM.RGA_FILES' |
-                        translate}}<span class="text-red-500">*</span></label>
+                        translate}}</label>
                     <input type="file" id="sapScreen" formControlName="sapScreen" (change)="onSapScreenChange($event)"
                         [class]="campoVacio('sapScreen') ? 'border-red-500 mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-md file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100' : 'mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-md file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 border border-gray-300 shadow-sm rounded-md'">
                     @if (campoVacio('sapScreen')) {
@@ -150,14 +161,18 @@
                     @if (existingSapScreenFiles().length > 0) {
                     <div class="mt-2 grid grid-cols-2 md:grid-cols-4 gap-2">
                         @for (file of existingSapScreenFiles(); track file.id) {
-                        <div class="rounded-md border border-gray-200 bg-gray-50 px-3 py-3 flex flex-col items-center text-center gap-2">
-                            <div class="w-8 h-8 rounded-md bg-green-100 text-green-700 flex items-center justify-center">
-                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <div
+                            class="rounded-md border border-gray-200 bg-gray-50 px-3 py-3 flex flex-col items-center text-center gap-2">
+                            <div
+                                class="w-8 h-8 rounded-md bg-green-100 text-green-700 flex items-center justify-center">
+                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" aria-hidden="true">
                                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                                     <polyline points="14 2 14 8 20 8"></polyline>
                                 </svg>
                             </div>
-                            <p class="text-xs font-medium text-gray-800 max-w-30 truncate" [title]="file.fileName">{{ file.fileName }}</p>
+                            <p class="text-xs font-medium text-gray-800 max-w-30 truncate" [title]="file.fileName">{{
+                                file.fileName }}</p>
                             <p class="text-[11px] text-gray-500">{{ formatFileSize(file.fileSize) }}</p>
                         </div>
                         }
@@ -192,7 +207,7 @@
                     <span class="text-sm text-red-500">{{ getErrorMessage('exchangeRate') }}</span>
                     }
                 </div>
-                
+
             </div>
         </app-tab>
 
@@ -201,7 +216,7 @@
                 <div class="md:col-span-2">
                     <label for="attachSupports"
                         class="block text-sm font-medium text-[#395f93]">{{'NEW_REQUEST_FORM.ATTACH_SUPPORTS' |
-                        translate}}<span class="text-red-500">*</span></label>
+                        translate}}</label>
                     <input type="file" id="attachSupports" multiple (change)="onAttachSupportsChange($event)"
                         formControlName="attachSupports"
                         [class]="campoVacio('attachSupports') ? ' mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-md file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100 border border-red-300 rounded-md' : 'mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-md file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 border border-gray-300 shadow-sm rounded-md'">
@@ -211,14 +226,18 @@
                     @if (existingUploadSupportFiles().length > 0) {
                     <div class="mt-2 grid grid-cols-2 md:grid-cols-4 gap-2">
                         @for (file of existingUploadSupportFiles(); track file.id) {
-                        <div class="rounded-md border border-gray-200 bg-gray-50 px-3 py-3 flex flex-col items-center text-center gap-2">
-                            <div class="w-8 h-8 rounded-md bg-green-100 text-green-700 flex items-center justify-center">
-                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <div
+                            class="rounded-md border border-gray-200 bg-gray-50 px-3 py-3 flex flex-col items-center text-center gap-2">
+                            <div
+                                class="w-8 h-8 rounded-md bg-green-100 text-green-700 flex items-center justify-center">
+                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" aria-hidden="true">
                                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                                     <polyline points="14 2 14 8 20 8"></polyline>
                                 </svg>
                             </div>
-                            <p class="text-xs font-medium text-gray-800 max-w-30 truncate" [title]="file.fileName">{{ file.fileName }}</p>
+                            <p class="text-xs font-medium text-gray-800 max-w-30 truncate" [title]="file.fileName">{{
+                                file.fileName }}</p>
                             <p class="text-[11px] text-gray-500">{{ formatFileSize(file.fileSize) }}</p>
                         </div>
                         }
@@ -327,23 +346,22 @@
                                 <td class="px-3 py-2 text-sm text-gray-700">{{ material.requestedQuantity }}</td>
                                 <td class="px-3 py-2 text-sm text-gray-700">
                                     <div class="flex flex-col gap-1">
-                                        <input type="number" 
+                                        <input type="number"
                                             [value]="replenishmentAcceptedByMaterialId().get(material.id) ?? ''"
                                             [max]="material.requestedQuantity"
                                             (input)="validateReplenishmentInput(material.id, $event)"
                                             (change)="onTableInputChange(material.id, 'replenishment', $event)"
                                             class="border border-gray-300 rounded-md h-8 px-2 w-full">
-                                        
+
                                     </div>
                                 </td>
                                 <td class="px-3 py-2 text-sm text-gray-700">
-                                    <input type="text"
-                                        [value]="getTextFieldValue(material.id, 'replenishmentReason')"
+                                    <input type="text" [value]="getTextFieldValue(material.id, 'replenishmentReason')"
                                         (change)="onTextFieldChange(material.id, 'replenishmentReason', $event)"
                                         class="border border-gray-300 rounded-md h-8 px-2 w-full">
                                 </td>
                                 <td class="px-3 py-2 text-sm text-gray-700">
-                                    <input type="number" 
+                                    <input type="number"
                                         [value]="warehouseReceivedByMaterialId().get(material.id) ?? ''"
                                         [max]="material.requestedQuantity"
                                         (input)="validateWarehouseReceivedInput(material.id, $event)"
@@ -352,24 +370,22 @@
                                 </td>
                                 <td class="px-3 py-2 text-sm text-gray-700">
                                     <div class="flex flex-col gap-1">
-                                        <input type="number" 
+                                        <input type="number"
                                             [value]="warehouseAcceptedByMaterialId().get(material.id) ?? ''"
                                             [max]="warehouseReceivedByMaterialId().get(material.id) || 0"
                                             (input)="validateWarehouseAcceptedInput(material.id, $event)"
                                             (change)="onTableInputChange(material.id, 'warehouseAccepted', $event)"
                                             class="border border-gray-300 rounded-md h-8 px-2 w-full">
-                                        
+
                                     </div>
                                 </td>
                                 <td class="px-3 py-2 text-sm text-gray-700">
-                                    <input type="text"
-                                        [value]="getTextFieldValue(material.id, 'warehouseReason')"
+                                    <input type="text" [value]="getTextFieldValue(material.id, 'warehouseReason')"
                                         (change)="onTextFieldChange(material.id, 'warehouseReason', $event)"
                                         class="border border-gray-300 rounded-md h-8 px-2 w-full">
                                 </td>
                                 <td class="px-3 py-2 text-sm text-gray-700">
-                                    <input type="text"
-                                        [value]="getTextFieldValue(material.id, 'sapId')"
+                                    <input type="text" [value]="getTextFieldValue(material.id, 'sapId')"
                                         (change)="onTextFieldChange(material.id, 'sapId', $event)"
                                         class="border border-gray-300 rounded-md h-8 px-2 w-full">
                                 </td>
@@ -397,25 +413,27 @@
                                             <input type="checkbox"
                                                 class="h-4 w-4 rounded border-emerald-300 text-emerald-600 focus:ring-emerald-500"
                                                 [checked]="hasReturnCharge()" (change)="onReturnChargeToggle($event)" />
-                                            <span>{{ hasReturnCharge() ? ('NEW_REQUEST_FORM.HAS_CHARGE' | translate) : ('NEW_REQUEST_FORM.NO_CHARGE' | translate) }}</span>
+                                            <span>{{ hasReturnCharge() ? ('NEW_REQUEST_FORM.HAS_CHARGE' | translate) :
+                                                ('NEW_REQUEST_FORM.NO_CHARGE' | translate) }}</span>
                                         </label>
                                         @if (hasReturnCharge()) {
                                         <div class="flex items-center gap-1">
                                             <input type="number" min="0" max="100" step="0.1"
                                                 [value]="returnChargePercent()"
-                                                (blur)="onReturnChargePercentBlur($event)"
-                                                [disabled]="isSavingCharge()"
+                                                (blur)="onReturnChargePercentBlur($event)" [disabled]="isSavingCharge()"
                                                 class="w-16 rounded border border-emerald-300 bg-white px-1.5 py-0.5 text-xs text-emerald-900 focus:outline-none focus:ring-1 focus:ring-emerald-500 disabled:opacity-50" />
                                             <span class="text-emerald-700">%</span>
                                             @if (isSavingCharge()) {
                                             <span class="text-[10px] text-emerald-600 animate-pulse">Guardando...</span>
                                             }
                                         </div>
-                                        <span class="text-emerald-700">{{ 'NEW_REQUEST_FORM.TOTAL_WITH_CHARGE' | translate }}: {{ totalWithReturnCharge() | number : '1.2-2' }}</span>
+                                        <span class="text-emerald-700">{{ 'NEW_REQUEST_FORM.TOTAL_WITH_CHARGE' |
+                                            translate }}: {{ totalWithReturnCharge() | number : '1.2-2' }}</span>
                                         }
                                     </div>
                                 </td>
-                                <td class="px-3 py-2 text-right text-sm font-semibold text-gray-700">{{ 'NEW_REQUEST_FORM.SUBTOTAL' | translate }}</td>
+                                <td class="px-3 py-2 text-right text-sm font-semibold text-gray-700">{{
+                                    'NEW_REQUEST_FORM.SUBTOTAL' | translate }}</td>
                                 <td class="px-3 py-2 text-sm font-semibold text-gray-800">
                                     {{ materialListSubtotal() | number : '1.2-2' }}
                                 </td>
@@ -428,9 +446,8 @@
                         <label for="replenishmentAmount"
                             class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.REPLANISHMENT_AMOUNT' |
                             translate}}<span class="text-red-500">*</span></label>
-                        <input id="replenishmentAmount" type="number" 
-                            [value]="replenishmentAcceptedTotal() | number : '1.2-2'"
-                            readonly 
+                        <input id="replenishmentAmount" type="number"
+                            [value]="replenishmentAcceptedTotal() | number : '1.2-2'" readonly
                             [class]="campoVacio('replenishmentAmount') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
                         @if (campoVacio('replenishmentAmount')) {
                         <span class="text-sm text-red-500">{{ getErrorMessage('replenishmentAmount') }}</span>
@@ -446,7 +463,8 @@
                                 |
                                 translate}}<span class="text-red-500">*</span></label>
                             @if (hasReplenishmentIva() && replenishmentIvaAmount() > 0) {
-                            <span class="text-sm text-blue-600 font-semibold">(IVA: {{ replenishmentIvaAmount() | number : '1.2-2' }})</span>
+                            <span class="text-sm text-blue-600 font-semibold">(IVA: {{ replenishmentIvaAmount() | number
+                                : '1.2-2' }})</span>
                             }
                         </div>
                         @if (campoVacio('hasReplenishmentIva')) {
@@ -457,8 +475,7 @@
                         <label for="warehouseAmount"
                             class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.WAREHOUSE_AMOUNT' |
                             translate}}<span class="text-red-500">*</span></label>
-                        <input id="warehouseAmount" type="number" 
-                            [value]="warehouseAcceptedTotal() | number : '1.2-2'"
+                        <input id="warehouseAmount" type="number" [value]="warehouseAcceptedTotal() | number : '1.2-2'"
                             readonly
                             [class]="campoVacio('warehouseAmount') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
                         @if (campoVacio('warehouseAmount')) {
@@ -475,7 +492,8 @@
                                 |
                                 translate}}<span class="text-red-500">*</span></label>
                             @if (hasWarehouseIva() && warehouseIvaAmount() > 0) {
-                            <span class="text-sm text-blue-600 font-semibold">(IVA: {{ warehouseIvaAmount() | number : '1.2-2' }})</span>
+                            <span class="text-sm text-blue-600 font-semibold">(IVA: {{ warehouseIvaAmount() | number :
+                                '1.2-2' }})</span>
                             }
                         </div>
                         @if (campoVacio('hasWarehouseIva')) {
@@ -486,7 +504,7 @@
                         <label for="replenishmentTotal"
                             class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.REPLANISHMENT_TOTAL' |
                             translate}}<span class="text-red-500">*</span></label>
-                        <input id="replenishmentTotal" type="number" 
+                        <input id="replenishmentTotal" type="number"
                             [value]="(replenishmentAcceptedTotal() + replenishmentIvaAmount()) | number : '1.2-2'"
                             readonly
                             [class]="campoVacio('replenishmentTotal') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
@@ -498,9 +516,8 @@
                         <label for="warehouseTotal"
                             class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.WAREHOUSE_TOTAL' |
                             translate}}<span class="text-red-500">*</span></label>
-                        <input id="warehouseTotal" type="number" 
-                            [value]="(warehouseAcceptedTotal() + warehouseIvaAmount()) | number : '1.2-2'"
-                            readonly
+                        <input id="warehouseTotal" type="number"
+                            [value]="(warehouseAcceptedTotal() + warehouseIvaAmount()) | number : '1.2-2'" readonly
                             [class]="campoVacio('warehouseTotal') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
                         @if (campoVacio('warehouseTotal')) {
                         <span class="text-sm text-red-500">{{ getErrorMessage('warehouseTotal') }}</span>
