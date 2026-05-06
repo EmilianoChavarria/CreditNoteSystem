@@ -93,11 +93,32 @@
                     <span class="text-sm text-red-500">{{ getErrorMessage('classificationId') }}</span>
                     }
                 </div>
+                <div>
+                    <label for="creditNumber"
+                        class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.CREDIT_NUMBER' |
+                        translate}}</label>
+                    <input id="creditNumber" type="text" formControlName="creditNumber"
+                        [class]="campoVacio('creditNumber') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
+                    @if (campoVacio('creditNumber')) {
+                    <span class="text-sm text-red-500">{{ getErrorMessage('creditNumber') }}</span>
+                    }
+                </div>
+                <div>
+                    <label for="orderNumber"
+                        class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.SAP_RETURN_ORDER' |
+                        translate}}</label>
+                    <input id="orderNumber" type="text" formControlName="orderNumber"
+                        [class]="campoVacio('orderNumber') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
+                    @if (campoVacio('orderNumber')) {
+                    <span class="text-sm text-red-500">{{ getErrorMessage('orderNumber') }}</span>
+                    }
+                </div>
             </div>
         </app-tab>
 
         <app-tab titleT="Reference & Logistics">
             <div class="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-4 md:gap-8">
+                
                 <div>
                     <label for="deliveryNote"
                         class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.DELIVERY_NOTE' |

@@ -643,6 +643,7 @@
   "NEW_REQUEST_FORM": {
     "REQUEST_NUMBER": "Número de Solicitud",
     "ORDER_NUMBER": "Número de Orden",
+    "SAP_RETURN_ORDER": "SAP Return Order",
     "CREDIT_NUMBER": "Número de Crédito",
     "CREDIT_DEBIT_NUMBER": "Número de Crédito/Débito",
     "NEW_INVOICE": "New Invoice",
