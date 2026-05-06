@@ -18,13 +18,14 @@ import { ToastService } from '../../../../core/services/toast-service';
 import { Modal as UiModal } from '../../../../shared/components/ui/modal/modal';
 import { ApiResponse } from '../../../../data/interfaces/ApiResponse-interface';
 import { Color, WorkflowGroup, WorkflowStep, WorkflowTransition } from './workflows.types';
+import { TitleCasePipe } from '@angular/common';
 
 interface AdvanceCondition { id: number; }
 interface BranchRule { id: number; }
 
 @Component({
   selector: 'app-workflows',
-  imports: [TranslatePipe, AccordeonContainer, AccordeonItem, RolesManageModal, RoleFormModal, AddStepModal, AddWorkflowModal, WorkflowStepList, Spinner, UiModal],
+  imports: [TranslatePipe, AccordeonContainer, AccordeonItem, RolesManageModal, RoleFormModal, AddStepModal, AddWorkflowModal, WorkflowStepList, Spinner, UiModal, TitleCasePipe],
   templateUrl: './workflows.html',
   styleUrl: './workflows.css'
 })
@@ -60,8 +61,6 @@ export class Workflows {
   public transitions = signal<any[]>([]);
 
   public workflowForm = new FormGroup({
-    name: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-    description: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     requestTypeId: new FormControl(0, { nonNullable: true, validators: [Validators.required] }),
     classificationType: new FormControl('', { nonNullable: true })
   });
@@ -206,16 +205,18 @@ export class Workflows {
     this.isLoadingWorkflows.set(true);
     this._workflowService.getWorkflows().subscribe({
       next: (response) => {
-        const mappedWorkflows = response.map((wf) => ({
-          id: wf.id ?? 0,
-          title: wf.name,
-          description: wf.request_type?.name
-            ? `${wf.description} - ${wf.request_type.name}`
-            : wf.description,
-          type: wf.classificationType ?? '',
-          requestTypeName: wf.request_type?.name,
-          steps: this.mapRawSteps(wf.steps ?? [])
-        } as WorkflowGroup));
+        const mappedWorkflows = response.map((wf) => {
+          console.log("🚀 ~ Workflows ~ getWorkflows ~ wf.requestType?.name:", wf.requestType?.name)
+          return (
+            {
+            id: wf.id ?? 0,
+            title: `${wf.requestType?.name} - ${wf.classificationType ?? ''}`,
+            type: wf.requestType?.name,
+            requestTypeName: wf.requestType?.name,
+            steps: this.mapRawSteps(wf.steps ?? [])
+          } as WorkflowGroup
+          );
+        });
 
         const stepsMap = new Map<number, WorkflowStep[]>();
         mappedWorkflows.forEach((w) => stepsMap.set(w.id, w.steps));
@@ -306,7 +307,7 @@ export class Workflows {
   public openAddWorkflowModal(): void {
     this.getClassificationTypesS();
     this.isOpenAddWorkflowModal.set(true);
-    this.workflowForm.reset({ name: '', description: '', requestTypeId: 0, classificationType: '' });
+    this.workflowForm.reset({ requestTypeId: 0, classificationType: '' });
   }
 
   // ─── Step list event handlers (from WorkflowStepList) ─────────────────────
@@ -439,8 +440,6 @@ export class Workflows {
 
     const formValue = this.workflowForm.getRawValue();
     const object: Workflow = {
-      name: formValue.name,
-      description: formValue.description,
       requestTypeId: formValue.requestTypeId,
       classificationType: formValue.classificationType
     };

@@ -25,7 +25,7 @@
         } @else {
             <accordeon-container>
                 @for (workflow of workflowsMock(); track workflow.id) {
-                    <accordeon-item [titleM]="workflow.title" [description]="workflow.description">
+                    <accordeon-item [titleM]="workflow.title | titlecase" [description]="workflow.description">
                         <app-workflow-step-list
                             [workflow]="workflow"
                             [steps]="workflowStepsMap().get(workflow.id) ?? []"
