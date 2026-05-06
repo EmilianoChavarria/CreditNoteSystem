@@ -25,18 +25,22 @@
                     [selectedRequestTypeId]="selectedRequestTypeId()"
                     (batchCreated)="onUploadBatchCreated()"></app-bulk-upload-support-upload>
 
+                @if (!isReInvoicingSelected()) {
                 <app-bulk-order-numbers-upload
                     [selectedRequestTypeId]="selectedRequestTypeId()"
                     (batchCreated)="onUploadBatchCreated()"></app-bulk-order-numbers-upload>
+                }
 
                 <app-bulk-credits-data-upload
                     [requestTypes]="availableRequestTypes()"
                     [selectedRequestTypeId]="selectedRequestTypeId()"
                     (batchCreated)="onUploadBatchCreated()"></app-bulk-credits-data-upload>
 
+                @if (!isReInvoicingSelected()) {
                 <app-bulk-sap-return-order-upload
                     [selectedRequestTypeId]="selectedRequestTypeId()"
                     (batchCreated)="onUploadBatchCreated()"></app-bulk-sap-return-order-upload>
+                }
 
             </accordeon-container>
         </app-tab>
