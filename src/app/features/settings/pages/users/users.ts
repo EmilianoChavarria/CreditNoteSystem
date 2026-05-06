@@ -733,18 +733,30 @@ export class Users implements OnInit {
 
     private updateCustomerControlState(): void {
         const customerControl = this.userForm.get('clientId');
+        const supervisorControl = this.userForm.get('supervisorId');
+        
         if (!customerControl) {
             return;
         }
 
         if (this.isCustomerRoleSelected()) {
             customerControl.setValidators([Validators.required]);
+            if (supervisorControl) {
+                supervisorControl.clearValidators();
+                supervisorControl.setValue(0, { emitEvent: false });
+            }
         } else {
             customerControl.clearValidators();
             customerControl.setValue(null, { emitEvent: false });
+            if (supervisorControl) {
+                supervisorControl.setValidators([Validators.required, Validators.min(1)]);
+            }
         }
 
         customerControl.updateValueAndValidity({ emitEvent: false });
+        if (supervisorControl) {
+            supervisorControl.updateValueAndValidity({ emitEvent: false });
+        }
     }
 
     private resolveCustomerOption(user: any): AutocompleteOption | null {
