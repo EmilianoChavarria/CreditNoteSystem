@@ -837,6 +837,11 @@
     "CHARGE_DAYS_UNIT": "days",
     "CHARGE_SUMMARY": "{{conditionalLabel}} {{days}} {{daysUnit}}, charge {{percentage}}% of the total",
     "CHARGE_ADD_RULE": "Add New Rule",
+    "EMAIL_SECTION_TITLE": "Support Email Configuration",
+    "EMAIL_SECTION_DESC": "Set the support email address shown to users for assistance.",
+    "EMAIL_SUPPORT_LABEL": "Support Email",
+    "EMAIL_SUPPORT_PLACEHOLDER": "support@company.com",
+    "EMAIL_SUPPORT_INVALID": "Please enter a valid email address.",
     "SAVE": "Save Changes",
     "SAVING": "Saving...",
     "TOAST": {
