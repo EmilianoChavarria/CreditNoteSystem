@@ -158,7 +158,28 @@
             </div>
         </article>
 
-        
+        <article class="max-w-5xl bg-white border border-slate-200 shadow-sm rounded-2xl w-full overflow-hidden">
+            <div class="px-6 py-5 border-b border-slate-200">
+                <h2 class="text-lg font-semibold text-gray-800">{{ 'SYS_CONFIG.EMAIL_SECTION_TITLE' | translate }}</h2>
+                <p class="text-gray-600">{{ 'SYS_CONFIG.EMAIL_SECTION_DESC' | translate }}</p>
+            </div>
+
+            <div class="px-6 py-5">
+                <label for="email_support" class="block text-sm font-semibold text-slate-800 mb-1">{{ 'SYS_CONFIG.EMAIL_SUPPORT_LABEL' | translate }}</label>
+                <input
+                    type="email"
+                    id="email_support"
+                    [value]="emailSupport"
+                    (input)="onEmailInput($event)"
+                    [placeholder]="'SYS_CONFIG.EMAIL_SUPPORT_PLACEHOLDER' | translate"
+                    class="w-full max-w-sm h-10 px-3 rounded-lg border text-gray-700 font-medium outline-none focus:ring-2 focus:ring-orange-200"
+                    [class.border-red-400]="emailTouched && !isEmailValid"
+                    [class.border-gray-300]="!(emailTouched && !isEmailValid)" />
+                @if (emailTouched && !isEmailValid) {
+                    <p class="mt-1 text-sm text-red-500">{{ 'SYS_CONFIG.EMAIL_SUPPORT_INVALID' | translate }}</p>
+                }
+            </div>
+        </article>
 
         <div class="max-w-5xl w-full flex justify-end">
             <button

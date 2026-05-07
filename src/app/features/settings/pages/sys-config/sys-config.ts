@@ -5,13 +5,6 @@ import { SecurityService } from '../../../../core/services/security-service';
 import { forkJoin } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
 
-interface ChargePolicyItem {
-    id?: number;
-    conditional: '<' | '>';
-    days: number;
-    percentage: number;
-}
-
 @Component({
     selector: 'app-sys-config',
     templateUrl: './sys-config.html',
@@ -35,7 +28,14 @@ export class SysConfig implements OnInit {
     public inactivityTimeoutMinutes = 30;
     public maxAuthFailuresUser = 5;
     public maxAuthFailuresIp = 10;
-    public chargePolicies: ChargePolicyItem[] = [];
+    public emailSupport = '';
+    public emailTouched = false;
+
+    private readonly EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    get isEmailValid(): boolean {
+        return this.EMAIL_REGEX.test(this.emailSupport.trim());
+    }
 
     ngOnInit(): void {
         this.loadSettings();
@@ -47,9 +47,9 @@ export class SysConfig implements OnInit {
         forkJoin({
             passwordRequirements: this._securityService.getFormattedPasswordRequirements(),
             loginSettings: this._securityService.getLoginAttemptSettings(),
-            chargePolicies: this._securityService.getChargePolicies(),
+            emailConfig: this._securityService.getEmailConfig(),
         }).subscribe({
-            next: ({ passwordRequirements, loginSettings, chargePolicies }) => {
+            next: ({ passwordRequirements, loginSettings, emailConfig }) => {
                 this.minimumPasswordLength = Number(passwordRequirements?.minLength?.value ?? this.minimumPasswordLength);
                 this.requireUppercase = Boolean(passwordRequirements?.requireUppercase?.value);
                 this.requireLowercase = Boolean(passwordRequirements?.requireLowercase?.value);
@@ -61,12 +61,7 @@ export class SysConfig implements OnInit {
                 this.maxAuthFailuresUser = Number(loginSettings?.maxUserAttempts ?? this.maxAuthFailuresUser);
                 this.maxAuthFailuresIp = Number(loginSettings?.maxIpAttempts ?? this.maxAuthFailuresIp);
 
-                this.chargePolicies = (chargePolicies ?? []).map(p => ({
-                    id: p.id,
-                    conditional: p.conditional === '>' ? '>' : '<',
-                    days: p.day,
-                    percentage: p.percentage,
-                }));
+                this.emailSupport = emailConfig?.emailSupport ?? '';
 
                 this.isLoading.set(false);
             },
@@ -78,6 +73,11 @@ export class SysConfig implements OnInit {
 
     public onAllowedSpecialCharsInput(event: Event): void {
         this.allowedSpecialChars = (event.target as HTMLInputElement).value;
+    }
+
+    public onEmailInput(event: Event): void {
+        this.emailSupport = (event.target as HTMLInputElement).value;
+        this.emailTouched = true;
     }
 
     public specialCharsDescription(): string {
@@ -95,15 +95,6 @@ export class SysConfig implements OnInit {
         return this._translate.instant(
             conditional === '<' ? 'SYS_CONFIG.CHARGE_BEFORE' : 'SYS_CONFIG.CHARGE_AFTER'
         );
-    }
-
-    public chargePolicySummary(policy: ChargePolicyItem): string {
-        return this._translate.instant('SYS_CONFIG.CHARGE_SUMMARY', {
-            conditionalLabel: this.chargeConditionalLabel(policy.conditional),
-            days: policy.days,
-            daysUnit: this._translate.instant('SYS_CONFIG.CHARGE_DAYS_UNIT'),
-            percentage: policy.percentage,
-        });
     }
 
     public decrement(field: 'minimumPasswordLength' | 'inactivityTimeoutMinutes' | 'maxAuthFailuresUser' | 'maxAuthFailuresIp'): void {
@@ -135,80 +126,17 @@ export class SysConfig implements OnInit {
         return 1;
     }
 
-    public addChargePolicy(): void {
-        this.chargePolicies = [...this.chargePolicies, { conditional: '<', days: 0, percentage: 0 }];
-    }
-
-    public removeChargePolicy(index: number): void {
-        if (this.chargePolicies.length <= 1) {
-            return;
-        }
-
-        const policy = this.chargePolicies[index];
-
-        if (!policy.id) {
-            this.chargePolicies = this.chargePolicies.filter((_, i) => i !== index);
-            return;
-        }
-
-        this.deletingPolicyIds.update(set => new Set([...set, policy.id!]));
-
-        this._securityService.deleteChargePolicy(policy.id).subscribe({
-            next: () => {
-                this.chargePolicies = this.chargePolicies.filter((_, i) => i !== index);
-                this.deletingPolicyIds.update(set => { const s = new Set(set); s.delete(policy.id!); return s; });
-            },
-            error: (error) => {
-                this._toastr.error(
-                    error?.error?.message ?? this._translate.instant('SYS_CONFIG.TOAST.SAVE_ERROR'),
-                    this._translate.instant('SYS_CONFIG.TOAST.ERROR')
-                );
-                this.deletingPolicyIds.update(set => { const s = new Set(set); s.delete(policy.id!); return s; });
-            }
-        });
-    }
-
-    public onChargePolicyInput(index: number, field: 'conditional' | 'days' | 'percentage', event: Event): void {
-        if (field === 'conditional') {
-            const value = (event.target as HTMLSelectElement).value;
-
-            this.chargePolicies = this.chargePolicies.map((item, currentIndex) => {
-                if (currentIndex !== index) {
-                    return item;
-                }
-
-                return {
-                    ...item,
-                    conditional: value === '>' ? '>' : '<',
-                };
-            });
-
-            return;
-        }
-
-        const rawValue = Number((event.target as HTMLInputElement).value);
-        let normalizedValue = Number.isFinite(rawValue) ? Math.floor(rawValue) : 0;
-
-        if (field === 'days') {
-            normalizedValue = Math.max(0, normalizedValue);
-        } else {
-            normalizedValue = Math.min(100, Math.max(0, normalizedValue));
-        }
-
-        this.chargePolicies = this.chargePolicies.map((item, currentIndex) => {
-            if (currentIndex !== index) {
-                return item;
-            }
-
-            return {
-                ...item,
-                [field]: normalizedValue,
-            };
-        });
-    }
-
     public saveSettings(): void {
         if (this.isLoading() || this.isSaving()) {
+            return;
+        }
+
+        this.emailTouched = true;
+        if (!this.isEmailValid) {
+            this._toastr.error(
+                this._translate.instant('SYS_CONFIG.EMAIL_SUPPORT_INVALID'),
+                this._translate.instant('SYS_CONFIG.TOAST.ERROR')
+            );
             return;
         }
 
@@ -232,6 +160,7 @@ export class SysConfig implements OnInit {
         forkJoin({
             loginSettings: this._securityService.updateLoginAttemptSettings(loginPayload),
             passwordRequirements: this._securityService.updatePasswordRequirements(passwordPayload),
+            emailConfig: this._securityService.updateEmailConfig({ emailSupport: this.emailSupport.trim() }),
         }).subscribe({
             next: () => {
                 this._toastr.success(
