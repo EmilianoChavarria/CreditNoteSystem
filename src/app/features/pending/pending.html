@@ -41,14 +41,14 @@
             } @else if (column.key === 'status') {
                 @if (item.status?.toLowerCase() === 'approved') {
                 <app-badge color="green" text="RELEASED" />
-                }@else if (item.workflowCurrentStep?.assigned_role?.roleName) {
+                }@else if (item.workflowCurrentStep?.assigned_role?.roleName && item.status?.toLowerCase() !== 'cancelled') {
                 <div class="w-fit rounded-lg px-2"
                     [style]="`background-color: ${item.workflowCurrentStep.assigned_role.color +'1A'}; color:${item.workflowCurrentStep.assigned_role.color}` ">
                     <span
                         [class]="`text-center font-semibold text-nowrap`">{{item.workflowCurrentStep.assigned_role.roleName}}</span>
                 </div>
                 } @else {
-                <app-badge [color]="item.status?.toLowerCase() === 'rejected' ? 'red' : 'green'"
+                <app-badge [color]="(item.status?.toLowerCase() === 'rejected' || item.status?.toLowerCase() === 'cancelled') ? 'red' : 'green'"
                     [text]="item.status | uppercase" />
                 }
             }@else if (column.key === 'username') {
