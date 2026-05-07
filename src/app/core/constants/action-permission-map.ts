@@ -8,6 +8,7 @@ export const CUSTOM_ACTION_PERMISSION_SLUG_MAP: Record<string, readonly string[]
   history: ['history', 'view_history'],
   delete: ['delete'],
   cancel: ['cancel'],
+  return_order: ['return_order'],
 };
 
 export function getPermissionSlugsForCustomAction(actionKey?: string): readonly string[] {
