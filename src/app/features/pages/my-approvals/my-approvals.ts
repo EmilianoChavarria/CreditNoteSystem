@@ -19,10 +19,11 @@ import { FullSpinnerComponent } from '../../../shared/components/ui/full-spinner
 import { RequestListBase } from '../../../shared/base/request-list.base';
 import { RequestInfoModal } from '../../pending/components/request-info-modal/request-info-modal';
 import { ApproveConfirmModal } from './components/approve-confirm-modal/approve-confirm-modal';
+import { SendBackModal } from './components/send-back-modal/send-back-modal';
 
 @Component({
     selector: 'app-my-approvals',
-    imports: [TranslatePipe, WorkflowHistoryDrawer, Modal, Table, Badge, UpperCasePipe, Spinner, ReactiveFormsModule, FullSpinnerComponent, RequestInfoModal, ApproveConfirmModal],
+    imports: [TranslatePipe, WorkflowHistoryDrawer, Modal, Table, Badge, UpperCasePipe, Spinner, ReactiveFormsModule, FullSpinnerComponent, RequestInfoModal, ApproveConfirmModal, SendBackModal],
     templateUrl: './my-approvals.html',
     styleUrl: './my-approvals.css',
 })
@@ -52,6 +53,7 @@ export class MyApprovals extends RequestListBase {
     public isInitializingDeepLink = signal<boolean>(false);
     public showCancelModal = signal<boolean>(false);
     public cancelComments = new FormControl<string>('');
+    public showSendBackModal = signal<boolean>(false);
 
     private pendingShortcutRequestNumber: string | null = null;
     private appliedShortcutRequestNumber: string | null = null;
@@ -73,6 +75,7 @@ export class MyApprovals extends RequestListBase {
         { key: 'approve', icon: 'check', label: 'MY_APPROVALS.APPROVE', accion: (request) => this.openApproveModal(request) },
         { key: 'decline', icon: 'x', label: 'MY_APPROVALS.DECLINE', accion: (request) => this.onDeclineModalChange(true, request) },
         { key: 'cancel', icon: 'ban', label: 'MY_APPROVALS.CANCEL_REQUEST', accion: (request) => this.openCancelModal(request) },
+        { key: 'return_order', icon: 'corner-up-left', label: 'MY_APPROVALS.RETURN_ORDER', accion: (request) => this.openSendBackModal(request) },
         { key: 'pdf', icon: 'file-text', label: 'MY_APPROVALS.PDF', accion: (request) => this.generatePdf(request) },
         { key: 'see_info', icon: 'info', label: 'PENDING_PAGE.SEE_INFO', accion: (request) => this.openInfoModal(request) },
         { key: 'edit', icon: 'pencil', label: 'MY_APPROVALS.EDIT', accion: (request) => this.editRequest(request) },
@@ -491,6 +494,20 @@ export class MyApprovals extends RequestListBase {
                 console.error('Error approving request:', error);
             }
         });
+    }
+
+    openSendBackModal(request: Request): void {
+        this.selectedRequest.set(request);
+        this.showSendBackModal.set(true);
+    }
+
+    onSendBackModalChange(isOpen: boolean): void {
+        this.showSendBackModal.set(isOpen);
+        if (!isOpen) this.selectedRequest.set(null);
+    }
+
+    onSendBackSent(): void {
+        this.loadMyPendingRequests();
     }
 
     openCancelModal(request: Request): void {

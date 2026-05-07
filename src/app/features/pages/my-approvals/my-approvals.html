@@ -166,6 +166,13 @@
         (confirmed)="onApproveConfirmed()">
     </app-approve-confirm-modal>
 
+    <app-send-back-modal
+        [open]="showSendBackModal()"
+        [request]="selectedRequest()"
+        (openChange)="onSendBackModalChange($event)"
+        (sent)="onSendBackSent()">
+    </app-send-back-modal>
+
     <app-modal size="md" [titleM]="'MY_APPROVALS.CANCEL_REQUEST_MODAL_TITLE' | translate" [open]="showCancelModal()"
         [closeText]="'MY_APPROVALS.CANCEL' | translate" [primaryText]="'MY_APPROVALS.CANCEL_REQUEST_CONFIRM_BTN' | translate"
         (openChange)="onCancelModalChange($event)" (primaryAction)="cancelRequest()">
