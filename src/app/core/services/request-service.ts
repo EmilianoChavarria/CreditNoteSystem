@@ -348,6 +348,17 @@ export class RequestService {
     )
   }
 
+  cancelRequest(requestId: number, comments?: string): Observable<any> {
+    const body: { comments?: string } = {};
+    if (comments?.trim()) body.comments = comments.trim();
+    return this._httpService.post(`/requests/${requestId}/cancel`, body).pipe(
+      catchError((error) => {
+        console.log(error);
+        throw error;
+      })
+    );
+  }
+
   approveMassRequests(requestIds: number[], comments?: string): Observable<ApproveMassResponse> {
     const payload: MassActionRequestPayload = {
       requestIds,
