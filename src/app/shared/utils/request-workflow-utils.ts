@@ -17,6 +17,7 @@ export interface WorkflowDetailLabels {
   statusReturned: string;
   statusApproved: string;
   statusPending: string;
+  statusCancelled: string;
 }
 
 function buildPdfTableLayout(): { hLineWidth: () => number; vLineWidth: () => number } {
@@ -60,24 +61,25 @@ function buildTimelineSteps(
   roleNameByStepId: Map<number, string>,
   labels: WorkflowDetailLabels,
 ): WorkflowDetail['steps'] {
-  return (timeline ?? [])
-    .slice()
-    .sort((a, b) => a.sequence - b.sequence)
-    .map((item) => {
-      const eventMoment = moment(item.timestamp);
+  const sorted = (timeline ?? []).slice().sort((a, b) => a.sequence - b.sequence);
+  const cancelledIndex = sorted.findIndex((item) => item.actionType === 'cancelled');
+  const items = cancelledIndex !== -1 ? sorted.slice(0, cancelledIndex + 1) : sorted;
 
-      return {
-        number: item.step.order,
-        title: `${labels.stepLabel} ${item.step.order}`,
-        status: mapHistoryStatus(item.actionType, labels),
-        statusKey: normalizeStatusKey(item.actionType),
-        role: roleNameByStepId.get(item.step.id) ?? item.step.name,
-        user: item.actionUser?.fullName ?? '-',
-        date: eventMoment.format('DD MMM YYYY'),
-        time: eventMoment.format('hh:mm a'),
-        note: item.comments ?? item.message ?? '',
-      };
-    });
+  return items.map((item) => {
+    const eventMoment = moment(item.timestamp);
+
+    return {
+      number: item.step.order,
+      title: `${labels.stepLabel} ${item.step.order}`,
+      status: mapHistoryStatus(item.actionType, labels),
+      statusKey: normalizeStatusKey(item.actionType),
+      role: roleNameByStepId.get(item.step.id) ?? item.step.name,
+      user: item.actionUser?.fullName ?? '-',
+      date: eventMoment.format('DD MMM YYYY'),
+      time: eventMoment.format('hh:mm a'),
+      note: item.comments ?? item.message ?? '',
+    };
+  });
 }
 
 function buildFallbackSteps(history: RequestHistoryLog[], labels: WorkflowDetailLabels): WorkflowDetail['steps'] {
@@ -119,6 +121,7 @@ function normalizeStatusKey(status: string | null | undefined): string {
   if (normalized === 'rejected') return 'rejected';
   if (normalized === 'returned' || normalized === 'routed_back') return 'returned';
   if (normalized === 'current' || normalized === 'pending') return 'pending';
+  if (normalized === 'cancelled') return 'cancelled';
   return 'approved';
 }
 
@@ -151,6 +154,10 @@ function mapHistoryStatus(status: string | null | undefined, labels: WorkflowDet
 
   if (normalized === 'current' || normalized === 'pending') {
     return labels.statusPending;
+  }
+
+  if (normalized === 'cancelled') {
+    return labels.statusCancelled;
   }
 
   return labels.statusApproved;

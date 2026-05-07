@@ -100,6 +100,10 @@ export interface BlockedIpApi {
   releasedAt: string | null;
 }
 
+export interface EmailConfig {
+  emailSupport: string;
+}
+
 export interface ChargePolicy {
   id: number;
   conditional?: '<' | '>';
@@ -191,6 +195,18 @@ export class SecurityService {
 
   deleteChargePolicy(id: number) {
     return this._httpService.delete<unknown>(`charge-policies/${id}`);
+  }
+
+  getEmailConfig() {
+    return this._httpService.get<EmailConfig>('email-config').pipe(
+      map(response => response.data)
+    );
+  }
+
+  updateEmailConfig(payload: EmailConfig) {
+    return this._httpService.put<EmailConfig>('email-config', payload).pipe(
+      map(response => response.data)
+    );
   }
 
 }

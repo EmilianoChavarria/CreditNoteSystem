@@ -61,7 +61,7 @@
         </div>
     </section>
 
-    <app-tabla-dinamica [datos]="requests()" [columnas]="columns" [accionesPersonalizadas]="acciones" actionMode="menu"
+    <app-tabla-dinamica [datos]="requests()" [columnas]="columns" [accionesPersonalizadas]="acciones()" actionMode="menu"
         [enableFilter]="true" filterField="workflowCurrentStep.assigned_role.roleName" addLabel="MY_APPROVALS.REQUEST"
         addRoute="/app/settings/newUser" [canAdd]="false" [emptyMessageKey]="'MY_APPROVALS.NO_PENDING_APPROVALS'"
         [searchValue]="searchTerm()" [registrosPorPagina]="pageSize()" [loading]="isLoadingTable()"
@@ -79,7 +79,7 @@
             } @else if (column.key === 'requestType.name') {
             <app-badge color="blue" [text]="item.requestType.name | uppercase" />
             } @else if (column.key === 'status') {
-            @if (item.workflowCurrentStep?.assigned_role?.roleName) {
+            @if (item.workflowCurrentStep?.assigned_role?.roleName && item.status?.toLowerCase() !== 'cancelled') {
             <div class="inline-flex max-w-55 rounded-lg px-2 py-1"
                 [style]="`background-color: ${item.workflowCurrentStep.assigned_role.color +'1A'}; color:${item.workflowCurrentStep.assigned_role.color}` ">
                 <span class="block w-full truncate text-center font-semibold"
@@ -88,7 +88,7 @@
                 </span>
             </div>
             } @else {
-            <app-badge [color]="item.status?.toLowerCase() === 'rejected' ? 'red' : 'green'" [text]="item.status | uppercase" />
+            <app-badge [color]="(item.status?.toLowerCase() === 'rejected' || item.status?.toLowerCase() === 'cancelled') ? 'red' : 'green'" [text]="item.status | uppercase" />
             }
             }
             @else if (column.key === 'username') {
@@ -165,4 +165,19 @@
         (openChange)="showApproveModal.set($event)"
         (confirmed)="onApproveConfirmed()">
     </app-approve-confirm-modal>
+
+    <app-send-back-modal
+        [open]="showSendBackModal()"
+        [request]="selectedRequest()"
+        (openChange)="onSendBackModalChange($event)"
+        (sent)="onSendBackSent()">
+    </app-send-back-modal>
+
+    <app-modal size="md" [titleM]="'MY_APPROVALS.CANCEL_REQUEST_MODAL_TITLE' | translate" [open]="showCancelModal()"
+        [closeText]="'MY_APPROVALS.CANCEL' | translate" [primaryText]="'MY_APPROVALS.CANCEL_REQUEST_CONFIRM_BTN' | translate"
+        (openChange)="onCancelModalChange($event)" (primaryAction)="cancelRequest()">
+        <textarea [formControl]="cancelComments"
+            [placeholder]="'MY_APPROVALS.CANCEL_REQUEST_COMMENTS_PLACEHOLDER' | translate"
+            class="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500"></textarea>
+    </app-modal>
 </div>

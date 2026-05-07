@@ -1,5 +1,4 @@
 import { Component, input, output } from '@angular/core';
-import { JsonPipe } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
 import { Modal } from '../../../../../shared/components/ui/modal/modal';
 import { Popover } from '../../../../../shared/components/ui/popover/popover';
@@ -25,7 +24,7 @@ interface RequestHistoryRow {
 
 @Component({
   selector: 'app-batch-requests-modal',
-  imports: [Modal, Popover, LucideAngularModule, JsonPipe, TranslatePipe],
+  imports: [Modal, Popover, LucideAngularModule, TranslatePipe],
   templateUrl: './batch-requests-modal.html',
 })
 export class BatchRequestsModal {
