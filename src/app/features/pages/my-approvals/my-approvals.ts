@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal, ChangeDetectorRef } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { getPermissionSlugsForCustomAction } from '../../../core/constants/action-permission-map';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AccionPersonalizada, Column, Table } from '../../../shared/components/ui/table/table';
 import { Request, RequestType } from '../../../data/interfaces/Request';
@@ -49,6 +50,8 @@ export class MyApprovals extends RequestListBase {
     public showBulkDeclineModal = signal<boolean>(false);
     public isBulkProcessing = signal<boolean>(false);
     public isInitializingDeepLink = signal<boolean>(false);
+    public showCancelModal = signal<boolean>(false);
+    public cancelComments = new FormControl<string>('');
 
     private pendingShortcutRequestNumber: string | null = null;
     private appliedShortcutRequestNumber: string | null = null;
@@ -66,14 +69,16 @@ export class MyApprovals extends RequestListBase {
         }
     ];
 
-    acciones: AccionPersonalizada<Request>[] = [
+    private readonly baseAcciones: AccionPersonalizada<Request>[] = [
         { key: 'approve', icon: 'check', label: 'MY_APPROVALS.APPROVE', accion: (request) => this.openApproveModal(request) },
         { key: 'decline', icon: 'x', label: 'MY_APPROVALS.DECLINE', accion: (request) => this.onDeclineModalChange(true, request) },
+        { key: 'cancel', icon: 'ban', label: 'MY_APPROVALS.CANCEL_REQUEST', accion: (request) => this.openCancelModal(request) },
         { key: 'pdf', icon: 'file-text', label: 'MY_APPROVALS.PDF', accion: (request) => this.generatePdf(request) },
         { key: 'see_info', icon: 'info', label: 'PENDING_PAGE.SEE_INFO', accion: (request) => this.openInfoModal(request) },
         { key: 'edit', icon: 'pencil', label: 'MY_APPROVALS.EDIT', accion: (request) => this.editRequest(request) },
         { key: 'history', icon: 'history', label: 'MY_APPROVALS.SEE_HISTORY', accion: (request) => this.logAction(request) },
     ];
+    public acciones = signal<AccionPersonalizada<Request>[]>([]);
 
     constructor() {
         super();
@@ -107,6 +112,7 @@ export class MyApprovals extends RequestListBase {
                 this.requestTypeActionPermissions.set(permissionMatrix);
                 const filteredTypes = requestTypes.filter((rt) => Boolean(permissionMatrix[rt.id]?.['approve']));
                 this.availableRequestTypes.set(filteredTypes);
+                this.updateVisibleActions();
                 this.tryApplyNotificationShortcut();
             },
             error: () => {
@@ -213,6 +219,7 @@ export class MyApprovals extends RequestListBase {
         this.searchTerm.set('');
         this.resetPagination();
         this.clearSelectedRequests();
+        this.updateVisibleActions();
 
         if (value === 'DE') {
             this.requests.set([]);
@@ -222,6 +229,19 @@ export class MyApprovals extends RequestListBase {
         }
 
         this.loadRequests();
+    }
+
+    private updateVisibleActions(): void {
+        const requestTypeId = Number(this.selectedRequestType);
+        if (!requestTypeId || Number.isNaN(requestTypeId)) {
+            this.acciones.set([]);
+            return;
+        }
+        const permissionsBySlug = this.requestTypeActionPermissions()[requestTypeId] ?? {};
+        const visibleActions = this.baseAcciones.filter(action =>
+            getPermissionSlugsForCustomAction(action.key).some(slug => permissionsBySlug[slug])
+        );
+        this.acciones.set(visibleActions);
     }
 
     override onSearch(term: string): void {
@@ -469,6 +489,43 @@ export class MyApprovals extends RequestListBase {
                     this._translateService.instant('MY_APPROVALS.TOAST.ERROR')
                 );
                 console.error('Error approving request:', error);
+            }
+        });
+    }
+
+    openCancelModal(request: Request): void {
+        this.selectedRequest.set(request);
+        this.cancelComments.reset();
+        this.showCancelModal.set(true);
+    }
+
+    onCancelModalChange(isOpen: boolean): void {
+        this.showCancelModal.set(isOpen);
+        if (!isOpen) {
+            this.selectedRequest.set(null);
+            this.cancelComments.reset();
+        }
+    }
+
+    cancelRequest(): void {
+        const request = this.selectedRequest();
+        if (!request?.id) return;
+
+        this._requestsService.cancelRequest(request.id, this.cancelComments.value ?? '').subscribe({
+            next: () => {
+                this._toastService.success(
+                    this._translateService.instant('MY_APPROVALS.TOAST.REQUEST_CANCELLED_SUCCESS'),
+                    this._translateService.instant('MY_APPROVALS.TOAST.SUCCESS')
+                );
+                this.onCancelModalChange(false);
+                this.loadMyPendingRequests();
+            },
+            error: (error) => {
+                this._toastService.error(
+                    this.getErrorMessageFromResponse(error, 'MY_APPROVALS.TOAST.REQUEST_CANCELLED_ERROR'),
+                    this._translateService.instant('MY_APPROVALS.TOAST.ERROR')
+                );
+                console.error('Error cancelling request:', error);
             }
         });
     }
