@@ -427,6 +427,7 @@
     "STATUS_RETURNED": "Devuelto",
     "STATUS_APPROVED": "Aprobado",
     "STATUS_PENDING": "Pendiente",
+    "STATUS_CANCELLED": "Cancelado",
     "NO_STATUS": "Sin estado",
     "NO_PENDING_APPROVALS": "No hay aprobaciones pendientes",
     "SELECT": "Seleccionar",
@@ -442,6 +443,10 @@
     "BULK_REJECT_MODAL_TITLE": "Confirmar rechazo masivo",
     "BULK_REJECT_CONFIRM": "Se rechazarán {{count}} solicitudes seleccionadas y se aplicará el mismo comentario a todas.",
     "BULK_APPROVE_DEFAULT_COMMENT": "Aprobación masiva desde la bandeja de aprobaciones",
+    "CANCEL_REQUEST": "Cancelar solicitud",
+    "CANCEL_REQUEST_MODAL_TITLE": "Cancelar solicitud",
+    "CANCEL_REQUEST_CONFIRM_BTN": "Cancelar solicitud",
+    "CANCEL_REQUEST_COMMENTS_PLACEHOLDER": "Motivo de la cancelación (opcional)...",
     "TOAST": {
       "SUCCESS": "Éxito",
       "ERROR": "Error",
@@ -449,6 +454,8 @@
       "REQUEST_REJECTED_ERROR": "Error al rechazar la solicitud",
       "REQUEST_APPROVED_SUCCESS": "Solicitud aprobada correctamente",
       "REQUEST_APPROVED_ERROR": "Error al aprobar la solicitud",
+      "REQUEST_CANCELLED_SUCCESS": "Solicitud cancelada correctamente",
+      "REQUEST_CANCELLED_ERROR": "Error al cancelar la solicitud",
       "BULK_APPROVE_SUCCESS": "Se aprobaron {{approved}} de {{total}} solicitudes.",
       "BULK_APPROVE_PARTIAL": "{{failed}} solicitudes no pudieron aprobarse.",
       "BULK_APPROVE_ERROR": "Error al procesar la aprobación masiva.",
@@ -490,6 +497,7 @@
     "STATUS_RETURNED": "Devuelto",
     "STATUS_APPROVED": "Aprobado",
     "STATUS_PENDING": "Pendiente",
+    "STATUS_CANCELLED": "Cancelado",
     "NO_STATUS": "Sin estado"
   },
   "REQUEST_INFO": {

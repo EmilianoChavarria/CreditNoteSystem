@@ -427,6 +427,7 @@
     "STATUS_RETURNED": "Returned",
     "STATUS_APPROVED": "Approved",
     "STATUS_PENDING": "Pending",
+    "STATUS_CANCELLED": "Cancelled",
     "NO_STATUS": "No status",
     "NO_PENDING_APPROVALS": "No pending approvals",
     "SELECT": "Select",
@@ -442,6 +443,10 @@
     "BULK_REJECT_MODAL_TITLE": "Confirm bulk rejection",
     "BULK_REJECT_CONFIRM": "{{count}} selected requests will be rejected and the same comment will be applied to all.",
     "BULK_APPROVE_DEFAULT_COMMENT": "Bulk approval from approvals inbox",
+    "CANCEL_REQUEST": "Cancel request",
+    "CANCEL_REQUEST_MODAL_TITLE": "Cancel request",
+    "CANCEL_REQUEST_CONFIRM_BTN": "Cancel request",
+    "CANCEL_REQUEST_COMMENTS_PLACEHOLDER": "Reason for cancellation (optional)...",
     "TOAST": {
       "SUCCESS": "Success",
       "ERROR": "Error",
@@ -449,6 +454,8 @@
       "REQUEST_REJECTED_ERROR": "Error rejecting request",
       "REQUEST_APPROVED_SUCCESS": "Request approved successfully",
       "REQUEST_APPROVED_ERROR": "Error approving request",
+      "REQUEST_CANCELLED_SUCCESS": "Request cancelled successfully",
+      "REQUEST_CANCELLED_ERROR": "Error cancelling request",
       "BULK_APPROVE_SUCCESS": "{{approved}} of {{total}} requests were approved.",
       "BULK_APPROVE_PARTIAL": "{{failed}} requests could not be approved.",
       "BULK_APPROVE_ERROR": "Error processing bulk approval.",
@@ -490,6 +497,7 @@
     "STATUS_RETURNED": "Returned",
     "STATUS_APPROVED": "Approved",
     "STATUS_PENDING": "Pending",
+    "STATUS_CANCELLED": "Cancelled",
     "NO_STATUS": "No status"
   },
   "REQUEST_INFO": {
