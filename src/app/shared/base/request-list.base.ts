@@ -76,6 +76,7 @@ export abstract class RequestListBase {
             statusReturned: this._translateService.instant(`${p}.STATUS_RETURNED`),
             statusApproved: this._translateService.instant(`${p}.STATUS_APPROVED`),
             statusPending: this._translateService.instant(`${p}.STATUS_PENDING`),
+            statusCancelled: this._translateService.instant(`${p}.STATUS_CANCELLED`),
         };
     }
 

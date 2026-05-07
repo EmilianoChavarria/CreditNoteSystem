@@ -20,7 +20,9 @@
                     class="h-10 w-full border border-gray-200 rounded-md px-2 bg-gray-100 text-gray-600" />
             </div>
 
-            <a href="/assets/templates/template-order-numbers.csv" download="template-order-numbers.csv" class="w-full sm:w-auto bg-[#ff8200] text-white rounded-md px-3 py-2 hover:cursor-pointer hover:bg-[#fc9629] inline-block text-center">{{ 'BULK.NEW_REQUESTS.TEMPLATE' | translate }}</a>
+            <a href="/assets/templates/template-order-numbers.csv" download="template-order-numbers.csv" class="w-full sm:w-auto bg-[#ff8200] text-white rounded-md px-3 py-2 hover:cursor-pointer hover:bg-[#fc9629] flex flex-row items-center justify-center text-center gap-x-2">
+                <lucide-icon name="download" size="16"></lucide-icon>
+                {{ 'USERS_PAGE.BULK_DOWNLOAD_TEMPLATE' | translate }}</a>
 
             <button
                 type="button"

@@ -1,5 +1,5 @@
 <section class="w-full">
-    <!-- Container max-w-7xl -->
+    <!-- Container max-w-8xl -->
     <div class="flex flex-col max-w-7xl mx-auto gap-y-6">
         <div class="flex flex-row justify-start items-center">
             <div class="flex flex-col">
@@ -41,14 +41,14 @@
                 <span class="text-gray-600">Permisos granulares por tipo de solicitud y acción.</span>
             </div>
             <div class=" w-full overflow-x-auto overflow-y-hidden rounded-lg">
-                <table class="w-full border border-gray-200 border-collapse max-w-7xl rounded-2xl mt-4">
+                <table class="w-full border border-gray-200 border-collapse rounded-2xl mt-4 table-fixed">
                     <thead class="text-sm text-heading bg-gray-100">
                         <tr class="border border-gray-200 ">
-                            <th scope="col" class="px-6 py-3 font-semibold text-center w-12 border-y border-gray-200">
+                            <th scope="col" class="px-6 py-3 font-semibold text-center w-40 border-y border-gray-200">
                                 {{'DASHBOARD.REQ_FILTER'|translate}}
                             </th>
                             @for (action of actions(); track action.id) {
-                            <th scope="col" class="px-6 py-3 font-semibold text-center w-60 border-y border-gray-200">
+                            <th scope="col" class="px-6 py-3 font-semibold text-center border-y border-gray-200">
                                 {{ action.name | titlecase }}
                             </th>
                             }
@@ -57,7 +57,7 @@
                     <tbody class="">
                         @for (requestType of requestTypes(); track requestType.id) {
                         <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
+                            <td class="border-y border-gray-200 px-6 py-4">
                                 <div class="flex flex-row items-center gap-3">
                                     <input
                                         type="checkbox"
@@ -69,7 +69,7 @@
                                 </div>
                             </td>
                             @for (action of actions(); track action.id) {
-                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
+                            <td class="border-y border-gray-200 px-6 py-4">
                                 <div class="flex flex-row justify-center items-center gap-3">
                                     <input type="checkbox" class="h-4 w-4 text-[#ff8200] focus:ring-[#ff8200] border-gray-300 rounded"
                                         [checked]="isRequestPermissionActive(requestType.id, action.slug)"

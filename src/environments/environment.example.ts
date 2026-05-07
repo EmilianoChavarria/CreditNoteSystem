@@ -5,4 +5,6 @@ export const environment = {
   apiBaseUrl: 'http://<LOCAL_IP>:8000/api',
   socketHost: '<LOCAL_IP>',
   socketPort: 8080,
+  pusherKey: '<PUSHER_KEY>',
+  pusherCluster: '<PUSHER_CLUSTER>',
 };
