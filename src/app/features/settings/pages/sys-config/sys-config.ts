@@ -229,27 +229,11 @@ export class SysConfig implements OnInit {
             allowedSpecialChars: this.requireSpecialCharacters ? this.allowedSpecialChars.trim() : '',
         };
 
-        const chargePoliciesPayload = {
-            policies: this.chargePolicies.map(p => ({
-                ...(p.id ? { id: p.id } : {}),
-                conditional: p.conditional,
-                day: p.days,
-                percentage: p.percentage,
-            }))
-        };
-
         forkJoin({
             loginSettings: this._securityService.updateLoginAttemptSettings(loginPayload),
             passwordRequirements: this._securityService.updatePasswordRequirements(passwordPayload),
-            chargePolicies: this._securityService.syncChargePolicies(chargePoliciesPayload),
         }).subscribe({
-            next: ({ chargePolicies }) => {
-                this.chargePolicies = (chargePolicies ?? []).map(p => ({
-                    id: p.id,
-                    conditional: p.conditional === '>' ? '>' : '<',
-                    days: p.day,
-                    percentage: p.percentage,
-                }));
+            next: () => {
                 this._toastr.success(
                     this._translate.instant('SYS_CONFIG.TOAST.SAVE_SUCCESS'),
                     this._translate.instant('SYS_CONFIG.TOAST.SUCCESS')
