@@ -348,6 +348,17 @@ export class RequestService {
     )
   }
 
+  sendBackRequest(requestId: number, targetWorkflowStepId: number, comments?: string): Observable<any> {
+    const body: { targetWorkflowStepId: number; comments?: string } = { targetWorkflowStepId };
+    if (comments?.trim()) body.comments = comments.trim();
+    return this._httpService.post(`/requests/${requestId}/send-back`, body).pipe(
+      catchError((error) => {
+        console.log(error);
+        throw error;
+      })
+    );
+  }
+
   cancelRequest(requestId: number, comments?: string): Observable<any> {
     const body: { comments?: string } = {};
     if (comments?.trim()) body.comments = comments.trim();
