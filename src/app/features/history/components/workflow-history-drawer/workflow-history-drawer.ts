@@ -70,12 +70,13 @@ export class WorkflowHistoryDrawer {
 
   getMainStatusClasses(statusKey: string): string {
     switch (statusKey) {
-      case 'rejected':  return 'border-red-300 bg-red-100 text-red-700';
-      case 'returned':  return 'border-amber-300 bg-amber-100 text-amber-700';
-      case 'processed': return 'border-slate-300 bg-slate-100 text-slate-700';
-      case 'created':   return 'border-orange-300 bg-orange-100 text-orange-700';
-      case 'pending':   return 'border-blue-300 bg-blue-100 text-blue-700';
-      default:          return 'border-emerald-300 bg-emerald-100 text-emerald-700';
+      case 'rejected':
+      case 'cancelled':  return 'border-red-300 bg-red-100 text-red-700';
+      case 'returned':   return 'border-amber-300 bg-amber-100 text-amber-700';
+      case 'processed':  return 'border-slate-300 bg-slate-100 text-slate-700';
+      case 'created':    return 'border-orange-300 bg-orange-100 text-orange-700';
+      case 'pending':    return 'border-blue-300 bg-blue-100 text-blue-700';
+      default:           return 'border-emerald-300 bg-emerald-100 text-emerald-700';
     }
   }
 
@@ -83,7 +84,8 @@ export class WorkflowHistoryDrawer {
     switch (statusKey) {
       case 'created':   return 'bg-orange-100 text-orange-600 border border-orange-300';
       case 'processed': return 'bg-slate-100 text-slate-600 border border-slate-300';
-      case 'rejected':  return 'bg-red-100 text-red-700 border border-red-300';
+      case 'rejected':
+      case 'cancelled': return 'bg-red-100 text-red-700 border border-red-300';
       case 'returned':  return 'bg-amber-100 text-amber-700 border border-amber-300';
       case 'pending':   return 'bg-blue-100 text-blue-700 border border-blue-300';
       default:          return 'bg-emerald-100 text-emerald-700 border border-emerald-300';
@@ -94,7 +96,8 @@ export class WorkflowHistoryDrawer {
     switch (statusKey) {
       case 'created':   return 'border-orange-400 bg-orange-50 text-orange-500';
       case 'processed': return 'border-slate-300 bg-slate-100 text-slate-500';
-      case 'rejected':  return 'border-red-400 bg-red-50 text-red-600';
+      case 'rejected':
+      case 'cancelled': return 'border-red-400 bg-red-50 text-red-600';
       case 'returned':  return 'border-amber-400 bg-amber-50 text-amber-600';
       case 'pending':   return 'border-blue-400 bg-blue-50 text-blue-600';
       default:          return 'border-emerald-400 bg-emerald-50 text-emerald-600';
@@ -106,6 +109,7 @@ export class WorkflowHistoryDrawer {
       case 'created':   return 'plus';
       case 'processed': return 'settings';
       case 'rejected':  return 'x';
+      case 'cancelled': return 'ban';
       case 'returned':  return 'corner-down-left';
       case 'pending':   return 'clock';
       default:          return 'check';
