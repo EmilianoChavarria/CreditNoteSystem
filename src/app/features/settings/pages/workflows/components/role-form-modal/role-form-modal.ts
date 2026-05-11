@@ -18,6 +18,7 @@ interface Color {
 export class RoleFormModal {
   readonly open = input<boolean>(false);
   readonly submitted = input<boolean>(false);
+  readonly modalTitle = input<string>('Nuevo Rol');
   readonly form = input.required<FormGroup>();
   readonly roleColors = input<Color[]>([]);
   readonly selectedItem = input<Color>({ name: '', value: '' });

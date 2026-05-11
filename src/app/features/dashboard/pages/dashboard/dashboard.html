@@ -1,56 +1,55 @@
 <section class="flex flex-col">
     <!-- Encabezado principal -->
     <header class="w-full flex flex-col md:flex-row justify-between items-center">
-        <span class="text-4xl text-[#ff8200] font-semibold">{{'DASHBOARD.TITLE'| translate}}</span>
-        <div class="flex flex-col md:flex-row gap-x-2 gap-y-2 mt-4 md:mt-0 w-full md:w-fit">
-            <div class="flex flex-col items-start justify-center w-full md:w-fit">
-                <label for="days" class="font-semibold text-[#ff8200]">{{'DASHBOARD.REQ_FILTER'| translate}}</label>
-                <div class="flex flex-row items-center w-full">
-                    <select name="request_type" id="request_type"
-                        class="h-11 border border-gray-300 rounded-lg w-full md:w-64 pl-2 pr-4"
-                        [value]="selectedRequestType()" (change)="onRequestTypeChange($event)">
-                        <option value="1">{{'REQUEST_TYPES.CREDIT'| translate}}</option>
-                        <option value="2">{{'REQUEST_TYPES.DEBIT'| translate}}</option>
-                        <option value="3">{{'REQUEST_TYPES.AUDITOR_CREDIT'| translate}}</option>
-                        <option value="4">{{'REQUEST_TYPES.AUDITOR_DEBIT'| translate}}</option>
-                        <option value="5">{{'REQUEST_TYPES.RE_INVOICING'| translate}}</option>
-                        <option value="6">{{'REQUEST_TYPES.MATERIAL_RETURN'| translate}}</option>
-                        <option value="todas">{{'REQUEST_TYPES.ALL_TYPES'| translate}}</option>
+        <span class="text-2xl 2xl:text-4xl text-[#ff8200] font-semibold">{{'DASHBOARD.TITLE'| translate}}</span>
+        <div class="flex flex-col sm:flex-row gap-3 mt-4 md:mt-0 w-full md:w-fit items-start">
+
+            <div class="flex flex-col gap-1 w-full sm:w-auto">
+                <label for="request_type" class="text-sm font-semibold text-[#ff8200]">{{'DASHBOARD.REQ_FILTER'|
+                    translate}}</label>
+                <select name="request_type" id="request_type"
+                    class="h-10 border border-gray-300 rounded-lg w-full sm:w-52 px-3 bg-white"
+                    [value]="selectedRequestType()" (change)="onRequestTypeChange($event)">
+                    <option value="1">{{'REQUEST_TYPES.CREDIT'| translate}}</option>
+                    <option value="2">{{'REQUEST_TYPES.DEBIT'| translate}}</option>
+                    <option value="3">{{'REQUEST_TYPES.AUDITOR_CREDIT'| translate}}</option>
+                    <option value="4">{{'REQUEST_TYPES.AUDITOR_DEBIT'| translate}}</option>
+                    <option value="5">{{'REQUEST_TYPES.RE_INVOICING'| translate}}</option>
+                    <option value="6">{{'REQUEST_TYPES.MATERIAL_RETURN'| translate}}</option>
+                    <option value="todas">{{'REQUEST_TYPES.ALL_TYPES'| translate}}</option>
+                </select>
+            </div>
+
+            <div class="flex flex-col gap-1 w-full sm:w-auto">
+                <label for="days" class="text-sm font-semibold text-[#ff8200]">{{'DASHBOARD.SEL_DATE'|
+                    translate}}</label>
+                <div class="flex items-center gap-2">
+                    <select name="days" id="days"
+                        class="h-10 border border-gray-300 rounded-lg w-full sm:w-44 px-3 bg-white"
+                        [value]="selectedDateOption()" (change)="onDateOptionChange($event)">
+                        <option value="1">{{'DASHBOARD.DATE_OPTION1'| translate}}</option>
+                        <option value="2">{{'DASHBOARD.DATE_OPTION2'| translate}}</option>
+                        <option value="custom">{{'DASHBOARD.DATE_OPTION3'| translate}}</option>
                     </select>
+                    <lucide-icon name="calendar-clock" class="shrink-0" color="#ff8200" size="24"></lucide-icon>
                 </div>
-            </div>
-            <div class="flex flex-col items-start justify-center w-full md:w-fit">
-                <label for="days" class="font-semibold text-[#ff8200]">{{'DASHBOARD.SEL_DATE'| translate}}</label>
-                <div class="flex flex-col md:flex-row items-center w-full">
-                    <div class="flex flex-row items-center w-full">
-                        <select name="days" id="days"
-                            class="h-11 border border-gray-300 rounded-lg w-full md:w-64 pl-2 pr-4"
-                            [value]="selectedDateOption()" (change)="onDateOptionChange($event)">
-                            <option value="1">{{'DASHBOARD.DATE_OPTION1'| translate}}</option>
-                            <option value="2">{{'DASHBOARD.DATE_OPTION2'| translate}}</option>
-                            <option value="custom">{{'DASHBOARD.DATE_OPTION3'| translate}}</option>
-                        </select>
-
-                        <lucide-icon name="calendar-clock" class="shrink-0" color="#ff8200" size="30"></lucide-icon>
+                @if (selectedDateOption() === 'custom') {
+                <div class="flex flex-col sm:flex-row gap-2 mt-1">
+                    <div class="flex flex-col gap-1">
+                        <label class="text-sm font-semibold text-[#ff8200]">{{'DASHBOARD.START_DATE'|
+                            translate}}</label>
+                        <input type="date" [value]="startDate()" (change)="onStartDateChange($event)"
+                            class="h-10 border border-gray-300 rounded-lg w-full sm:w-44 px-3">
                     </div>
-                    @if (selectedDateOption() === 'custom') {
-                    <div class="flex flex-row items-start gap-x-4 md:gap-x-2 mt-2 w-full md:w-fit md:-mt-4 ml-2">
-                        <div class="flex flex-col w-1/2 md:w-fit">
-                            <label class="font-semibold text-[#ff8200]">{{'DASHBOARD.START_DATE'| translate}}</label>
-                            <input type="date" [value]="startDate()" (change)="onStartDateChange($event)"
-                                class="h-11 border border-gray-300 rounded-lg w-full md:w-64 pl-2 pr-4">
-                        </div>
-                        <div class="flex flex-col w-1/2 md:w-fit">
-                            <label class="font-semibold text-[#ff8200]">{{'DASHBOARD.END_DATE'| translate}}</label>
-                            <input type="date" [value]="endDate()" (change)="onEndDateChange($event)"
-                                class="h-11 border border-gray-300 rounded-lg w-full md:w-64 pl-2 pr-4">
-                        </div>
+                    <div class="flex flex-col gap-1">
+                        <label class="text-sm font-semibold text-[#ff8200]">{{'DASHBOARD.END_DATE'| translate}}</label>
+                        <input type="date" [value]="endDate()" (change)="onEndDateChange($event)"
+                            class="h-10 border border-gray-300 rounded-lg w-full sm:w-44 px-3">
                     </div>
-                    }
                 </div>
-
-
+                }
             </div>
+
         </div>
 
     </header>
@@ -61,7 +60,8 @@
         }
         } @else {
         @for (card of statCards; track $index) {
-        <app-stat-card [title]="card.title" [value]="card.value" [color]="card.color" [iconName]="card.iconName" [loading]="false"></app-stat-card>
+        <app-stat-card [title]="card.title" [value]="card.value" [color]="card.color" [iconName]="card.iconName"
+            [loading]="false"></app-stat-card>
         }
         }
     </section>

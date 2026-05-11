@@ -21,6 +21,16 @@
     </div>
     } -->
 
+    <div class="mb-3 flex items-center gap-2">
+        <label class="text-xs text-gray-600">{{ 'BULK.BATCH_REQUESTS.FILTER_STATUS' | translate }}</label>
+        <select [(ngModel)]="statusFilter"
+            class="h-8 rounded-md border border-gray-300 bg-white px-2 text-xs text-gray-700">
+            <option value="all">{{ 'BULK.BATCH_REQUESTS.FILTER_ALL' | translate }}</option>
+            <option value="success">{{ 'BULK.BATCH_REQUESTS.FILTER_SUCCESS' | translate }}</option>
+            <option value="error">{{ 'BULK.BATCH_REQUESTS.FILTER_ERROR' | translate }}</option>
+        </select>
+    </div>
+
     <div class="w-full overflow-x-auto rounded-md border border-gray-200">
         <table class="w-full min-w-150 border-collapse">
             <caption class="sr-only">Listado de solicitudes </caption>
@@ -43,22 +53,43 @@
                     </td>
                 </tr>
                 } @else {
-                @for (request of batchRequestRows(); track request.requestNumber) {
+                @for (request of filteredRows(); track request.requestNumber) {
                 <tr class="hover:bg-gray-50">
-                    <td class="border-b border-gray-100 px-4 py-2 text-sm text-gray-700">{{ request.requestNumber }}</td>
+                    <td class="border-b border-gray-100 px-4 py-2 text-sm text-gray-700">
+                        @if (request.displayName) {
+                        <div class="flex flex-col">
+                            <span class="font-medium">{{ request.displayName }}</span>
+                            <span class="text-xs text-gray-400">#{{ request.requestNumber }}</span>
+                        </div>
+                        } @else {
+                        {{ request.requestNumber }}
+                        }
+                    </td>
                     <td class="border-b border-gray-100 px-4 py-2 text-sm text-gray-700">
                         <span [class]="'inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ' + onStatusClass(request.status)">
                             {{ request.status }}
                         </span>
                     </td>
                     <td class="border-b border-gray-100 px-4 py-2 text-sm text-gray-700">
+                        @if (request.status === 'error') {
                         <app-popover position="bottom-center" width="180px">
                             <div trigger class="p-2 rounded-md hover:bg-gray-100 cursor-pointer inline-flex">
                                 <lucide-icon name="more-vertical" size="18"></lucide-icon>
                             </div>
-
                             <div content class="p-2 space-y-1">
-                                @if (request.status === 'emitted') {
+                                <button type="button" (click)="onOpenRequestError(request)"
+                                    class="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-gray-100 transition text-red-600">
+                                    <lucide-icon name="circle-x" size="16"></lucide-icon>
+                                    <span>{{ 'BULK.BATCH_REQUESTS.VIEW_ERROR' | translate }}</span>
+                                </button>
+                            </div>
+                        </app-popover>
+                        } @else if (request.status === 'emitted') {
+                        <app-popover position="bottom-center" width="180px">
+                            <div trigger class="p-2 rounded-md hover:bg-gray-100 cursor-pointer inline-flex">
+                                <lucide-icon name="more-vertical" size="18"></lucide-icon>
+                            </div>
+                            <div content class="p-2 space-y-1">
                                 <button type="button"
                                     class="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-gray-100 transition">
                                     <lucide-icon name="file-text" size="16"></lucide-icon>
@@ -69,15 +100,9 @@
                                     <lucide-icon name="file-text" size="16"></lucide-icon>
                                     <span>PDF</span>
                                 </button>
-                                } @else {
-                                <button type="button" (click)="onOpenRequestError(request)"
-                                    class="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-gray-100 transition text-red-600">
-                                    <lucide-icon name="circle-x" size="16"></lucide-icon>
-                                    <span>{{ 'BULK.BATCH_REQUESTS.VIEW_ERROR' | translate }}</span>
-                                </button>
-                                }
                             </div>
                         </app-popover>
+                        }
                     </td>
                 </tr>
                 }
