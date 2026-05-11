@@ -279,7 +279,11 @@
       "STATUS": "Estado",
       "ACTIONS": "Acciones",
       "VIEW_ERROR": "Ver error",
-      "REQUESTS": "solicitudes"
+      "REQUESTS": "solicitudes",
+      "FILTER_STATUS": "Filtrar:",
+      "FILTER_ALL": "Todos",
+      "FILTER_SUCCESS": "Exitosos",
+      "FILTER_ERROR": "Con error"
     },
     "REQUEST_ERROR": {
       "TITLE": "Detalle del error",
@@ -851,5 +855,35 @@
       "SAVE_SUCCESS": "La configuración de seguridad se guardó correctamente",
       "SAVE_ERROR": "No se pudo guardar la configuración de seguridad"
     }
+  },
+  "RETURN_ORDERS_APPROVAL": {
+    "SECTION_LABEL": "Aprobaciones",
+    "TITLE": "Órdenes de devolución por aprobar",
+    "DESCRIPTION": "Revisa cliente, facturas y productos para aprobar o rechazar órdenes de devolución.",
+    "SEARCH_LABEL": "Buscar por razón social o número de cliente",
+    "SEARCH_PLACEHOLDER": "Ej. LAMINADORA o 121693",
+    "SEARCH_HINT": "Si el término es numérico, busca por número de cliente exacto; si es texto, busca por razón social.",
+    "LOADING": "Buscando órdenes de devolución...",
+    "NOT_FOUND": "No se encontraron órdenes para ese término.",
+    "EMPTY_STATE": "Debes buscar por cliente o razón social para ver órdenes de devolución.",
+    "ORDER_PREFIX": "Orden",
+    "CUSTOMER_LABEL": "Cliente",
+    "COMMENTS_LABEL": "Comentarios",
+    "HIDE": "Ocultar",
+    "VIEW_DETAIL": "Ver detalle",
+    "INVOICES_LABEL": "Facturas",
+    "SUBTOTAL_LABEL": "Subtotal",
+    "TOTAL_LABEL": "Total",
+    "TABLE_CAPTION": "Detalle de productos de la orden",
+    "COL_INVOICE": "Factura",
+    "COL_CONCEPT": "Concepto",
+    "COL_SAT_KEY": "Clave SAT",
+    "COL_DESCRIPTION": "Descripción",
+    "COL_QUANTITY": "Cantidad",
+    "COL_ORIGINAL": "Original",
+    "COL_UNIT_PRICE": "P.U.",
+    "COL_AMOUNT": "Importe",
+    "ADD_TO_EXISTING": "Agregar a solicitud existente",
+    "ADD_TO_NEW": "Agregar a solicitud nueva"
   }
 }

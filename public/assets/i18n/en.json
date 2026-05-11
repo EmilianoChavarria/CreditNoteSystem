@@ -279,7 +279,11 @@
       "STATUS": "Status",
       "ACTIONS": "Actions",
       "VIEW_ERROR": "View error",
-      "REQUESTS": "requests"
+      "REQUESTS": "requests",
+      "FILTER_STATUS": "Filter:",
+      "FILTER_ALL": "All",
+      "FILTER_SUCCESS": "Successful",
+      "FILTER_ERROR": "With error"
     },
     "REQUEST_ERROR": {
       "TITLE": "Error detail",
@@ -851,5 +855,35 @@
       "SAVE_SUCCESS": "Security settings saved successfully",
       "SAVE_ERROR": "Unable to save security settings"
     }
+  },
+  "RETURN_ORDERS_APPROVAL": {
+    "SECTION_LABEL": "Approvals",
+    "TITLE": "Return orders pending approval",
+    "DESCRIPTION": "Review customer, invoices and products to approve or reject return orders.",
+    "SEARCH_LABEL": "Search by company name or customer number",
+    "SEARCH_PLACEHOLDER": "E.g. LAMINADORA or 121693",
+    "SEARCH_HINT": "If the term is numeric, it searches by exact customer number; if text, it searches by company name.",
+    "LOADING": "Searching return orders...",
+    "NOT_FOUND": "No orders found for that term.",
+    "EMPTY_STATE": "Search by customer or company name to see return orders.",
+    "ORDER_PREFIX": "Order",
+    "CUSTOMER_LABEL": "Customer",
+    "COMMENTS_LABEL": "Comments",
+    "HIDE": "Hide",
+    "VIEW_DETAIL": "View detail",
+    "INVOICES_LABEL": "Invoices",
+    "SUBTOTAL_LABEL": "Subtotal",
+    "TOTAL_LABEL": "Total",
+    "TABLE_CAPTION": "Product detail for order",
+    "COL_INVOICE": "Invoice",
+    "COL_CONCEPT": "Concept",
+    "COL_SAT_KEY": "SAT Key",
+    "COL_DESCRIPTION": "Description",
+    "COL_QUANTITY": "Quantity",
+    "COL_ORIGINAL": "Original",
+    "COL_UNIT_PRICE": "Unit Price",
+    "COL_AMOUNT": "Amount",
+    "ADD_TO_EXISTING": "Add to existing request",
+    "ADD_TO_NEW": "Add to new request"
   }
 }
