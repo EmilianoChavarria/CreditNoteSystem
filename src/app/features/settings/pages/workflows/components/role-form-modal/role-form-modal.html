@@ -1,4 +1,4 @@
-<app-modal size="md" titleM="Roles" [open]="open()" closeText="Cancelar" primaryText="Guardar"
+<app-modal size="md" [titleM]="modalTitle()" [open]="open()" closeText="Cancelar" primaryText="Guardar"
     (openChange)="handleOpenChange($event)" (primaryAction)="submitForm()">
     <form [formGroup]="form()" (submit)="submitForm()">
         <div>

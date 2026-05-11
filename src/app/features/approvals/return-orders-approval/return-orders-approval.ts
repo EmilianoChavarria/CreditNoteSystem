@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { TranslatePipe } from '@ngx-translate/core';
 import { ChangeDetectionStrategy, Component, DestroyRef, effect, inject, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
@@ -40,7 +41,7 @@ interface ReturnOrderForApproval {
 
 @Component({
   selector: 'app-return-orders-approval',
-  imports: [CommonModule, ReactiveFormsModule, AssignExistingRequestModal],
+  imports: [CommonModule, ReactiveFormsModule, AssignExistingRequestModal, TranslatePipe],
   templateUrl: './return-orders-approval.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

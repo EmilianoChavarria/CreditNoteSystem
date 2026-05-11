@@ -7,15 +7,16 @@
     <lucide-icon name="menu" size="22" [strokeWidth]="1.8"></lucide-icon>
   </button>
 
-  <div class="hidden lg:block text-lg font-bold text-gray-600 truncate pr-3">
-    {{ 'NAV.TITLE' | translate }}
-    <span class="text-red-500">Testing Environment</span>
+  <div class="hidden md:block text-lg font-bold text-gray-600 truncate pr-3">
+    <!-- <span class="2xl:hidden">{{ 'NAV.TITLE_SHORT' | translate }}</span> -->
+    <span class="inline">{{ 'NAV.TITLE' | translate }}</span>
   </div>
 
-  <div class="flex flex-row gap-x-2 sm:gap-x-4 lg:gap-x-8 items-center justify-end min-w-0 w-full lg:w-auto">
+  <div
+    class="flex flex-row gap-x-2 sm:gap-x-4 md:gap-x-1 2xl:gap-x-8 items-center justify-end min-w-0 w-full lg:w-auto">
 
     <div class="flex items-center gap-2 shrink-0">
-      <div class="hidden xl:flex items-center text-[11px] text-slate-500 gap-1.5 whitespace-nowrap"
+      <!-- <div class="hidden 2xl:flex items-center text-[11px] text-slate-500 gap-1.5 whitespace-nowrap"
         [title]="getLanguageShortcutHint()">
         <span>Cambiar idioma</span>
         <span class="inline-flex items-center gap-1">
@@ -28,7 +29,7 @@
           <kbd
             class="rounded border border-slate-300 bg-slate-100 px-1.5 py-0.5 font-semibold text-[10px] text-slate-700">L</kbd>
         </span>
-      </div>
+      </div> -->
       <div (click)="switchLang(translate.currentLang === 'en' ? 'es' : 'en')" [title]="getLanguageShortcutHint()"
         class="flex flex-row border border-[#ff8200] rounded-md gap-x-0.5 py-1 px-2 sm:px-3">
         <button
@@ -36,8 +37,6 @@
         <button
           [class]="`${translate.currentLang === 'en' ? 'bg-[#ff8200] text-white rounded-md':''} px-1 transition-colors hover:cursor-pointer`">EN</button>
       </div>
-
-
     </div>
 
     @if (!(isCustomer$ | async)) {
