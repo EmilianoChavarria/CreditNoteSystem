@@ -714,7 +714,12 @@
     "SUBTOTAL": "Subtotal",
     "HAS_CHARGE": "Tiene cargo",
     "NO_CHARGE": "Sin cargo",
-    "TOTAL_WITH_CHARGE": "Total con cargo"
+    "TOTAL_WITH_CHARGE": "Total con cargo",
+    "TAB_REQUEST_CUSTOMER": "Solicitud y Cliente",
+    "TAB_REFERENCE_LOGISTICS": "Referencia y Logística",
+    "TAB_FINANCIAL_DATA": "Datos Financieros",
+    "TAB_SUPPORTS_COMMENTS": "Soportes y Comentarios",
+    "TAB_MATERIAL_LIST": "Lista de Materiales"
   },
   "PROFILE": {
     "LOADING": "Cargando perfil...",

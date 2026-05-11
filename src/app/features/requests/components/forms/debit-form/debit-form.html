@@ -3,7 +3,7 @@
 }@else {
 <form action="" [formGroup]="form">
     <app-tabs-container (onSave)="saveRequest()" (onSaveDraft)="saveDraft()">
-        <app-tab titleT="Request & Customer">
+        <app-tab [titleT]="'NEW_REQUEST_FORM.TAB_REQUEST_CUSTOMER' | translate">
             <div class="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-4 md:gap-8">
                 <div>
                     <label for="requestNumber"
@@ -115,7 +115,7 @@
             </div>
         </app-tab>
 
-        <app-tab titleT="Reference & Logistics">
+        <app-tab [titleT]="'NEW_REQUEST_FORM.TAB_REFERENCE_LOGISTICS' | translate">
             <div class="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-4 md:gap-8">
                 <div>
                     <label for="deliveryNote"
@@ -166,7 +166,7 @@
             </div>
         </app-tab>
 
-        <app-tab titleT="Financial Data">
+        <app-tab [titleT]="'NEW_REQUEST_FORM.TAB_FINANCIAL_DATA' | translate">
             <div class="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-4 md:gap-8">
                 <div>
                     <label for="currency" class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.CURRENCY'
@@ -224,7 +224,7 @@
             </div>
         </app-tab>
 
-        <app-tab titleT="Supports & Comments">
+        <app-tab [titleT]="'NEW_REQUEST_FORM.TAB_SUPPORTS_COMMENTS' | translate">
             <div class="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-4 md:gap-8">
                 <div class="md:col-span-2">
                     <label for="attachSupports"
