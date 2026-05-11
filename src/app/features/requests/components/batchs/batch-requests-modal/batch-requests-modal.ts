@@ -1,4 +1,5 @@
-import { Component, input, output } from '@angular/core';
+import { Component, computed, input, output, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
 import { Modal } from '../../../../../shared/components/ui/modal/modal';
 import { Popover } from '../../../../../shared/components/ui/popover/popover';
@@ -20,11 +21,12 @@ interface RequestHistoryRow {
   requestNumber: string;
   status: string;
   errorMessage?: string;
+  displayName?: string;
 }
 
 @Component({
   selector: 'app-batch-requests-modal',
-  imports: [Modal, Popover, LucideAngularModule, TranslatePipe],
+  imports: [Modal, Popover, LucideAngularModule, TranslatePipe, FormsModule],
   templateUrl: './batch-requests-modal.html',
 })
 export class BatchRequestsModal {
@@ -41,6 +43,16 @@ export class BatchRequestsModal {
   batchRequestsLastPage = input.required<number>();
   batchRequestsHasPrevPage = input.required<boolean>();
   batchRequestsHasNextPage = input.required<boolean>();
+
+  statusFilter = signal<'all' | 'success' | 'error'>('all');
+
+  filteredRows = computed(() => {
+    const filter = this.statusFilter();
+    const rows = this.batchRequestRows();
+    if (filter === 'all') return rows;
+    if (filter === 'error') return rows.filter(r => r.status === 'error');
+    return rows.filter(r => r.status !== 'error');
+  });
 
   openChange = output<boolean>();
   openRequestError = output<RequestHistoryRow>();
