@@ -1,64 +1,106 @@
 <section class="flex flex-col w-full">
     <header class="w-full flex items-center justify-end">
         <div class="flex flex-col">
-            <span class="text-4xl tracking-wider text-[#ff8200] font-semibold">{{'ROLE_MANAGE.TITLE' |
+            <span class="text-2xl 2xl:text-4xl tracking-wider text-[#ff8200] font-semibold">{{'ROLE_MANAGE.TITLE' |
                 translate}}</span>
             <span class="text-orange-400">{{'ROLE_MANAGE.DESCRIPTION' | translate}}</span>
         </div>
     </header>
-    <div class="w-full h-fit flex items-center justify-center mt-20 overflow-x-auto">
+
+
+    <div class="w-full h-fit flex items-center justify-center mt-4 overflow-x-auto">
         @if (isLoading()) {
         <app-spinner></app-spinner>
         } @else {
-            <div class=" w-full overflow-hidden rounded-lg max-w-7xl ">
-                <table class="w-full border border-gray-200 border-collapse rounded-2xl ">
-                    <thead class="text-sm text-heading bg-gray-100">
-                        <tr class="border border-gray-200 ">
-                            <th scope="col" class="px-6 py-3 font-semibold text-center w-12 border-y border-gray-200">
-                                Nombre del rol
-                            </th>
-                            <th scope="col" class="px-6 py-3 font-semibold text-center w-60 border-y border-gray-200">
-                                Estado
-                            </th>
-                            <th scope="col" class="px-6 py-3 font-semibold text-center w-60 border-y border-gray-200">
-                                Acciones
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody class="">
-                        @for (role of roles(); track $index) {
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
-                                <div class="flex flex-row items-center gap-3">
-                                    <div class="p-2 bg-orange-50 rounded-lg border border-orange-100">
-                                        <lucide-icon name="shield" size="18" strokeWidth="2" color="#ff8200"></lucide-icon>
-                                    </div>
-                                    <span>{{role.roleName | titlecase }}</span>
-                                </div>
-                            </td>
-                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
-                                <div class="flex flex-row justify-center items-center gap-3">
-                                    <app-badge [color]="role.isActive ? 'green': 'red'" [text]="role.isActive ? 'Activo': 'Inactivo'"></app-badge>
-                                </div>
-                            </td>
-                            <td class="border-y border-gray-200 px-6 py-4 w-fit">
-                                <div class="flex flex-row justify-center items-center gap-3 text-[#ff8200] hover:text-[#975005] transition-colors hover:cursor-pointer">
-                                    <lucide-icon name="pencil" size="18" strokeWidth="2" ></lucide-icon>
-                                    <button
-                                        [routerLink]="['manage-permissions']"
-                                        [queryParams]="{ roleId: role.id, roleName: role.roleName }"
-                                        class="text-sm">
-                                        Editar Permisos
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        }
-                    </tbody>
-                </table>
+        <div class=" w-full overflow-hidden rounded-lg max-w-7xl ">
+            <div class="w-full flex items-center justify-end mt-2 mb-4">
+                <button (click)="openModal()"
+                    class="flex items-center justify-center bg-[#ff8200] rounded-md text-white px-3 py-2 gap-x-2 hover:cursor-pointer hover:bg-[#fd9628] text-sm font-medium">
+                    <lucide-icon name="shield-check" size="16"></lucide-icon>
+                    Manage Roles
+                </button>
             </div>
+            <table class="w-full border border-gray-200 border-collapse rounded-2xl ">
+                <thead class="text-sm text-heading bg-gray-100">
+                    <tr class="border border-gray-200 ">
+                        <th scope="col" class="px-6 py-3 font-semibold text-center w-12 border-y border-gray-200">
+                            Nombre del rol
+                        </th>
+                        <th scope="col" class="px-6 py-3 font-semibold text-center w-60 border-y border-gray-200">
+                            Estado
+                        </th>
+                        <th scope="col" class="px-6 py-3 font-semibold text-center w-60 border-y border-gray-200">
+                            Acciones
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="">
+                    @for (role of roles(); track $index) {
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="border-y border-gray-200 px-6 py-4 w-fit">
+                            <div class="flex flex-row items-center gap-3">
+                                <div class="p-2 bg-orange-50 rounded-lg border border-orange-100">
+                                    <lucide-icon name="shield" size="18" strokeWidth="2" color="#ff8200"></lucide-icon>
+                                </div>
+                                <span>{{role.roleName | titlecase }}</span>
+                            </div>
+                        </td>
+                        <td class="border-y border-gray-200 px-6 py-4 w-fit">
+                            <div class="flex flex-row justify-center items-center gap-3">
+                                <app-badge [color]="role.isActive ? 'green': 'red'"
+                                    [text]="role.isActive ? 'Activo': 'Inactivo'"></app-badge>
+                            </div>
+                        </td>
+                        <td class="border-y border-gray-200 px-6 py-4 w-fit">
+                            <div
+                                class="flex flex-row justify-center items-center gap-3 text-[#ff8200] hover:text-[#975005] transition-colors hover:cursor-pointer">
+                                <lucide-icon name="pencil" size="18" strokeWidth="2"></lucide-icon>
+                                <button [routerLink]="['manage-permissions']"
+                                    [queryParams]="{ roleId: role.id, roleName: role.roleName }" class="text-sm">
+                                    Editar Permisos
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
         }
     </div>
+
+    <app-roles-manage-modal [open]="isOpenModal()" [isLoading]="isLoadingRoles()" [roles]="roles()"
+        (openChange)="showModal($event)" (primaryAction)="openRoleModal()"
+        (editRole)="onEditRole($event)" (deleteRole)="onDeleteRole($event)">
+    </app-roles-manage-modal>
+
+    <app-role-form-modal [open]="isOpenRoleModal()" [form]="form" [submitted]="submitted()" [roleColors]="ROLE_COLORS"
+        [selectedItem]="selectedItem" [modalTitle]="editingRole() ? 'Editar Rol' : 'Nuevo Rol'"
+        (openChange)="showRoleModal($event)" (primaryAction)="saveRole()"
+        (selectColor)="onSelectColor($event)">
+    </app-role-form-modal>
+
+    <app-modal size="sm" titleM="Confirmar eliminación" [open]="isOpenDeleteConfirmModal()"
+        [showCloseButton]="false" [showPrimaryButton]="false"
+        (openChange)="showDeleteConfirmModal($event)">
+        <p class="text-sm text-slate-700">
+            ¿Seguro que deseas eliminar el rol
+            <span class="font-semibold">{{ rolePendingDelete()?.roleName | titlecase }}</span>?
+            Esta acción lo marcará como inactivo.
+        </p>
+        <div modal-actions class="flex items-center gap-2">
+            <button type="button"
+                class="rounded-md border border-slate-300 bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-200"
+                (click)="showDeleteConfirmModal(false)">
+                Cancelar
+            </button>
+            <button type="button" [disabled]="isDeletingRole()"
+                class="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 disabled:opacity-60"
+                (click)="confirmDeleteRole()">
+                {{ isDeletingRole() ? 'Eliminando...' : 'Eliminar' }}
+            </button>
+        </div>
+    </app-modal>
 
     <!-- Modal only 1 -->
     <app-modal size="md" [titleM]="`${permissionPayload().hasAccess ? 'Asignar Permiso' : 'Remover Permiso'}`"
