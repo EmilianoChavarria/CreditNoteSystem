@@ -126,6 +126,24 @@ export class RoleService {
     )
   }
 
+  updateRole(id: number, data: Partial<Role>) {
+    return this._httpSevice.put<Role>(`roles/${id}`, data).pipe(
+      catchError((error) => {
+        console.log(error);
+        throw error;
+      })
+    );
+  }
+
+  deleteRole(id: number) {
+    return this._httpSevice.delete(`roles/${id}`).pipe(
+      catchError((error) => {
+        console.log(error);
+        throw error;
+      })
+    );
+  }
+
   getAllPermissions(): Observable<RolePermission[]> {
     return this._httpSevice.get<RolePermission[]>('/rolesPermission').pipe(
       map((response: ApiResponse<RolePermission[]>) => response.data ?? []),
