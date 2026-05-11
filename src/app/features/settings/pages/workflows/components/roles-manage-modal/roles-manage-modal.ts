@@ -17,4 +17,6 @@ export class RolesManageModal {
 
   readonly openChange = output<boolean>();
   readonly primaryAction = output<void>();
+  readonly editRole = output<Role>();
+  readonly deleteRole = output<Role>();
 }
