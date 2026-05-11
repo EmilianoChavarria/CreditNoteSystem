@@ -1,12 +1,15 @@
 <section class="w-full">
     <!-- Container max-w-8xl -->
     <div class="flex flex-col max-w-7xl mx-auto gap-y-6">
-        <div class="flex flex-row justify-start items-center">
+        <div class="flex flex-row justify-start items-center gap-4">
+            <button (click)="onCancel()" title="Regresar a roles"
+                class="p-2 rounded-md border border-gray-200 text-gray-500 hover:bg-gray-100 hover:text-gray-800 transition-colors shrink-0">
+                <lucide-icon name="arrow-left" size="20"></lucide-icon>
+            </button>
             <div class="flex flex-col">
                 <span class="text-3xl font-semibold">{{ selectedRoleName()}}</span>
                 <span class="text-gray-600">Define los permisos y accesos para este rol en el sistema</span>
             </div>
-
         </div>
 
         @if (isLoading()) {
