@@ -38,6 +38,7 @@ interface RequestHistoryRow {
     requestNumber: string;
     status: string;
     errorMessage?: string;
+    displayName?: string;
     rawItem?: BatchRequestItem;
 }
 
@@ -313,10 +314,13 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
 
     private mapRequestItemToHistoryRow(item: BatchRequestItem): RequestHistoryRow {
         const request = (item.request ?? {}) as Record<string, unknown>;
+        const rawData = (item.rawData ?? {}) as Record<string, unknown>;
         const requestNumber = String(request['requestNumber'] ?? item.requestId ?? item.id ?? '-');
+        const displayName = (rawData['full_name'] || rawData['name']) ? String(rawData['full_name'] ?? rawData['name']) : undefined;
 
         return {
             requestNumber,
+            displayName,
             status: String(item.status ?? 'unknown'),
             errorMessage: this.resolveErrorMessage(item.errorLog),
             rawItem: item,
