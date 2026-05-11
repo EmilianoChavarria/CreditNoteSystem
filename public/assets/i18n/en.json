@@ -1,6 +1,7 @@
 {
   "NAV": {
     "TITLE": "Debit & Credit Notes Management System",
+    "TITLE_SHORT": "SGCD",
     "NOTIFICATIONS": "Notifications",
     "SEE_ALL": "View all notifications",
     "PROFILE": "My Profile",

@@ -1,6 +1,7 @@
 {
   "NAV": {
     "TITLE": "Sistema de Gestión de Notas de Crédito y Débito ",
+    "TITLE_SHORT": "SGCD",
     "NOTIFICATIONS": "Notificaciones",
     "SEE_ALL": "Ver todas las notificaciones",
     "PROFILE": "Mi Perfil",
