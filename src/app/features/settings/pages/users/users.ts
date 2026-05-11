@@ -78,7 +78,7 @@ export class Users implements OnInit {
         password: new FormControl<string>('', [Validators.required], [this.passwordValidator()]),
         roleId: new FormControl<number>(0, [Validators.required, Validators.min(1)]),
         clientId: new FormControl<any>(null),
-        supervisorId: new FormControl<number>(0, [Validators.required, Validators.min(1)]),
+        supervisorId: new FormControl<number>(0),
         preferredLanguage: new FormControl<string>('DEF', [Validators.required, Validators.pattern(/^(en|es)$/)]),
     });
 
@@ -749,7 +749,7 @@ export class Users implements OnInit {
             customerControl.clearValidators();
             customerControl.setValue(null, { emitEvent: false });
             if (supervisorControl) {
-                supervisorControl.setValidators([Validators.required, Validators.min(1)]);
+                supervisorControl.clearValidators();
             }
         }
 
