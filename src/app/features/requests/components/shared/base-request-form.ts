@@ -759,9 +759,7 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
 
         this._toastService.success(response?.message ?? successMessage, 'Exito');
         this.submitted.set(false);
-        if (editingRequestId !== null) {
-          this._router.navigate(['/app/pending']);
-        }
+        this._router.navigate(['/app/pending']);
       },
       error: (error: unknown) => {
         const message = (error as { error?: { message?: string }; message?: string })?.error?.message
