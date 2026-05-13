@@ -30,7 +30,30 @@
     "WORKFLOWS": "Approval Flow",
     "SYS_CONFIG": "System Configuration",
     "SEC_MANAGE": "Security Management",
-    "ASSIGN_USER": "Assign User"
+    "ASSIGN_USER": "Assign User",
+    "DESCRIPTION": {
+      "HOME": "Initial view with statistical data",
+      "REQUESTS": "General module for request management",
+      "NEW_REQUEST": "View within the requests module where a new request can be created",
+      "DRAFTS": "View within the requests module where drafts can be viewed",
+      "BULK_UPLOAD": "View within the requests module where bulk data can be uploaded",
+      "PENDING": "Complete list of created requests filtered by type",
+      "APPROVE": "List of requests awaiting user approval",
+      "MY_INVOICES": "Client view where they can view their invoices and generate a return order",
+      "MY_INVOICES_FILTER": "Client view for viewing invoices and downloading XML and PDF files",
+      "ORDERS": "My Orders",
+      "RETURN_ORDERS_APPROVAL": "View where users can view return orders and add them to a request",
+      "HISTORY": "History",
+      "NOTIFICATIONS": "View where users can see new and read notifications",
+      "SETTINGS": "General module for system configuration management",
+      "USER_MANAGEMENT": "View within the settings module where system users can be managed",
+      "CLIENT_MANAGEMENT": "View within the settings module where clients can be viewed",
+      "ROLES": "View within the settings module where system roles and their permissions can be managed",
+      "WORKFLOWS": "View within the settings module where request approval workflows can be managed",
+      "SYS_CONFIG": "View within the settings module where system parameters can be managed",
+      "SEC_MANAGE": "View within the settings module where users or IPs can be unlocked",
+      "ASSIGN_USER": "View within the settings module where internal users can be assigned to a CS Leader"
+    }
   },
   "REQUEST_TYPES": {
     "DEFAULT": "Select an option",
@@ -890,5 +913,11 @@
     "COL_AMOUNT": "Amount",
     "ADD_TO_EXISTING": "Add to existing request",
     "ADD_TO_NEW": "Add to new request"
+  },
+  "TAB_CONTAINER": {
+    "BACK": "Back",
+    "NEXT": "Next",
+    "SAVE_DRAFT": "Save as draft",
+    "REGISTER_REQUEST": "Register request"
   }
 }
