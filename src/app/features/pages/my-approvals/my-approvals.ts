@@ -299,11 +299,11 @@ export class MyApprovals extends RequestListBase {
         this.showApproveModal.set(true);
     }
 
-    onApproveConfirmed(): void {
+    onApproveConfirmed(comments: string): void {
         const request = this.requestToApprove();
         if (!request) return;
         this.showApproveModal.set(false);
-        this.approveRequest(request);
+        this.approveRequest(request, comments);
     }
 
     onDeclineModalChange(isOpen: boolean = true, request?: Request): void {
@@ -475,10 +475,10 @@ export class MyApprovals extends RequestListBase {
         });
     }
 
-    approveRequest(request: Request): void {
+    approveRequest(request: Request, comments?: string): void {
         if (!request.id) return;
 
-        this._requestsService.approveRequest(request.id).subscribe({
+        this._requestsService.approveRequest(request.id, comments).subscribe({
             next: () => {
                 this._toastService.success(
                     this._translateService.instant('MY_APPROVALS.TOAST.REQUEST_APPROVED_SUCCESS'),

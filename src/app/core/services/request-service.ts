@@ -330,8 +330,9 @@ export class RequestService {
     )
   }
 
-  approveRequest(requestId: number): Observable<any> {
-    return this._httpService.post(`/requests/${requestId}/approve`, {}).pipe(
+  approveRequest(requestId: number, comments?: string): Observable<any> {
+    const body = comments?.trim() ? { comments } : {};
+    return this._httpService.post(`/requests/${requestId}/approve`, body).pipe(
       catchError((error) => {
         console.log(error);
         throw error;

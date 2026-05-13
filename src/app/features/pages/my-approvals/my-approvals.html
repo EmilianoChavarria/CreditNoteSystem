@@ -163,7 +163,7 @@
         [open]="showApproveModal()"
         [request]="requestToApprove()"
         (openChange)="showApproveModal.set($event)"
-        (confirmed)="onApproveConfirmed()">
+        (confirmed)="onApproveConfirmed($event)">
     </app-approve-confirm-modal>
 
     <app-send-back-modal
