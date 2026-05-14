@@ -9,6 +9,9 @@
         [enableFilter]="true" filterField="role.roleName" [canAdd]="true" [canBulk]="true"
         [filterOptions]="roleFilterOptions()"
         [filterDefault]="selectedRoleName()"
+        excelExportModule="users"
+        [excelExportParams]="{ search: searchTerm(), roleName: selectedRoleName() }"
+        excelExportFileName="users.xls"
         [addLabel]="'USERS_PAGE.USER'"
         [registrosPorPagina]="pageSize()" [serverPagination]="true" [paginaActualExterna]="currentPage()"
         [totalPaginasExterno]="totalPages()"
@@ -20,6 +23,7 @@
         (filterChange)="onRoleFilterChange($event)"
         (addClick)="openUserModalForCreate()"
         (bulkClick)="openBulkUploadModal()">
+        
 
         <ng-template #cellTemplate let-item let-column="column">
             @if (column.key === 'isActive') {
