@@ -93,8 +93,8 @@ export class RequestService {
     return reasons$;
   }
 
-  getMyPendingRequests(requestTypeId: number, perPage = 10, page = 1, search?: string): Observable<PagePagination<Request>> {
-    const params: { requestTypeId: number; per_page: number; page: number; search?: string } = {
+  getMyPendingRequests(requestTypeId: number, perPage = 10, page = 1, search?: string, roleName = 'all'): Observable<PagePagination<Request>> {
+    const params: { requestTypeId: number; per_page: number; page: number; search?: string; roleName?: string } = {
       requestTypeId,
       per_page: perPage,
       page,
@@ -103,6 +103,8 @@ export class RequestService {
     if (search && search.trim().length > 0) {
       params.search = search.trim();
     }
+
+    params.roleName = roleName?.trim() || 'all';
 
     return this._httpService.get<PagePagination<Request>>('/requests/pending/me', {
       params
@@ -206,12 +208,14 @@ export class RequestService {
     );
   }
 
-  getRequestsByTypeWithPagePagination(id: number, perPage = 10, page = 1, search?: string): Observable<PagePagination<Request>> {
-    const params: { per_page: number; page: number; search?: string } = { per_page: perPage, page };
+  getRequestsByTypeWithPagePagination(id: number, perPage = 10, page = 1, search?: string, roleName = 'all'): Observable<PagePagination<Request>> {
+    const params: { per_page: number; page: number; search?: string; roleName?: string } = { per_page: perPage, page };
 
     if (search && search.trim().length > 0) {
       params.search = search.trim();
     }
+
+    params.roleName = roleName?.trim() || 'all';
 
     return this._httpService.get<PagePagination<Request>>(`/requests/${id}`, { params }).pipe(
       map((response: ApiResponse<PagePagination<Request>>) => {
