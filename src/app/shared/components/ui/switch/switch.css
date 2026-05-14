@@ -1,6 +1,7 @@
 :host {
   display: inline-block;
   max-width: 100%;
+  line-height: 0;
 }
 
 .ui-switch {
@@ -11,28 +12,33 @@
   --switch-on-bg: #ff8200;
   --switch-border: #b6bbc2;
 
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 0.625rem;
+  inline-size: var(--switch-width);
+  block-size: var(--switch-height);
   cursor: pointer;
   user-select: none;
 }
 
 .ui-switch__input {
   position: absolute;
-  inline-size: 1px;
-  block-size: 1px;
-  margin: -1px;
+  inset: 0;
+  z-index: 2;
+  inline-size: 100%;
+  block-size: 100%;
+  margin: 0;
   border: 0;
   padding: 0;
-  clip: rect(0 0 0 0);
-  clip-path: inset(100%);
-  overflow: hidden;
-  white-space: nowrap;
+  opacity: 0;
+  cursor: inherit;
+  appearance: none;
 }
 
 .ui-switch__track {
   position: relative;
+  flex: 0 0 auto;
   inline-size: var(--switch-width);
   block-size: var(--switch-height);
   border-radius: 999px;
@@ -43,6 +49,7 @@
     background-color 180ms ease,
     border-color 180ms ease,
     box-shadow 180ms ease;
+  pointer-events: none;
 }
 
 .ui-switch__thumb {
