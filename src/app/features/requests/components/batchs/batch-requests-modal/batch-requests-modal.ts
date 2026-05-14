@@ -99,6 +99,31 @@ export class BatchRequestsModal implements OnDestroy {
     return 'bg-red-100 text-red-700 border border-red-200';
   }
 
+  statusLabel(status?: string): string {
+    const normalizedStatus = (status ?? '').trim().toLowerCase();
+
+    switch (normalizedStatus) {
+      case 'completed':
+        return 'BULK.STATUS.COMPLETED';
+      case 'failed':
+        return 'BULK.STATUS.FAILED';
+      case 'processing':
+        return 'BULK.STATUS.PROCESSING';
+      case 'pending':
+        return 'BULK.STATUS.PENDING';
+      case 'success':
+        return 'BULK.STATUS.SUCCESS';
+      case 'emitted':
+        return 'BULK.STATUS.EMITTED';
+      case 'processed':
+        return 'BULK.STATUS.PROCESSED';
+      case 'error':
+        return 'BULK.STATUS.ERROR';
+      default:
+        return normalizedStatus ? status ?? normalizedStatus : 'BULK.STATUS.UNKNOWN';
+    }
+  }
+
   onBatchRequestsPageSizeChange(event: Event): void {
     const value = Number((event.target as HTMLSelectElement).value);
     this.batchRequestsPageSizeChange.emit(value);

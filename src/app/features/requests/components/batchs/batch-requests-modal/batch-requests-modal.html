@@ -4,7 +4,7 @@
         @if (selectedBatchSummary()) {
         <span class="font-semibold text-gray-800">{{ 'BULK.BATCH_REQUESTS.BATCH' | translate }} {{ selectedBatchSummary()?.id }}</span>
         <span class="mx-2">•</span>
-        <span class="capitalize">{{ selectedBatchSummary()?.status }}</span>
+        <span class="capitalize">{{ statusLabel(selectedBatchSummary()?.status) | translate }}</span>
         <span class="mx-2">•</span>
         <span>{{ 'BULK.BATCH_REQUESTS.PROGRESS' | translate }} {{ selectedBatchSummary()?.progressPercent }}%</span>
         }
@@ -111,7 +111,7 @@
                     </td>
                     <td class="border-b border-gray-100 px-4 py-2 text-sm text-gray-700">
                         <span [class]="'inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ' + onStatusClass(request.status)">
-                            {{ request.status }}
+                            {{ statusLabel(request.status) | translate }}
                         </span>
                     </td>
                     <td class="border-b border-gray-100 px-4 py-2 text-sm text-gray-700">
