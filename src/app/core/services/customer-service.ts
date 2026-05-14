@@ -9,6 +9,9 @@ export interface PagePagination<T> {
   current_page: number;
   last_page: number;
   per_page?: number;
+  from?: number | null;
+  to?: number | null;
+  total?: number;
   next_page_url?: string | null;
   prev_page_url?: string | null;
 }
@@ -205,6 +208,9 @@ export class CustomerService {
           current_page: payload?.current_page ?? 1,
           last_page: payload?.last_page ?? 1,
           per_page: payload?.per_page,
+          from: payload?.from ?? null,
+          to: payload?.to ?? null,
+          total: payload?.total ?? payload?.data?.length ?? 0,
           next_page_url: payload?.next_page_url ?? null,
           prev_page_url: payload?.prev_page_url ?? null,
         };
@@ -285,20 +291,52 @@ export class CustomerService {
     );
   }
 
-  getInvoicesByClientId(clientId: string, chargeType: InvoiceChargeType): Observable<CustomerInvoiceSummary[]> {
+  getInvoicesByClientId(
+    clientId: string,
+    chargeType: InvoiceChargeType,
+    page = 1,
+    perPage = 15,
+    search = '',
+  ): Observable<PagePagination<CustomerInvoiceSummary>> {
     const normalizedClientId = clientId.trim();
     const normalizedChargeType = chargeType.trim();
+    const normalizedSearch = search.trim();
 
     if (!normalizedClientId || !normalizedChargeType) {
-      return of([]);
+      return of({
+        data: [],
+        current_page: 1,
+        last_page: 1,
+        per_page: 0,
+        from: null,
+        to: null,
+        total: 0,
+        next_page_url: null,
+        prev_page_url: null,
+      });
     }
 
     return this._httpService
-      .get<CustomerInvoiceSummary[]>(
+      .get<PagePagination<CustomerInvoiceSummary>>(
         `/invoices/${encodeURIComponent(normalizedClientId)}/charge-type/${encodeURIComponent(normalizedChargeType)}`,
+        { params: { per_page: perPage, page, ...(normalizedSearch ? { search: normalizedSearch } : {}) } },
       )
       .pipe(
-        map((response: ApiResponse<CustomerInvoiceSummary[]>) => response.data ?? []),
+        map((response: ApiResponse<PagePagination<CustomerInvoiceSummary>>) => {
+          const payload = response.data;
+
+          return {
+            data: payload?.data ?? [],
+            current_page: payload?.current_page ?? page,
+            last_page: payload?.last_page ?? 1,
+            per_page: payload?.per_page,
+            from: payload?.from ?? null,
+            to: payload?.to ?? null,
+            total: payload?.total ?? payload?.data?.length ?? 0,
+            next_page_url: payload?.next_page_url ?? null,
+            prev_page_url: payload?.prev_page_url ?? null,
+          };
+        }),
         catchError((error) => {
           console.log(error);
           return throwError(() => error);
@@ -385,14 +423,29 @@ export class CustomerService {
     );
   }
 
-  searchInvoicesByClientId(clientId: string, filters: InvoiceSearchFilters): Observable<CustomerInvoiceSummary[]> {
+  searchInvoicesByClientId(
+    clientId: string,
+    filters: InvoiceSearchFilters,
+    page = 1,
+    perPage = 10,
+  ): Observable<PagePagination<CustomerInvoiceSummary>> {
     const normalizedClientId = clientId.trim();
 
     if (!normalizedClientId) {
-      return of([]);
+      return of({
+        data: [],
+        current_page: 1,
+        last_page: 1,
+        per_page: perPage,
+        from: null,
+        to: null,
+        total: 0,
+        next_page_url: null,
+        prev_page_url: null,
+      });
     }
 
-    const params: Record<string, string> = {};
+    const params: Record<string, string | number> = { per_page: perPage, page };
     if (filters.uuid?.trim()) params['uuid'] = filters.uuid.trim();
     if (filters.folio?.trim()) params['folio'] = filters.folio.trim();
     if (filters.receptorId?.trim()) params['receptorId'] = filters.receptorId.trim();
@@ -403,12 +456,26 @@ export class CustomerService {
     if (filters.fechaFinal?.trim()) params['fechaFinal'] = filters.fechaFinal.trim();
 
     return this._httpService
-      .get<CustomerInvoiceSummary[]>(
+      .get<PagePagination<CustomerInvoiceSummary>>(
         `/invoices/${encodeURIComponent(normalizedClientId)}/search`,
         { params, timeoutMs: 30000 },
       )
       .pipe(
-        map((response: ApiResponse<CustomerInvoiceSummary[]>) => response.data ?? []),
+        map((response: ApiResponse<PagePagination<CustomerInvoiceSummary>>) => {
+          const payload = response.data;
+
+          return {
+            data: payload?.data ?? [],
+            current_page: payload?.current_page ?? page,
+            last_page: payload?.last_page ?? 1,
+            per_page: payload?.per_page ?? perPage,
+            from: payload?.from ?? null,
+            to: payload?.to ?? null,
+            total: payload?.total ?? payload?.data?.length ?? 0,
+            next_page_url: payload?.next_page_url ?? null,
+            prev_page_url: payload?.prev_page_url ?? null,
+          };
+        }),
         catchError((error) => {
           console.log(error);
           return throwError(() => error);
