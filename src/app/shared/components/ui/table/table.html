@@ -50,8 +50,11 @@
                 {{'TABLE.ZIP_BUTTON' | translate}}
             </button>
             <button
-                class="w-full sm:w-auto rounded-md bg-[#21760e] px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center">
-                <lucide-icon name="sheet" size="18"></lucide-icon>
+                type="button"
+                (click)="onExcelExportClick()"
+                [disabled]="!excelExportModule() || isExportingExcel()"
+                class="w-full sm:w-auto rounded-md bg-[#21760e] px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed">
+                <lucide-icon name="sheet" size="18" [class.animate-spin]="isExportingExcel()"></lucide-icon>
                 {{'TABLE.EXCEL_BUTTON' | translate}}
             </button>
             @if (canAdd()) {

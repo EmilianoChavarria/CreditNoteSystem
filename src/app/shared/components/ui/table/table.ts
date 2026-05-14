@@ -5,6 +5,8 @@ import { Spinner } from "../spinner/spinner";
 import { Popover } from "../popover/popover";
 import { Router } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
+import { finalize } from 'rxjs';
+import { ExcelExportModule, ExcelExportParams, ExportService } from '../../../../core/services/export-service';
 
 export interface Column<T> {
   key: string;
@@ -44,6 +46,7 @@ export class Table<T extends Record<string, any>>
   implements OnChanges {
 
   private readonly router = inject(Router);
+  private readonly exportService = inject(ExportService);
 
   // ================== INPUTS ==================
   @Input() set datos(value: T[]) {
@@ -84,6 +87,9 @@ export class Table<T extends Record<string, any>>
   readonly hideHeaderActions = input<boolean>(false);
   readonly searchFullWidth = input<boolean>(false);
   readonly searchValue = input<string>('');
+  readonly excelExportModule = input<ExcelExportModule | null>(null);
+  readonly excelExportParams = input<ExcelExportParams>({});
+  readonly excelExportFileName = input<string>('export.xls');
 
   readonly paginaSiguiente = output<void>();
   readonly paginaAnterior = output<void>();
@@ -110,6 +116,7 @@ export class Table<T extends Record<string, any>>
   filterValue = signal<any>('all');
   registrosPorPaginaInterno = signal(10);
   pageSizeOptions: number[] = [5, 10, 20];
+  isExportingExcel = signal(false);
 
   private readonly syncExternalSearchEffect = effect(() => {
     const externalValue = this.searchValue() ?? '';
@@ -358,5 +365,20 @@ export class Table<T extends Record<string, any>>
     }
 
     this.addClick.emit();
+  }
+
+  onExcelExportClick(): void {
+    const module = this.excelExportModule();
+    if (!module || this.isExportingExcel()) {
+      return;
+    }
+
+    this.isExportingExcel.set(true);
+    this.exportService.exportExcel(module, this.excelExportParams()).pipe(
+      finalize(() => this.isExportingExcel.set(false))
+    ).subscribe({
+      next: (blob) => this.exportService.downloadBlob(blob, this.excelExportFileName()),
+      error: (error) => console.error('Error exporting Excel', error),
+    });
   }
 }
