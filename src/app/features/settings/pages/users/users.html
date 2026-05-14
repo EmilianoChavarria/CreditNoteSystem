@@ -7,6 +7,8 @@
     </header>
     <app-tabla-dinamica [datos]="users()" [columnas]="columns" [accionesPersonalizadas]="acciones" actionMode="menu"
         [enableFilter]="true" filterField="role.roleName" [canAdd]="true" [canBulk]="true"
+        [filterOptions]="roleFilterOptions()"
+        [filterDefault]="selectedRoleName()"
         [addLabel]="'USERS_PAGE.USER'"
         [registrosPorPagina]="pageSize()" [serverPagination]="true" [paginaActualExterna]="currentPage()"
         [totalPaginasExterno]="totalPages()"
@@ -15,6 +17,7 @@
         (paginaPrimera)="onFirstPage()" (paginaUltima)="onLastPage()"
         (registrosPorPaginaChange)="onPageSizeChange($event)"
         (searchChange)="onSearch($event)"
+        (filterChange)="onRoleFilterChange($event)"
         (addClick)="openUserModalForCreate()"
         (bulkClick)="openBulkUploadModal()">
 

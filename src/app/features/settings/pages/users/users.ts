@@ -53,6 +53,8 @@ export class Users implements OnInit {
     public isUserModalLoading = signal<boolean>(false);
     public isSavingUser = signal<boolean>(false);
     public roles = signal<Role[]>([]);
+    public roleFilterOptions = signal<{ label: string; value: string }[]>([]);
+    public selectedRoleName = signal<string>('all');
     public supervisors = signal<UserData[]>([]);
     public searchTerm = signal<string>('');
     private searchDebounceTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -333,13 +335,14 @@ export class Users implements OnInit {
     ) { }
 
     ngOnInit(): void {
+        this.loadRoleFilterOptions();
         this.getUsers();
     }
 
     getUsers(page: number = this.currentPage()): void {
         this.isLoadingTable.set(true);
 
-        this._userService.getUsersPaginated(this.pageSize(), page, this.searchTerm()).pipe(
+        this._userService.getUsersPaginated(this.pageSize(), page, this.searchTerm(), this.selectedRoleName()).pipe(
             finalize(() => this.isLoadingTable.set(false))
         ).subscribe({
             next: (response) => {
@@ -375,6 +378,21 @@ export class Users implements OnInit {
             this.hasPrevPage.set(false);
             this.getUsers(1);
         }, 350);
+    }
+
+    onRoleFilterChange(roleName: string): void {
+        const normalizedRoleName = roleName?.trim() || 'all';
+
+        if (normalizedRoleName === this.selectedRoleName()) {
+            return;
+        }
+
+        this.selectedRoleName.set(normalizedRoleName);
+        this.currentPage.set(1);
+        this.totalPages.set(1);
+        this.hasNextPage.set(false);
+        this.hasPrevPage.set(false);
+        this.getUsers(1);
     }
 
     onNextPage(): void {
@@ -454,6 +472,26 @@ export class Users implements OnInit {
                     this._translateService.instant('USERS_PAGE.ERROR_LOADING_FORM_DATA'),
                     this._translateService.instant('USERS_PAGE.ERROR')
                 );
+            }
+        });
+    }
+
+    private loadRoleFilterOptions(): void {
+        this._roleService.getRoles().subscribe({
+            next: (roles) => {
+                this.roles.set(roles);
+                this.roleFilterOptions.set(
+                    roles
+                        .map((role) => (role.roleName ?? '').trim())
+                        .filter((roleName) => roleName.length > 0)
+                        .map((roleName) => ({
+                            label: roleName,
+                            value: roleName,
+                        }))
+                );
+            },
+            error: (error) => {
+                console.error('Error loading roles filter:', error);
             }
         });
     }

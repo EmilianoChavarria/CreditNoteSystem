@@ -47,12 +47,14 @@ export class UserService {
     )
   }
 
-  getUsersPaginated(per_page = 10, page = 1, search?: string): Observable<CursorPagination<User>> {
-    const params: { per_page: number; page: number; search?: string } = { per_page, page };
+  getUsersPaginated(per_page = 10, page = 1, search?: string, roleName = 'all'): Observable<CursorPagination<User>> {
+    const params: { per_page: number; page: number; search?: string; roleName?: string } = { per_page, page };
 
     if (search && search.trim().length > 0) {
       params.search = search.trim();
     }
+
+    params.roleName = roleName?.trim() || 'all';
 
     return this._httpService.get<CursorPagination<User>>('/usersPag', { params }).pipe(
       map((response: ApiResponse<CursorPagination<User>>) => {
