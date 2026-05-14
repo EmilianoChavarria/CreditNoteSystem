@@ -91,6 +91,7 @@ export class Table<T extends Record<string, any>>
   readonly paginaUltima = output<void>();
   readonly registrosPorPaginaChange = output<number>();
   readonly searchChange = output<string>();
+  readonly filterChange = output<any>();
   readonly addClick = output<void>();
   readonly bulkClick = output<void>();
 
@@ -267,6 +268,15 @@ export class Table<T extends Record<string, any>>
 
     if (this.serverPagination()) {
       this.searchChange.emit(value.trim());
+    }
+  }
+
+  onFilterChange(value: any): void {
+    this.filterValue.set(value);
+    this.paginaActual.set(1);
+
+    if (this.serverPagination()) {
+      this.filterChange.emit(value);
     }
   }
 

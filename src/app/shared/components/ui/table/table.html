@@ -30,7 +30,7 @@
 
                 <select
                     class="appearance-none w-full bg-white text-sm pl-10 pr-8 py-2 border border-gray-300 rounded-lg"
-                    [value]="filterValue()" (change)="filterValue.set($any($event.target).value); paginaActual.set(1)">
+                    [value]="filterValue()" (change)="onFilterChange($any($event.target).value)">
                     <option value="all">{{ 'TABLE.ALL' | translate }}</option>
                     <option *ngFor="let opt of computedFilterOptions()" [value]="opt.value">
                         {{ opt.label }}
