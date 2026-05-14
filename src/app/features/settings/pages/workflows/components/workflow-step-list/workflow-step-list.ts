@@ -2,6 +2,7 @@ import { Component, input, output } from '@angular/core';
 import { LucideAngularModule } from 'lucide-angular';
 import { WorkflowGroup, WorkflowStep } from '../../workflows.types';
 import { WorkflowStepCard } from '../workflow-step-card/workflow-step-card';
+import { TranslatePipe } from '@ngx-translate/core';
 
 export interface EditStepEvent {
   workflow: WorkflowGroup;
@@ -15,7 +16,7 @@ export interface AddStepBetweenEvent {
 
 @Component({
   selector: 'app-workflow-step-list',
-  imports: [LucideAngularModule, WorkflowStepCard],
+  imports: [LucideAngularModule, WorkflowStepCard, TranslatePipe],
   templateUrl: './workflow-step-list.html',
 })
 export class WorkflowStepList {

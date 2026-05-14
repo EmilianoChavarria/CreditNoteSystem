@@ -2,26 +2,26 @@
     <!-- Container max-w-8xl -->
     <div class="flex flex-col max-w-7xl mx-auto gap-y-6">
         <div class="flex flex-row justify-start items-center gap-4">
-            <button (click)="onCancel()" title="Regresar a roles"
+            <button (click)="onCancel()" [title]="'ROLE_PERMISSIONS.BACK_TO_ROLES' | translate"
                 class="p-2 rounded-md border border-gray-200 text-gray-500 hover:bg-gray-100 hover:text-gray-800 transition-colors shrink-0">
                 <lucide-icon name="arrow-left" size="20"></lucide-icon>
             </button>
             <div class="flex flex-col">
                 <span class="text-3xl font-semibold">{{ selectedRoleName()}}</span>
-                <span class="text-gray-600">Define los permisos y accesos para este rol en el sistema</span>
+                <span class="text-gray-600">{{ 'ROLE_PERMISSIONS.DESCRIPTION' | translate }}</span>
             </div>
         </div>
 
         @if (isLoading()) {
         <div class="bg-white shadow-md rounded-lg w-full py-10 px-8 text-center text-gray-600">
-            Cargando permisos del rol...
+            {{ 'ROLE_PERMISSIONS.LOADING' | translate }}
         </div>
         } @else {
 
         <div class="bg-white shadow-md rounded-lg w-full py-4 px-8">
             <div class="flex flex-col">
-                <span class="text-lg font-semibold text-gray-800">Acceso General</span>
-                <span class="text-gray-600">Controla el acceso a las secciones principales de la plataforma.</span>
+                <span class="text-lg font-semibold text-gray-800">{{ 'ROLE_PERMISSIONS.GENERAL_ACCESS' | translate }}</span>
+                <span class="text-gray-600">{{ 'ROLE_PERMISSIONS.GENERAL_ACCESS_DESC' | translate }}</span>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-1">
                 @for (module of modules(); track module.id) {
@@ -41,8 +41,8 @@
 
         <div class="bg-white shadow-md rounded-lg w-full py-4 px-8">
             <div class="flex flex-col">
-                <span class="text-lg font-semibold text-gray-800">Módulo de Solicitudes</span>
-                <span class="text-gray-600">Permisos granulares por tipo de solicitud y acción.</span>
+                <span class="text-lg font-semibold text-gray-800">{{ 'ROLE_PERMISSIONS.REQUEST_MODULE' | translate }}</span>
+                <span class="text-gray-600">{{ 'ROLE_PERMISSIONS.REQUEST_MODULE_DESC' | translate }}</span>
             </div>
             <div class=" w-full overflow-x-auto overflow-y-hidden rounded-lg">
                 <table class="w-full border border-gray-200 border-collapse rounded-2xl mt-4 table-fixed">
@@ -95,12 +95,12 @@
                 <button (click)="onCancel()"
                     class="border border-gray-300 rounded-md px-4 py-2 flex flex-row items-center justify-center gap-x-1">
                     <lucide-icon name="x" size="17"></lucide-icon>
-                    Cancelar
+                    {{ 'ROLE_PERMISSIONS.CANCEL' | translate }}
                 </button>
                 <button (click)="onSaveChanges()" [disabled]="isSaving()"
                     class="bg-[#ff8200] text-white rounded-md px-4 py-2 flex flex-row items-center justify-center gap-x-2 hover:cursor-pointer hover:bg-[#db7201]">
                     <lucide-icon name="save" size="17"></lucide-icon>
-                    {{ isSaving() ? 'Guardando...' : 'Guardar cambios' }}
+                    {{ isSaving() ? ('ROLE_PERMISSIONS.SAVING' | translate) : ('ROLE_PERMISSIONS.SAVE_CHANGES' | translate) }}
                 </button>
             </div>
 

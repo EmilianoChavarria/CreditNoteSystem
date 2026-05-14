@@ -4,10 +4,11 @@ import { LucideAngularModule } from 'lucide-angular';
 import { Modal } from '../../../../../../shared/components/ui/modal/modal';
 import { Spinner } from '../../../../../../shared/components/ui/spinner/spinner';
 import { Role } from '../../../../../../data/interfaces/User';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-roles-manage-modal',
-  imports: [Modal, Spinner, TitleCasePipe, LucideAngularModule],
+  imports: [Modal, Spinner, TitleCasePipe, LucideAngularModule, TranslatePipe],
   templateUrl: './roles-manage-modal.html'
 })
 export class RolesManageModal {

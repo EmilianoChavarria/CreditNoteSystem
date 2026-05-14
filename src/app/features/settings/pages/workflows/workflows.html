@@ -10,7 +10,7 @@
         <div class="w-full flex items-center justify-end mb-6">
             <button type="button" (click)="openAddWorkflowModal()"
                 class="flex items-center justify-center bg-[#395f93] rounded-md text-white px-2 py-1 gap-x-2 hover:cursor-pointer hover:bg-[#5073a3]">
-                Add Workflow
+                {{ 'WORKFLOWS_MANAGE.ADD_WORKFLOW' | translate }}
             </button>
         </div>
 
@@ -63,10 +63,10 @@
         (primaryAction)="saveWorkflow()">
     </app-add-workflow-modal>
 
-    <app-modal size="sm" titleM="Confirmar eliminación" [open]="isOpenDeleteStepConfirmModal()"
+    <app-modal size="sm" [titleM]="'WORKFLOWS_MANAGE.CONFIRM_DELETE_TITLE' | translate" [open]="isOpenDeleteStepConfirmModal()"
         [showCloseButton]="false" [showPrimaryButton]="false" (openChange)="showDeleteStepConfirmModal($event)">
         <p class="text-sm text-slate-700">
-            ¿Seguro que deseas eliminar el paso
+            {{ 'WORKFLOWS_MANAGE.CONFIRM_DELETE_STEP_PREFIX' | translate }}
             <span class="font-semibold">{{ stepPendingDeletion()?.stepNumber }}</span> -
             <span class="font-semibold">{{ stepPendingDeletion()?.roleName }}</span>?
         </p>
@@ -74,12 +74,12 @@
             <button type="button"
                 class="rounded-md border border-slate-300 bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-200"
                 (click)="showDeleteStepConfirmModal(false)">
-                Cancelar
+                {{ 'WORKFLOWS_MANAGE.CANCEL' | translate }}
             </button>
             <button type="button"
                 class="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700"
                 (click)="confirmDeleteStep()">
-                Eliminar
+                {{ 'WORKFLOWS_MANAGE.DELETE' | translate }}
             </button>
         </div>
     </app-modal>
