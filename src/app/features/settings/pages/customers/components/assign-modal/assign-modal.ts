@@ -5,6 +5,7 @@ import { UiSelect, SelectOption } from '../../../../../../shared/components/ui/s
 import { FormControl, FormGroup } from '@angular/forms';
 import { UserService } from '../../../../../../core/services/user-service';
 import { User } from '../../../../../../data/interfaces/User';
+import { TranslatePipe } from '@ngx-translate/core';
 
 type AssignManagersForm = FormGroup<{
   area: FormControl<string>;
@@ -26,7 +27,7 @@ export interface AssignManagersPayload {
 
 @Component({
   selector: 'app-assign-modal',
-  imports: [Modal, UpperCasePipe, UiSelect],
+  imports: [Modal, UpperCasePipe, UiSelect, TranslatePipe],
   templateUrl: './assign-modal.html',
   styleUrl: './assign-modal.css',
 })
