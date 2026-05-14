@@ -72,10 +72,12 @@ export class Pending extends RequestListBase {
         this.isLoading.set(true);
         forkJoin({
             actions: this._roleService.getActions(),
+            roles: this._roleService.getRoles(),
             requestTypes: this._requestsService.getRequestTypes(),
             permissions: this._roleService.getRequestTypePermissionsForCurrentContext(),
         }).subscribe({
-            next: ({ actions, requestTypes, permissions }) => {
+            next: ({ actions, roles, requestTypes, permissions }) => {
+                this.setRoleFilterOptions(roles);
                 this.requestTypes.set(requestTypes);
                 this.requestTypeActionPermissions.set(this.buildRequestTypeActionPermissions(actions, permissions));
                 const allowedTypes = requestTypes.filter(rt => this.canViewRequestType(rt.id));
@@ -142,7 +144,8 @@ export class Pending extends RequestListBase {
             requestTypeId,
             this.pageSize(),
             this.currentPage(),
-            this.searchTerm()
+            this.searchTerm(),
+            this.selectedRoleName()
         ).pipe(
             finalize(() => {
                 this.isLoadingTable.set(false);

@@ -107,10 +107,12 @@ export class MyApprovals extends RequestListBase {
     private loadAllowedRequestTypes(): void {
         forkJoin({
             actions: this.roleService.getActions(),
+            roles: this.roleService.getRoles(),
             requestTypes: this._requestsService.getRequestTypes(),
             permissions: this.roleService.getRequestTypePermissionsForCurrentContext(),
         }).subscribe({
-            next: ({ actions, requestTypes, permissions }) => {
+            next: ({ actions, roles, requestTypes, permissions }) => {
+                this.setRoleFilterOptions(roles);
                 const permissionMatrix = this.buildRequestTypeActionPermissions(actions, permissions);
                 this.requestTypeActionPermissions.set(permissionMatrix);
                 const filteredTypes = requestTypes.filter((rt) => Boolean(permissionMatrix[rt.id]?.['approve']));
@@ -190,7 +192,7 @@ export class MyApprovals extends RequestListBase {
 
         return forkJoin(
             requestTypes.map((requestType) =>
-                this._requestsService.getMyPendingRequests(requestType.id, this.pageSize(), 1, requestNumber).pipe(
+                this._requestsService.getMyPendingRequests(requestType.id, this.pageSize(), 1, requestNumber, this.selectedRoleName()).pipe(
                     map((response) => {
                         const found = (response.data ?? []).some((request) =>
                             this.normalizeRequestNumberForCompare(request.requestNumber) === normalizedTarget
@@ -272,7 +274,7 @@ export class MyApprovals extends RequestListBase {
 
         this.isLoadingTable.set(true);
 
-        this._requestsService.getMyPendingRequests(requestTypeId, this.pageSize(), this.currentPage(), this.searchTerm()).subscribe({
+        this._requestsService.getMyPendingRequests(requestTypeId, this.pageSize(), this.currentPage(), this.searchTerm(), this.selectedRoleName()).subscribe({
             next: (response) => {
                 this.requests.set(response.data ?? []);
                 this.currentPage.set(response.current_page ?? 1);
