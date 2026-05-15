@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../../core/services/auth-service';
 import {
   ChargeTypeOption,
@@ -14,6 +15,7 @@ import {
   ReturnOrderCreated,
 } from '../../core/services/customer-service';
 import { catchError, combineLatest, debounceTime, distinctUntilChanged, map, of, startWith, switchMap, take } from 'rxjs';
+import { LucideAngularModule } from "lucide-angular";
 import { UiProductHistoryModal } from './components/product-history-modal/product-history-modal';
 import { ClientInvoiceFilters } from './components/client-invoice-filters/client-invoice-filters';
 import { ClientInvoiceCard } from './components/client-invoice-card/client-invoice-card';
@@ -34,6 +36,8 @@ import {
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    LucideAngularModule,
+    TranslatePipe,
     UiProductHistoryModal,
     ClientInvoiceFilters,
     ClientInvoiceCard,
@@ -46,6 +50,7 @@ export class Clients {
   private readonly authService = inject(AuthService);
   private readonly customerService = inject(CustomerService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly translateService = inject(TranslateService);
 
   protected readonly taxRate = 0.16;
   protected readonly invoiceChargeType = new FormControl<number | null>(null, { nonNullable: true });
@@ -66,7 +71,7 @@ export class Clients {
   protected readonly isHistoryModalOpen = signal<boolean>(false);
   protected readonly isLoadingProductHistory = signal<boolean>(false);
   protected readonly productHistoryError = signal<string | null>(null);
-  protected readonly historyModalTitle = signal<string>('Historial de devoluciones');
+  protected readonly historyModalTitle = signal<string>('');
   protected readonly historyModalSubtitle = signal<string>('');
   protected readonly productHistorySummary = signal<ProductHistorySummaryView | null>(null);
   protected readonly productHistoryRows = signal<ProductReturnHistoryEntry[]>([]);
@@ -162,28 +167,11 @@ export class Clients {
   );
 
   protected readonly groupedReturnItems = computed<GroupedReturnItems[]>(() => {
-    const groups = new Map<string, GroupedReturnItems>();
+    return this.groupReturnItems(this.returnItems());
+  });
 
-    this.returnItems().forEach(item => {
-      const current = groups.get(item.invoiceId);
-      if (current) {
-        current.items.push(item);
-      } else {
-        groups.set(item.invoiceId, {
-          invoiceId: item.invoiceId,
-          invoiceFolio: item.invoiceFolio,
-          invoiceNumber: item.invoiceNumber,
-          invoiceDate: item.invoiceDate,
-          deliveryNote: item.deliveryNote,
-          items: [item],
-        });
-      }
-    });
-
-    return Array.from(groups.values()).map(group => ({
-      ...group,
-      items: [...group.items],
-    }));
+  protected readonly generatedOrderGroups = computed<GroupedReturnItems[]>(() => {
+    return this.groupReturnItems(this.generatedOrder()?.items ?? []);
   });
 
   constructor() {
@@ -328,8 +316,8 @@ export class Clients {
     this.productHistorySummary.set(null);
     this.productHistoryRows.set([]);
 
-    this.historyModalTitle.set('Historial de Devoluciones');
-    this.historyModalSubtitle.set(`${product.partNumber} - Factura ${invoice.folio}`);
+    this.historyModalTitle.set(this.translate('CLIENT_INVOICES.HISTORY.TITLE'));
+    this.historyModalSubtitle.set(`${product.partNumber} - ${this.translate('CLIENT_INVOICES.INVOICE.INVOICE')} ${invoice.folio}`);
 
     this.customerService
       .getInvoiceProductHistory(invoice.folio, clientId, product.conceptoIndex)
@@ -337,7 +325,7 @@ export class Clients {
       .subscribe({
         next: (historyData: ProductReturnHistoryData | null) => {
           if (!historyData) {
-            this.productHistoryError.set('No se encontró historial para este producto.');
+            this.productHistoryError.set(this.translate('CLIENT_INVOICES.HISTORY.NOT_FOUND'));
             this.isLoadingProductHistory.set(false);
             return;
           }
@@ -353,7 +341,7 @@ export class Clients {
         },
         error: (error: unknown) => {
           const apiMessage = (error as { error?: { message?: string } })?.error?.message;
-          this.productHistoryError.set(apiMessage?.trim() || 'No fue posible cargar el historial de devoluciones.');
+          this.productHistoryError.set(apiMessage?.trim() || this.translate('CLIENT_INVOICES.HISTORY.LOAD_ERROR'));
           this.isLoadingProductHistory.set(false);
         },
       });
@@ -424,14 +412,14 @@ export class Clients {
     const clientId = this.currentClientIdNumber();
 
     if (!clientId) {
-      this.returnOrderError.set('No se pudo determinar el clientId del usuario autenticado.');
+      this.returnOrderError.set(this.translate('CLIENT_INVOICES.ERRORS.CLIENT_ID'));
       return;
     }
 
     const chargeTypeId = this.invoiceChargeType.value;
 
     if (!clientId || !chargeTypeId) {
-      this.returnOrderError.set('No se ha seleccionado un tipo de facturación.');
+      this.returnOrderError.set(this.translate('CLIENT_INVOICES.ERRORS.CHARGE_TYPE'));
       return;
     }
 
@@ -459,19 +447,24 @@ export class Clients {
 
     this.customerService.createReturnOrder(payload).pipe(take(1)).subscribe({
       next: response => {
+        const generatedItems = this.returnItems();
         this.generatedOrder.set({
           id: response.id,
           clientId: response.clientId,
           status: response.status,
           notes: response.notes ?? null,
           createdAt: response.createdAt,
-          items: this.returnItems(),
+          items: generatedItems,
         });
+        this.applyGeneratedReturnOrder(generatedItems);
+        this.returnItems.set([]);
+        this.draftQuantities.set({});
+        this.returnOrderNotes.setValue('');
         this.isCreatingReturnOrder.set(false);
       },
       error: (error: unknown) => {
         const apiMessage = (error as { error?: { message?: string } })?.error?.message;
-        this.returnOrderError.set(apiMessage?.trim() || 'No fue posible crear la orden de devolución.');
+        this.returnOrderError.set(apiMessage?.trim() || this.translate('CLIENT_INVOICES.ERRORS.CREATE_ORDER'));
         this.isCreatingReturnOrder.set(false);
       },
     });
@@ -479,6 +472,60 @@ export class Clients {
 
   private returnItemKey(invoice: CustomerInvoice, product: InvoiceProduct): string {
     return `${invoice.id}-${invoice.invoiceNumber}-${product.id}`;
+  }
+
+  private groupReturnItems(items: ReturnOrderItem[]): GroupedReturnItems[] {
+    const groups = new Map<string, GroupedReturnItems>();
+
+    items.forEach(item => {
+      const current = groups.get(item.invoiceId);
+      if (current) {
+        current.items.push(item);
+      } else {
+        groups.set(item.invoiceId, {
+          invoiceId: item.invoiceId,
+          invoiceFolio: item.invoiceFolio,
+          invoiceNumber: item.invoiceNumber,
+          invoiceDate: item.invoiceDate,
+          deliveryNote: item.deliveryNote,
+          items: [item],
+        });
+      }
+    });
+
+    return Array.from(groups.values()).map(group => ({
+      ...group,
+      items: [...group.items],
+    }));
+  }
+
+  private applyGeneratedReturnOrder(items: ReturnOrderItem[]): void {
+    if (items.length === 0) {
+      return;
+    }
+
+    const quantitiesByProductKey = new Map<string, number>();
+    items.forEach(item => {
+      quantitiesByProductKey.set(item.key, (quantitiesByProductKey.get(item.key) ?? 0) + item.quantity);
+    });
+
+    this.invoices.update(invoices =>
+      invoices.map(invoice => ({
+        ...invoice,
+        products: invoice.products.map(product => {
+          const returnedQuantity = quantitiesByProductKey.get(this.returnItemKey(invoice, product)) ?? 0;
+          if (returnedQuantity <= 0) {
+            return product;
+          }
+
+          return {
+            ...product,
+            qtyShipped: Math.max(0, product.qtyShipped - returnedQuantity),
+            qtyBackorder: product.qtyBackorder + returnedQuantity,
+          };
+        }),
+      })),
+    );
   }
 
   private syncInvoicesFromAuthenticatedClient(): void {
@@ -546,7 +593,7 @@ export class Clients {
               return pagination.data.map(invoice => this.toCustomerInvoice(invoice));
             }),
             catchError(() => {
-              this.invoicesLoadError.set('No fue posible cargar las facturas del cliente.');
+              this.invoicesLoadError.set(this.translate('CLIENT_INVOICES.ERRORS.LOAD_INVOICES'));
               this.resetInvoicePagination();
               return of<CustomerInvoice[]>([]);
             }),
@@ -636,7 +683,7 @@ export class Clients {
           const apiMessage = (error as { error?: { message?: string } })?.error?.message;
           this.invoiceProductsError.update(current => ({
             ...current,
-            [invoiceKey]: apiMessage?.trim() || 'No fue posible cargar los productos de la factura.',
+            [invoiceKey]: apiMessage?.trim() || this.translate('CLIENT_INVOICES.ERRORS.LOAD_PRODUCTS'),
           }));
           return of<InvoiceProduct[]>([]);
         }),
@@ -732,5 +779,9 @@ export class Clients {
       customerPoNumber: orderNumber,
       deliveryNote,
     };
+  }
+
+  private translate(key: string): string {
+    return this.translateService.instant(key);
   }
 }
