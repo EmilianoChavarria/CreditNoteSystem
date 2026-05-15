@@ -14,82 +14,31 @@ import {
   ReturnOrderCreated,
 } from '../../core/services/customer-service';
 import { catchError, combineLatest, debounceTime, distinctUntilChanged, map, of, startWith, switchMap, take } from 'rxjs';
-import { LucideAngularModule } from "lucide-angular";
 import { UiProductHistoryModal } from './components/product-history-modal/product-history-modal';
-
-interface InvoiceProduct {
-  id: string;
-  conceptoIndex: number;
-  invoiceFolio: string;
-  invoiceClientId: number;
-  orderNumber: string;
-  customerPoNumber: string;
-  deliveryNote: string;
-  qtyOrdered: number;
-  qtyShipped: number;
-  qtyBackorder: number;
-  partNumber: string;
-  customerPart: string;
-  satCode: string;
-  unit: string;
-  origin: string;
-  unitPrice: number;
-}
-
-interface CustomerInvoice {
-  id: string;
-  folio: string;
-  invoiceNumber: string;
-  date: string;
-  products: InvoiceProduct[];
-}
-
-interface ReturnOrderItem {
-  key: string;
-  invoiceId: string;
-  invoiceFolio: string;
-  invoiceClientId: number;
-  invoiceNumber: string;
-  invoiceDate: string;
-  conceptoIndex: number;
-  deliveryNote: string;
-  partNumber: string;
-  customerPart: string;
-  satCode: string;
-  unit: string;
-  unitPrice: number;
-  maxQuantity: number;
-  quantity: number;
-}
-
-interface GroupedReturnItems {
-  invoiceId: string;
-  invoiceFolio: string;
-  invoiceNumber: string;
-  invoiceDate: string;
-  deliveryNote: string;
-  items: ReturnOrderItem[];
-}
-
-interface GeneratedReturnOrder {
-  id: number;
-  clientId: number;
-  status: string;
-  notes?: string | null;
-  createdAt: string;
-  items: ReturnOrderItem[];
-}
-
-interface ProductHistorySummaryView {
-  totalSent: number;
-  totalReturned: number;
-  available: number;
-  unit: string;
-}
+import { ClientInvoiceFilters } from './components/client-invoice-filters/client-invoice-filters';
+import { ClientInvoiceCard } from './components/client-invoice-card/client-invoice-card';
+import { ClientInvoicePagination } from './components/client-invoice-pagination/client-invoice-pagination';
+import {
+  CustomerInvoice,
+  DraftQuantityAdjust,
+  DraftQuantityChange,
+  GeneratedReturnOrder,
+  GroupedReturnItems,
+  InvoiceProduct,
+  ProductHistorySummaryView,
+  ReturnOrderItem,
+} from './clients.types';
 
 @Component({
   selector: 'app-clients',
-  imports: [CommonModule, ReactiveFormsModule, LucideAngularModule, UiProductHistoryModal],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    UiProductHistoryModal,
+    ClientInvoiceFilters,
+    ClientInvoiceCard,
+    ClientInvoicePagination,
+  ],
   templateUrl: './clients.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -358,6 +307,14 @@ export class Clients {
     this.setDraftQuantity(invoice, product, next);
   }
 
+  protected onDraftQuantityChange(change: DraftQuantityChange): void {
+    this.setDraftQuantity(change.invoice, change.product, change.value);
+  }
+
+  protected onDraftQuantityAdjust(change: DraftQuantityAdjust): void {
+    this.adjustDraftQuantity(change.invoice, change.product, change.delta);
+  }
+
   protected openProductHistory(invoice: CustomerInvoice, product: InvoiceProduct): void {
     const clientId = this.currentClientId();
 
@@ -520,10 +477,6 @@ export class Clients {
     });
   }
 
-  protected productTotal(product: InvoiceProduct): number {
-    return product.qtyShipped * product.unitPrice;
-  }
-
   private returnItemKey(invoice: CustomerInvoice, product: InvoiceProduct): string {
     return `${invoice.id}-${invoice.invoiceNumber}-${product.id}`;
   }
@@ -627,7 +580,31 @@ export class Clients {
       invoiceNumber: [serie, folio].filter(Boolean).join('-') || invoice.id,
       date: emissionDate ? emissionDate.slice(0, 10) : '',
       products: [],
+      productsCount: this.resolveInvoiceProductsCount(invoice),
     };
+  }
+
+  private resolveInvoiceProductsCount(invoice: CustomerInvoiceSummary): number | null {
+    const invoiceRecord = invoice as CustomerInvoiceSummary & Record<string, unknown>;
+    const candidates = [
+      invoiceRecord['productsCount'],
+      invoiceRecord['products_count'],
+      invoiceRecord['productCount'],
+      invoiceRecord['product_count'],
+      invoiceRecord['conceptosCount'],
+      invoiceRecord['conceptos_count'],
+      invoiceRecord['itemsCount'],
+      invoiceRecord['items_count'],
+    ];
+
+    for (const candidate of candidates) {
+      const parsed = Number(candidate);
+      if (Number.isFinite(parsed) && parsed >= 0) {
+        return parsed;
+      }
+    }
+
+    return null;
   }
 
   private loadInvoiceProducts(invoice: CustomerInvoice, invoiceKey: string): void {
@@ -675,6 +652,7 @@ export class Clients {
             return {
               ...item,
               products,
+              productsCount: products.length,
             };
           }),
         );
