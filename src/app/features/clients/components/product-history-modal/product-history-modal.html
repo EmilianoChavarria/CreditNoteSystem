@@ -2,14 +2,14 @@
   size="xl"
   [titleM]="title()"
   [open]="open()"
-  [closeText]="'Cerrar'"
+  [closeText]="'BULK.CLOSE' | translate"
   [showPrimaryButton]="false"
   (openChange)="onOpenChange($event)"
 >
   <p modal-title class="mt-1 text-sm text-gray-500">{{ subtitle() }}</p>
 
   @if (isLoading()) {
-    <p class="text-sm text-gray-600">Cargando historial de devoluciones...</p>
+    <p class="text-sm text-gray-600">{{ 'CLIENT_INVOICES.HISTORY.LOADING' | translate }}</p>
   } @else if (error(); as historyError) {
     <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
       {{ historyError }}
@@ -18,23 +18,23 @@
     <div class="space-y-4">
       <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <article class="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3">
-          <p class="text-xs font-semibold uppercase tracking-wide text-blue-700">Facturado</p>
+          <p class="text-xs font-semibold uppercase tracking-wide text-blue-700">{{ 'CLIENT_INVOICES.HISTORY.INVOICED' | translate }}</p>
           <p class="mt-1 text-3xl font-bold text-blue-700">{{ currentSummary.totalSent }} {{ currentSummary.unit }}</p>
         </article>
         <article class="rounded-xl border border-orange-100 bg-orange-50 px-4 py-3">
-          <p class="text-xs font-semibold uppercase tracking-wide text-orange-700">Devoluciones Parciales</p>
+          <p class="text-xs font-semibold uppercase tracking-wide text-orange-700">{{ 'CLIENT_INVOICES.HISTORY.PARTIAL_RETURNS' | translate }}</p>
           <p class="mt-1 text-3xl font-bold text-orange-700">{{ currentSummary.totalReturned }} {{ currentSummary.unit }}</p>
         </article>
         <article class="rounded-xl border border-green-100 bg-green-50 px-4 py-3">
-          <p class="text-xs font-semibold uppercase tracking-wide text-green-700">Disponible</p>
+          <p class="text-xs font-semibold uppercase tracking-wide text-green-700">{{ 'CLIENT_INVOICES.HISTORY.AVAILABLE' | translate }}</p>
           <p class="mt-1 text-3xl font-bold text-green-700">{{ currentSummary.available }} {{ currentSummary.unit }}</p>
         </article>
       </div>
 
       <div>
         <div class="mb-1 flex items-center justify-between text-xs text-gray-500">
-          <span>Trazabilidad de unidades</span>
-          <span>{{ currentSummary.totalSent }} {{ currentSummary.unit }} total</span>
+          <span>{{ 'CLIENT_INVOICES.HISTORY.UNIT_TRACEABILITY' | translate }}</span>
+          <span>{{ currentSummary.totalSent }} {{ currentSummary.unit }} {{ 'CLIENT_INVOICES.HISTORY.TOTAL' | translate }}</span>
         </div>
         <div class="h-3 overflow-hidden rounded-full bg-gray-200">
           <div class="h-full bg-orange-500" [style.width.%]="returnedPercent()"></div>
@@ -43,22 +43,22 @@
       </div>
 
       <div>
-        <h3 class="mb-2 text-lg font-semibold text-gray-800">Registros de Devolución</h3>
+        <h3 class="mb-2 text-lg font-semibold text-gray-800">{{ 'CLIENT_INVOICES.HISTORY.RETURN_RECORDS' | translate }}</h3>
 
         @if (rows().length === 0) {
           <div class="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-600">
-            No hay devoluciones registradas para este producto.
+            {{ 'CLIENT_INVOICES.HISTORY.NO_RETURNS' | translate }}
           </div>
         } @else {
           <div class="overflow-x-auto rounded-lg border border-gray-200">
             <table class="min-w-full border-collapse">
               <thead class="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
                 <tr>
-                  <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">Fecha</th>
-                  <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">Orden</th>
-                  <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">Cant.</th>
-                  <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">Estado</th>
-                  <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">Notas</th>
+                  <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">{{ 'CLIENT_INVOICES.HISTORY.COL_DATE' | translate }}</th>
+                  <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">{{ 'CLIENT_INVOICES.HISTORY.COL_ORDER' | translate }}</th>
+                  <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">{{ 'CLIENT_INVOICES.HISTORY.COL_QTY' | translate }}</th>
+                  <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">{{ 'CLIENT_INVOICES.HISTORY.COL_STATUS' | translate }}</th>
+                  <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">{{ 'CLIENT_INVOICES.HISTORY.COL_NOTES' | translate }}</th>
                 </tr>
               </thead>
               <tbody>
