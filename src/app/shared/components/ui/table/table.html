@@ -30,7 +30,7 @@
 
                 <select
                     class="appearance-none w-full bg-white text-sm pl-10 pr-8 py-2 border border-gray-300 rounded-lg"
-                    [value]="filterValue()" (change)="filterValue.set($any($event.target).value); paginaActual.set(1)">
+                    [value]="filterValue()" (change)="onFilterChange($any($event.target).value)">
                     <option value="all">{{ 'TABLE.ALL' | translate }}</option>
                     <option *ngFor="let opt of computedFilterOptions()" [value]="opt.value">
                         {{ opt.label }}
@@ -50,8 +50,11 @@
                 {{'TABLE.ZIP_BUTTON' | translate}}
             </button>
             <button
-                class="w-full sm:w-auto rounded-md bg-[#21760e] px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center">
-                <lucide-icon name="sheet" size="18"></lucide-icon>
+                type="button"
+                (click)="onExcelExportClick()"
+                [disabled]="!excelExportModule() || isExportingExcel()"
+                class="w-full sm:w-auto rounded-md bg-[#21760e] px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed">
+                <lucide-icon name="sheet" size="18" [class.animate-spin]="isExportingExcel()"></lucide-icon>
                 {{'TABLE.EXCEL_BUTTON' | translate}}
             </button>
             @if (canAdd()) {

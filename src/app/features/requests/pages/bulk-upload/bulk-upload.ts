@@ -579,4 +579,14 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
         this.loadBatches();
     }
 
+    public onBatchDetailRefreshRequested(): void {
+        const selected = this.selectedBatch();
+        if (!selected) {
+            return;
+        }
+
+        this.loadBatchDetail(selected.rawId);
+        this.loadBatchRequests(selected.rawId, this.batchRequestsCurrentPage());
+    }
+
 }

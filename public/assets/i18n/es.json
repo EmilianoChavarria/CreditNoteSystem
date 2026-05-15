@@ -30,7 +30,30 @@
     "WORKFLOWS": "Flujos de Aprobación",
     "SYS_CONFIG": "Configuración del Sistema",
     "SEC_MANAGE": "Gestión de la Seguridad",
-    "ASSIGN_USER": "Asignar Usuario"
+    "ASSIGN_USER": "Asignar Usuario",
+    "DESCRIPTION": {
+      "HOME": "Vista inicial con datos estadísticos",
+      "REQUESTS": "Módulo general de gestión de solicitudes",
+      "NEW_REQUEST": "Vista que pertenece al módulo de solicitudes, donde se puede crear una nueva solicitud",
+      "DRAFTS": "Vista que pertenece al módulo de solicitudes, donde se pueden visualizar borradores",
+      "BULK_UPLOAD": "Vista que pertenece al módulo de solicitudes, donde se pueden cargar datos masivos",
+      "PENDING": "Listado completo de las solicitudes creadas filtradas por tipo",
+      "APPROVE": "Listado de solicitudes que un usuario tiene por aprobar",
+      "MY_INVOICES": "Vista para el cliente donde puede visualizar sus facturas y generar una órden de devolución",
+      "MY_INVOICES_FILTER": "Vista para el cliente donde puede visualizar sus facturas y descargar XML y PDF",
+      "ORDERS": "Mis Órdenes",
+      "RETURN_ORDERS_APPROVAL": "Vista donde el usuario puede ver las órdenes de devolución y agregarla a una solicitud",
+      "HISTORY": "Historial",
+      "NOTIFICATIONS": "Vista donde el usuario ve sus notificaciones nuevas y leídas",
+      "SETTINGS": "Módulo general de gestión de la configuración del sistema",
+      "USER_MANAGEMENT": "Vista que pertenece al módulo de configuración, donde se pueden gestionar los usuarios del sistema",
+      "CLIENT_MANAGEMENT": "Vista que pertenece al módulo de configuración, donde se pueden visualizar los clientes",
+      "ROLES": "Vista que pertenece al módulo de configuración, donde se pueden visualizar los roles del sistema y gestionar sus permisos",
+      "WORKFLOWS": "Vista que pertenece al módulo de configuración, donde se pueden gestionar los flujos de aprobación que lleva una solicitud",
+      "SYS_CONFIG": "Vista que pertenece al módulo de configuración, donde se puede gestionar parámetros del sistema",
+      "SEC_MANAGE": "Vista que pertenece al módulo de configuración, donde se pueden desbloquear usuarios o IPs",
+      "ASSIGN_USER": "Vista que pertenece al módulo de configuración, donde se pueden asignar usuarios internos a un CS Leader"
+    }
   },
   "REQUEST_TYPES": {
     "DEFAULT": "Selecciona una opción",
@@ -133,12 +156,66 @@
   },
   "ROLE_MANAGE": {
     "TITLE": "Gestión de Roles",
-    "DESCRIPTION": "Configurar Permisos de Roles Para Tipos de Solicitud"
+    "DESCRIPTION": "Configurar permisos de roles para tipos de solicitud",
+    "MODAL_TITLE": "Gestionar Roles",
+    "MANAGE_ROLES": "Gestionar Roles",
+    "ADD_ROLE": "Agregar Rol",
+    "EDIT_ROLE": "Editar Rol",
+    "NEW_ROLE": "Nuevo Rol",
+    "ROLE_NAME": "Nombre del rol",
+    "STATUS": "Estado",
+    "ACTIONS": "Acciones",
+    "ACTIVE": "Activo",
+    "INACTIVE": "Inactivo",
+    "EDIT": "Editar",
+    "DELETE": "Eliminar",
+    "DELETING": "Eliminando...",
+    "EDIT_PERMISSIONS": "Editar Permisos",
+    "CANCEL": "Cancelar",
+    "ASSIGN": "Asignar",
+    "REMOVE": "Remover",
+    "ASSIGN_LOWER": "asignar",
+    "REMOVE_LOWER": "remover",
+    "ASSIGN_PERMISSION": "Asignar Permiso",
+    "REMOVE_PERMISSION": "Remover Permiso",
+    "ASSIGN_PERMISSIONS": "Asignar Permisos",
+    "REMOVE_PERMISSIONS": "Remover Permisos",
+    "CONFIRM_DELETE_TITLE": "Confirmar eliminación",
+    "CONFIRM_DELETE_PREFIX": "¿Seguro que deseas eliminar el rol",
+    "CONFIRM_DELETE_SUFFIX": "Esta acción lo marcará como inactivo.",
+    "PERMISSION_CONFIRM_PREFIX": "¿Deseas",
+    "PERMISSION_CONFIRM_SINGLE_MIDDLE": "el permiso de gestión completa del tipo de solicitud",
+    "PERMISSION_CONFIRM_MANY_MIDDLE": "el permiso de gestión completa de los tipos de solicitud:",
+    "PERMISSION_CONFIRM_ROLE_MIDDLE": "al rol"
+  },
+  "ROLE_PERMISSIONS": {
+    "BACK_TO_ROLES": "Regresar a roles",
+    "DESCRIPTION": "Define los permisos y accesos para este rol en el sistema",
+    "LOADING": "Cargando permisos del rol...",
+    "GENERAL_ACCESS": "Acceso General",
+    "GENERAL_ACCESS_DESC": "Controla el acceso a las secciones principales de la plataforma.",
+    "REQUEST_MODULE": "Módulo de Solicitudes",
+    "REQUEST_MODULE_DESC": "Permisos granulares por tipo de solicitud y acción.",
+    "CANCEL": "Cancelar",
+    "SAVING": "Guardando...",
+    "SAVE_CHANGES": "Guardar cambios"
   },
   "WORKFLOWS_MANAGE": {
     "TITLE": "Flujos de Aprobación",
     "DESCRIPTION": "Cada tipo de nota sigue un flujo secuencial de aprobación. La nota avanza de un rol al siguiente hasta ser liberada.",
-    "NO_WORKFLOWS": "No se han creado flujos de aprobación"
+    "NO_WORKFLOWS": "No se han creado flujos de aprobación",
+    "NO_WORKFLOWS_HINT": "Agrega un flujo para configurar sus pasos",
+    "ADD_WORKFLOW": "Agregar Flujo",
+    "ADD_STEP": "Agregar paso",
+    "NO_STEPS": "Sin pasos configurados",
+    "NO_STEPS_HINT": "Agrega un paso para comenzar el flujo",
+    "CANCEL": "Cancelar",
+    "SAVE": "Guardar",
+    "DELETE": "Eliminar",
+    "REQUEST_TYPE": "Tipo de solicitud",
+    "REQUEST_CLASSIFICATION_TYPE": "Tipo de clasificación de solicitud",
+    "CONFIRM_DELETE_TITLE": "Confirmar eliminación",
+    "CONFIRM_DELETE_STEP_PREFIX": "¿Seguro que deseas eliminar el paso"
   },
   "WORKFLOWS_STEP_MODAL": {
     "TITLE_ADD": "Agregar Paso",
@@ -235,6 +312,17 @@
     },
     "REQUEST_TYPE": "Tipo de Solicitud",
     "REQUEST_TYPE_PLACEHOLDER": "Selecciona un tipo de solicitud",
+    "STATUS": {
+      "COMPLETED": "Completado",
+      "FAILED": "Fallido",
+      "PROCESSING": "Procesando",
+      "PENDING": "Pendiente",
+      "SUCCESS": "Exitoso",
+      "EMITTED": "Emitido",
+      "PROCESSED": "Procesado",
+      "ERROR": "Error",
+      "UNKNOWN": "Desconocido"
+    },
     "COMMON": {
       "BATCH_TYPE": "Tipo de Batch",
       "FORMAT": "Formato",
@@ -283,7 +371,13 @@
       "FILTER_STATUS": "Filtrar:",
       "FILTER_ALL": "Todos",
       "FILTER_SUCCESS": "Exitosos",
-      "FILTER_ERROR": "Con error"
+      "FILTER_ERROR": "Con error",
+      "REFRESH_EVERY": "Actualizar datos cada:",
+      "REFRESH_NOW": "Actualizar Ahora",
+      "NEXT_REFRESH_SECONDS": "Segundos para la siguiente actualización:",
+      "PAUSE": "Pausa",
+      "RESUME": "Reanudar",
+      "SECONDS": "Segundos"
     },
     "REQUEST_ERROR": {
       "TITLE": "Detalle del error",
@@ -309,7 +403,7 @@
     },
     "ORDER": {
       "TITLE": "Subir Números de Orden",
-      "TITLE_MATERIAL_RETURN": "Upload SAP Return Order",
+      "TITLE_MATERIAL_RETURN": "Subir Orden de Devolución SAP",
       "DESCRIPTION": "Carga masiva de números de orden por CSV",
       "PROCESS_BUTTON": "Procesar Order Numbers",
       "HELP_TEXT": "Se enviará como batchType=orderNumbers usando file y el requestTypeId seleccionado.",
@@ -318,8 +412,8 @@
     "CREDITS": {
       "TITLE_CREDITS": "Subir Datos de Créditos",
       "TITLE_DEBITS": "Subir Datos de Débitos",
-      "TITLE_AUDITOR_DEBITS": "Upload Debits Data",
-      "TITLE_REINVOICING": "Upload credits/debit and new Invoice",
+      "TITLE_AUDITOR_DEBITS": "Subir Datos de Débitos",
+      "TITLE_REINVOICING": "Subir creditos/debitos y nueva factura",
       "DESCRIPTION": "Carga masiva para Créditos y Débitos por CSV o XLSX",
       "DESCRIPTION_REINVOICING": "Carga masiva para re-invoicing por CSV o XLSX",
       "FORMAT_VALUE": "CSV o XLSX",
@@ -641,6 +735,14 @@
     "BULK_UPLOAD_ERROR": "No fue posible cargar el archivo. Intenta de nuevo.",
     "BULK_TEMPLATE_HINT": "Descarga la plantilla antes de subir tu archivo.",
     "BULK_DOWNLOAD_TEMPLATE": "Descargar plantilla",
+    "BULK_WELCOME_EMAILS_TITLE": "Correos de bienvenida",
+    "BULK_WELCOME_EMAILS_HINT": "Elige si se enviaran accesos para los usuarios creados.",
+    "BULK_WELCOME_EMAIL_NONE": "No enviar correos",
+    "BULK_WELCOME_EMAIL_INDIVIDUAL": "Enviar correo a cada usuario creado",
+    "BULK_WELCOME_EMAIL_SINGLE": "Enviar todos los accesos a un solo correo",
+    "BULK_WELCOME_EMAIL_RECIPIENT": "Correo destinatario",
+    "BULK_WELCOME_EMAIL_RECIPIENT_PLACEHOLDER": "aldrick@ittec.mx",
+    "BULK_WELCOME_EMAIL_RECIPIENT_INVALID": "Ingresa un correo destinatario valido.",
     "BULK_FILE_NAME": "Nombre del archivo",
     "BULK_FILE_SIZE": "Tamaño",
     "BULK_FILE_TYPE": "Tipo",
@@ -667,7 +769,13 @@
   "ROLE_FORM": {
     "ROLENAME": "Nombre del Rol",
     "SELECT_COLOR": "Selecciona un Color",
-    "PREVIEW": "Vista Previa"
+    "PREVIEW": "Vista Previa",
+    "CANCEL": "Cancelar",
+    "SAVE": "Guardar",
+    "SELECT_COLOR_ARIA": "Seleccionar color",
+    "COLOR_REQUIRED": "Debes seleccionar un color",
+    "ROLE_NAME_PREVIEW": "Nombre del rol",
+    "ROLE_BADGE": "Rol"
   },
   "NEW_REQUEST_FORM": {
     "REQUEST_NUMBER": "Número de Solicitud",
@@ -714,7 +822,12 @@
     "SUBTOTAL": "Subtotal",
     "HAS_CHARGE": "Tiene cargo",
     "NO_CHARGE": "Sin cargo",
-    "TOTAL_WITH_CHARGE": "Total con cargo"
+    "TOTAL_WITH_CHARGE": "Total con cargo",
+    "TAB_REQUEST_CUSTOMER": "Solicitud y Cliente",
+    "TAB_REFERENCE_LOGISTICS": "Referencia y Logística",
+    "TAB_FINANCIAL_DATA": "Datos Financieros",
+    "TAB_SUPPORTS_COMMENTS": "Soportes y Comentarios",
+    "TAB_MATERIAL_LIST": "Lista de Materiales"
   },
   "PROFILE": {
     "LOADING": "Cargando perfil...",
@@ -885,5 +998,11 @@
     "COL_AMOUNT": "Importe",
     "ADD_TO_EXISTING": "Agregar a solicitud existente",
     "ADD_TO_NEW": "Agregar a solicitud nueva"
+  },
+  "TAB_CONTAINER": {
+    "BACK": "Atrás",
+    "NEXT": "Siguiente",
+    "SAVE_DRAFT": "Guardar borrador",
+    "REGISTER_REQUEST": "Registrar solicitud"
   }
 }

@@ -8,6 +8,9 @@
     </header>
     <app-tabla-dinamica [datos]="customers()" [columnas]="columns" [accionesPersonalizadas]="acciones" actionMode="menu"
         [enableFilter]="true" filterField="area" addLabel="CUSTOMERS_PAGE.CUSTOMER" addRoute="/app/settings/newCustomer"
+        excelExportModule="clients"
+        [excelExportParams]="{ search: searchTerm() }"
+        excelExportFileName="clients.xls"
         [canAdd]="false" [registrosPorPagina]="pageSize()" [serverPagination]="true"
         [paginaActualExterna]="currentPage()" [totalPaginasExterno]="totalPages()" [hasNextPage]="hasNextPage()"
         [hasPrevPage]="hasPrevPage()" [loading]="isLoadingTable()" (paginaSiguiente)="onNextPage()"

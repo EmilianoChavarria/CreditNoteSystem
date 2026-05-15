@@ -2,11 +2,11 @@ import { Component, input, output } from '@angular/core';
 import { Modal } from '../../../../../shared/components/ui/modal/modal';
 import { Request } from '../../../../../data/interfaces/Request';
 import { TranslatePipe } from '@ngx-translate/core';
-import { UpperCasePipe } from '@angular/common';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-approve-confirm-modal',
-  imports: [Modal, TranslatePipe],
+  imports: [Modal, TranslatePipe, ReactiveFormsModule],
   templateUrl: './approve-confirm-modal.html',
 })
 export class ApproveConfirmModal {
@@ -15,5 +15,7 @@ export class ApproveConfirmModal {
   readonly isLoading = input<boolean>(false);
 
   readonly openChange = output<boolean>();
-  readonly confirmed = output<void>();
+  readonly confirmed = output<string>();
+
+  readonly commentsControl = new FormControl<string>('');
 }

@@ -1,4 +1,5 @@
-<app-modal size="lg" titleM="Add Workflow" [open]="open()" closeText="Cancelar" primaryText="Guardar"
+<app-modal size="lg" [titleM]="'WORKFLOWS_MANAGE.ADD_WORKFLOW' | translate" [open]="open()"
+    [closeText]="'WORKFLOWS_MANAGE.CANCEL' | translate" [primaryText]="'WORKFLOWS_MANAGE.SAVE' | translate"
     (openChange)="openChange.emit($event)" (primaryAction)="primaryAction.emit()">
     <form [formGroup]="workflowForm()" class="flex flex-col gap-4">
         <!-- <div>
@@ -15,7 +16,7 @@
 
         <div class="flex items-center justify-between gap-x-4">
             <div class="w-1/2">
-                <label class="block font-medium text-[#2f3042] text-lg">Request Type</label>
+                <label class="block font-medium text-[#2f3042] text-lg">{{ 'WORKFLOWS_MANAGE.REQUEST_TYPE' | translate }}</label>
                 <select name="request_type" id="request_type" formControlName="requestTypeId"
                     class="mt-2 h-11 border w-full border-gray-300 rounded-lg pl-2 pr-4">
                     <option [ngValue]="0">{{ 'REQUEST_TYPES.DEFAULT' | translate }}</option>
@@ -29,7 +30,7 @@
             </div>
 
             <div class="w-1/2">
-                <label class="block font-medium text-[#2f3042] text-lg">Request Classification Type</label>
+                <label class="block font-medium text-[#2f3042] text-lg">{{ 'WORKFLOWS_MANAGE.REQUEST_CLASSIFICATION_TYPE' | translate }}</label>
                 <select name="type" formControlName="classificationType"
                     class="mt-2 w-full border border-gray-300 rounded-md p-2 bg-white focus:ring-blue-500 focus:border-blue-500">
                     <option value="DE">{{ 'REQUEST_TYPES.DEFAULT' | translate }}</option>

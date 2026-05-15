@@ -5,6 +5,7 @@ import { TranslateService } from '@ngx-translate/core';
 import * as pdfMake from 'pdfmake/build/pdfmake';
 import * as pdfFonts from 'pdfmake/build/vfs_fonts';
 import { Request, RequestType } from '../../data/interfaces/Request';
+import { Role } from '../../data/interfaces/User';
 import { WorkflowDetail } from '../../features/history/components/workflow-history-drawer/workflow-history-drawer';
 import { PermissionAction, RequestTypePermissionRecord } from '../../core/services/role-service';
 import { RequestService } from '../../core/services/request-service';
@@ -39,6 +40,8 @@ export abstract class RequestListBase {
     public isLoadingTable = signal<boolean>(true);
     public isLoading = signal<boolean>(false);
     public searchTerm = signal<string>('');
+    public roleFilterOptions = signal<{ label: string; value: string }[]>([]);
+    public selectedRoleName = signal<string>('all');
     public showHistoryDrawer = signal<boolean>(false);
     public workflowDetail: WorkflowDetail | null = null;
     public selectedRequest = signal<Request | null>(null);
@@ -230,5 +233,29 @@ export abstract class RequestListBase {
             this.resetPagination();
             this.loadRequests();
         }, 350);
+    }
+
+    onRoleFilterChange(roleName: string): void {
+        const normalizedRoleName = roleName?.trim() || 'all';
+        if (normalizedRoleName === this.selectedRoleName()) return;
+
+        this.selectedRoleName.set(normalizedRoleName);
+        this.resetPagination();
+
+        if (this.selectedRequestType !== 'DE' && this.selectedRequestType) {
+            this.loadRequests();
+        }
+    }
+
+    protected setRoleFilterOptions(roles: Role[]): void {
+        this.roleFilterOptions.set(
+            roles
+                .map((role) => (role.roleName ?? '').trim())
+                .filter((roleName) => roleName.length > 0)
+                .map((roleName) => ({
+                    label: roleName,
+                    value: roleName,
+                }))
+        );
     }
 }

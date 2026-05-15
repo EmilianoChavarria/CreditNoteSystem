@@ -1,78 +1,49 @@
-<app-modal size="lg" titleM="Assign Managers" [open]="open()" closeText="Cancelar" primaryText="Save"
-    (openChange)="openChange.emit($event)" (primaryAction)="onPrimaryAction()">
+<app-modal size="lg" titleM="Assign Managers" [open]="open()" closeText="Cancelar"
+    [primaryText]="'USERS_PAGE.SAVE'|translate" (openChange)="openChange.emit($event)"
+    (primaryAction)="onPrimaryAction()">
 
     <div class="flex flex-col gap-y-2 max-h-[55vh] overflow-y-auto px-3">
-        <app-select
-            id="area"
-            label="Area"
-            placeholder="Select area"
-            [options]="areaOptions"
-            [value]="assignForm.controls.area.value"
-            (valueChange)="assignForm.controls.area.setValue($event)"
-        />
+        <app-select id="area" label="Area" placeholder="Select area" [options]="areaOptions"
+            [value]="assignForm.controls.area.value" (valueChange)="assignForm.controls.area.setValue($event)" />
 
         <div class="border-t border-gray-200 my-6 flex items-center justify-between w-full">
-            <span class="-mt-3 bg-white px-4 text-center mx-auto text-sm text-gray-500">{{'Asignar Managers' | uppercase }}</span>
+            <span class="-mt-3 bg-white px-4 text-center mx-auto text-sm text-gray-500">{{'Asignar Managers' | uppercase
+                }}</span>
         </div>
 
         <div class="w-full gap-x-4 flex flex-row">
             <div class="w-1/2">
-                <app-select
-                    id="sales-engineer"
-                    label="Sales Engineer"
-                    placeholder="Select manager"
-                    [options]="managerOptions"
-                    [value]="assignForm.controls.salesEngineer.value"
-                    (valueChange)="assignForm.controls.salesEngineer.setValue($event)"
-                />
+                <app-select id="sales-engineer" label="Sales Engineer" placeholder="Select manager"
+                    [options]="managerOptions" [value]="assignForm.controls.salesEngineer.value"
+                    (valueChange)="assignForm.controls.salesEngineer.setValue($event)" />
             </div>
 
             <div class="w-1/2">
-                <app-select
-                    id="sales-manager"
-                    label="Sales Manager"
-                    placeholder="Select manager"
-                    [options]="managerOptions"
-                    [value]="assignForm.controls.salesManager.value"
-                    (valueChange)="assignForm.controls.salesManager.setValue($event)"
-                />
+                <app-select id="sales-manager" label="Sales Manager" placeholder="Select manager"
+                    [options]="managerOptions" [value]="assignForm.controls.salesManager.value"
+                    (valueChange)="assignForm.controls.salesManager.setValue($event)" />
             </div>
         </div>
 
         <div class="w-full gap-x-4 flex flex-row">
             <div class="w-1/2">
-                <app-select
-                    id="finance-manager"
-                    label="Finance Manager"
-                    placeholder="Select manager"
-                    [options]="managerOptions"
-                    [value]="assignForm.controls.financeManager.value"
-                    (valueChange)="assignForm.controls.financeManager.setValue($event)"
-                />
+                <app-select id="finance-manager" label="Finance Manager" placeholder="Select manager"
+                    [options]="managerOptions" [value]="assignForm.controls.financeManager.value"
+                    (valueChange)="assignForm.controls.financeManager.setValue($event)" />
             </div>
 
             <div class="w-1/2">
-                <app-select
-                    id="marketing-manager"
-                    label="Marketing Manager"
-                    placeholder="Select manager"
-                    [options]="managerOptions"
-                    [value]="assignForm.controls.marketingManager.value"
-                    (valueChange)="assignForm.controls.marketingManager.setValue($event)"
-                />
+                <app-select id="marketing-manager" label="Marketing Manager" placeholder="Select manager"
+                    [options]="managerOptions" [value]="assignForm.controls.marketingManager.value"
+                    (valueChange)="assignForm.controls.marketingManager.setValue($event)" />
             </div>
         </div>
 
         <div class="w-full gap-x-4 flex flex-row pb-1">
             <div class="w-1/2">
-                <app-select
-                    id="cs-manager"
-                    label="CS Manager"
-                    placeholder="Select manager"
-                    [options]="managerOptions"
+                <app-select id="cs-manager" label="CS Manager" placeholder="Select manager" [options]="managerOptions"
                     [value]="assignForm.controls.csManager.value"
-                    (valueChange)="assignForm.controls.csManager.setValue($event)"
-                />
+                    (valueChange)="assignForm.controls.csManager.setValue($event)" />
             </div>
         </div>
 

@@ -1,4 +1,4 @@
-<app-modal size="md" [titleM]="modalTitle()" [open]="open()" closeText="Cancelar" primaryText="Guardar"
+<app-modal size="md" [titleM]="modalTitle()" [open]="open()" [closeText]="'ROLE_FORM.CANCEL' | translate" [primaryText]="'ROLE_FORM.SAVE' | translate"
     (openChange)="handleOpenChange($event)" (primaryAction)="submitForm()">
     <form [formGroup]="form()" (submit)="submitForm()">
         <div>
@@ -20,7 +20,7 @@
                     [class]="`group relative flex size-8 items-center justify-center rounded-full transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background hover:cursor-pointer ${color.value === selectedItem().value ? 'scale-110 ring-2 ring-offset-2 ring-offset-background' : 'hover:scale-110' }`"
                     [style.background-color]="color.value" [style.--tw-ring-color]="color.value"
                     (click)="selectColor.emit(color)" [title]="color.name"
-                    [attr.aria-label]="'Seleccionar color ' + color.name"
+                    [attr.aria-label]="('ROLE_FORM.SELECT_COLOR_ARIA' | translate) + ' ' + color.name"
                     [attr.aria-pressed]="color.value === selectedItem().value">
                     @if (color.value === selectedItem().value) {
                     <lucide-icon name="check" size="18" color="#FFF" [strokeWidth]="5"></lucide-icon>
@@ -29,19 +29,19 @@
                 }
             </div>
             @if (showColorError()) {
-            <span class="mt-2 text-sm text-red-500">Debes seleccionar un color</span>
+            <span class="mt-2 text-sm text-red-500">{{ 'ROLE_FORM.COLOR_REQUIRED' | translate }}</span>
             }
 
             <span class="block font-medium text-[#395f93] text-lg mt-4">{{ 'ROLE_FORM.PREVIEW' | translate }}</span>
             <div class="w-full flex flex-row items-center justify-start gap-3 rounded-lg border border-gray-300 bg-gray-50 p-3">
                 <div class="h-2 w-2 rounded-full" [style]="`background-color: ${selectedItem().value};`"></div>
                 <span class="text-sm font-semibold" [style]="`color: ${selectedItem().value}`">
-                    {{ form().get('roleName')?.value || 'Nombre del rol' }}
+                    {{ form().get('roleName')?.value || ('ROLE_FORM.ROLE_NAME_PREVIEW' | translate) }}
                 </span>
                 <div class="ml-auto">
                     <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
                         [style]="`backgroundColor: ${selectedItem().value + '1A'}; color: ${selectedItem().value}`">
-                        Rol
+                        {{ 'ROLE_FORM.ROLE_BADGE' | translate }}
                     </span>
                 </div>
             </div>

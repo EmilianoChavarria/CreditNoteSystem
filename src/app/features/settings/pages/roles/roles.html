@@ -17,20 +17,20 @@
                 <button (click)="openModal()"
                     class="flex items-center justify-center bg-[#ff8200] rounded-md text-white px-3 py-2 gap-x-2 hover:cursor-pointer hover:bg-[#fd9628] text-sm font-medium">
                     <lucide-icon name="shield-check" size="16"></lucide-icon>
-                    Manage Roles
+                    {{ 'ROLE_MANAGE.MANAGE_ROLES' | translate }}
                 </button>
             </div>
             <table class="w-full border border-gray-200 border-collapse rounded-2xl ">
                 <thead class="text-sm text-heading bg-gray-100">
                     <tr class="border border-gray-200 ">
                         <th scope="col" class="px-6 py-3 font-semibold text-center w-12 border-y border-gray-200">
-                            Nombre del rol
+                            {{ 'ROLE_MANAGE.ROLE_NAME' | translate }}
                         </th>
                         <th scope="col" class="px-6 py-3 font-semibold text-center w-60 border-y border-gray-200">
-                            Estado
+                            {{ 'ROLE_MANAGE.STATUS' | translate }}
                         </th>
                         <th scope="col" class="px-6 py-3 font-semibold text-center w-60 border-y border-gray-200">
-                            Acciones
+                            {{ 'ROLE_MANAGE.ACTIONS' | translate }}
                         </th>
                     </tr>
                 </thead>
@@ -48,7 +48,7 @@
                         <td class="border-y border-gray-200 px-6 py-4 w-fit">
                             <div class="flex flex-row justify-center items-center gap-3">
                                 <app-badge [color]="role.isActive ? 'green': 'red'"
-                                    [text]="role.isActive ? 'Activo': 'Inactivo'"></app-badge>
+                                    [text]="role.isActive ? ('ROLE_MANAGE.ACTIVE' | translate): ('ROLE_MANAGE.INACTIVE' | translate)"></app-badge>
                             </div>
                         </td>
                         <td class="border-y border-gray-200 px-6 py-4 w-fit">
@@ -57,7 +57,7 @@
                                 <lucide-icon name="pencil" size="18" strokeWidth="2"></lucide-icon>
                                 <button [routerLink]="['manage-permissions']"
                                     [queryParams]="{ roleId: role.id, roleName: role.roleName }" class="text-sm">
-                                    Editar Permisos
+                                    {{ 'ROLE_MANAGE.EDIT_PERMISSIONS' | translate }}
                                 </button>
                             </div>
                         </td>
@@ -75,63 +75,65 @@
     </app-roles-manage-modal>
 
     <app-role-form-modal [open]="isOpenRoleModal()" [form]="form" [submitted]="submitted()" [roleColors]="ROLE_COLORS"
-        [selectedItem]="selectedItem" [modalTitle]="editingRole() ? 'Editar Rol' : 'Nuevo Rol'"
+        [selectedItem]="selectedItem" [modalTitle]="editingRole() ? ('ROLE_MANAGE.EDIT_ROLE' | translate) : ('ROLE_MANAGE.NEW_ROLE' | translate)"
         (openChange)="showRoleModal($event)" (primaryAction)="saveRole()"
         (selectColor)="onSelectColor($event)">
     </app-role-form-modal>
 
-    <app-modal size="sm" titleM="Confirmar eliminación" [open]="isOpenDeleteConfirmModal()"
+    <app-modal size="sm" [titleM]="'ROLE_MANAGE.CONFIRM_DELETE_TITLE' | translate" [open]="isOpenDeleteConfirmModal()"
         [showCloseButton]="false" [showPrimaryButton]="false"
         (openChange)="showDeleteConfirmModal($event)">
         <p class="text-sm text-slate-700">
-            ¿Seguro que deseas eliminar el rol
+            {{ 'ROLE_MANAGE.CONFIRM_DELETE_PREFIX' | translate }}
             <span class="font-semibold">{{ rolePendingDelete()?.roleName | titlecase }}</span>?
-            Esta acción lo marcará como inactivo.
+            {{ 'ROLE_MANAGE.CONFIRM_DELETE_SUFFIX' | translate }}
         </p>
         <div modal-actions class="flex items-center gap-2">
             <button type="button"
                 class="rounded-md border border-slate-300 bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-200"
                 (click)="showDeleteConfirmModal(false)">
-                Cancelar
+                {{ 'ROLE_MANAGE.CANCEL' | translate }}
             </button>
             <button type="button" [disabled]="isDeletingRole()"
                 class="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 disabled:opacity-60"
                 (click)="confirmDeleteRole()">
-                {{ isDeletingRole() ? 'Eliminando...' : 'Eliminar' }}
+                {{ isDeletingRole() ? ('ROLE_MANAGE.DELETING' | translate) : ('ROLE_MANAGE.DELETE' | translate) }}
             </button>
         </div>
     </app-modal>
 
     <!-- Modal only 1 -->
-    <app-modal size="md" [titleM]="`${permissionPayload().hasAccess ? 'Asignar Permiso' : 'Remover Permiso'}`"
-        [open]="showPermissionModal()" closeText="Cancelar"
-        [primaryText]="`${permissionPayload().hasAccess ? 'Asignar' : 'Remover'}`"
+    <app-modal size="md" [titleM]="permissionPayload().hasAccess ? ('ROLE_MANAGE.ASSIGN_PERMISSION' | translate) : ('ROLE_MANAGE.REMOVE_PERMISSION' | translate)"
+        [open]="showPermissionModal()" [closeText]="'ROLE_MANAGE.CANCEL' | translate"
+        [primaryText]="permissionPayload().hasAccess ? ('ROLE_MANAGE.ASSIGN' | translate) : ('ROLE_MANAGE.REMOVE' | translate)"
         (openChange)="onPermissionModalChange($event)" (primaryAction)="confirmPermission()">
         <p class="text-slate-700">
-            ¿Deseas {{ permissionPayload().hasAccess ? 'asignar' : 'remover' }} el permiso de gestión completa del tipo
-            de solicitud
+            {{ 'ROLE_MANAGE.PERMISSION_CONFIRM_PREFIX' | translate }}
+            {{ permissionPayload().hasAccess ? ('ROLE_MANAGE.ASSIGN_LOWER' | translate) : ('ROLE_MANAGE.REMOVE_LOWER' | translate) }}
+            {{ 'ROLE_MANAGE.PERMISSION_CONFIRM_SINGLE_MIDDLE' | translate }}
             <span class="font-semibold">{{ permissionPayload().requestType.name | titlecase }}</span>
-            al rol
+            {{ 'ROLE_MANAGE.PERMISSION_CONFIRM_ROLE_MIDDLE' | translate }}
             <span class="font-semibold">{{ permissionPayload().role.roleName | titlecase }}</span>?
         </p>
 
     </app-modal>
 
     <!-- Modal multi checkbox -->
-    <app-modal size="md" [titleM]="rowArray()[0]?.hasAccess ? 'Asignar Permisos' : 'Remover Permisos'"
-        [open]="showPermissionManyModal()" closeText="Cancelar"
-        [primaryText]="rowArray()[0]?.hasAccess ? 'Asignar' : 'Remover'"
+    <app-modal size="md" [titleM]="rowArray()[0]?.hasAccess ? ('ROLE_MANAGE.ASSIGN_PERMISSIONS' | translate) : ('ROLE_MANAGE.REMOVE_PERMISSIONS' | translate)"
+        [open]="showPermissionManyModal()" [closeText]="'ROLE_MANAGE.CANCEL' | translate"
+        [primaryText]="rowArray()[0]?.hasAccess ? ('ROLE_MANAGE.ASSIGN' | translate) : ('ROLE_MANAGE.REMOVE' | translate)"
         (openChange)="onPermissionManyModalChange($event)" (primaryAction)="confirmPermission()">
         @if (rowArray().length > 0) {
         <p class="text-slate-700">
-            ¿Deseas {{ rowArray()[0].hasAccess ? 'asignar' : 'remover' }} el permiso de gestión completa de los tipos
-            de solicitud:
+            {{ 'ROLE_MANAGE.PERMISSION_CONFIRM_PREFIX' | translate }}
+            {{ rowArray()[0].hasAccess ? ('ROLE_MANAGE.ASSIGN_LOWER' | translate) : ('ROLE_MANAGE.REMOVE_LOWER' | translate) }}
+            {{ 'ROLE_MANAGE.PERMISSION_CONFIRM_MANY_MIDDLE' | translate }}
 
             @for (row of rowArray(); track $index; let isLast = $last) {
             <span class="font-semibold">{{ row.requestType.name | titlecase }}{{ isLast ? '' : ', ' }}</span>
             }
 
-            al rol
+            {{ 'ROLE_MANAGE.PERMISSION_CONFIRM_ROLE_MIDDLE' | translate }}
             <span class="font-semibold">{{ rowArray()[0].role.roleName | titlecase }}</span>?
         </p>
         }

@@ -30,7 +30,30 @@
     "WORKFLOWS": "Approval Flow",
     "SYS_CONFIG": "System Configuration",
     "SEC_MANAGE": "Security Management",
-    "ASSIGN_USER": "Assign User"
+    "ASSIGN_USER": "Assign User",
+    "DESCRIPTION": {
+      "HOME": "Initial view with statistical data",
+      "REQUESTS": "General module for request management",
+      "NEW_REQUEST": "View within the requests module where a new request can be created",
+      "DRAFTS": "View within the requests module where drafts can be viewed",
+      "BULK_UPLOAD": "View within the requests module where bulk data can be uploaded",
+      "PENDING": "Complete list of created requests filtered by type",
+      "APPROVE": "List of requests awaiting user approval",
+      "MY_INVOICES": "Client view where they can view their invoices and generate a return order",
+      "MY_INVOICES_FILTER": "Client view for viewing invoices and downloading XML and PDF files",
+      "ORDERS": "My Orders",
+      "RETURN_ORDERS_APPROVAL": "View where users can view return orders and add them to a request",
+      "HISTORY": "History",
+      "NOTIFICATIONS": "View where users can see new and read notifications",
+      "SETTINGS": "General module for system configuration management",
+      "USER_MANAGEMENT": "View within the settings module where system users can be managed",
+      "CLIENT_MANAGEMENT": "View within the settings module where clients can be viewed",
+      "ROLES": "View within the settings module where system roles and their permissions can be managed",
+      "WORKFLOWS": "View within the settings module where request approval workflows can be managed",
+      "SYS_CONFIG": "View within the settings module where system parameters can be managed",
+      "SEC_MANAGE": "View within the settings module where users or IPs can be unlocked",
+      "ASSIGN_USER": "View within the settings module where internal users can be assigned to a CS Leader"
+    }
   },
   "REQUEST_TYPES": {
     "DEFAULT": "Select an option",
@@ -133,12 +156,66 @@
   },
   "ROLE_MANAGE": {
     "TITLE": "Roles Manage",
-    "DESCRIPTION": "Manage system roles and their associated permissions."
+    "DESCRIPTION": "Manage system roles and their associated permissions.",
+    "MODAL_TITLE": "Manage Roles",
+    "MANAGE_ROLES": "Manage Roles",
+    "ADD_ROLE": "Add Role",
+    "EDIT_ROLE": "Edit Role",
+    "NEW_ROLE": "New Role",
+    "ROLE_NAME": "Role name",
+    "STATUS": "Status",
+    "ACTIONS": "Actions",
+    "ACTIVE": "Active",
+    "INACTIVE": "Inactive",
+    "EDIT": "Edit",
+    "DELETE": "Delete",
+    "DELETING": "Deleting...",
+    "EDIT_PERMISSIONS": "Edit Permissions",
+    "CANCEL": "Cancel",
+    "ASSIGN": "Assign",
+    "REMOVE": "Remove",
+    "ASSIGN_LOWER": "assign",
+    "REMOVE_LOWER": "remove",
+    "ASSIGN_PERMISSION": "Assign Permission",
+    "REMOVE_PERMISSION": "Remove Permission",
+    "ASSIGN_PERMISSIONS": "Assign Permissions",
+    "REMOVE_PERMISSIONS": "Remove Permissions",
+    "CONFIRM_DELETE_TITLE": "Confirm Deletion",
+    "CONFIRM_DELETE_PREFIX": "Are you sure you want to delete role",
+    "CONFIRM_DELETE_SUFFIX": "This action will mark it as inactive.",
+    "PERMISSION_CONFIRM_PREFIX": "Do you want to",
+    "PERMISSION_CONFIRM_SINGLE_MIDDLE": "the full management permission for request type",
+    "PERMISSION_CONFIRM_MANY_MIDDLE": "the full management permission for request types:",
+    "PERMISSION_CONFIRM_ROLE_MIDDLE": "for role"
+  },
+  "ROLE_PERMISSIONS": {
+    "BACK_TO_ROLES": "Back to roles",
+    "DESCRIPTION": "Define permissions and access for this role in the system",
+    "LOADING": "Loading role permissions...",
+    "GENERAL_ACCESS": "General Access",
+    "GENERAL_ACCESS_DESC": "Control access to the platform's main sections.",
+    "REQUEST_MODULE": "Request Module",
+    "REQUEST_MODULE_DESC": "Granular permissions by request type and action.",
+    "CANCEL": "Cancel",
+    "SAVING": "Saving...",
+    "SAVE_CHANGES": "Save changes"
   },
   "WORKFLOWS_MANAGE": {
     "TITLE": "Approval Flows",
     "DESCRIPTION": "Each type of note follows a sequential approval workflow. The note moves from one role to the next until it is released.",
-    "NO_WORKFLOWS": "No approval workflows have been created"
+    "NO_WORKFLOWS": "No approval workflows have been created",
+    "NO_WORKFLOWS_HINT": "Add a workflow to configure its steps",
+    "ADD_WORKFLOW": "Add Workflow",
+    "ADD_STEP": "Add step",
+    "NO_STEPS": "No steps configured",
+    "NO_STEPS_HINT": "Add a step to start the workflow",
+    "CANCEL": "Cancel",
+    "SAVE": "Save",
+    "DELETE": "Delete",
+    "REQUEST_TYPE": "Request Type",
+    "REQUEST_CLASSIFICATION_TYPE": "Request Classification Type",
+    "CONFIRM_DELETE_TITLE": "Confirm Deletion",
+    "CONFIRM_DELETE_STEP_PREFIX": "Are you sure you want to delete step"
   },
   "WORKFLOWS_STEP_MODAL": {
     "TITLE_ADD": "Add Step",
@@ -235,6 +312,17 @@
     },
     "REQUEST_TYPE": "Request Type",
     "REQUEST_TYPE_PLACEHOLDER": "Select a request type",
+    "STATUS": {
+      "COMPLETED": "Completed",
+      "FAILED": "Failed",
+      "PROCESSING": "Processing",
+      "PENDING": "Pending",
+      "SUCCESS": "Successful",
+      "EMITTED": "Emitted",
+      "PROCESSED": "Processed",
+      "ERROR": "Error",
+      "UNKNOWN": "Unknown"
+    },
     "COMMON": {
       "BATCH_TYPE": "Batch Type",
       "FORMAT": "Format",
@@ -283,7 +371,13 @@
       "FILTER_STATUS": "Filter:",
       "FILTER_ALL": "All",
       "FILTER_SUCCESS": "Successful",
-      "FILTER_ERROR": "With error"
+      "FILTER_ERROR": "With error",
+      "REFRESH_EVERY": "Refresh data every:",
+      "REFRESH_NOW": "Refresh Now",
+      "NEXT_REFRESH_SECONDS": "Seconds until next refresh:",
+      "PAUSE": "Pause",
+      "RESUME": "Resume",
+      "SECONDS": "Seconds"
     },
     "REQUEST_ERROR": {
       "TITLE": "Error detail",
@@ -641,6 +735,14 @@
     "BULK_UPLOAD_ERROR": "Could not upload file. Please try again.",
     "BULK_TEMPLATE_HINT": "Download the template before uploading.",
     "BULK_DOWNLOAD_TEMPLATE": "Download template",
+    "BULK_WELCOME_EMAILS_TITLE": "Welcome emails",
+    "BULK_WELCOME_EMAILS_HINT": "Choose whether access details are sent for created users.",
+    "BULK_WELCOME_EMAIL_NONE": "Do not send emails",
+    "BULK_WELCOME_EMAIL_INDIVIDUAL": "Send an email to each created user",
+    "BULK_WELCOME_EMAIL_SINGLE": "Send all access details to one email",
+    "BULK_WELCOME_EMAIL_RECIPIENT": "Recipient email",
+    "BULK_WELCOME_EMAIL_RECIPIENT_PLACEHOLDER": "aldrick@ittec.mx",
+    "BULK_WELCOME_EMAIL_RECIPIENT_INVALID": "Enter a valid recipient email.",
     "BULK_FILE_NAME": "File name",
     "BULK_FILE_SIZE": "Size",
     "BULK_FILE_TYPE": "Type",
@@ -667,7 +769,13 @@
   "ROLE_FORM": {
     "ROLENAME": "Role Name",
     "SELECT_COLOR": "Select a Color",
-    "PREVIEW": "Preview"
+    "PREVIEW": "Preview",
+    "CANCEL": "Cancel",
+    "SAVE": "Save",
+    "SELECT_COLOR_ARIA": "Select color",
+    "COLOR_REQUIRED": "You must select a color",
+    "ROLE_NAME_PREVIEW": "Role name",
+    "ROLE_BADGE": "Role"
   },
   "NEW_REQUEST_FORM": {
     "REQUEST_NUMBER": "Request Number",
@@ -714,7 +822,12 @@
     "SUBTOTAL": "Subtotal",
     "HAS_CHARGE": "Has charge",
     "NO_CHARGE": "No charge",
-    "TOTAL_WITH_CHARGE": "Total with charge"
+    "TOTAL_WITH_CHARGE": "Total with charge",
+    "TAB_REQUEST_CUSTOMER": "Request & Customer",
+    "TAB_REFERENCE_LOGISTICS": "Reference & Logistics",
+    "TAB_FINANCIAL_DATA": "Financial Data",
+    "TAB_SUPPORTS_COMMENTS": "Supports & Comments",
+    "TAB_MATERIAL_LIST": "Material List"
   },
   "PROFILE": {
     "LOADING": "Loading profile...",
@@ -885,5 +998,11 @@
     "COL_AMOUNT": "Amount",
     "ADD_TO_EXISTING": "Add to existing request",
     "ADD_TO_NEW": "Add to new request"
+  },
+  "TAB_CONTAINER": {
+    "BACK": "Back",
+    "NEXT": "Next",
+    "SAVE_DRAFT": "Save as draft",
+    "REGISTER_REQUEST": "Register request"
   }
 }

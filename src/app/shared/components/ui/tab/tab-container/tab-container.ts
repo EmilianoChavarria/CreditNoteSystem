@@ -1,12 +1,13 @@
 import { Component, ContentChildren, QueryList, AfterContentInit, AfterViewInit, OnDestroy, ViewChild, ElementRef, input, output } from '@angular/core';
 import { Tab } from '../tab';
 import { CommonModule } from '@angular/common';
+import { TranslatePipe } from '@ngx-translate/core';
 import { fromEvent, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-tabs-container',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslatePipe],
   template: `
     <div class="w-full mx-auto shadow-lg rounded-lg overflow-visible">
       <div class="relative border-b border-gray-200 bg-gray-50">
@@ -37,25 +38,25 @@ import { fromEvent, Subscription } from 'rxjs';
           <button (click)="prev()" 
                   *ngIf="selectedIndex > 0"
                   class="px-2 py-2 md:px-4 md:py-2 text-xs md:text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition">
-            Back
+            {{ 'TAB_CONTAINER.BACK' | translate }}
           </button>
-          <div *ngIf="selectedIndex === 0"></div> <button (click)="next()" 
+          <div *ngIf="selectedIndex === 0"></div> <button (click)="next()"
                   *ngIf="selectedIndex < tabs.length - 1"
                   class="px-2 py-2 md:px-4 md:py-2 text-xs md:text-sm font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 transition">
-            Next
+            {{ 'TAB_CONTAINER.NEXT' | translate }}
           </button>
-  
+
           <div class="flex gap-x-2">
-            <button (click)="saveDraft()" 
+            <button (click)="saveDraft()"
                     class="px-2 py-2 md:px-4 md:py-2 text-xs md:text-sm font-semibold text-white bg-gray-600 rounded-md hover:bg-gray-700 transition">
-              Save as draft
+              {{ 'TAB_CONTAINER.SAVE_DRAFT' | translate }}
             </button>
-            <button (click)="save()" 
+            <button (click)="save()"
                     *ngIf="selectedIndex === tabs.length - 1"
                     [disabled]="registerDisabled()"
                     [ngClass]="registerDisabled() ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'"
                     class="px-2 py-2 md:px-4 md:py-2 text-xs md:text-sm font-semibold text-white rounded-md transition">
-              Register request
+              {{ 'TAB_CONTAINER.REGISTER_REQUEST' | translate }}
             </button>
           </div>
         </div>
