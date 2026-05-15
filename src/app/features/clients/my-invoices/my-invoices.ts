@@ -44,6 +44,12 @@ export class MyInvoices {
   protected readonly hasSearched = signal<boolean>(false);
   protected readonly invoices = signal<CustomerInvoice[]>([]);
   protected readonly downloadingKeys = signal<Set<string>>(new Set());
+  protected readonly currentPage = signal<number>(1);
+  protected readonly lastPage = signal<number>(1);
+  protected readonly perPage = signal<number>(10);
+  protected readonly total = signal<number>(0);
+  protected readonly from = signal<number | null>(null);
+  protected readonly to = signal<number | null>(null);
 
   protected readonly searchForm = new FormGroup({
     uuid: new FormControl<string>('', { nonNullable: true }),
@@ -57,6 +63,14 @@ export class MyInvoices {
   });
 
   protected readonly invoiceCount = computed(() => this.invoices().length);
+  protected readonly pageNumbers = computed(() => {
+    const currentPage = this.currentPage();
+    const lastPage = this.lastPage();
+    const start = Math.max(1, currentPage - 2);
+    const end = Math.min(lastPage, currentPage + 2);
+
+    return Array.from({ length: end - start + 1 }, (_, index) => start + index);
+  });
 
   constructor() {
     this.authService.user$.pipe(
@@ -71,6 +85,20 @@ export class MyInvoices {
   }
 
   protected search(): void {
+    this.runSearch(1);
+  }
+
+  protected goToPage(page: number): void {
+    const nextPage = Math.max(1, Math.min(this.lastPage(), page));
+
+    if (nextPage === this.currentPage() || this.isSearching()) {
+      return;
+    }
+
+    this.runSearch(nextPage);
+  }
+
+  private runSearch(page: number): void {
     const clientId = this.currentClientId();
     if (!clientId || this.isSearching()) return;
 
@@ -91,11 +119,17 @@ export class MyInvoices {
     this.invoices.set([]);
 
     this.customerService
-      .searchInvoicesByClientId(clientId, filters)
+      .searchInvoicesByClientId(clientId, filters, page, this.perPage())
       .pipe(take(1))
       .subscribe({
-        next: summaries => {
-          this.invoices.set(summaries.map(s => this.toCustomerInvoice(s)));
+        next: pagination => {
+          this.currentPage.set(pagination.current_page);
+          this.lastPage.set(pagination.last_page);
+          this.perPage.set(pagination.per_page ?? this.perPage());
+          this.total.set(pagination.total ?? pagination.data.length);
+          this.from.set(pagination.from ?? null);
+          this.to.set(pagination.to ?? null);
+          this.invoices.set(pagination.data.map(s => this.toCustomerInvoice(s)));
           this.hasSearched.set(true);
           this.isSearching.set(false);
         },
@@ -113,6 +147,7 @@ export class MyInvoices {
     this.invoices.set([]);
     this.searchError.set(null);
     this.hasSearched.set(false);
+    this.resetPagination();
   }
 
   protected isDownloading(key: string): boolean {
@@ -146,6 +181,15 @@ export class MyInvoices {
     if (s === 'emitido') return 'bg-green-100 text-green-700';
     if (s === 'cancelado') return 'bg-red-100 text-red-700';
     return 'bg-gray-100 text-gray-600';
+  }
+
+  private resetPagination(): void {
+    this.currentPage.set(1);
+    this.lastPage.set(1);
+    this.perPage.set(10);
+    this.total.set(0);
+    this.from.set(null);
+    this.to.set(null);
   }
 
 

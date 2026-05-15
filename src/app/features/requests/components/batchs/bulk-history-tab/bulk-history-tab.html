@@ -33,7 +33,7 @@
                         <td class="border-b border-gray-100 px-4 py-2 text-sm text-gray-700 font-medium">{{ batchTypeLabel(batch.batchType) | translate }}</td>
                         <td class="border-b border-gray-100 px-4 py-2 text-sm text-gray-700">
                             <span [class]="'inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ' + onStatusClass(batch.status)">
-                                {{ batch.status }}
+                                {{ statusLabel(batch.status) | translate }}
                             </span>
                         </td>
                         <td class="border-b border-gray-100 px-4 py-2 text-sm text-gray-700">{{ batch.date }}</td>

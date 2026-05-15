@@ -1,4 +1,4 @@
-import { Component, computed, input, output, signal } from '@angular/core';
+import { Component, computed, effect, input, OnDestroy, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
 import { Modal } from '../../../../../shared/components/ui/modal/modal';
@@ -29,8 +29,8 @@ interface RequestHistoryRow {
   imports: [Modal, Popover, LucideAngularModule, TranslatePipe, FormsModule],
   templateUrl: './batch-requests-modal.html',
 })
-export class BatchRequestsModal {
-  open = input.required<boolean>();
+export class BatchRequestsModal implements OnDestroy {
+  open = input<boolean>(false);
   selectedBatchSummary = input<BatchSummaryView | null>(null);
   selectedBatchErrors = input.required<BatchErrorLogView[]>();
   isLoadingBatchRequests = input.required<boolean>();
@@ -45,6 +45,12 @@ export class BatchRequestsModal {
   batchRequestsHasNextPage = input.required<boolean>();
 
   statusFilter = signal<'all' | 'success' | 'error'>('all');
+  refreshIntervalSeconds = signal<number>(30);
+  secondsUntilRefresh = signal<number>(30);
+  isRefreshPaused = signal<boolean>(false);
+  private refreshTimerId: ReturnType<typeof setInterval> | null = null;
+
+  shouldShowRefreshControls = computed(() => Number(this.selectedBatchSummary()?.progressPercent ?? 0) < 100);
 
   filteredRows = computed(() => {
     const filter = this.statusFilter();
@@ -61,6 +67,23 @@ export class BatchRequestsModal {
   batchRequestsPrevPage = output<void>();
   batchRequestsNextPage = output<void>();
   batchRequestsLastPageClick = output<void>();
+  refreshRequested = output<void>();
+
+  constructor() {
+    effect(() => {
+      if (this.open() && this.shouldShowRefreshControls()) {
+        this.startRefreshTimer();
+        return;
+      }
+
+      this.stopRefreshTimer();
+      this.resetRefreshCountdown();
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.stopRefreshTimer();
+  }
 
   onStatusClass(status: string): string {
     const normalizedStatus = (status ?? '').toLowerCase();
@@ -76,12 +99,105 @@ export class BatchRequestsModal {
     return 'bg-red-100 text-red-700 border border-red-200';
   }
 
+  statusLabel(status?: string): string {
+    const normalizedStatus = (status ?? '').trim().toLowerCase();
+
+    switch (normalizedStatus) {
+      case 'completed':
+        return 'BULK.STATUS.COMPLETED';
+      case 'failed':
+        return 'BULK.STATUS.FAILED';
+      case 'processing':
+        return 'BULK.STATUS.PROCESSING';
+      case 'pending':
+        return 'BULK.STATUS.PENDING';
+      case 'success':
+        return 'BULK.STATUS.SUCCESS';
+      case 'emitted':
+        return 'BULK.STATUS.EMITTED';
+      case 'processed':
+        return 'BULK.STATUS.PROCESSED';
+      case 'error':
+        return 'BULK.STATUS.ERROR';
+      default:
+        return normalizedStatus ? status ?? normalizedStatus : 'BULK.STATUS.UNKNOWN';
+    }
+  }
+
   onBatchRequestsPageSizeChange(event: Event): void {
     const value = Number((event.target as HTMLSelectElement).value);
     this.batchRequestsPageSizeChange.emit(value);
   }
 
+  onStatusFilterChange(value: 'all' | 'success' | 'error'): void {
+    this.statusFilter.set(value);
+  }
+
+  onRefreshIntervalChange(event: Event): void {
+    const value = Number((event.target as HTMLSelectElement).value);
+    if (![30, 60, 120].includes(value)) {
+      return;
+    }
+
+    this.refreshIntervalSeconds.set(value);
+    this.secondsUntilRefresh.set(value);
+  }
+
+  onRefreshNow(): void {
+    if (!this.shouldShowRefreshControls()) {
+      return;
+    }
+
+    this.refreshRequested.emit();
+    this.resetRefreshCountdown();
+  }
+
+  toggleRefreshPause(): void {
+    this.isRefreshPaused.update((value) => !value);
+  }
+
   onOpenRequestError(request: RequestHistoryRow): void {
     this.openRequestError.emit(request);
+  }
+
+  private startRefreshTimer(): void {
+    if (this.refreshTimerId) {
+      return;
+    }
+
+    this.resetRefreshCountdown();
+    this.refreshTimerId = setInterval(() => {
+      if (this.isRefreshPaused()) {
+        return;
+      }
+
+      if (!this.shouldShowRefreshControls()) {
+        this.stopRefreshTimer();
+        this.resetRefreshCountdown();
+        return;
+      }
+
+      const nextSeconds = this.secondsUntilRefresh() - 1;
+      if (nextSeconds <= 0) {
+        this.refreshRequested.emit();
+        this.resetRefreshCountdown();
+        return;
+      }
+
+      this.secondsUntilRefresh.set(nextSeconds);
+    }, 1000);
+  }
+
+  private stopRefreshTimer(): void {
+    if (!this.refreshTimerId) {
+      return;
+    }
+
+    clearInterval(this.refreshTimerId);
+    this.refreshTimerId = null;
+  }
+
+  private resetRefreshCountdown(): void {
+    this.secondsUntilRefresh.set(this.refreshIntervalSeconds());
   }
 }

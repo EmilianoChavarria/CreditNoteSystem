@@ -1,4 +1,5 @@
-<app-modal size="lg" titleM="Roles Manage" [open]="open()" closeText="Cancelar" primaryText="Add Role"
+<app-modal size="lg" [titleM]="'ROLE_MANAGE.MODAL_TITLE' | translate" [open]="open()"
+    [closeText]="'ROLE_MANAGE.CANCEL' | translate" [primaryText]="'ROLE_MANAGE.ADD_ROLE' | translate"
     (openChange)="openChange.emit($event)" (primaryAction)="primaryAction.emit()">
 
     @if (isLoading()) {
@@ -13,11 +14,11 @@
                 <span>{{ role.roleName | titlecase }}</span>
             </div>
             <div class="flex flex-row text-gray-600">
-                <button (click)="editRole.emit(role)" title="Editar"
+                <button (click)="editRole.emit(role)" [title]="'ROLE_MANAGE.EDIT' | translate"
                     class="hover:text-yellow-600 hover:bg-yellow-100 p-2 transition rounded-md hover:cursor-pointer">
                     <lucide-icon name="pencil" size="18"></lucide-icon>
                 </button>
-                <button (click)="deleteRole.emit(role)" title="Eliminar"
+                <button (click)="deleteRole.emit(role)" [title]="'ROLE_MANAGE.DELETE' | translate"
                     class="hover:text-red-500 hover:bg-red-200 p-2 transition rounded-md hover:cursor-pointer">
                     <lucide-icon name="trash" size="18"></lucide-icon>
                 </button>

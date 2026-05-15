@@ -4,11 +4,53 @@
         @if (selectedBatchSummary()) {
         <span class="font-semibold text-gray-800">{{ 'BULK.BATCH_REQUESTS.BATCH' | translate }} {{ selectedBatchSummary()?.id }}</span>
         <span class="mx-2">•</span>
-        <span class="capitalize">{{ selectedBatchSummary()?.status }}</span>
+        <span class="capitalize">{{ statusLabel(selectedBatchSummary()?.status) | translate }}</span>
         <span class="mx-2">•</span>
         <span>{{ 'BULK.BATCH_REQUESTS.PROGRESS' | translate }} {{ selectedBatchSummary()?.progressPercent }}%</span>
         }
     </div>
+
+    @if (shouldShowRefreshControls()) {
+    <div class="mb-4 flex flex-col gap-3 rounded-md border border-sky-100 bg-sky-50 px-3 py-3 text-sm md:flex-row md:flex-wrap md:items-center md:justify-between">
+        <label class="flex flex-col gap-1 text-gray-800 sm:flex-row sm:items-center">
+            <span class="font-semibold">{{ 'BULK.BATCH_REQUESTS.REFRESH_EVERY' | translate }}</span>
+            <select
+                class="h-8 min-w-40 rounded-sm border border-gray-300 bg-white px-2 text-sm text-gray-900"
+                [value]="refreshIntervalSeconds()"
+                (change)="onRefreshIntervalChange($event)">
+                <option [value]="30">30 {{ 'BULK.BATCH_REQUESTS.SECONDS' | translate }}</option>
+                <option [value]="60">60 {{ 'BULK.BATCH_REQUESTS.SECONDS' | translate }}</option>
+                <option [value]="120">120 {{ 'BULK.BATCH_REQUESTS.SECONDS' | translate }}</option>
+            </select>
+        </label>
+
+        <button
+            type="button"
+            (click)="onRefreshNow()"
+            [disabled]="isLoadingBatchRequests()"
+            class="inline-flex h-8 items-center justify-center gap-1.5 rounded-md border border-[#8aa8c7] bg-white px-3 text-sm font-medium text-gray-900 hover:bg-sky-100 disabled:cursor-not-allowed disabled:opacity-60">
+            <lucide-icon name="refresh-cw" size="15" [class.animate-spin]="isLoadingBatchRequests()"></lucide-icon>
+            {{ 'BULK.BATCH_REQUESTS.REFRESH_NOW' | translate }}
+        </button>
+
+        <label class="flex flex-col gap-1 text-gray-800 sm:flex-row sm:items-center">
+            <span class="font-semibold">{{ 'BULK.BATCH_REQUESTS.NEXT_REFRESH_SECONDS' | translate }}</span>
+            <input
+                type="text"
+                readonly
+                class="h-8 w-24 rounded-sm border border-gray-300 bg-gray-100 px-2 text-sm text-gray-600"
+                [value]="secondsUntilRefresh()" />
+        </label>
+
+        <button
+            type="button"
+            (click)="toggleRefreshPause()"
+            class="inline-flex h-8 items-center justify-center gap-1.5 rounded-md border border-[#8aa8c7] bg-white px-3 text-sm font-medium text-gray-900 hover:bg-sky-100">
+            <lucide-icon [name]="isRefreshPaused() ? 'play' : 'pause'" size="15"></lucide-icon>
+            {{ (isRefreshPaused() ? 'BULK.BATCH_REQUESTS.RESUME' : 'BULK.BATCH_REQUESTS.PAUSE') | translate }}
+        </button>
+    </div>
+    }
 
     <!-- @if (selectedBatchErrors().length > 0) {
     <div class="mb-4 rounded-md border border-red-200 bg-red-50 p-3">
@@ -23,7 +65,9 @@
 
     <div class="mb-3 flex items-center gap-2">
         <label class="text-xs text-gray-600">{{ 'BULK.BATCH_REQUESTS.FILTER_STATUS' | translate }}</label>
-        <select [(ngModel)]="statusFilter"
+        <select
+            [ngModel]="statusFilter()"
+            (ngModelChange)="onStatusFilterChange($event)"
             class="h-8 rounded-md border border-gray-300 bg-white px-2 text-xs text-gray-700">
             <option value="all">{{ 'BULK.BATCH_REQUESTS.FILTER_ALL' | translate }}</option>
             <option value="success">{{ 'BULK.BATCH_REQUESTS.FILTER_SUCCESS' | translate }}</option>
@@ -67,7 +111,7 @@
                     </td>
                     <td class="border-b border-gray-100 px-4 py-2 text-sm text-gray-700">
                         <span [class]="'inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ' + onStatusClass(request.status)">
-                            {{ request.status }}
+                            {{ statusLabel(request.status) | translate }}
                         </span>
                     </td>
                     <td class="border-b border-gray-100 px-4 py-2 text-sm text-gray-700">

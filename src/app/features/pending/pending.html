@@ -28,12 +28,17 @@
     } @else if (selectedRequestType !== 'DE' && selectedRequestType) {
     <app-tabla-dinamica [datos]="requests()" [columnas]="columns" [accionesPersonalizadas]="acciones()"
         actionMode="menu" [enableFilter]="true" filterField="workflowCurrentStep.assigned_role.roleName"
+        [filterOptions]="roleFilterOptions()" [filterDefault]="selectedRoleName()"
+        excelExportModule="requests"
+        [excelExportParams]="{ requestTypeId: selectedRequestType, search: searchTerm(), roleName: selectedRoleName() }"
+        excelExportFileName="requests.xls"
         addLabel="PENDING_PAGE.REQUEST" addRoute="/app/settings/newUser" [canAdd]="false"
         [registrosPorPagina]="pageSize()" [serverPagination]="true" [paginaActualExterna]="currentPage()"
         [totalPaginasExterno]="totalPages()" [hasNextPage]="hasNextPage()" [hasPrevPage]="hasPrevPage()"
         [loading]="isLoadingTable()" (paginaSiguiente)="onNextPage()" (paginaAnterior)="onPrevPage()"
         (paginaPrimera)="onFirstPage()" (paginaUltima)="onLastPage()"
-        (registrosPorPaginaChange)="onPageSizeChange($event)" (searchChange)="onSearch($event)">
+        (registrosPorPaginaChange)="onPageSizeChange($event)" (searchChange)="onSearch($event)"
+        (filterChange)="onRoleFilterChange($event)">
 
         <ng-template #cellTemplate let-item let-column="column">
             @if (column.key === 'requestType.name') {

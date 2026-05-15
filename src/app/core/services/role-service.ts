@@ -30,6 +30,7 @@ export interface PermissionAction {
 export interface PermissionModule {
   id: number;
   name: string;
+  description: string;
   parentid: number | null;
   url: string | null;
   icon: string | null;

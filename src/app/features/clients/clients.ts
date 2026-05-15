@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth-service';
 import {
@@ -13,7 +13,7 @@ import {
   ProductReturnHistoryEntry,
   ReturnOrderCreated,
 } from '../../core/services/customer-service';
-import { catchError, combineLatest, distinctUntilChanged, map, of, startWith, switchMap, take } from 'rxjs';
+import { catchError, combineLatest, debounceTime, distinctUntilChanged, map, of, startWith, switchMap, take } from 'rxjs';
 import { LucideAngularModule } from "lucide-angular";
 import { UiProductHistoryModal } from './components/product-history-modal/product-history-modal';
 
@@ -100,6 +100,7 @@ export class Clients {
 
   protected readonly taxRate = 0.16;
   protected readonly invoiceChargeType = new FormControl<number | null>(null, { nonNullable: true });
+  protected readonly invoiceSearch = new FormControl<string>('', { nonNullable: true });
   protected readonly invoiceChargeTypeOptions = signal<ChargeTypeOption[]>([]);
   protected readonly collapsedInvoiceKeys = signal<Set<string>>(new Set());
   protected readonly draftQuantities = signal<Record<string, number>>({});
@@ -120,10 +121,17 @@ export class Clients {
   protected readonly historyModalSubtitle = signal<string>('');
   protected readonly productHistorySummary = signal<ProductHistorySummaryView | null>(null);
   protected readonly productHistoryRows = signal<ProductReturnHistoryEntry[]>([]);
+  protected readonly invoicePage = signal<number>(1);
+  protected readonly invoiceLastPage = signal<number>(1);
+  protected readonly invoicePerPage = signal<number>(15);
+  protected readonly invoiceTotal = signal<number>(0);
+  protected readonly invoiceFrom = signal<number | null>(null);
+  protected readonly invoiceTo = signal<number | null>(null);
+  private lastInvoiceScope = '';
 
   protected readonly filtersForm = new FormGroup({
-    from: new FormControl<string>('2026-01-01', { nonNullable: true }),
-    to: new FormControl<string>('2026-12-31', { nonNullable: true }),
+    from: new FormControl<string>('', { nonNullable: true }),
+    to: new FormControl<string>('', { nonNullable: true }),
   });
 
   private readonly filters = toSignal(
@@ -170,6 +178,17 @@ export class Clients {
     this.invoiceChargeType.valueChanges.pipe(startWith(this.invoiceChargeType.getRawValue())),
     { initialValue: this.invoiceChargeType.getRawValue() },
   );
+
+  private readonly invoicePage$ = toObservable(this.invoicePage).pipe(distinctUntilChanged());
+
+  protected readonly invoicePageNumbers = computed(() => {
+    const currentPage = this.invoicePage();
+    const lastPage = this.invoiceLastPage();
+    const start = Math.max(1, currentPage - 2);
+    const end = Math.min(lastPage, currentPage + 2);
+
+    return Array.from({ length: end - start + 1 }, (_, index) => start + index);
+  });
 
   protected readonly selectedChargeOption = computed(() =>
     this.invoiceChargeTypeOptions().find(o => o.id == this.chargeTypeIdSignal()) ?? null,
@@ -226,6 +245,12 @@ export class Clients {
           this.invoiceChargeType.setValue(options[0].id);
         }
       },
+    });
+    this.invoiceChargeType.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.invoicePage.set(1);
+    });
+    this.invoiceSearch.valueChanges.pipe(debounceTime(300), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.invoicePage.set(1);
     });
     this.syncInvoicesFromAuthenticatedClient();
   }
@@ -416,6 +441,24 @@ export class Clients {
     this.returnOrderNotes.setValue('');
   }
 
+  protected goToInvoicePage(page: number): void {
+    const nextPage = Math.max(1, Math.min(this.invoiceLastPage(), page));
+
+    if (nextPage === this.invoicePage() || this.isLoadingInvoices()) {
+      return;
+    }
+
+    this.invoicePage.set(nextPage);
+  }
+
+  protected clearInvoiceSearch(): void {
+    if (!this.invoiceSearch.value) {
+      return;
+    }
+
+    this.invoiceSearch.setValue('');
+  }
+
   protected generateReturnOrder(): void {
     if (!this.canGenerateOrder() || this.isCreatingReturnOrder()) {
       return;
@@ -498,12 +541,22 @@ export class Clients {
         startWith(this.invoiceChargeType.getRawValue()),
         distinctUntilChanged(),
       ),
+      this.invoiceSearch.valueChanges.pipe(
+        startWith(this.invoiceSearch.getRawValue()),
+        debounceTime(300),
+        distinctUntilChanged(),
+        map(value => value.trim()),
+      ),
+      this.invoicePage$,
     ])
       .pipe(
-        switchMap(([clientId, chargeTypeId]) => {
+        switchMap(([clientId, chargeTypeId, search, page]) => {
           const chargeTypeName = this.invoiceChargeTypeOptions().find(o => { 
             return o.id == chargeTypeId 
           })?.name;
+          const invoiceScope = `${clientId}|${chargeTypeName ?? ''}`;
+          const invoiceScopeChanged = invoiceScope !== this.lastInvoiceScope;
+          this.lastInvoiceScope = invoiceScope;
 
           this.currentClientId.set(clientId);
           this.currentClientIdNumber.set(Number(clientId) || null);
@@ -511,24 +564,37 @@ export class Clients {
           this.loadedInvoiceKeys.set(new Set());
           this.invoiceProductsLoading.set({});
           this.invoiceProductsError.set({});
-          this.returnItems.set([]);
-          this.generatedOrder.set(null);
-          this.returnOrderError.set(null);
-          this.returnOrderNotes.setValue('');
+          if (invoiceScopeChanged) {
+            this.returnItems.set([]);
+            this.generatedOrder.set(null);
+            this.returnOrderError.set(null);
+            this.returnOrderNotes.setValue('');
+          }
           this.invoices.set([]);
           this.invoicesLoadError.set(null);
           this.isLoadingInvoices.set(false);
 
           if (!clientId || !chargeTypeName) {
+            this.resetInvoicePagination();
             return of<CustomerInvoice[]>([]);
           }
 
           this.isLoadingInvoices.set(true);
 
-          return this.customerService.getInvoicesByClientId(clientId, chargeTypeName).pipe(
-            map(invoices => invoices.map(invoice => this.toCustomerInvoice(invoice))),
+          return this.customerService.getInvoicesByClientId(clientId, chargeTypeName, page, this.invoicePerPage(), search).pipe(
+            map(pagination => {
+              this.invoicePage.set(pagination.current_page);
+              this.invoiceLastPage.set(pagination.last_page);
+              this.invoicePerPage.set(pagination.per_page ?? this.invoicePerPage());
+              this.invoiceTotal.set(pagination.total ?? pagination.data.length);
+              this.invoiceFrom.set(pagination.from ?? null);
+              this.invoiceTo.set(pagination.to ?? null);
+
+              return pagination.data.map(invoice => this.toCustomerInvoice(invoice));
+            }),
             catchError(() => {
               this.invoicesLoadError.set('No fue posible cargar las facturas del cliente.');
+              this.resetInvoicePagination();
               return of<CustomerInvoice[]>([]);
             }),
           );
@@ -540,6 +606,14 @@ export class Clients {
         this.collapsedInvoiceKeys.set(new Set(invoices.map((invoice, index) => this.invoiceKey(invoice, index))));
         this.isLoadingInvoices.set(false);
       });
+  }
+
+  private resetInvoicePagination(): void {
+    this.invoiceLastPage.set(1);
+    this.invoicePerPage.set(15);
+    this.invoiceTotal.set(0);
+    this.invoiceFrom.set(null);
+    this.invoiceTo.set(null);
   }
 
   private toCustomerInvoice(invoice: CustomerInvoiceSummary): CustomerInvoice {

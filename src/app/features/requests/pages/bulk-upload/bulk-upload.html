@@ -83,7 +83,8 @@
                 (batchRequestsFirstPage)="onBatchRequestsFirstPage()"
                 (batchRequestsPrevPage)="onBatchRequestsPrevPage()"
                 (batchRequestsNextPage)="onBatchRequestsNextPage()"
-                (batchRequestsLastPageClick)="onBatchRequestsLastPage()"></app-batch-requests-modal>
+                (batchRequestsLastPageClick)="onBatchRequestsLastPage()"
+                (refreshRequested)="onBatchDetailRefreshRequested()"></app-batch-requests-modal>
 
             <app-request-error-modal
                 [open]="isRequestErrorModalOpen()"

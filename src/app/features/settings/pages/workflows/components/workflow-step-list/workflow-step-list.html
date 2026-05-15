@@ -13,7 +13,7 @@
   <button type="button" (click)="addStep.emit(workflow())"
     class="flex items-center justify-center bg-[#ff8200] rounded-md text-white px-3 py-1.5 gap-x-2 hover:cursor-pointer hover:bg-[#fd9628]">
     <lucide-icon name="plus" size="16"></lucide-icon>
-    Agregar paso
+    {{ 'WORKFLOWS_MANAGE.ADD_STEP' | translate }}
   </button>
 </div>
 
@@ -46,8 +46,8 @@
   } @empty {
     <div class="flex flex-col items-center justify-center w-full py-8 text-slate-400 gap-y-1">
       <lucide-icon name="git-branch" size="28" class="opacity-40"></lucide-icon>
-      <p class="text-sm font-medium">Sin pasos configurados</p>
-      <p class="text-xs">Agrega un paso para comenzar el flujo</p>
+      <p class="text-sm font-medium">{{ 'WORKFLOWS_MANAGE.NO_STEPS' | translate }}</p>
+      <p class="text-xs">{{ 'WORKFLOWS_MANAGE.NO_STEPS_HINT' | translate }}</p>
     </div>
   }
 </div>

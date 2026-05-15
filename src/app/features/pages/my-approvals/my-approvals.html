@@ -63,10 +63,15 @@
 
     <app-tabla-dinamica [datos]="requests()" [columnas]="columns" [accionesPersonalizadas]="acciones()" actionMode="menu"
         [enableFilter]="true" filterField="workflowCurrentStep.assigned_role.roleName" addLabel="MY_APPROVALS.REQUEST"
+        [filterOptions]="roleFilterOptions()" [filterDefault]="selectedRoleName()"
+        excelExportModule="my_approvals"
+        [excelExportParams]="{ requestTypeId: selectedRequestType, search: searchTerm(), roleName: selectedRoleName() }"
+        excelExportFileName="my_approvals.xls"
         addRoute="/app/settings/newUser" [canAdd]="false" [emptyMessageKey]="'MY_APPROVALS.NO_PENDING_APPROVALS'"
         [searchValue]="searchTerm()" [registrosPorPagina]="pageSize()" [loading]="isLoadingTable()"
         [serverPagination]="true" [paginaActualExterna]="currentPage()" [totalPaginasExterno]="totalPages()"
         [hasNextPage]="hasNextPage()" [hasPrevPage]="hasPrevPage()" (searchChange)="onSearch($event)"
+        (filterChange)="onRoleFilterChange($event)"
         (paginaSiguiente)="onNextPage()" (paginaAnterior)="onPrevPage()" (paginaPrimera)="onFirstPage()"
         (paginaUltima)="onLastPage()" (registrosPorPaginaChange)="onPageSizeChange($event)">
 
@@ -163,7 +168,7 @@
         [open]="showApproveModal()"
         [request]="requestToApprove()"
         (openChange)="showApproveModal.set($event)"
-        (confirmed)="onApproveConfirmed()">
+        (confirmed)="onApproveConfirmed($event)">
     </app-approve-confirm-modal>
 
     <app-send-back-modal

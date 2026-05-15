@@ -59,6 +59,14 @@ export interface BatchRequestsResponse {
   items: PagePagination<BatchRequestItem>;
 }
 
+export type WelcomeEmailMode = 'none' | 'individual' | 'single';
+
+export interface UsersBatchOptions {
+  welcomeEmailMode?: WelcomeEmailMode;
+  welcomeEmailRecipient?: string;
+  sendWelcomeEmails?: boolean;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -169,7 +177,7 @@ export class BatchService {
     );
   }
 
-  createUsersBatch(file: File): Observable<BatchSummary | null> {
+  createUsersBatch(file: File, options: UsersBatchOptions = {}): Observable<BatchSummary | null> {
     const resolvedBearer = this.resolveBearerToken();
     const headers = resolvedBearer
       ? new HttpHeaders({ Authorization: `Bearer ${resolvedBearer}` })
@@ -178,6 +186,17 @@ export class BatchService {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('batchType', 'users');
+    if (options.welcomeEmailMode) {
+      formData.append('welcomeEmailMode', options.welcomeEmailMode);
+    }
+
+    if (options.welcomeEmailMode === 'single' && options.welcomeEmailRecipient) {
+      formData.append('welcomeEmailRecipient', options.welcomeEmailRecipient);
+    }
+
+    if (options.sendWelcomeEmails !== undefined) {
+      formData.append('sendWelcomeEmails', String(options.sendWelcomeEmails));
+    }
 
     return this.httpClient.post<ApiResponse<unknown>>(
       `${this.baseApiUrl}/batches`,
