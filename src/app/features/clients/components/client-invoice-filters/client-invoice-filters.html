@@ -1,0 +1,34 @@
+<section class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm" aria-label="Tipo de facturacion">
+    <div class="grid grid-cols-1 gap-3 md:grid-cols-[280px_minmax(260px,360px)]">
+        <label class="flex flex-col gap-1 text-sm text-gray-700">
+            <span class="text-xs font-medium text-gray-600">Tipo de facturacion</span>
+            <select class="h-10 rounded-md border border-gray-300 px-3 text-sm" [formControl]="chargeType()">
+                @for (option of chargeTypeOptions(); track option.id) {
+                <option [value]="option.id">{{ option.label }}</option>
+                }
+            </select>
+        </label>
+
+        <label class="flex flex-col gap-1 text-sm text-gray-700">
+            <span class="text-xs font-medium text-gray-600">Buscar folio</span>
+            <span class="relative">
+                <lucide-icon class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                    name="search" size="16"></lucide-icon>
+                <input
+                    class="h-10 w-full rounded-md border border-gray-300 px-9 text-sm text-gray-700 outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+                    type="search" [formControl]="search()" placeholder="545092" />
+                @if (search().value) {
+                <button type="button"
+                    class="absolute right-2 top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-gray-500 hover:bg-gray-100"
+                    (click)="clearSearch.emit()" aria-label="Limpiar busqueda" title="Limpiar busqueda">
+                    <lucide-icon name="x" size="14"></lucide-icon>
+                </button>
+                }
+            </span>
+        </label>
+    </div>
+
+    <p class="mt-2 text-xs text-gray-500">
+        Anual trae todas las facturas. Esporadica limita la consulta a los ultimos 30 dias.
+    </p>
+</section>
