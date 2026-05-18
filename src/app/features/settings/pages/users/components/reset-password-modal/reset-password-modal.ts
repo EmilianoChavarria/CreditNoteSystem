@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, input, output, signal } fro
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { User } from '../../../../../../data/interfaces/User';
 import { UserService } from '../../../../../../core/services/user-service';
 import { Modal } from '../../../../../../shared/components/ui/modal/modal';
@@ -9,7 +10,7 @@ import { Modal } from '../../../../../../shared/components/ui/modal/modal';
 @Component({
     selector: 'app-reset-password-modal',
     templateUrl: './reset-password-modal.html',
-    imports: [Modal, ReactiveFormsModule],
+    imports: [Modal, ReactiveFormsModule, TranslatePipe],
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ResetPasswordModal {
@@ -20,6 +21,7 @@ export class ResetPasswordModal {
 
     private readonly _userService = inject(UserService);
     private readonly _toastr = inject(ToastrService);
+    private readonly _translate = inject(TranslateService);
 
     public submitted = signal<boolean>(false);
     public isSaving = signal<boolean>(false);
@@ -70,13 +72,13 @@ export class ResetPasswordModal {
             finalize(() => this.isSaving.set(false))
         ).subscribe({
             next: (response: any) => {
-                this._toastr.success(response?.message ?? 'Contraseña actualizada correctamente', 'Éxito');
+                this._toastr.success(response?.message ?? this._translate.instant('USERS_PAGE.RESET_PASSWORD_MODAL.SUCCESS'), this._translate.instant('USERS_PAGE.RESET_PASSWORD_MODAL.SUCCESS_TITLE'));
                 this.passwordReset.emit();
                 this.openChange.emit(false);
                 this.reset();
             },
             error: (error: any) => {
-                this._toastr.error(error?.error?.message ?? 'Error al actualizar la contraseña', 'Error');
+                this._toastr.error(error?.error?.message ?? this._translate.instant('USERS_PAGE.RESET_PASSWORD_MODAL.ERROR'), this._translate.instant('USERS_PAGE.RESET_PASSWORD_MODAL.ERROR_TITLE'));
             }
         });
     }
