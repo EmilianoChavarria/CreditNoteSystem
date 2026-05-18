@@ -748,7 +748,22 @@
     "BULK_FILE_TYPE": "Type",
     "ERROR_VALIDATING_PASSWORD": "Error validating password",
     "SUCCESS": "Success",
-    "ERROR": "Error"
+    "ERROR": "Error",
+    "RESET_PASSWORD_MODAL": {
+      "TITLE": "Change Password",
+      "CANCEL": "Cancel",
+      "SAVING": "Saving...",
+      "SAVE": "Save",
+      "USER_LABEL": "User",
+      "NEW_PASSWORD": "New password",
+      "CONFIRM_PASSWORD": "Confirm password",
+      "REQUIRED_FIELD": "This field is required",
+      "PASSWORDS_MISMATCH": "Passwords do not match",
+      "SUCCESS": "Password updated successfully",
+      "SUCCESS_TITLE": "Success",
+      "ERROR": "Error updating password",
+      "ERROR_TITLE": "Error"
+    }
   },
   "CUSTOMERS_PAGE": {
     "CUSTOMER": "Customer",

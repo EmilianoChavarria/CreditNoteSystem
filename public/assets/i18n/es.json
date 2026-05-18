@@ -748,7 +748,22 @@
     "BULK_FILE_TYPE": "Tipo",
     "ERROR_VALIDATING_PASSWORD": "Error al validar la contraseña",
     "SUCCESS": "Éxito",
-    "ERROR": "Error"
+    "ERROR": "Error",
+    "RESET_PASSWORD_MODAL": {
+      "TITLE": "Cambiar contraseña",
+      "CANCEL": "Cancelar",
+      "SAVING": "Guardando...",
+      "SAVE": "Guardar",
+      "USER_LABEL": "Usuario",
+      "NEW_PASSWORD": "Nueva contraseña",
+      "CONFIRM_PASSWORD": "Confirmar contraseña",
+      "REQUIRED_FIELD": "Este campo es obligatorio",
+      "PASSWORDS_MISMATCH": "Las contraseñas no coinciden",
+      "SUCCESS": "Contraseña actualizada correctamente",
+      "SUCCESS_TITLE": "Éxito",
+      "ERROR": "Error al actualizar la contraseña",
+      "ERROR_TITLE": "Error"
+    }
   },
   "CUSTOMERS_PAGE": {
     "CUSTOMER": "Cliente",
