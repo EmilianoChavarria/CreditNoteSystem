@@ -145,6 +145,15 @@ export class RoleService {
     );
   }
 
+  setEquivalentRole(roleId: number, equivalentRoleId: number | null) {
+    return this._httpSevice.patch<Role>(`roles/${roleId}/equivalent-role`, { equivalentRoleId }).pipe(
+      catchError((error) => {
+        console.log(error);
+        throw error;
+      })
+    );
+  }
+
   getAllPermissions(): Observable<RolePermission[]> {
     return this._httpSevice.get<RolePermission[]>('/rolesPermission').pipe(
       map((response: ApiResponse<RolePermission[]>) => response.data ?? []),

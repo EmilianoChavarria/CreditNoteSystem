@@ -90,6 +90,31 @@
 
         </div>
 
+        <div class="bg-white shadow-md rounded-lg w-full py-4 px-8">
+            <div class="flex flex-col mb-4">
+                <span class="text-lg font-semibold text-gray-800">Rol Equivalente</span>
+                <span class="text-gray-600 text-sm">Rol secundario de respaldo. Si no se encuentra un usuario con este rol, se asigna al rol secundario.</span>
+            </div>
+            <div class="flex flex-row items-end gap-x-4">
+                <div class="flex flex-col gap-y-1 flex-1 max-w-sm">
+                    <label class="text-sm font-medium text-[#395f93]">Rol equivalente</label>
+                    <select [value]="selectedEquivalentRoleId() ?? ''"
+                        (change)="onEquivalentRoleChange($event)"
+                        class="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
+                        <option value="">Sin rol equivalente</option>
+                        @for (role of availableRoles(); track role.id) {
+                        <option [value]="role.id">{{ role.roleName }}</option>
+                        }
+                    </select>
+                </div>
+                <button (click)="onSaveEquivalentRole()" [disabled]="isSavingEquivalentRole()"
+                    class="bg-[#ff8200] text-white rounded-md px-4 py-2 flex flex-row items-center justify-center gap-x-2 hover:cursor-pointer hover:bg-[#db7201] disabled:opacity-60 disabled:cursor-not-allowed">
+                    <lucide-icon name="save" size="17"></lucide-icon>
+                    {{ isSavingEquivalentRole() ? 'Guardando...' : 'Guardar' }}
+                </button>
+            </div>
+        </div>
+
         <div class="flex flex-row justify-end items-center">
             <div class="flex gap-x-4">
                 <button (click)="onCancel()"

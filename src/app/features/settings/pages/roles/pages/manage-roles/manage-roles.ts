@@ -12,6 +12,7 @@ import {
 } from '../../../../../../core/services/role-service';
 import { RequestService } from '../../../../../../core/services/request-service';
 import { RequestType } from '../../../../../../data/interfaces/Request';
+import { Role } from '../../../../../../data/interfaces/User';
 import { forkJoin, map, of } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -54,6 +55,9 @@ export class ManageRoles {
 
   public readonly moduleSwitches = signal<Record<string, boolean>>({});
   public readonly requestTypeSwitches = signal<Record<number, Record<string, boolean>>>({});
+  public readonly allRoles = signal<Role[]>([]);
+  public readonly selectedEquivalentRoleId = signal<number | null>(null);
+  public readonly isSavingEquivalentRole = signal<boolean>(false);
 
   private readonly actionIdBySlug = signal<Record<string, number>>({});
   private readonly _roleService = inject(RoleService);
@@ -140,6 +144,32 @@ export class ManageRoles {
     }));
   }
 
+  public availableRoles(): Role[] {
+    return this.allRoles().filter(r => r.id !== this.selectedRoleId());
+  }
+
+  public onEquivalentRoleChange(event: Event): void {
+    const value = (event.target as HTMLSelectElement).value;
+    this.selectedEquivalentRoleId.set(value ? Number(value) : null);
+  }
+
+  public onSaveEquivalentRole(): void {
+    const roleId = this.selectedRoleId();
+    if (!roleId) return;
+
+    this.isSavingEquivalentRole.set(true);
+    this._roleService.setEquivalentRole(roleId, this.selectedEquivalentRoleId()).subscribe({
+      next: () => {
+        this._toastr.success('Rol equivalente guardado correctamente', 'Roles');
+        this.isSavingEquivalentRole.set(false);
+      },
+      error: (error) => {
+        this._toastr.error(error?.message ?? 'No se pudo guardar el rol equivalente', 'Error');
+        this.isSavingEquivalentRole.set(false);
+      }
+    });
+  }
+
   public onCancel(): void {
     this._router.navigate(['/app/settings/roles']);
   }
@@ -183,12 +213,16 @@ export class ManageRoles {
       actions: this._roleService.getActions(),
       modules: this._roleService.getModules(),
       requestTypes: this._requestService.getRequestTypes(),
+      roles: this._roleService.getRoles(),
     }).subscribe({
-      next: ({ actions, modules, requestTypes }) => {
+      next: ({ actions, modules, requestTypes, roles }) => {
         this.actions.set(actions);
         this.actionIdBySlug.set(this.buildActionSlugMap(actions));
         this.modules.set(modules);
         this.requestTypes.set(requestTypes);
+        this.allRoles.set(roles);
+        const currentRole = roles.find(r => r.id === this.selectedRoleId());
+        this.selectedEquivalentRoleId.set(currentRole?.equivalentRoleId ?? null);
         this.initializeLocalState();
 
         const roleId = this.selectedRoleId();
