@@ -1,7 +1,7 @@
 import { Directive, inject, Input, OnChanges, OnDestroy, OnInit, signal, SimpleChanges } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { forkJoin, map, Observable, of, Subscription, switchMap, take } from 'rxjs';
+import { finalize, forkJoin, map, Observable, of, Subscription, switchMap, take } from 'rxjs';
 import { Classification, Customer, Reason, Request, RequestAttachment } from '../../../../data/interfaces/Request';
 import { ApiResponse } from '../../../../data/interfaces/ApiResponse-interface';
 import { RequestService } from '../../../../core/services/request-service';
@@ -47,6 +47,7 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
   public selectedSapScreenFiles = signal<File[]>([]);
   public existingSapScreenFiles = signal<RequestAttachment[]>([]);
   public existingUploadSupportFiles = signal<RequestAttachment[]>([]);
+  public openingFileId = signal<number | null>(null);
 
   private subscriptions: Subscription[] = [];
   private amountSubscription: Subscription | null = null;
@@ -444,8 +445,8 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
       reasonId: new FormControl<string>('', [Validators.required]),
       classificationId: new FormControl<string>('', [Validators.required]),
       deliveryNote: new FormControl<string>(''),
-      invoiceNumber: new FormControl<string>('', [Validators.required]),
-      invoiceDate: new FormControl<string>('', [Validators.required]),
+      invoiceNumber: new FormControl<string>(''),
+      invoiceDate: new FormControl<string>(''),
       newInvoice: new FormControl<string>(''),
       warehouseCode: new FormControl<string>(''),
       sapScreen: new FormControl<File | null>(null),
@@ -634,6 +635,35 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
     attachSupportsControl.setValue(files);
     attachSupportsControl.setErrors(null);
     attachSupportsControl.markAsTouched();
+  }
+
+  openExistingFile(file: RequestAttachment): void {
+    this.openingFileId.set(file.id);
+    this._requestService.getRequestAttachmentFileUrl(file.id).pipe(
+      finalize(() => this.openingFileId.set(null))
+    ).subscribe({
+      next: (fileUrl) => {
+        if (!fileUrl) {
+          this._toastService.error('No se pudo obtener la URL del archivo', 'Error');
+          return;
+        }
+        window.open(fileUrl, '_blank', 'noopener,noreferrer');
+      },
+      error: () => {
+        this._toastService.error('No se pudo abrir el archivo', 'Error');
+      }
+    });
+  }
+
+  openLocalFile(file: File): void {
+    const url = URL.createObjectURL(file);
+    window.open(url, '_blank', 'noopener,noreferrer');
+  }
+
+  removeSapScreenFile(): void {
+    this.selectedSapScreenFiles.set([]);
+    this.form.get('sapScreen')?.setValue(null);
+    this.form.get('sapScreen')?.markAsTouched();
   }
 
   removeSupportFile(index: number): void {
