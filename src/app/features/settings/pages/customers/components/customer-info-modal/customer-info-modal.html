@@ -107,7 +107,7 @@
         </dl>
       </div>
 
-      @if (c.customer) {
+      @if (c.clienteExt) {
         <div class="border-t border-gray-100"></div>
 
         <!-- Managers -->
@@ -116,27 +116,27 @@
           <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
             <div>
               <dt class="text-xs text-gray-500">Sales Engineer</dt>
-              <dd class="text-sm font-medium text-gray-800">{{ c.customer.salesEngineer?.fullName || '—' }}</dd>
+              <dd class="text-sm font-medium text-gray-800">{{ c.clienteExt.salesEngineerId || '—' }}</dd>
             </div>
             <div>
               <dt class="text-xs text-gray-500">Sales Manager</dt>
-              <dd class="text-sm font-medium text-gray-800">{{ c.customer.salesManager?.fullName || '—' }}</dd>
+              <dd class="text-sm font-medium text-gray-800">{{ c.clienteExt.salesManagerId?.fullName || '—' }}</dd>
             </div>
             <div>
               <dt class="text-xs text-gray-500">Finance Manager</dt>
-              <dd class="text-sm font-medium text-gray-800">{{ c.customer.financeManager?.fullName || '—' }}</dd>
+              <dd class="text-sm font-medium text-gray-800">{{ c.clienteExt.financeManagerId?.fullName || '—' }}</dd>
             </div>
             <div>
               <dt class="text-xs text-gray-500">Marketing Manager</dt>
-              <dd class="text-sm font-medium text-gray-800">{{ c.customer.marketingManager?.fullName || '—' }}</dd>
+              <dd class="text-sm font-medium text-gray-800">{{ c.clienteExt.marketingManagerId?.fullName || '—' }}</dd>
             </div>
             <div>
               <dt class="text-xs text-gray-500">Customer Service Manager</dt>
-              <dd class="text-sm font-medium text-gray-800">{{ c.customer.customerServiceManager?.fullName || '—' }}</dd>
+              <dd class="text-sm font-medium text-gray-800">{{ c.clienteExt.customerServiceManagerId?.fullName || '—' }}</dd>
             </div>
             <div>
               <dt class="text-xs text-gray-500">Área</dt>
-              <dd class="text-sm font-medium text-gray-800">{{ c.customer.area || '—' }}</dd>
+              <dd class="text-sm font-medium text-gray-800">{{ c.clienteExt.area || '—' }}</dd>
             </div>
           </dl>
         </div>
