@@ -29,12 +29,19 @@ export class SysConfig implements OnInit {
     public maxAuthFailuresUser = 5;
     public maxAuthFailuresIp = 10;
     public emailSupport = '';
+    public emailMode: 'normal' | 'override' | 'disabled' = 'normal';
+    public overrideEmail = '';
     public emailTouched = false;
+    public overrideEmailTouched = false;
 
     private readonly EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     get isEmailValid(): boolean {
         return this.EMAIL_REGEX.test(this.emailSupport.trim());
+    }
+
+    get isOverrideEmailValid(): boolean {
+        return this.EMAIL_REGEX.test(this.overrideEmail.trim());
     }
 
     ngOnInit(): void {
@@ -62,6 +69,8 @@ export class SysConfig implements OnInit {
                 this.maxAuthFailuresIp = Number(loginSettings?.maxIpAttempts ?? this.maxAuthFailuresIp);
 
                 this.emailSupport = emailConfig?.emailSupport ?? '';
+                this.emailMode = emailConfig?.emailMode ?? 'normal';
+                this.overrideEmail = emailConfig?.overrideEmail ?? '';
 
                 this.isLoading.set(false);
             },
@@ -78,6 +87,11 @@ export class SysConfig implements OnInit {
     public onEmailInput(event: Event): void {
         this.emailSupport = (event.target as HTMLInputElement).value;
         this.emailTouched = true;
+    }
+
+    public onOverrideEmailInput(event: Event): void {
+        this.overrideEmail = (event.target as HTMLInputElement).value;
+        this.overrideEmailTouched = true;
     }
 
     public specialCharsDescription(): string {
@@ -140,6 +154,17 @@ export class SysConfig implements OnInit {
             return;
         }
 
+        if (this.emailMode === 'override') {
+            this.overrideEmailTouched = true;
+            if (!this.isOverrideEmailValid) {
+                this._toastr.error(
+                    this._translate.instant('SYS_CONFIG.EMAIL_OVERRIDE_INVALID'),
+                    this._translate.instant('SYS_CONFIG.TOAST.ERROR')
+                );
+                return;
+            }
+        }
+
         this.isSaving.set(true);
 
         const loginPayload = {
@@ -160,7 +185,11 @@ export class SysConfig implements OnInit {
         forkJoin({
             loginSettings: this._securityService.updateLoginAttemptSettings(loginPayload),
             passwordRequirements: this._securityService.updatePasswordRequirements(passwordPayload),
-            emailConfig: this._securityService.updateEmailConfig({ emailSupport: this.emailSupport.trim() }),
+            emailConfig: this._securityService.updateEmailConfig({
+                emailSupport: this.emailSupport.trim(),
+                emailMode: this.emailMode,
+                ...(this.emailMode === 'override' ? { overrideEmail: this.overrideEmail.trim() } : {}),
+            }),
         }).subscribe({
             next: () => {
                 this._toastr.success(
