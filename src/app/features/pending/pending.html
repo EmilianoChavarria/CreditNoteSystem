@@ -97,8 +97,12 @@
     </app-modal>
 
     <app-request-info-modal [open]="showInfoModal()" [request]="selectedRequestForInfo()"
-        (openChange)="onInfoModalChange($event)">
+        (openChange)="onInfoModalChange($event)" (viewHistory)="onInfoModalViewHistory()">
     </app-request-info-modal>
+
+    <app-workflow-history-modal [open]="showHistoryModal()" [detail]="workflowDetail"
+        (closed)="closeHistoryModal()">
+    </app-workflow-history-modal>
 
     <app-pending-attachments-modal [open]="showAttachmentsModal()"
         [requestId]="selectedRequestForAttachments()?.id ?? null" [canDelete]="canDeleteSelectedAttachments()"

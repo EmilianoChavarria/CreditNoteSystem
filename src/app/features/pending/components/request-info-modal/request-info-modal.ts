@@ -15,6 +15,7 @@ export class RequestInfoModal {
   readonly request = input<Request | null>(null);
 
   readonly openChange = output<boolean>();
+  readonly viewHistory = output<void>();
 
   onOpenChange(isOpen: boolean): void {
     this.openChange.emit(isOpen);

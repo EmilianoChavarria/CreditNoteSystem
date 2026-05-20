@@ -8,6 +8,7 @@ import { UpperCasePipe } from '@angular/common';
 import { Modal } from '../../shared/components/ui/modal/modal';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { WorkflowHistoryDrawer } from '../history/components/workflow-history-drawer/workflow-history-drawer';
+import { WorkflowHistoryModal } from '../history/components/workflow-history-modal/workflow-history-modal';
 import { finalize, forkJoin } from 'rxjs';
 import { RoleService } from '../../core/services/role-service';
 import { Request, RequestType } from '../../data/interfaces/Request';
@@ -20,7 +21,7 @@ import { RequestListBase } from '../../shared/base/request-list.base';
     selector: 'app-pending',
     templateUrl: './pending.html',
     styleUrl: './pending.css',
-    imports: [TranslatePipe, Table, Spinner, Badge, UpperCasePipe, Modal, WorkflowHistoryDrawer, PendingAttachmentsModal, RequestInfoModal, ReactiveFormsModule]
+    imports: [TranslatePipe, Table, Spinner, Badge, UpperCasePipe, Modal, WorkflowHistoryDrawer, WorkflowHistoryModal, PendingAttachmentsModal, RequestInfoModal, ReactiveFormsModule]
 })
 export class Pending extends RequestListBase {
     private readonly _roleService = inject(RoleService);

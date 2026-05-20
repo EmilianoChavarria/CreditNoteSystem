@@ -43,6 +43,7 @@ export abstract class RequestListBase {
     public roleFilterOptions = signal<{ label: string; value: string }[]>([]);
     public selectedRoleName = signal<string>('all');
     public showHistoryDrawer = signal<boolean>(false);
+    public showHistoryModal = signal<boolean>(false);
     public workflowDetail: WorkflowDetail | null = null;
     public selectedRequest = signal<Request | null>(null);
     public submitted = signal(false);
@@ -131,6 +132,43 @@ export abstract class RequestListBase {
 
     closeHistoryDrawer(): void {
         this.showHistoryDrawer.set(false);
+    }
+
+    closeHistoryModal(): void {
+        this.showHistoryModal.set(false);
+    }
+
+    onInfoModalViewHistory(): void {
+        const request = this.selectedRequestForInfo();
+        if (!request) return;
+        this.showInfoModal.set(false);
+        this.selectedRequestForInfo.set(null);
+        this.openHistoryModal(request);
+    }
+
+    openHistoryModal(request: Request): void {
+        this.showHistoryModal.set(false);
+        this.workflowDetail = null;
+        const labels = this.getWorkflowLabels();
+
+        if (!request.id) {
+            this.workflowDetail = buildRequestWorkflowDetailFromRequest(request, labels);
+            setTimeout(() => this.showHistoryModal.set(true));
+            return;
+        }
+
+        this._requestsService.getRequestHistory(request.id).subscribe({
+            next: (response) => {
+                this.workflowDetail = response
+                    ? buildRequestWorkflowDetailFromHistory(response, labels)
+                    : buildRequestWorkflowDetailFromRequest(request, labels);
+                setTimeout(() => this.showHistoryModal.set(true));
+            },
+            error: () => {
+                this.workflowDetail = buildRequestWorkflowDetailFromRequest(request, labels);
+                setTimeout(() => this.showHistoryModal.set(true));
+            }
+        });
     }
 
     logAction(request: Request): void {

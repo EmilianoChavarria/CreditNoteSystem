@@ -650,7 +650,8 @@
     "FULL_NAME": "Nombre completo",
     "EMAIL": "Correo electrónico",
     "YES": "Sí",
-    "NO": "No"
+    "NO": "No",
+    "VIEW_HISTORY": "Ver historial"
   },
   "PENDING_ATTACHMENTS": {
     "TITLE": "Ver adjuntos",

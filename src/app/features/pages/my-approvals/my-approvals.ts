@@ -5,6 +5,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { AccionPersonalizada, Column, Table } from '../../../shared/components/ui/table/table';
 import { Request, RequestType } from '../../../data/interfaces/Request';
 import { WorkflowHistoryDrawer } from '../../history/components/workflow-history-drawer/workflow-history-drawer';
+import { WorkflowHistoryModal } from '../../history/components/workflow-history-modal/workflow-history-modal';
 import { ToastService } from '../../../core/services/toast-service';
 import moment from 'moment';
 import { Modal } from '../../../shared/components/ui/modal/modal';
@@ -23,7 +24,7 @@ import { SendBackModal } from './components/send-back-modal/send-back-modal';
 
 @Component({
     selector: 'app-my-approvals',
-    imports: [TranslatePipe, WorkflowHistoryDrawer, Modal, Table, Badge, UpperCasePipe, Spinner, ReactiveFormsModule, FullSpinnerComponent, RequestInfoModal, ApproveConfirmModal, SendBackModal],
+    imports: [TranslatePipe, WorkflowHistoryDrawer, WorkflowHistoryModal, Modal, Table, Badge, UpperCasePipe, Spinner, ReactiveFormsModule, FullSpinnerComponent, RequestInfoModal, ApproveConfirmModal, SendBackModal],
     templateUrl: './my-approvals.html',
     styleUrl: './my-approvals.css',
 })
