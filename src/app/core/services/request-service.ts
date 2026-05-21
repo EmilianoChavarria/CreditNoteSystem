@@ -462,4 +462,8 @@ export class RequestService {
     );
   }
 
+  getRequestPdf(requestId: number): Observable<Blob> {
+    return this._httpService.getBlob(`/requests/${requestId}/pdf`);
+  }
+
 }

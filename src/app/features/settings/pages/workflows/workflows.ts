@@ -447,7 +447,7 @@ export class Workflows {
     this.isOpenAddWorkflowModal.set(false);
     this._workflowService.storeClassification(object).subscribe({
       next: () => this.getWorkflows(),
-      error: (error) => console.log(error)
+      error: (error) => this._toastService.error(error.error.message, 'Error')
     });
   }
 
