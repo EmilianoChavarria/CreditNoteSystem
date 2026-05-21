@@ -57,7 +57,6 @@ export class ManageRoles {
   public readonly requestTypeSwitches = signal<Record<number, Record<string, boolean>>>({});
   public readonly allRoles = signal<Role[]>([]);
   public readonly selectedEquivalentRoleId = signal<number | null>(null);
-  public readonly isSavingEquivalentRole = signal<boolean>(false);
 
   private readonly actionIdBySlug = signal<Record<string, number>>({});
   private readonly _roleService = inject(RoleService);
@@ -153,23 +152,6 @@ export class ManageRoles {
     this.selectedEquivalentRoleId.set(value ? Number(value) : null);
   }
 
-  public onSaveEquivalentRole(): void {
-    const roleId = this.selectedRoleId();
-    if (!roleId) return;
-
-    this.isSavingEquivalentRole.set(true);
-    this._roleService.setEquivalentRole(roleId, this.selectedEquivalentRoleId()).subscribe({
-      next: () => {
-        this._toastr.success('Rol equivalente guardado correctamente', 'Roles');
-        this.isSavingEquivalentRole.set(false);
-      },
-      error: (error) => {
-        this._toastr.error(error?.message ?? 'No se pudo guardar el rol equivalente', 'Error');
-        this.isSavingEquivalentRole.set(false);
-      }
-    });
-  }
-
   public onCancel(): void {
     this._router.navigate(['/app/settings/roles']);
   }
@@ -194,6 +176,7 @@ export class ManageRoles {
     forkJoin({
       moduleAssign: modulePayload.length ? this._roleService.assignModulePermissions(modulePayload) : of(null),
       requestTypeAssign: requestTypePayload.length ? this._roleService.assignRequestTypePermissions(requestTypePayload) : of(null),
+      equivalentRole: this._roleService.setEquivalentRole(roleId, this.selectedEquivalentRoleId()),
     }).subscribe({
       next: () => {
         this._toastr.success('Permisos guardados correctamente', 'Permisos');
@@ -208,24 +191,24 @@ export class ManageRoles {
 
   private loadCatalogAndPermissionState(): void {
     this.isLoading.set(true);
+    const roleId = this.selectedRoleId();
 
     forkJoin({
       actions: this._roleService.getActions(),
       modules: this._roleService.getModules(),
       requestTypes: this._requestService.getRequestTypes(),
       roles: this._roleService.getRoles(),
+      equivalentRole: roleId ? this._roleService.getEquivalentRole(roleId) : of(null),
     }).subscribe({
-      next: ({ actions, modules, requestTypes, roles }) => {
+      next: ({ actions, modules, requestTypes, roles, equivalentRole }) => {
         this.actions.set(actions);
         this.actionIdBySlug.set(this.buildActionSlugMap(actions));
         this.modules.set(modules);
         this.requestTypes.set(requestTypes);
         this.allRoles.set(roles);
-        const currentRole = roles.find(r => r.id === this.selectedRoleId());
-        this.selectedEquivalentRoleId.set(currentRole?.equivalentRoleId ?? null);
+        this.selectedEquivalentRoleId.set(equivalentRole?.id ?? null);
         this.initializeLocalState();
 
-        const roleId = this.selectedRoleId();
         if (!roleId) {
           this.isLoading.set(false);
           return;
