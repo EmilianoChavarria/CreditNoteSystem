@@ -155,6 +155,7 @@ export class MyApprovals extends RequestListBase {
             }
             this.appliedShortcutRequestNumber = requestNumber;
             this.selectedRequestType = String(resolvedRequestTypeId);
+            this.updateVisibleActions();
             this.searchTerm.set(requestNumber);
             this.resetPagination();
             this.clearSelectedRequests();
