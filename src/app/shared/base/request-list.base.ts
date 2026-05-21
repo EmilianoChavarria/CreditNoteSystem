@@ -2,22 +2,16 @@ import { inject, signal } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
-import * as pdfMake from 'pdfmake/build/pdfmake';
-import * as pdfFonts from 'pdfmake/build/vfs_fonts';
 import { Request, RequestType } from '../../data/interfaces/Request';
 import { Role } from '../../data/interfaces/User';
 import { WorkflowDetail } from '../../features/history/components/workflow-history-drawer/workflow-history-drawer';
 import { PermissionAction, RequestTypePermissionRecord } from '../../core/services/role-service';
 import { RequestService } from '../../core/services/request-service';
 import {
-    buildRequestPdfDefinition,
     buildRequestWorkflowDetailFromHistory,
     buildRequestWorkflowDetailFromRequest,
     WorkflowDetailLabels,
 } from '../utils/request-workflow-utils';
-
-const pdf: any = (pdfMake as any).default ?? pdfMake;
-pdf.vfs = (pdfFonts as any).default?.vfs ?? (pdfFonts as any).vfs;
 
 export abstract class RequestListBase {
     protected abstract getI18nPrefix(): string;
@@ -174,8 +168,14 @@ export abstract class RequestListBase {
     }
 
     generatePdf(request: Request): void {
-        const docDefinition = buildRequestPdfDefinition(request);
-        (pdf as { createPdf: (definition: Record<string, unknown>) => { open: () => void } }).createPdf(docDefinition).open();
+        if (!request.id) return;
+        this._requestsService.getRequestPdf(request.id).subscribe({
+            next: (blob) => {
+                const url = URL.createObjectURL(blob);
+                window.open(url, '_blank');
+                setTimeout(() => URL.revokeObjectURL(url), 10000);
+            },
+        });
     }
 
     editRequest(request: Request): void {
