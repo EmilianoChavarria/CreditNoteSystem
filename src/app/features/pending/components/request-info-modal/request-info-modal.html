@@ -24,11 +24,6 @@
           <span class="inline-flex items-center rounded-full bg-blue-50 px-4 py-1.5 text-sm font-bold text-blue-700 ring-1 ring-inset ring-blue-700/10">
             {{ req.status | uppercase }}
           </span>
-          <button type="button"
-            class="inline-flex items-center gap-1.5 rounded-lg bg-[#3c6194] px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-[#2f4e7a]"
-            (click)="viewHistory.emit()">
-            {{ 'REQUEST_INFO.VIEW_HISTORY' | translate }}
-          </button>
         </div>
       </div>
 
@@ -271,6 +266,102 @@
           }
         </div>
       }
+
+      <!-- Secuencia actual -->
+      <section>
+        <div class="flex items-center justify-between gap-4 mb-4">
+          <div class="flex items-center gap-2">
+            <div class="p-1.5 bg-purple-100 rounded-lg text-purple-600">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+              </svg>
+            </div>
+            <h3 class="text-sm font-bold uppercase tracking-wider text-purple-600">
+              {{ 'REQUEST_INFO.CURRENT_SEQUENCE' | translate }}
+            </h3>
+          </div>
+          <button type="button"
+            class="inline-flex items-center gap-1.5 rounded-lg bg-[#3c6194] px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-[#2f4e7a]"
+            (click)="viewHistory.emit()">
+            {{ 'REQUEST_INFO.GRAPHIC_SEQUENCE' | translate }}
+          </button>
+        </div>
+
+        @if (isLoadingSequence()) {
+          <div class="flex items-center justify-center py-10 rounded-2xl border border-purple-100">
+            <svg class="animate-spin h-6 w-6 text-purple-400" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+            </svg>
+          </div>
+        } @else if (sequenceSteps().length > 0) {
+          <div class="rounded-2xl border border-purple-100 overflow-hidden">
+            <table class="w-full text-sm">
+              <thead class="bg-purple-50/60 border-b border-purple-100">
+                <tr>
+                  <th class="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">
+                    {{ 'REQUEST_INFO.SEQ_PERSON' | translate }}
+                  </th>
+                  <th class="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">
+                    {{ 'REQUEST_INFO.SEQ_STEP' | translate }}
+                  </th>
+                  <th class="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">
+                    {{ 'REQUEST_INFO.SEQ_ROLE' | translate }}
+                  </th>
+                  <th class="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">
+                    {{ 'REQUEST_INFO.SEQ_ASSIGNED_AT' | translate }}
+                  </th>
+                  <th class="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">
+                    {{ 'REQUEST_INFO.SEQ_ACTION_AT' | translate }}
+                  </th>
+                  <th class="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">
+                    {{ 'REQUEST_INFO.SEQ_ACTION' | translate }}
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                @for (step of sequenceSteps(); track step.stepOrder) {
+                  <tr [class]="step.isCurrent ? 'bg-blue-50/40' : 'bg-white hover:bg-slate-50/50'">
+                    <td class="px-4 py-3 font-medium text-slate-700">{{ step.userName }}</td>
+                    <td class="px-4 py-3">
+                      <span class="inline-flex items-center gap-0.5 font-semibold">
+                        <span class="text-slate-800">{{ step.stepOrder }}</span>
+                        <span class="text-slate-400">/</span>
+                        <span class="text-slate-500">{{ step.totalSteps }}</span>
+                      </span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="rounded-md px-2 py-0.5 text-xs font-bold bg-slate-100 text-slate-600">
+                        {{ step.roleName }}
+                      </span>
+                    </td>
+                    <td class="px-4 py-3 text-xs text-slate-600">
+                      {{ step.assignedAt ? (step.assignedAt | date: 'dd/MM/yyyy HH:mm') : '---' }}
+                    </td>
+                    <td class="px-4 py-3 text-xs text-slate-600">
+                      @if (step.statusKey && step.statusKey !== 'pending' && step.actionAt) {
+                        {{ step.actionAt | date: 'dd/MM/yyyy HH:mm' }}
+                      } @else {
+                        ---
+                      }
+                    </td>
+                    <td class="px-4 py-3">
+                      @if (step.statusKey) {
+                        <span [class]="getStatusClasses(step.statusKey)"
+                          class="inline-flex rounded-full px-2.5 py-0.5 text-xs font-bold">
+                          {{ ('REQUEST_INFO.STATUS_' + (step.statusKey | uppercase)) | translate }}
+                        </span>
+                      } @else {
+                        <span class="text-slate-400 text-xs">---</span>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </section>
 
       <!-- Footer -->
       <div class="flex justify-between border-t border-slate-100 pt-6 text-[11px] font-medium text-slate-400 uppercase tracking-widest">

@@ -651,7 +651,20 @@
     "EMAIL": "Email",
     "YES": "Yes",
     "NO": "No",
-    "VIEW_HISTORY": "View history"
+    "VIEW_HISTORY": "View history",
+    "CURRENT_SEQUENCE": "Current sequence",
+    "GRAPHIC_SEQUENCE": "Graphic current sequence",
+    "SEQ_PERSON": "Assigned person",
+    "SEQ_STEP": "Step",
+    "SEQ_ROLE": "Role",
+    "SEQ_ASSIGNED_AT": "Assignment date",
+    "SEQ_ACTION_AT": "Action date",
+    "SEQ_ACTION": "Action",
+    "STATUS_PENDING": "Pending",
+    "STATUS_APPROVED": "Approved",
+    "STATUS_REJECTED": "Rejected",
+    "STATUS_RETURNED": "Returned",
+    "STATUS_CANCELLED": "Cancelled"
   },
   "PENDING_ATTACHMENTS": {
     "TITLE": "See attachments",
