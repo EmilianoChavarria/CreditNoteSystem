@@ -145,6 +145,16 @@ export class RoleService {
     );
   }
 
+  getEquivalentRole(roleId: number): Observable<{ id: number; roleName: string } | null> {
+    return this._httpSevice.get<{ id: number; roleName: string } | null>(`roles/${roleId}/equivalent-role`).pipe(
+      map((response: ApiResponse<{ id: number; roleName: string } | null>) => response.data ?? null),
+      catchError((error) => {
+        if (error?.status === 404) return of(null);
+        throw error;
+      })
+    );
+  }
+
   setEquivalentRole(roleId: number, equivalentRoleId: number | null) {
     return this._httpSevice.patch<Role>(`roles/${roleId}/equivalent-role`, { equivalentRoleId }).pipe(
       catchError((error) => {
