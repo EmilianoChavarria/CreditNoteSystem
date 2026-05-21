@@ -141,8 +141,6 @@ export abstract class RequestListBase {
     onInfoModalViewHistory(): void {
         const request = this.selectedRequestForInfo();
         if (!request) return;
-        this.showInfoModal.set(false);
-        this.selectedRequestForInfo.set(null);
         this.openHistoryModal(request);
     }
 
