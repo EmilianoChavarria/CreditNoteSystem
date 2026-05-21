@@ -35,6 +35,7 @@ export class AddStepModal {
 
   conditionFieldOptions = [
     { value: 'totalAmount', label: 'Total Amount' },
+    { value: 'warehouseTotal', label: 'Warehouse Amount' },
   ];
 
   addTransition() {

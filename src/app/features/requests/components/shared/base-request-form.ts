@@ -452,7 +452,7 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
       sapScreen: new FormControl<File | null>(null),
       currency: new FormControl<string>('', [Validators.required]),
       exchangeRate: new FormControl<number | null>(null, [Validators.required, Validators.min(0)]),
-      amount: new FormControl<number | null>(null, [Validators.required, Validators.min(0)]),
+      amount: new FormControl<number | null>(null, [Validators.min(0)]),
       hasIva: new FormControl<boolean>(false),
       hasRga: new FormControl<boolean>(false),
       totalAmount: new FormControl<string>({ value: '', disabled: true }, []),
