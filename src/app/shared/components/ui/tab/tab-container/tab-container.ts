@@ -48,11 +48,12 @@ import { fromEvent, Subscription } from 'rxjs';
 
           <div class="flex gap-x-2">
             <button (click)="saveDraft()"
+                    *ngIf="!isEditing()"
                     class="px-2 py-2 md:px-4 md:py-2 text-xs md:text-sm font-semibold text-white bg-gray-600 rounded-md hover:bg-gray-700 transition">
               {{ 'TAB_CONTAINER.SAVE_DRAFT' | translate }}
             </button>
             <button (click)="save()"
-                    *ngIf="selectedIndex === tabs.length - 1"
+                    *ngIf="isEditing() || selectedIndex === tabs.length - 1"
                     [disabled]="registerDisabled()"
                     [ngClass]="registerDisabled() ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'"
                     class="px-2 py-2 md:px-4 md:py-2 text-xs md:text-sm font-semibold text-white rounded-md transition">
@@ -72,6 +73,7 @@ export class TabsContainer implements AfterContentInit, AfterViewInit, OnDestroy
   readonly showBottomButtons = input<boolean>(true);
   readonly registerDisabled = input<boolean>(false);
   readonly initialTabIndex = input<number>(0);
+  readonly isEditing = input<boolean>(false);
   selectedIndex: number = 0;
   showLeftFade = false;
   showRightFade = false;
