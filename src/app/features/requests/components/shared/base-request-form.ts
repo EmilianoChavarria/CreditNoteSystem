@@ -38,6 +38,11 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
   protected readonly maxSupportFiles = 10;
   @Input() requestTypeId: number | null = null;
   @Input() initialRequestData: Partial<Request> | null = null;
+
+  get isEditing(): boolean {
+    const id = Number(this.initialRequestData?.id);
+    return Number.isFinite(id) && id > 0;
+  }
   public submitted = signal<boolean>(false);
   public reasons = signal<Reason[]>([]);
   public classifications = signal<Classification[]>([]);
@@ -789,7 +794,8 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
 
         this._toastService.success(response?.message ?? successMessage, 'Exito');
         this.submitted.set(false);
-        this._router.navigate(['/app/pending']);
+        const returnTo = (history.state as { returnTo?: string })?.returnTo;
+        this._router.navigate([returnTo ?? '/app/pending']);
       },
       error: (error: unknown) => {
         const message = (error as { error?: { message?: string }; message?: string })?.error?.message
