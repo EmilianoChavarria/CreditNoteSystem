@@ -79,7 +79,7 @@ export class MyApprovals extends RequestListBase {
         { key: 'return_order', icon: 'corner-up-left', label: 'MY_APPROVALS.RETURN_ORDER', accion: (request) => this.openSendBackModal(request) },
         { key: 'pdf', icon: 'file-text', label: 'MY_APPROVALS.PDF', accion: (request) => this.generatePdf(request) },
         { key: 'see_info', icon: 'info', label: 'PENDING_PAGE.SEE_INFO', accion: (request) => this.openInfoModal(request) },
-        { key: 'edit', icon: 'pencil', label: 'MY_APPROVALS.EDIT', accion: (request) => this.editRequest(request) },
+        { key: 'edit', icon: 'pencil', label: 'MY_APPROVALS.EDIT', accion: (request) => this.editRequest(request, '/app/my-approvals') },
         { key: 'history', icon: 'history', label: 'MY_APPROVALS.SEE_HISTORY', accion: (request) => this.logAction(request) },
     ];
     public acciones = signal<AccionPersonalizada<Request>[]>([]);
