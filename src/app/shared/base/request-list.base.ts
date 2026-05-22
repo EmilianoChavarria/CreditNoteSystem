@@ -178,12 +178,12 @@ export abstract class RequestListBase {
         });
     }
 
-    editRequest(request: Request): void {
+    editRequest(request: Request, returnTo?: string): void {
         const requestTypeId = Number(request.requestTypeId ?? request.requestType?.id);
         if (!requestTypeId || Number.isNaN(requestTypeId)) return;
         this._router.navigate(['/app/request/new-request'], {
             queryParams: { requestTypeId },
-            state: { editRequest: request }
+            state: { editRequest: request, returnTo }
         });
     }
 
