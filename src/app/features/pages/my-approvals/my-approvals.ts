@@ -62,6 +62,10 @@ export class MyApprovals extends RequestListBase {
     public columns: Column<Request>[] = [
         { key: 'bulkSelect', label: 'MY_APPROVALS.SELECT', sortable: false, customTemplate: true },
         { key: 'requestNumber', label: 'MY_APPROVALS.REQUEST_NUMBER', sortable: true },
+        {
+            key: 'razonSocial', label: 'MY_APPROVALS.SOCIAL_REASON', sortable: true,
+            render: (value) => value ? value : '-'
+        },
         { key: 'requestType.name', label: 'MY_APPROVALS.REQUEST_TYPE', sortable: true, customTemplate: true },
         { key: 'classification.name', label: 'MY_APPROVALS.CLASSIFICATION', sortable: true },
         { key: 'username', label: 'Assigned User', sortable: true, customTemplate: true },

@@ -33,6 +33,10 @@ export class Pending extends RequestListBase {
 
     public columns: Column<Request>[] = [
         { key: 'requestNumber', label: 'PENDING_PAGE.REQUEST_NUMBER', sortable: true },
+        {
+            key: 'razonSocial', label: 'PENDING_PAGE.SOCIAL_REASON', sortable: true,
+            render: (value) => value ? value : '-'
+        },
         { key: 'requestType.name', label: 'PENDING_PAGE.REQUEST_TYPE', sortable: true, customTemplate: true },
         { key: 'classification.name', label: 'PENDING_PAGE.CLASSIFICATION', sortable: true },
         { key: 'username', label: 'Assigned User', sortable: true, customTemplate: true },
