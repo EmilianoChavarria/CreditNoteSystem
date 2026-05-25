@@ -497,6 +497,7 @@
     "DESCRIPTION": "Listado de solicitudes que el usuario tiene por aprobar",
     "REQUEST": "Solicitud",
     "REQUEST_NUMBER": "Número de Solicitud",
+    "SOCIAL_REASON": "Nombre del Cliente",
     "REQUEST_TYPE": "Tipo de Solicitud",
     "AREA": "Área",
     "CLASSIFICATION": "Clasificación",
@@ -574,6 +575,7 @@
   "PENDING_PAGE": {
     "REQUEST": "Solicitud",
     "REQUEST_NUMBER": "Número de Solicitud",
+    "SOCIAL_REASON": "Nombre del Cliente",
     "REQUEST_TYPE": "Tipo de Solicitud",
     "AREA": "Área",
     "CLASSIFICATION": "Clasificación",
@@ -808,7 +810,7 @@
   },
   "NEW_REQUEST_FORM": {
     "REQUEST_NUMBER": "Número de Solicitud",
-    "ORDER_NUMBER": "Número de Orden",
+    "ORDER_NUMBER": "Número de Orden SAP",
     "SAP_RETURN_ORDER": "SAP Return Order",
     "CREDIT_NUMBER": "Número de Crédito",
     "CREDIT_DEBIT_NUMBER": "Número de Crédito/Débito",

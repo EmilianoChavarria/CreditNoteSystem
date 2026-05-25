@@ -497,6 +497,7 @@
     "DESCRIPTION": "List of requests that the user has to approve",
     "REQUEST": "Request",
     "REQUEST_NUMBER": "Request Number",
+    "SOCIAL_REASON": "Client Name",
     "REQUEST_TYPE": "Request Type",
     "AREA": "Area",
     "CLASSIFICATION": "Classification",
@@ -574,6 +575,7 @@
   "PENDING_PAGE": {
     "REQUEST": "Request",
     "REQUEST_NUMBER": "Request Number",
+    "SOCIAL_REASON": "Client Name",
     "REQUEST_TYPE": "Request Type",
     "AREA": "Area",
     "CLASSIFICATION": "Classification",
@@ -808,7 +810,7 @@
   },
   "NEW_REQUEST_FORM": {
     "REQUEST_NUMBER": "Request Number",
-    "ORDER_NUMBER": "Order Number",
+    "ORDER_NUMBER": "SAP Order Number",
     "SAP_RETURN_ORDER": "SAP Return Order",
     "CREDIT_NUMBER": "Credit Number",
     "CREDIT_DEBIT_NUMBER": "Credit/Debit Number",
