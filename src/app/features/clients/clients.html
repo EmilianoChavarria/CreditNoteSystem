@@ -146,10 +146,10 @@
                             <span>{{ 'CLIENT_INVOICES.ORDER.SUBTOTAL' | translate }}</span>
                             <strong>{{ returnOrderSubtotal() | number : '1.2-2' }}</strong>
                         </p>
-                        <p class="flex items-center justify-between text-gray-700">
+                        <!-- <p class="flex items-center justify-between text-gray-700">
                             <span>IVA ({{ taxRate * 100 }}%)</span>
                             <strong>{{ returnOrderTax() | number : '1.2-2' }}</strong>
-                        </p>
+                        </p> -->
                         @if (chargeRate() > 0) {
                         <p class="flex items-center justify-between text-orange-700">
                             <span>

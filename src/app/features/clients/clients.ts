@@ -52,7 +52,7 @@ export class Clients {
   private readonly destroyRef = inject(DestroyRef);
   private readonly translateService = inject(TranslateService);
 
-  protected readonly taxRate = 0.16;
+  // protected readonly taxRate = 0.16;
   protected readonly invoiceChargeType = new FormControl<number | null>(null, { nonNullable: true });
   protected readonly invoiceSearch = new FormControl<string>('', { nonNullable: true });
   protected readonly invoiceChargeTypeOptions = signal<ChargeTypeOption[]>([]);
@@ -160,10 +160,11 @@ export class Clients {
 
   protected readonly returnOrderCharge = computed(() => this.returnOrderSubtotal() * this.chargeRate());
 
-  protected readonly returnOrderTax = computed(() => this.returnOrderSubtotal() * this.taxRate);
+  // protected readonly returnOrderTax = computed(() => this.returnOrderSubtotal() * this.taxRate);
 
   protected readonly returnOrderTotal = computed(() =>
-    this.returnOrderSubtotal() + this.returnOrderTax() + this.returnOrderCharge(),
+    // this.returnOrderSubtotal() + this.returnOrderTax() + this.returnOrderCharge(),
+    this.returnOrderSubtotal() + this.returnOrderCharge(),
   );
 
   protected readonly groupedReturnItems = computed<GroupedReturnItems[]>(() => {
