@@ -80,7 +80,7 @@
                 <div>
                     <label for="classificationId"
                         class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.CLASSIFICATION' |
-                        translate}}<span class="text-red-500">*</span></label>
+                        translate}}</label>
                     <select id="classificationId" formControlName="classificationId"
                         [class]="campoVacio('classificationId') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'">
                         <option value="" disabled>Selecciona una opción</option>
@@ -132,7 +132,7 @@
                 <div>
                     <label for="invoiceNumber"
                         class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.INVOICE_NUMBER' |
-                        translate}}<span class="text-red-500">*</span></label>
+                        translate}}</label>
                     <input id="invoiceNumber" type="text" formControlName="invoiceNumber"
                         [class]="campoVacio('invoiceNumber') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
                     @if (campoVacio('invoiceNumber')) {
@@ -142,7 +142,7 @@
                 <div>
                     <label for="invoiceDate"
                         class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.INVOICE_DATE' |
-                        translate}}<span class="text-red-500">*</span></label>
+                        translate}}</label>
                     <input id="invoiceDate" type="date" formControlName="invoiceDate"
                         [class]="campoVacio('invoiceDate') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
                     @if (campoVacio('invoiceDate')) {
@@ -524,7 +524,7 @@
                         <label for="replenishmentAmount"
                             class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.REPLANISHMENT_AMOUNT' |
                             translate}}<span class="text-red-500">*</span></label>
-                        <input id="replenishmentAmount" type="number"
+                        <input id="replenishmentAmount" type="text"
                             [value]="replenishmentAcceptedTotal() | number : '1.2-2'" readonly
                             [class]="campoVacio('replenishmentAmount') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
                         @if (campoVacio('replenishmentAmount')) {
@@ -539,7 +539,7 @@
                             <label for="hasReplenishmentIva"
                                 class="font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.HAS_IVA'
                                 |
-                                translate}}<span class="text-red-500">*</span></label>
+                                translate}}</label>
                             @if (hasReplenishmentIva() && replenishmentIvaAmount() > 0) {
                             <span class="text-sm text-blue-600 font-semibold">(IVA: {{ replenishmentIvaAmount() | number
                                 : '1.2-2' }})</span>
@@ -553,7 +553,7 @@
                         <label for="warehouseAmount"
                             class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.WAREHOUSE_AMOUNT' |
                             translate}}<span class="text-red-500">*</span></label>
-                        <input id="warehouseAmount" type="number" [value]="warehouseAcceptedTotal() | number : '1.2-2'"
+                        <input id="warehouseAmount" type="text" [value]="warehouseAcceptedTotal() | number : '1.2-2'"
                             readonly
                             [class]="campoVacio('warehouseAmount') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
                         @if (campoVacio('warehouseAmount')) {
@@ -568,7 +568,7 @@
                             <label for="hasWarehouseIva"
                                 class="font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.HAS_IVA'
                                 |
-                                translate}}<span class="text-red-500">*</span></label>
+                                translate}}</label>
                             @if (hasWarehouseIva() && warehouseIvaAmount() > 0) {
                             <span class="text-sm text-blue-600 font-semibold">(IVA: {{ warehouseIvaAmount() | number :
                                 '1.2-2' }})</span>
@@ -582,7 +582,7 @@
                         <label for="replenishmentTotal"
                             class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.REPLANISHMENT_TOTAL' |
                             translate}}<span class="text-red-500">*</span></label>
-                        <input id="replenishmentTotal" type="number"
+                        <input id="replenishmentTotal" type="text"
                             [value]="(replenishmentAcceptedTotal() + replenishmentIvaAmount()) | number : '1.2-2'"
                             readonly
                             [class]="campoVacio('replenishmentTotal') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
@@ -594,7 +594,7 @@
                         <label for="warehouseTotal"
                             class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.WAREHOUSE_TOTAL' |
                             translate}}<span class="text-red-500">*</span></label>
-                        <input id="warehouseTotal" type="number"
+                        <input id="warehouseTotal" type="text"
                             [value]="(warehouseAcceptedTotal() + warehouseIvaAmount()) | number : '1.2-2'" readonly
                             [class]="campoVacio('warehouseTotal') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
                         @if (campoVacio('warehouseTotal')) {
