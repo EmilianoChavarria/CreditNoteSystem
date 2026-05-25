@@ -99,7 +99,7 @@
                 <div>
                     <label for="classificationId"
                         class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.CLASSIFICATION' |
-                        translate}}<span class="text-red-500">*</span></label>
+                        translate}}</label>
                     <select id="classificationId" formControlName="classificationId"
                         [class]="campoVacio('classificationId') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'">
                         <option value="" disabled>Selecciona una opción</option>
@@ -130,7 +130,7 @@
                 <div>
                     <label for="invoiceNumber"
                         class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.INVOICE_NUMBER' |
-                        translate}}<span class="text-red-500">*</span></label>
+                        translate}}</label>
                     <input id="invoiceNumber" type="text" formControlName="invoiceNumber"
                         [class]="campoVacio('invoiceNumber') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
                     @if (campoVacio('invoiceNumber')) {
@@ -140,7 +140,7 @@
                 <div>
                     <label for="invoiceDate"
                         class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.INVOICE_DATE' |
-                        translate}}<span class="text-red-500">*</span></label>
+                        translate}}</label>
                     <input id="invoiceDate" type="date" formControlName="invoiceDate"
                         [class]="campoVacio('invoiceDate') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
                     @if (campoVacio('invoiceDate')) {
@@ -200,7 +200,7 @@
                         <input id="hasIva" type="checkbox" formControlName="hasIva"
                             [class]="campoVacio('hasIva') ? 'w-5 h-5 border-red-500 text-blue-600 focus:ring-red-500 rounded' : 'w-5 h-5 rounded text-blue-600 focus:ring-blue-500'" />
                         <label for="hasIva" class="font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.HAS_IVA' |
-                            translate}}<span class="text-red-500">*</span></label>
+                            translate}}</label>
                     </div>
                     @if (campoVacio('hasIva')) {
                     <span class="text-sm text-red-500">{{ getErrorMessage('hasIva') }}</span>

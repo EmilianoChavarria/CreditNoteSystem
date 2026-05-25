@@ -448,7 +448,7 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
       customerNumber: new FormControl<string>({ value: '', disabled: true }, [Validators.required]),
       area: new FormControl<string>('', [Validators.required]),
       reasonId: new FormControl<string>('', [Validators.required]),
-      classificationId: new FormControl<string>('', [Validators.required]),
+      classificationId: new FormControl<string>(''),
       deliveryNote: new FormControl<string>(''),
       invoiceNumber: new FormControl<string>(''),
       invoiceDate: new FormControl<string>(''),
@@ -618,26 +618,29 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
 
   onAttachSupportsChange(event: Event): void {
     const input = event.target as HTMLInputElement;
-    const files = Array.from(input.files ?? []);
+    const newFiles = Array.from(input.files ?? []);
     const attachSupportsControl = this.form.get('attachSupports');
 
     if (!attachSupportsControl) {
       return;
     }
 
-    if (files.length > this.maxSupportFiles) {
-      const limitedFiles = files.slice(0, this.maxSupportFiles);
+    const existingFiles = this.selectedSupportFiles();
+    const mergedFiles = [...existingFiles, ...newFiles];
+    input.value = '';
+
+    if (mergedFiles.length > this.maxSupportFiles) {
+      this._toastService.error(`Solo puedes subir hasta ${this.maxSupportFiles} archivos`, 'Carga de archivos');
+      const limitedFiles = mergedFiles.slice(0, this.maxSupportFiles);
       this.selectedSupportFiles.set(limitedFiles);
       attachSupportsControl.setValue(limitedFiles);
       attachSupportsControl.setErrors({ maxFiles: true });
       attachSupportsControl.markAsTouched();
-      this._toastService.error(`Solo puedes subir hasta ${this.maxSupportFiles} archivos`, 'Carga de archivos');
-      input.value = '';
       return;
     }
 
-    this.selectedSupportFiles.set(files);
-    attachSupportsControl.setValue(files);
+    this.selectedSupportFiles.set(mergedFiles);
+    attachSupportsControl.setValue(mergedFiles.length ? mergedFiles : null);
     attachSupportsControl.setErrors(null);
     attachSupportsControl.markAsTouched();
   }

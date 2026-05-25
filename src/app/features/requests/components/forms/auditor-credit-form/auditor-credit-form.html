@@ -250,7 +250,7 @@
                         <input id="hasIva" type="checkbox" formControlName="hasIva"
                             [class]="campoVacio('hasIva') ? 'w-5 h-5 border-red-500 text-blue-600 focus:ring-red-500 rounded' : 'w-5 h-5 rounded text-blue-600 focus:ring-blue-500'" />
                         <label for="hasIva" class="font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.HAS_IVA' |
-                            translate}}<span class="text-red-500">*</span></label>
+                            translate}}</label>
                     </div>
                     @if (campoVacio('hasIva')) {
                     <span class="text-sm text-red-500">{{ getErrorMessage('hasIva') }}</span>
