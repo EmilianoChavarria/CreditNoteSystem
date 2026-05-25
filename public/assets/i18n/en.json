@@ -390,7 +390,8 @@
       "DESCRIPTION": "Upload a CSV with request data",
       "TEMPLATE": "Template",
       "PROCESS_BUTTON": "Process Batch",
-      "DROP_HINT": "Drag and drop file here or"
+      "DROP_HINT": "Drag and drop file here or",
+      "VIEW_REASONS": "View reasons and classifications"
     },
     "SUPPORT": {
       "TITLE": "Upload Support",

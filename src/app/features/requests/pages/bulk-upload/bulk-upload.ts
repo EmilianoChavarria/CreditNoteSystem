@@ -2,13 +2,13 @@ import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, computed, injec
 import { TabsContainer } from "../../../../shared/components/ui/tab/tab-container/tab-container";
 import { Tab } from "../../../../shared/components/ui/tab/tab";
 import { AccordeonContainer } from "../../../../shared/components/ui/accordeon/accordeon-container";
-import { Subscription } from 'rxjs';
+import { forkJoin, Subscription } from 'rxjs';
 import { BatchErrorLog, BatchRequestItem, BatchService, BatchSummary } from '../../../../core/services/batch-service';
 import { AuthService } from '../../../../core/services/auth-service';
 import { BatchFinishedMessage, ReverbSocketService } from '../../../../core/services/reverb-socket-service';
 import { ToastService } from '../../../../core/services/toast-service';
 import { RequestService } from '../../../../core/services/request-service';
-import { RequestType } from '../../../../data/interfaces/Request';
+import { Classification, Reason, RequestType } from '../../../../data/interfaces/Request';
 import { ActivatedRoute } from '@angular/router';
 import { BulkNewRequestsUpload } from '../../components/batchs/bulk-new-requests-upload/bulk-new-requests-upload';
 import { BulkUploadSupportUpload } from '../../components/batchs/bulk-upload-support-upload/bulk-upload-support-upload';
@@ -19,6 +19,8 @@ import { BulkHistoryTab } from '../../components/batchs/bulk-history-tab/bulk-hi
 import { BatchRequestsModal } from '../../components/batchs/batch-requests-modal/batch-requests-modal';
 import { RequestErrorModal } from '../../components/batchs/request-error-modal/request-error-modal';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { PermissionAction, RequestTypePermissionRecord, RoleService } from '../../../../core/services/role-service';
+import { Modal } from '../../../../shared/components/ui/modal/modal';
 
 interface BatchHistoryRow {
     idBatch: string;
@@ -58,7 +60,8 @@ interface RequestHistoryRow {
         BulkHistoryTab,
         BatchRequestsModal,
         RequestErrorModal,
-        TranslatePipe
+        TranslatePipe,
+        Modal,
     ]
 })
 export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
@@ -73,6 +76,7 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
     private readonly toastService = inject(ToastService);
     private readonly requestService = inject(RequestService);
     private readonly translateService = inject(TranslateService);
+    private readonly roleService = inject(RoleService);
     private readonly subscriptions: Subscription[] = [];
     private pendingTabIndex: number | null = null;
 
@@ -106,8 +110,13 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
     public batchRequestsHasPrevPage = signal(false);
 
     public bulkHistoryRows = signal<BatchHistoryRow[]>([]);
-
     public batchRequestRows = signal<RequestHistoryRow[]>([]);
+
+    public showInfoModal = signal<boolean>(false);
+    public isLoadingInfoModal = signal<boolean>(false);
+    public infoModalReasons = signal<Reason[]>([]);
+    public infoModalClassifications = signal<Classification[]>([]);
+    public copiedText = signal<string | null>(null);
 
     ngOnInit(): void {
         this.loadRequestTypes();
@@ -227,12 +236,18 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
     }
 
     private loadRequestTypes(): void {
-        const subscription = this.requestService.getRequestTypes().subscribe({
-            next: (requestTypes) => {
-                this.availableRequestTypes.set(requestTypes);
+        const subscription = forkJoin({
+            actions: this.roleService.getActions(),
+            requestTypes: this.requestService.getRequestTypes(),
+            permissions: this.roleService.getRequestTypePermissionsForCurrentContext(),
+        }).subscribe({
+            next: ({ actions, requestTypes, permissions }) => {
+                const matrix = this.buildPermissionMatrix(actions, permissions);
+                const filtered = requestTypes.filter((rt) => Boolean(matrix[rt.id]?.['create']));
+                this.availableRequestTypes.set(filtered);
 
-                if (requestTypes.length > 0 && !this.selectedRequestTypeId()) {
-                    this.selectedRequestTypeId.set(requestTypes[0].id);
+                if (filtered.length > 0 && !this.selectedRequestTypeId()) {
+                    this.selectedRequestTypeId.set(filtered[0].id);
                 }
             },
             error: (error) => {
@@ -245,6 +260,86 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
         });
 
         this.subscriptions.push(subscription);
+    }
+
+    public openInfoModal(): void {
+        const requestTypeId = this.selectedRequestTypeId();
+        if (!requestTypeId) return;
+
+        this.infoModalReasons.set([]);
+        this.infoModalClassifications.set([]);
+        this.isLoadingInfoModal.set(true);
+        this.showInfoModal.set(true);
+
+        const subscription = forkJoin({
+            reasons: this.requestService.getReasons(requestTypeId),
+            classifications: this.requestService.getClassificationsByType(requestTypeId),
+        }).subscribe({
+            next: ({ reasons, classifications }) => {
+                this.infoModalReasons.set(reasons);
+                this.infoModalClassifications.set(classifications);
+                this.isLoadingInfoModal.set(false);
+            },
+            error: () => {
+                this.isLoadingInfoModal.set(false);
+                this.toastService.error(
+                    this.translateService.instant('BULK.TOAST.LOAD_REQUEST_TYPES_ERROR'),
+                    this.translateService.instant('BULK.TABS.UPLOAD')
+                );
+            }
+        });
+
+        this.subscriptions.push(subscription);
+    }
+
+    public closeInfoModal(): void {
+        this.showInfoModal.set(false);
+    }
+
+    public copyText(text: string): void {
+        if (navigator?.clipboard?.writeText) {
+            navigator.clipboard.writeText(text).then(() => {
+                this.copiedText.set(text);
+                setTimeout(() => this.copiedText.set(null), 1500);
+            }).catch(() => this.fallbackCopy(text));
+        } else {
+            this.fallbackCopy(text);
+        }
+    }
+
+    private fallbackCopy(text: string): void {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        try {
+            document.execCommand('copy');
+            this.copiedText.set(text);
+            setTimeout(() => this.copiedText.set(null), 1500);
+        } catch {}
+        document.body.removeChild(textarea);
+    }
+
+    private buildPermissionMatrix(
+        actions: PermissionAction[],
+        permissions: RequestTypePermissionRecord[]
+    ): Record<number, Record<string, boolean>> {
+        const slugById = actions.reduce<Record<number, string>>((acc, a) => {
+            acc[a.id] = a.slug?.trim().toLowerCase() ?? '';
+            return acc;
+        }, {});
+
+        const matrix: Record<number, Record<string, boolean>> = {};
+        for (const p of permissions) {
+            const slug = slugById[p.action_id];
+            if (!slug) continue;
+            matrix[p.request_type_id] ??= {};
+            matrix[p.request_type_id][slug] = Boolean(p.is_allowed);
+        }
+        return matrix;
     }
 
     private loadBatchDetail(batchId: number | string): void {

@@ -390,7 +390,8 @@
       "DESCRIPTION": "Sube un CSV con la información de solicitudes",
       "TEMPLATE": "Plantilla",
       "PROCESS_BUTTON": "Procesar Batch",
-      "DROP_HINT": "Arrastra y suelta el archivo aquí o"
+      "DROP_HINT": "Arrastra y suelta el archivo aquí o",
+      "VIEW_REASONS": "Ver razones y clasificaciones"
     },
     "SUPPORT": {
       "TITLE": "Subir Soportes",
