@@ -44,6 +44,7 @@ export abstract class RequestListBase {
     public showDeclineModal = signal<boolean>(false);
     public showInfoModal = signal<boolean>(false);
     public selectedRequestForInfo = signal<Request | null>(null);
+    public canDeleteInfoAttachments = signal<boolean>(false);
     protected readonly requestTypeActionPermissions = signal<Record<number, Record<string, boolean>>>({});
     protected currentLanguage = signal<string>(this._translateService.currentLang || 'es');
     protected searchDebounceTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -115,13 +116,21 @@ export abstract class RequestListBase {
     }
 
     openInfoModal(request: Request): void {
+        const requestTypeId = Number(request.requestTypeId ?? request.requestType?.id);
+        const canDelete = this.hasRequestTypePermission(requestTypeId, [
+            'delete_attachments', 'delete_attachment', 'delete_atachments', 'delete_atachment'
+        ]);
+        this.canDeleteInfoAttachments.set(canDelete);
         this.selectedRequestForInfo.set(request);
         this.showInfoModal.set(true);
     }
 
     onInfoModalChange(isOpen: boolean): void {
         this.showInfoModal.set(isOpen);
-        if (!isOpen) this.selectedRequestForInfo.set(null);
+        if (!isOpen) {
+            this.selectedRequestForInfo.set(null);
+            this.canDeleteInfoAttachments.set(false);
+        }
     }
 
     closeHistoryDrawer(): void {

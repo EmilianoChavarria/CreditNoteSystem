@@ -50,7 +50,6 @@ export class Pending extends RequestListBase {
     private readonly baseAcciones: AccionPersonalizada<Request>[] = [
         { key: 'pdf', icon: 'file-text', label: 'PENDING_PAGE.PDF', accion: (request) => this.generatePdf(request) },
         { key: 'see_info', icon: 'info', label: 'PENDING_PAGE.SEE_INFO', accion: (request) => this.openInfoModal(request) },
-        { key: 'see_attachments', icon: 'eye', label: 'PENDING_PAGE.SEE_ATTACHMENTS', accion: (request) => this.openAttachmentsModal(request) },
         { key: 'delete', icon: 'trash', label: 'PENDING_PAGE.DELETE', accion: (request) => this.logAction(request) }
     ];
     public acciones = signal<AccionPersonalizada<Request>[]>([]);

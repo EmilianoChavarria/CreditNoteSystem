@@ -161,6 +161,7 @@
     </app-modal>
 
     <app-request-info-modal [open]="showInfoModal()" [request]="selectedRequestForInfo()"
+        [canDelete]="canDeleteInfoAttachments()"
         (openChange)="onInfoModalChange($event)" (viewHistory)="onInfoModalViewHistory()">
     </app-request-info-modal>
 
