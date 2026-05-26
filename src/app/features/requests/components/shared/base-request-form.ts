@@ -44,6 +44,7 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
     return Number.isFinite(id) && id > 0;
   }
   public submitted = signal<boolean>(false);
+  public isSaving = signal<boolean>(false);
   public reasons = signal<Reason[]>([]);
   public classifications = signal<Classification[]>([]);
   public isLoadingInitialData = signal<boolean>(false);
@@ -767,8 +768,11 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
       ? this._requestService.updateRequest(editingRequestId, formData)
       : this._requestService.saveRequest(formData);
 
+    this.isSaving.set(true);
+
     request$.pipe(
       take(1),
+      finalize(() => this.isSaving.set(false)),
       switchMap((response: SaveRequestResponse) => {
         if (!response?.success) {
           throw new Error(response?.message ?? 'No se pudo guardar la solicitud');
