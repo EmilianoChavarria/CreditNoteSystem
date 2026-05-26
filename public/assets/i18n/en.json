@@ -556,6 +556,16 @@
     "BULK_REJECT_MODAL_TITLE": "Confirm bulk rejection",
     "BULK_REJECT_CONFIRM": "{{count}} selected requests will be rejected and the same comment will be applied to all.",
     "BULK_APPROVE_DEFAULT_COMMENT": "Bulk approval from approvals inbox",
+    "BULK_CANCEL": "Bulk cancel",
+    "BULK_CANCEL_MODAL_TITLE": "Confirm bulk cancellation",
+    "BULK_CANCEL_CONFIRM": "{{count}} selected requests will be cancelled.",
+    "BULK_CANCELLING": "Cancelling...",
+    "BULK_APPROVING": "Approving...",
+    "BULK_REJECTING": "Rejecting...",
+    "APPROVING": "Approving...",
+    "REJECTING": "Rejecting...",
+    "CANCELLING": "Cancelling...",
+    "SENDING_BACK": "Sending back...",
     "RETURN_ORDER": "Send back request",
     "SEND_BACK_MODAL_TITLE": "Send back to a previous step",
     "SEND_BACK_CONFIRM_BTN": "Send back",
@@ -582,7 +592,10 @@
       "BULK_APPROVE_ERROR": "Error processing bulk approval.",
       "BULK_REJECT_SUCCESS": "{{rejected}} of {{total}} requests were rejected.",
       "BULK_REJECT_PARTIAL": "{{failed}} requests could not be rejected.",
-      "BULK_REJECT_ERROR": "Error processing bulk rejection."
+      "BULK_REJECT_ERROR": "Error processing bulk rejection.",
+      "BULK_CANCEL_SUCCESS": "{{cancelled}} of {{total}} requests were cancelled.",
+      "BULK_CANCEL_PARTIAL": "{{failed}} requests could not be cancelled.",
+      "BULK_CANCEL_ERROR": "Error processing bulk cancellation."
     }
   },
   "PENDING_PAGE": {
@@ -644,7 +657,7 @@
     "INVOICE_NUMBER": "Invoice number",
     "INVOICE_DATE": "Invoice date",
     "SAP_RETURN_ORDER": "SAP return order",
-    "CREDIT_NUMBER": "Credit number",
+    "CREDIT_NUMBER": "Credit note number",
     "DELIVERY_NOTE": "Delivery note",
     "HAS_RGA": "Has RGA",
     "WAREHOUSE_CODE": "Warehouse code",
@@ -825,7 +838,7 @@
     "REQUEST_NUMBER": "Request Number",
     "ORDER_NUMBER": "SAP Order Number",
     "SAP_RETURN_ORDER": "SAP Return Order",
-    "CREDIT_NUMBER": "Credit Number",
+    "CREDIT_NUMBER": "Credit Note Number",
     "CREDIT_DEBIT_NUMBER": "Credit/Debit Number",
     "NEW_INVOICE": "New Invoice",
     "DEBIT_NUMBER": "Debit Number",
@@ -1153,6 +1166,8 @@
     "BACK": "Back",
     "NEXT": "Next",
     "SAVE_DRAFT": "Save as draft",
-    "REGISTER_REQUEST": "Register request"
+    "REGISTER_REQUEST": "Register request",
+    "SAVING": "Saving...",
+    "UPDATING": "Updating..."
   }
 }

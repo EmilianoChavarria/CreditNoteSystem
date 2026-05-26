@@ -556,6 +556,16 @@
     "BULK_REJECT_MODAL_TITLE": "Confirmar rechazo masivo",
     "BULK_REJECT_CONFIRM": "Se rechazarán {{count}} solicitudes seleccionadas y se aplicará el mismo comentario a todas.",
     "BULK_APPROVE_DEFAULT_COMMENT": "Aprobación masiva desde la bandeja de aprobaciones",
+    "BULK_CANCEL": "Cancelación masiva",
+    "BULK_CANCEL_MODAL_TITLE": "Confirmar cancelación masiva",
+    "BULK_CANCEL_CONFIRM": "Se cancelarán {{count}} solicitudes seleccionadas.",
+    "BULK_CANCELLING": "Cancelando...",
+    "BULK_APPROVING": "Aprobando...",
+    "BULK_REJECTING": "Rechazando...",
+    "APPROVING": "Aprobando...",
+    "REJECTING": "Rechazando...",
+    "CANCELLING": "Cancelando...",
+    "SENDING_BACK": "Regresando...",
     "RETURN_ORDER": "Regresar solicitud",
     "SEND_BACK_MODAL_TITLE": "Regresar a un paso anterior",
     "SEND_BACK_CONFIRM_BTN": "Regresar",
@@ -582,7 +592,10 @@
       "BULK_APPROVE_ERROR": "Error al procesar la aprobación masiva.",
       "BULK_REJECT_SUCCESS": "Se rechazaron {{rejected}} de {{total}} solicitudes.",
       "BULK_REJECT_PARTIAL": "{{failed}} solicitudes no pudieron rechazarse.",
-      "BULK_REJECT_ERROR": "Error al procesar el rechazo masivo."
+      "BULK_REJECT_ERROR": "Error al procesar el rechazo masivo.",
+      "BULK_CANCEL_SUCCESS": "Se cancelaron {{cancelled}} de {{total}} solicitudes.",
+      "BULK_CANCEL_PARTIAL": "{{failed}} solicitudes no pudieron cancelarse.",
+      "BULK_CANCEL_ERROR": "Error al procesar la cancelación masiva."
     }
   },
   "PENDING_PAGE": {
@@ -644,7 +657,7 @@
     "INVOICE_NUMBER": "Número de factura",
     "INVOICE_DATE": "Fecha de factura",
     "SAP_RETURN_ORDER": "Orden de retorno SAP",
-    "CREDIT_NUMBER": "Número de crédito",
+    "CREDIT_NUMBER": "Número de nota de crédito",
     "DELIVERY_NOTE": "Nota de entrega",
     "HAS_RGA": "Tiene RGA",
     "WAREHOUSE_CODE": "Código de almacén",
@@ -825,7 +838,7 @@
     "REQUEST_NUMBER": "Número de Solicitud",
     "ORDER_NUMBER": "Número de Orden SAP",
     "SAP_RETURN_ORDER": "SAP Return Order",
-    "CREDIT_NUMBER": "Número de Crédito",
+    "CREDIT_NUMBER": "Número de Nota de Crédito",
     "CREDIT_DEBIT_NUMBER": "Número de Crédito/Débito",
     "NEW_INVOICE": "New Invoice",
     "DEBIT_NUMBER": "Número de Débito",
@@ -1153,6 +1166,8 @@
     "BACK": "Atrás",
     "NEXT": "Siguiente",
     "SAVE_DRAFT": "Guardar borrador",
-    "REGISTER_REQUEST": "Registrar solicitud"
+    "REGISTER_REQUEST": "Registrar solicitud",
+    "SAVING": "Guardando...",
+    "UPDATING": "Actualizando..."
   }
 }
