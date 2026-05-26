@@ -8,6 +8,7 @@ import { HttpClient } from '@angular/common/http';
 import { runtimeConfig } from '../config/runtime-config';
 import {
   ApproveMassResponse,
+  CancelMassResponse,
   MassActionRequestPayload,
   PagePagination,
   RejectMassResponse,
@@ -18,6 +19,7 @@ import {
 
 export type {
   ApproveMassResponse,
+  CancelMassResponse,
   MassActionFailedRequest,
   MassActionRequestPayload,
   PagePagination,
@@ -408,6 +410,23 @@ export class RequestService {
         totalRejected: 0,
         totalFailed: requestIds.length,
         rejectedRequestIds: [],
+        failedRequests: [],
+      }),
+      catchError((error) => {
+        console.log(error);
+        throw error;
+      })
+    );
+  }
+
+  cancelMassRequests(requestIds: number[], comments?: string): Observable<CancelMassResponse> {
+    const payload: MassActionRequestPayload = { requestIds, comments };
+    return this._httpService.post<CancelMassResponse>('/requests/cancel-mass', payload).pipe(
+      map((response: ApiResponse<CancelMassResponse>) => response.data ?? {
+        totalReceived: requestIds.length,
+        totalCancelled: 0,
+        totalFailed: requestIds.length,
+        cancelledRequestIds: [],
         failedRequests: [],
       }),
       catchError((error) => {
