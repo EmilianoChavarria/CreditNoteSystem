@@ -3,8 +3,10 @@
   [titleM]="'MY_APPROVALS.SEND_BACK_MODAL_TITLE' | translate"
   [open]="open()"
   [closeText]="'MY_APPROVALS.CANCEL' | translate"
-  [primaryText]="'MY_APPROVALS.SEND_BACK_CONFIRM_BTN' | translate"
+  [primaryText]="isSubmitting() ? ('MY_APPROVALS.SENDING_BACK' | translate) : ('MY_APPROVALS.SEND_BACK_CONFIRM_BTN' | translate)"
   [showPrimaryButton]="!isLoadingSteps()"
+  [primaryLoading]="isSubmitting()"
+  [primaryDisabled]="isSubmitting()"
   (openChange)="openChange.emit($event)"
   (primaryAction)="confirm()">
 

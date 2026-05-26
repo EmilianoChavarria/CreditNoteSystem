@@ -3,7 +3,9 @@
   [titleM]="'MY_APPROVALS.APPROVE_MODAL_TITLE' | translate"
   [open]="open()"
   [closeText]="'MY_APPROVALS.CANCEL' | translate"
-  [primaryText]="'MY_APPROVALS.APPROVE' | translate"
+  [primaryText]="isLoading() ? ('MY_APPROVALS.APPROVING' | translate) : ('MY_APPROVALS.APPROVE' | translate)"
+  [primaryLoading]="isLoading()"
+  [primaryDisabled]="isLoading()"
   (openChange)="openChange.emit($event)"
   (primaryAction)="confirmed.emit(commentsControl.value ?? '')">
 

@@ -14,7 +14,7 @@ import { UpperCasePipe } from '@angular/common';
 import { Spinner } from '../../../shared/components/ui/spinner/spinner';
 import { RoleService } from '../../../core/services/role-service';
 import { ActivatedRoute } from '@angular/router';
-import { catchError, forkJoin, map, of, switchMap } from 'rxjs';
+import { catchError, finalize, forkJoin, map, of, switchMap } from 'rxjs';
 import { normalizeRequestNumber } from '../../../shared/utils/notification-navigation';
 import { FullSpinnerComponent } from '../../../shared/components/ui/full-spinner/full-spinner';
 import { RequestListBase } from '../../../shared/base/request-list.base';
@@ -50,7 +50,14 @@ export class MyApprovals extends RequestListBase {
     public requestToApprove = signal<Request | null>(null);
     public showBulkApproveModal = signal<boolean>(false);
     public showBulkDeclineModal = signal<boolean>(false);
+    public showBulkCancelModal = signal<boolean>(false);
     public isBulkProcessing = signal<boolean>(false);
+    public canBulkApprove = signal<boolean>(false);
+    public canBulkReject = signal<boolean>(false);
+    public canBulkCancel = signal<boolean>(false);
+    public isApproving = signal<boolean>(false);
+    public isDeclining = signal<boolean>(false);
+    public isCancelling = signal<boolean>(false);
     public isInitializingDeepLink = signal<boolean>(false);
     public showCancelModal = signal<boolean>(false);
     public cancelComments = new FormControl<string>('');
@@ -246,6 +253,9 @@ export class MyApprovals extends RequestListBase {
         const requestTypeId = Number(this.selectedRequestType);
         if (!requestTypeId || Number.isNaN(requestTypeId)) {
             this.acciones.set([]);
+            this.canBulkApprove.set(false);
+            this.canBulkReject.set(false);
+            this.canBulkCancel.set(false);
             return;
         }
         const permissionsBySlug = this.requestTypeActionPermissions()[requestTypeId] ?? {};
@@ -253,6 +263,9 @@ export class MyApprovals extends RequestListBase {
             getPermissionSlugsForCustomAction(action.key).some(slug => permissionsBySlug[slug])
         );
         this.acciones.set(visibleActions);
+        this.canBulkApprove.set(getPermissionSlugsForCustomAction('approve').some(s => permissionsBySlug[s]));
+        this.canBulkReject.set(getPermissionSlugsForCustomAction('decline').some(s => permissionsBySlug[s]));
+        this.canBulkCancel.set(getPermissionSlugsForCustomAction('cancel').some(s => permissionsBySlug[s]));
     }
 
     override onSearch(term: string): void {
@@ -310,7 +323,6 @@ export class MyApprovals extends RequestListBase {
     onApproveConfirmed(comments: string): void {
         const request = this.requestToApprove();
         if (!request) return;
-        this.showApproveModal.set(false);
         this.approveRequest(request, comments);
     }
 
@@ -378,6 +390,51 @@ export class MyApprovals extends RequestListBase {
     openBulkDeclineModal(): void {
         if (!this.selectedCount()) return;
         this.onBulkDeclineModalChange(true);
+    }
+
+    openBulkCancelModal(): void {
+        if (!this.selectedCount()) return;
+        this.showBulkCancelModal.set(true);
+    }
+
+    onBulkCancelModalChange(isOpen: boolean = true): void {
+        this.showBulkCancelModal.set(isOpen);
+    }
+
+    cancelSelectedRequests(): void {
+        const requestIds = Array.from(this.selectedRequestIds());
+        if (!requestIds.length) return;
+
+        this.isBulkProcessing.set(true);
+
+        this._requestsService.cancelMassRequests(requestIds).subscribe({
+            next: (response) => {
+                if (response.totalCancelled > 0) {
+                    this._toastService.success(
+                        this._translateService.instant('MY_APPROVALS.TOAST.BULK_CANCEL_SUCCESS', { cancelled: response.totalCancelled, total: response.totalReceived }),
+                        this._translateService.instant('MY_APPROVALS.TOAST.SUCCESS')
+                    );
+                }
+                if (response.totalFailed > 0) {
+                    this._toastService.warning(
+                        this._translateService.instant('MY_APPROVALS.TOAST.BULK_CANCEL_PARTIAL', { failed: response.totalFailed }),
+                        this._translateService.instant('MY_APPROVALS.TOAST.ERROR')
+                    );
+                }
+                this.onBulkCancelModalChange(false);
+                this.clearSelectedRequests();
+                this.loadMyPendingRequests();
+                this.isBulkProcessing.set(false);
+            },
+            error: (error) => {
+                this.isBulkProcessing.set(false);
+                this._toastService.error(
+                    this.getErrorMessageFromResponse(error, 'MY_APPROVALS.TOAST.BULK_CANCEL_ERROR'),
+                    this._translateService.instant('MY_APPROVALS.TOAST.ERROR')
+                );
+                console.error('Error cancelling requests in bulk:', error);
+            }
+        });
     }
 
     approveSelectedRequests(): void {
@@ -464,7 +521,10 @@ export class MyApprovals extends RequestListBase {
         if (!request.id || !this.form.valid) return;
         const comments = this.form.get('comments')?.value || '';
 
-        this._requestsService.rejectRequest(request.id, comments).subscribe({
+        this.isDeclining.set(true);
+        this._requestsService.rejectRequest(request.id, comments).pipe(
+            finalize(() => this.isDeclining.set(false))
+        ).subscribe({
             next: () => {
                 this._toastService.success(
                     this._translateService.instant('MY_APPROVALS.TOAST.REQUEST_REJECTED_SUCCESS'),
@@ -486,8 +546,12 @@ export class MyApprovals extends RequestListBase {
     approveRequest(request: Request, comments?: string): void {
         if (!request.id) return;
 
-        this._requestsService.approveRequest(request.id, comments).subscribe({
+        this.isApproving.set(true);
+        this._requestsService.approveRequest(request.id, comments).pipe(
+            finalize(() => this.isApproving.set(false))
+        ).subscribe({
             next: () => {
+                this.showApproveModal.set(false);
                 this._toastService.success(
                     this._translateService.instant('MY_APPROVALS.TOAST.REQUEST_APPROVED_SUCCESS'),
                     this._translateService.instant('MY_APPROVALS.TOAST.SUCCESS')
@@ -536,7 +600,10 @@ export class MyApprovals extends RequestListBase {
         const request = this.selectedRequest();
         if (!request?.id) return;
 
-        this._requestsService.cancelRequest(request.id, this.cancelComments.value ?? '').subscribe({
+        this.isCancelling.set(true);
+        this._requestsService.cancelRequest(request.id, this.cancelComments.value ?? '').pipe(
+            finalize(() => this.isCancelling.set(false))
+        ).subscribe({
             next: () => {
                 this._toastService.success(
                     this._translateService.instant('MY_APPROVALS.TOAST.REQUEST_CANCELLED_SUCCESS'),
