@@ -24,6 +24,8 @@ export class Modal {
   readonly showPrimaryButton = input<boolean>(true);
   readonly closeText = input<string>('Cerrar');
   readonly primaryText = input<string>('Aceptar');
+  readonly primaryLoading = input<boolean>(false);
+  readonly primaryDisabled = input<boolean>(false);
 
   readonly closed = output<void>();
   readonly primaryAction = output<void>();
