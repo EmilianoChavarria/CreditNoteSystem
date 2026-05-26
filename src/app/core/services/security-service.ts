@@ -102,6 +102,8 @@ export interface BlockedIpApi {
 
 export interface EmailConfig {
   emailSupport: string;
+  emailMode?: 'normal' | 'override' | 'disabled';
+  overrideEmail?: string;
 }
 
 export interface ChargePolicy {

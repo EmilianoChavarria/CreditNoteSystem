@@ -2,7 +2,7 @@ import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, computed, injec
 import { TabsContainer } from "../../../../shared/components/ui/tab/tab-container/tab-container";
 import { Tab } from "../../../../shared/components/ui/tab/tab";
 import { AccordeonContainer } from "../../../../shared/components/ui/accordeon/accordeon-container";
-import { Subscription } from 'rxjs';
+import { forkJoin, Subscription } from 'rxjs';
 import { BatchErrorLog, BatchRequestItem, BatchService, BatchSummary } from '../../../../core/services/batch-service';
 import { AuthService } from '../../../../core/services/auth-service';
 import { BatchFinishedMessage, ReverbSocketService } from '../../../../core/services/reverb-socket-service';
@@ -18,7 +18,9 @@ import { BulkSapReturnOrderUpload } from '../../components/batchs/bulk-sap-retur
 import { BulkHistoryTab } from '../../components/batchs/bulk-history-tab/bulk-history-tab';
 import { BatchRequestsModal } from '../../components/batchs/batch-requests-modal/batch-requests-modal';
 import { RequestErrorModal } from '../../components/batchs/request-error-modal/request-error-modal';
+import { BulkInfoModal } from '../../components/batchs/bulk-info-modal/bulk-info-modal';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { PermissionAction, RequestTypePermissionRecord, RoleService } from '../../../../core/services/role-service';
 
 interface BatchHistoryRow {
     idBatch: string;
@@ -58,7 +60,8 @@ interface RequestHistoryRow {
         BulkHistoryTab,
         BatchRequestsModal,
         RequestErrorModal,
-        TranslatePipe
+        BulkInfoModal,
+        TranslatePipe,
     ]
 })
 export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
@@ -73,6 +76,7 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
     private readonly toastService = inject(ToastService);
     private readonly requestService = inject(RequestService);
     private readonly translateService = inject(TranslateService);
+    private readonly roleService = inject(RoleService);
     private readonly subscriptions: Subscription[] = [];
     private pendingTabIndex: number | null = null;
 
@@ -106,8 +110,9 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
     public batchRequestsHasPrevPage = signal(false);
 
     public bulkHistoryRows = signal<BatchHistoryRow[]>([]);
-
     public batchRequestRows = signal<RequestHistoryRow[]>([]);
+
+    public showInfoModal = signal<boolean>(false);
 
     ngOnInit(): void {
         this.loadRequestTypes();
@@ -227,12 +232,18 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
     }
 
     private loadRequestTypes(): void {
-        const subscription = this.requestService.getRequestTypes().subscribe({
-            next: (requestTypes) => {
-                this.availableRequestTypes.set(requestTypes);
+        const subscription = forkJoin({
+            actions: this.roleService.getActions(),
+            requestTypes: this.requestService.getRequestTypes(),
+            permissions: this.roleService.getRequestTypePermissionsForCurrentContext(),
+        }).subscribe({
+            next: ({ actions, requestTypes, permissions }) => {
+                const matrix = this.buildPermissionMatrix(actions, permissions);
+                const filtered = requestTypes.filter((rt) => Boolean(matrix[rt.id]?.['create']));
+                this.availableRequestTypes.set(filtered);
 
-                if (requestTypes.length > 0 && !this.selectedRequestTypeId()) {
-                    this.selectedRequestTypeId.set(requestTypes[0].id);
+                if (filtered.length > 0 && !this.selectedRequestTypeId()) {
+                    this.selectedRequestTypeId.set(filtered[0].id);
                 }
             },
             error: (error) => {
@@ -245,6 +256,31 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
         });
 
         this.subscriptions.push(subscription);
+    }
+
+    public openInfoModal(): void {
+        const requestTypeId = this.selectedRequestTypeId();
+        if (!requestTypeId) return;
+        this.showInfoModal.set(true);
+    }
+
+    private buildPermissionMatrix(
+        actions: PermissionAction[],
+        permissions: RequestTypePermissionRecord[]
+    ): Record<number, Record<string, boolean>> {
+        const slugById = actions.reduce<Record<number, string>>((acc, a) => {
+            acc[a.id] = a.slug?.trim().toLowerCase() ?? '';
+            return acc;
+        }, {});
+
+        const matrix: Record<number, Record<string, boolean>> = {};
+        for (const p of permissions) {
+            const slug = slugById[p.action_id];
+            if (!slug) continue;
+            matrix[p.request_type_id] ??= {};
+            matrix[p.request_type_id][slug] = Boolean(p.is_allowed);
+        }
+        return matrix;
     }
 
     private loadBatchDetail(batchId: number | string): void {

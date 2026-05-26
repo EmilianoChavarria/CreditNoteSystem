@@ -1,310 +1,72 @@
 <section class="w-full">
     <div class="mx-auto flex w-full flex-col gap-5">
         <header class="flex flex-col gap-1">
-            <p class="text-xs font-semibold uppercase tracking-wider text-orange-700">Portal de Cliente</p>
-            <h1 class="text-2xl font-semibold text-gray-800">Facturas y Orden de Devolucion</h1>
+            <p class="text-xs font-semibold uppercase tracking-wider text-orange-700">{{ 'CLIENT_INVOICES.PORTAL_LABEL' | translate }}</p>
+            <h1 class="text-2xl font-semibold text-gray-800">{{ 'CLIENT_INVOICES.TITLE' | translate }}</h1>
             <p class="text-sm text-gray-600">
-                Filtra facturas por fecha, revisa el detalle de productos y arma tu orden de devolucion con trazabilidad
-                por factura.
+                {{ 'CLIENT_INVOICES.DESCRIPTION' | translate }}
             </p>
         </header>
 
-        <section class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
-            aria-label="Tipo de facturacion">
-            <div class="grid grid-cols-1 gap-3 md:grid-cols-[280px_minmax(260px,360px)]">
-                <label class="flex flex-col gap-1 text-sm text-gray-700">
-                    <span class="text-xs font-medium text-gray-600">Tipo de facturacion</span>
-                    <select class="h-10 rounded-md border border-gray-300 px-3 text-sm" [formControl]="invoiceChargeType">
-                        @for (option of invoiceChargeTypeOptions(); track option.id) {
-                                    <option [value]="option.id">{{ option.label }}</option>
-                        }
-                    </select>
-                </label>
-
-                <label class="flex flex-col gap-1 text-sm text-gray-700">
-                    <span class="text-xs font-medium text-gray-600">Buscar folio</span>
-                    <span class="relative">
-                        <lucide-icon class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                            name="search" size="16"></lucide-icon>
-                        <input
-                            class="h-10 w-full rounded-md border border-gray-300 px-9 text-sm text-gray-700 outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
-                            type="search" [formControl]="invoiceSearch" placeholder="545092" />
-                        @if (invoiceSearch.value) {
-                        <button type="button"
-                            class="absolute right-2 top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-gray-500 hover:bg-gray-100"
-                            (click)="clearInvoiceSearch()" aria-label="Limpiar busqueda" title="Limpiar busqueda">
-                            <lucide-icon name="x" size="14"></lucide-icon>
-                        </button>
-                        }
-                    </span>
-                </label>
-            </div>
-
-            <p class="mt-2 text-xs text-gray-500">
-                Anual trae todas las facturas. Esporadica limita la consulta a los ultimos 30 dias.
-            </p>
-        </section>
-
-        <!-- <section
-            class="grid grid-cols-1 items-end gap-3 rounded-lg border border-gray-200 bg-white p-4 shadow-sm lg:grid-cols-[220px_220px_1fr]"
-            [formGroup]="filtersForm" aria-label="Filtros de facturas">
-            <label class="flex flex-col gap-1">
-                <span class="text-xs font-medium text-gray-600">Fecha desde</span>
-                <input class="rounded-md border border-gray-300 px-3 py-2 text-sm" type="date" formControlName="from" />
-            </label>
-
-            <label class="flex flex-col gap-1">
-                <span class="text-xs font-medium text-gray-600">Fecha hasta</span>
-                <input class="rounded-md border border-gray-300 px-3 py-2 text-sm" type="date" formControlName="to" />
-            </label>
-
-            <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
-                <article class="rounded-md border border-gray-200 bg-white px-3 py-2">
-                    <span class="block text-xs text-gray-500">Facturas filtradas</span>
-                    <strong class="text-base text-gray-800">{{ filteredInvoices().length }}</strong>
-                </article>
-                <article class="rounded-md border border-gray-200 bg-white px-3 py-2">
-                    <span class="block text-xs text-gray-500">Productos en devolucion</span>
-                    <strong class="text-base text-gray-800">{{ returnItems().length }}</strong>
-                </article>
-                <article class="rounded-md border border-gray-200 bg-white px-3 py-2">
-                    <span class="block text-xs text-gray-500">Total orden</span>
-                    <strong class="text-base text-gray-800">{{ returnOrderTotal() | number : '1.2-2'
-                        }}</strong>
-                </article>
-            </div>
-        </section> -->
+        <app-client-invoice-filters [chargeType]="invoiceChargeType" [search]="invoiceSearch"
+            [chargeTypeOptions]="invoiceChargeTypeOptions()"
+            (clearSearch)="clearInvoiceSearch()"></app-client-invoice-filters>
 
         <section class="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_420px]">
             <div class="flex flex-col gap-4">
                 @if (isLoadingInvoices()) {
                 <article class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-                    <h2 class="text-lg font-semibold text-gray-800">Cargando facturas</h2>
-                    <p class="mt-1 text-sm text-gray-600">Consultando facturas del cliente seleccionado.</p>
+                    <h2 class="text-lg font-semibold text-gray-800">{{ 'CLIENT_INVOICES.LOADING_TITLE' | translate }}</h2>
+                    <p class="mt-1 text-sm text-gray-600">{{ 'CLIENT_INVOICES.LOADING_DESC' | translate }}</p>
                 </article>
                 } @else if (invoicesLoadError(); as loadError) {
                 <article class="rounded-lg border border-red-200 bg-white p-4 shadow-sm">
-                    <h2 class="text-lg font-semibold text-red-700">No se pudieron cargar las facturas</h2>
+                    <h2 class="text-lg font-semibold text-red-700">{{ 'CLIENT_INVOICES.LOAD_ERROR_TITLE' | translate }}</h2>
                     <p class="mt-1 text-sm text-gray-600">{{ loadError }}</p>
                 </article>
                 } @else if (filteredInvoices().length === 0) {
                 <article class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-                    <h2 class="text-lg font-semibold text-gray-800">No hay facturas para ese rango</h2>
-                    <p class="mt-1 text-sm text-gray-600">Ajusta las fechas para encontrar informacion de facturacion.
-                    </p>
+                    <h2 class="text-lg font-semibold text-gray-800">{{ 'CLIENT_INVOICES.EMPTY_TITLE' | translate }}</h2>
+                    <p class="mt-1 text-sm text-gray-600">{{ 'CLIENT_INVOICES.EMPTY_DESC' | translate }}</p>
                 </article>
                 } @else {
                 @for (invoice of filteredInvoices(); track invoice.id + '-' + $index; let idx = $index) {
                 @let invoiceAccordionKey = invoiceKey(invoice, idx);
-                <article class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
-                    <header class="flex items-center justify-between gap-3 border-b border-gray-200 px-4 py-3">
-                        <div>
-                            <p class="text-sm font-semibold text-gray-800">Factura {{ invoice.invoiceNumber }}</p>
-                            <p class="text-xs text-gray-500">Fecha: {{ invoice.date | date: 'dd/MM/yyyy' }}</p>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <span
-                                class="rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-xs font-medium text-gray-600">
-                                {{ invoice.products.length }} productos
-                            </span>
-                            <button type="button"
-                                class="rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
-                                (click)="toggleInvoice(invoice, invoiceAccordionKey)">
-                                {{ isInvoiceExpanded(invoiceAccordionKey) ? 'Ocultar' : 'Mostrar' }}
-                            </button>
-                        </div>
-                    </header>
-
-                    @if (isInvoiceExpanded(invoiceAccordionKey)) {
-                    <div class="w-full overflow-x-auto">
-                        <table class="min-w-225 w-full border-collapse bg-white">
-                            <thead class="bg-white text-xs uppercase tracking-wide text-gray-600">
-                                <tr>
-                                    <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">No.PEDIDO /
-                                        CUST PO NBR</th>
-                                    <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">REMISION /
-                                        DELIVERY NOTE</th>
-                                    <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">No. PARTE /
-                                        PART NUMBER</th>
-                                    <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">CANT EMB /
-                                        QTY SHIP</th>
-                                    <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">PRECIO
-                                        UNITARIO / UNIT PRICE</th>
-                                    <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">TOTAL NETO /
-                                        EXT PRICE</th>
-                                    <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">Accion</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @if (isInvoiceProductsLoading(invoiceAccordionKey)) {
-                                <tr>
-                                    <td class="border-b border-gray-200 bg-white px-3 py-3 text-sm text-gray-600"
-                                        colspan="7">
-                                        Cargando productos de la factura...
-                                    </td>
-                                </tr>
-                                } @else if (invoiceProductsErrorMessage(invoiceAccordionKey); as invoiceError) {
-                                <tr>
-                                    <td class="border-b border-gray-200 bg-white px-3 py-3 text-sm text-red-700"
-                                        colspan="7">
-                                        {{ invoiceError }}
-                                    </td>
-                                </tr>
-                                } @else if (invoice.products.length === 0) {
-                                <tr>
-                                    <td class="border-b border-gray-200 bg-white px-3 py-3 text-sm text-gray-600"
-                                        colspan="7">
-                                        Esta factura no tiene productos disponibles para devolucion.
-                                    </td>
-                                </tr>
-                                } @else {
-                                @for (product of invoice.products; track product.id) {
-                                <tr class="hover:bg-gray-50">
-                                    <td class="border-b border-gray-200 bg-white px-3 py-2 text-sm text-gray-700">
-                                        <strong>{{ product.orderNumber }}</strong><br />
-                                        {{ product.customerPoNumber }}
-                                    </td>
-                                    <td class="border-b border-gray-200 bg-white px-3 py-2 text-sm text-gray-700">{{
-                                        product.deliveryNote }}</td>
-                                    <td class="border-b border-gray-200 bg-white px-3 py-2 text-sm text-gray-700">{{
-                                        product.partNumber }}</td>
-                                    <td class="border-b border-gray-200 bg-white px-3 py-2 text-sm text-gray-700">
-                                        <div class="flex flex-row items-center justify-center gap-x-4">
-                                            <span>
-                                                {{product.qtyShipped }} {{ product.unit }}
-                                            </span>
-                                            <button type="button"
-                                                class=" text-orange-500 p-2 rounded-md hover:bg-orange-100 hover:cursor-pointer"
-                                                (click)="openProductHistory(invoice, product)">
-                                                <lucide-icon name="history" size="20"></lucide-icon>
-                                            </button>
-                                        </div>
-                                    </td>
-                                    <td class="border-b border-gray-200 bg-white px-3 py-2 text-sm text-gray-700">
-                                        ${{ product.unitPrice | number : '1.2-2' }}
-                                    </td>
-                                    <td class="border-b border-gray-200 bg-white px-3 py-2 text-sm text-gray-700">
-                                        ${{ productTotal(product) | number : '1.2-2' }}
-                                    </td>
-                                    <td class="border-b border-gray-200 bg-white px-3 py-2">
-                                        <div class="flex w-40 flex-col gap-1.5">
-                                            <div
-                                                class="inline-flex w-fit items-center rounded-md border border-gray-300 bg-white">
-                                                <button type="button"
-                                                    class="h-8 w-8 border-r border-gray-300 text-sm text-gray-700 hover:bg-gray-50"
-                                                    (click)="adjustDraftQuantity(invoice, product, -1)">
-                                                    -
-                                                </button>
-                                                <input class="h-8 w-14 border-0 text-center text-sm focus:ring-0"
-                                                    type="number" min="1" [max]="product.qtyShipped"
-                                                    [value]="getDraftQuantity(invoice, product)"
-                                                    (input)="setDraftQuantity(invoice, product, $any($event.target).value)" />
-                                                <button type="button"
-                                                    class="h-8 w-8 border-l border-gray-300 text-sm text-gray-700 hover:bg-gray-50"
-                                                    (click)="adjustDraftQuantity(invoice, product, 1)">
-                                                    +
-                                                </button>
-                                            </div>
-
-                                            <button type="button"
-                                                class="rounded-md border border-orange-200 bg-white px-2 py-1.5 text-xs font-semibold text-orange-700 hover:bg-orange-50"
-                                                (click)="addToReturnOrder(invoice, product)">
-                                                Agregar
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                
-                                }
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                    }
-                </article>
+                <app-client-invoice-card [invoice]="invoice" [invoiceKey]="invoiceAccordionKey"
+                    [expanded]="isInvoiceExpanded(invoiceAccordionKey)"
+                    [loading]="isInvoiceProductsLoading(invoiceAccordionKey)"
+                    [error]="invoiceProductsErrorMessage(invoiceAccordionKey)" [draftQuantities]="draftQuantities()"
+                    (toggle)="toggleInvoice(invoice, invoiceAccordionKey)"
+                    (addProduct)="addToReturnOrder($event.invoice, $event.product)"
+                    (openHistory)="openProductHistory($event.invoice, $event.product)"
+                    (adjustQuantity)="onDraftQuantityAdjust($event)"
+                    (quantityChange)="onDraftQuantityChange($event)"></app-client-invoice-card>
                 }
-                @if (invoiceTotal() > 0) {
-                <nav
-                    class="flex flex-col gap-3 rounded-lg border border-gray-200 bg-white px-4 py-3 shadow-sm sm:flex-row sm:items-center sm:justify-between"
-                    aria-label="Paginacion de facturas">
-                    <p class="text-sm text-gray-600">
-                        Mostrando {{ invoiceFrom() ?? 0 }} - {{ invoiceTo() ?? 0 }} de {{ invoiceTotal() }} facturas
-                    </p>
-                    <div class="flex flex-wrap items-center gap-2">
-                        <button type="button"
-                            class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-                            [disabled]="invoicePage() <= 1 || isLoadingInvoices()"
-                            (click)="goToInvoicePage(1)"
-                            aria-label="Ir a la primera pagina"
-                            title="Primera pagina">
-                            <lucide-icon name="chevrons-left" size="16"></lucide-icon>
-                        </button>
-
-                        <button type="button"
-                            class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-                            [disabled]="invoicePage() <= 1 || isLoadingInvoices()"
-                            (click)="goToInvoicePage(invoicePage() - 1)"
-                            aria-label="Ir a la pagina anterior"
-                            title="Pagina anterior">
-                            <lucide-icon name="chevron-left" size="16"></lucide-icon>
-                        </button>
-
-                        @for (page of invoicePageNumbers(); track page) {
-                        <button type="button"
-                            class="min-w-9 rounded-md border px-3 py-1.5 text-sm font-medium"
-                            [class.border-orange-500]="page === invoicePage()"
-                            [class.bg-orange-50]="page === invoicePage()"
-                            [class.text-orange-700]="page === invoicePage()"
-                            [class.border-gray-300]="page !== invoicePage()"
-                            [class.bg-white]="page !== invoicePage()"
-                            [class.text-gray-700]="page !== invoicePage()"
-                            [disabled]="isLoadingInvoices()"
-                            (click)="goToInvoicePage(page)">
-                            {{ page }}
-                        </button>
-                        }
-
-                        <button type="button"
-                            class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-                            [disabled]="invoicePage() >= invoiceLastPage() || isLoadingInvoices()"
-                            (click)="goToInvoicePage(invoicePage() + 1)"
-                            aria-label="Ir a la pagina siguiente"
-                            title="Pagina siguiente">
-                            <lucide-icon name="chevron-right" size="16"></lucide-icon>
-                        </button>
-
-                        <button type="button"
-                            class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-                            [disabled]="invoicePage() >= invoiceLastPage() || isLoadingInvoices()"
-                            (click)="goToInvoicePage(invoiceLastPage())"
-                            aria-label="Ir a la ultima pagina"
-                            title="Ultima pagina">
-                            <lucide-icon name="chevrons-right" size="16"></lucide-icon>
-                        </button>
-                    </div>
-                </nav>
-                }
+                <app-client-invoice-pagination [from]="invoiceFrom()" [to]="invoiceTo()" [total]="invoiceTotal()"
+                    [page]="invoicePage()" [lastPage]="invoiceLastPage()" [pageNumbers]="invoicePageNumbers()"
+                    [isLoading]="isLoadingInvoices()"
+                    (pageChange)="goToInvoicePage($event)"></app-client-invoice-pagination>
                 }
             </div>
 
             <aside class="h-fit rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
-                aria-label="Orden de devolucion">
+                [attr.aria-label]="'CLIENT_INVOICES.ORDER.ARIA' | translate">
                 <header class="flex items-center justify-between gap-3">
                     <div>
-                        <h2 class="text-lg font-semibold text-gray-800">Orden de devolucion</h2>
+                        <h2 class="text-lg font-semibold text-gray-800">{{ 'CLIENT_INVOICES.ORDER.TITLE' | translate }}</h2>
                     </div>
                     @if (returnItems().length > 0) {
                     <button type="button"
                         class="rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
                         (click)="clearReturnOrder()">
-                        Vaciar
+                        {{ 'CLIENT_INVOICES.ORDER.CLEAR' | translate }}
                     </button>
                     }
                 </header>
 
                 @if (returnItems().length === 0) {
                 <div class="mt-3 rounded-md border border-dashed border-gray-300 bg-gray-50 p-3 text-sm text-gray-600">
-                    Selecciona productos de las facturas filtradas para construir tu orden.
+                    {{ 'CLIENT_INVOICES.ORDER.EMPTY' | translate }}
                 </div>
                 } @else {
                 <div class="mt-3 flex flex-col gap-3">
@@ -314,7 +76,7 @@
                             <div class="flex flex-wrap gap-2">
                                 <span
                                     class="rounded-full border border-orange-200 bg-orange-50 px-2.5 py-1 text-[11px] font-semibold text-orange-700">
-                                    Factura {{ group.invoiceNumber }}
+                                    {{ 'CLIENT_INVOICES.INVOICE.INVOICE' | translate }} {{ group.invoiceNumber }}
                                 </span>
                             </div>
 
@@ -333,26 +95,26 @@
                                     <button type="button"
                                         class="h-8 rounded-md border border-red-200 bg-white px-3 text-xs font-medium text-red-700 hover:bg-red-50 md:justify-self-end"
                                         (click)="removeReturnItem(item.key)">
-                                        Quitar
+                                        {{ 'CLIENT_INVOICES.ORDER.REMOVE' | translate }}
                                     </button>
                                 </div>
 
                                 <div class="grid grid-cols-2 gap-2 md:grid-cols-[110px_120px_120px_auto] md:items-end">
                                     <label class="col-span-2 flex flex-col gap-1 text-xs text-gray-600 md:col-span-1">
-                                        Cantidad
+                                        {{ 'CLIENT_INVOICES.ORDER.QUANTITY' | translate }}
                                         <input class="h-8 rounded border border-gray-300 px-2 text-sm" type="number"
                                             min="1" [max]="item.maxQuantity" [value]="item.quantity"
                                             (input)="updateItemQuantity(item.key, $any($event.target).value)" />
                                     </label>
 
                                     <p class="text-xs text-gray-600">
-                                        PU
+                                        {{ 'CLIENT_INVOICES.ORDER.UNIT_PRICE_SHORT' | translate }}
                                         <strong class="block text-sm text-gray-800">{{ item.unitPrice | currency: 'MXN'
                                             : 'symbol' : '1.2-2' }}</strong>
                                     </p>
 
                                     <p class="text-xs text-gray-600">
-                                        Importe
+                                        {{ 'CLIENT_INVOICES.ORDER.AMOUNT' | translate }}
                                         <strong class="block text-sm text-gray-800">{{ item.quantity * item.unitPrice |
                                             currency: 'MXN' : 'symbol' : '1.2-2' }}</strong>
                                     </p>
@@ -368,9 +130,9 @@
 
                 <footer class="mt-3 border-t border-gray-200 pt-3">
                     <label class="mb-3 flex flex-col gap-1 text-sm text-gray-700">
-                        <span class="text-xs font-medium text-gray-600">Notas de la orden (opcional)</span>
+                        <span class="text-xs font-medium text-gray-600">{{ 'CLIENT_INVOICES.ORDER.NOTES' | translate }}</span>
                         <textarea class="min-h-20 rounded-md border border-gray-300 px-3 py-2 text-sm"
-                            [formControl]="returnOrderNotes" placeholder="Productos dañados en transporte"></textarea>
+                            [formControl]="returnOrderNotes" [placeholder]="'CLIENT_INVOICES.ORDER.NOTES_PLACEHOLDER' | translate"></textarea>
                     </label>
 
                     @if (returnOrderError(); as orderError) {
@@ -381,17 +143,17 @@
 
                     <div class="flex flex-col gap-1 text-sm">
                         <p class="flex items-center justify-between text-gray-700">
-                            <span>Subtotal</span>
+                            <span>{{ 'CLIENT_INVOICES.ORDER.SUBTOTAL' | translate }}</span>
                             <strong>{{ returnOrderSubtotal() | number : '1.2-2' }}</strong>
                         </p>
-                        <p class="flex items-center justify-between text-gray-700">
+                        <!-- <p class="flex items-center justify-between text-gray-700">
                             <span>IVA ({{ taxRate * 100 }}%)</span>
                             <strong>{{ returnOrderTax() | number : '1.2-2' }}</strong>
-                        </p>
+                        </p> -->
                         @if (chargeRate() > 0) {
                         <p class="flex items-center justify-between text-orange-700">
                             <span>
-                                Cargo {{ selectedChargeOption()?.label }}
+                                {{ 'CLIENT_INVOICES.ORDER.CHARGE' | translate }} {{ selectedChargeOption()?.label }}
                                 ({{ chargeRate() * 100 }}%)
                             </span>
                             <strong>{{ returnOrderCharge() | number : '1.2-2' }}</strong>
@@ -399,7 +161,7 @@
                         }
                         <p
                             class="mt-1 flex items-center justify-between border-t border-dashed border-gray-200 pt-2 text-base text-gray-800">
-                            <span class="font-semibold">Total orden</span>
+                            <span class="font-semibold">{{ 'CLIENT_INVOICES.ORDER.TOTAL' | translate }}</span>
                             <strong>{{ returnOrderTotal() | number : '1.2-2' }}</strong>
                         </p>
                     </div>
@@ -407,31 +169,38 @@
                     <button type="button"
                         class="mt-3 w-full rounded-md bg-[#ff8200] px-3 py-2 text-sm font-semibold text-white hover:bg-[#db7201] disabled:cursor-not-allowed disabled:bg-gray-300"
                         [disabled]="!canGenerateOrder() || isCreatingReturnOrder()" (click)="generateReturnOrder()">
-                        {{ isCreatingReturnOrder() ? 'Generando orden...' : 'Generar orden de devolucion' }}
+                        {{ isCreatingReturnOrder() ? ('CLIENT_INVOICES.ORDER.GENERATING' | translate) : ('CLIENT_INVOICES.ORDER.GENERATE' | translate) }}
                     </button>
                 </footer>
                 }
 
                 @if (generatedOrder(); as order) {
-                <section class="mt-4 border-t border-dashed border-gray-300 pt-3">
-                    <h3 class="text-sm font-semibold text-gray-800">Orden generada: #{{ order.id }}</h3>
-                    <p class="mt-1 text-xs text-gray-500">Estado: {{ order.status }}</p>
-                    <p class="mt-1 text-xs text-gray-500">Fecha: {{ order.createdAt | date: 'dd/MM/yyyy HH:mm' }}</p>
+                <section class="mt-4 rounded-lg border border-green-200 bg-green-50 p-3 shadow-sm">
+                    <div class="flex items-start gap-3">
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-green-600 text-white">
+                            <lucide-icon name="check" size="20"></lucide-icon>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-semibold text-green-900">{{ 'CLIENT_INVOICES.ORDER.CREATED' | translate }}: #{{ order.id }}</h3>
+                            <p class="mt-1 text-xs font-medium text-green-700">{{ 'CLIENT_INVOICES.ORDER.STATUS' | translate }}: {{ order.status }}</p>
+                            <p class="mt-1 text-xs text-green-700">{{ 'CLIENT_INVOICES.ORDER.DATE' | translate }}: {{ order.createdAt | date: 'dd/MM/yyyy HH:mm' }}</p>
+                        </div>
+                    </div>
                     @if (order.notes) {
-                    <p class="mt-1 text-xs text-gray-500">Notas: {{ order.notes }}</p>
+                    <p class="mt-3 text-xs text-green-800">{{ 'CLIENT_INVOICES.ORDER.NOTES_LABEL' | translate }}: {{ order.notes }}</p>
                     }
 
                     <div class="mt-2 flex flex-col gap-2">
-                        @for (group of groupedReturnItems(); track group.invoiceId) {
-                        <article class="rounded-md border border-gray-200 bg-white px-3 py-2">
+                        @for (group of generatedOrderGroups(); track group.invoiceId) {
+                        <article class="rounded-md border border-green-200 bg-white px-3 py-2">
                             <p class="mb-1 flex flex-wrap gap-2">
                                 <span
                                     class="rounded-full border border-orange-200 bg-orange-50 px-2 py-0.5 text-[11px] font-semibold text-orange-700">
-                                    Factura {{ group.invoiceNumber }}
+                                    {{ 'CLIENT_INVOICES.INVOICE.INVOICE' | translate }} {{ group.invoiceNumber }}
                                 </span>
                                 <span
                                     class="rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-[11px] text-gray-600">
-                                    Remision {{ group.deliveryNote }}
+                                    {{ 'CLIENT_INVOICES.INVOICE.DELIVERY_NOTE' | translate }} {{ group.deliveryNote }}
                                 </span>
                             </p>
 

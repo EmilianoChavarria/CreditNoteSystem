@@ -28,4 +28,6 @@ export interface Role {
   createdAt?: string;
   updatedAt?: string;
   deletedAt?: string;
+  equivalentRoleId?: number | null;
+  equivalentRole?: Role | null;
 }

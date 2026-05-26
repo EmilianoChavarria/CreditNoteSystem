@@ -1,0 +1,56 @@
+@if (total() > 0) {
+<nav
+    class="flex flex-col gap-3 rounded-lg border border-gray-200 bg-white px-4 py-3 shadow-sm sm:flex-row sm:items-center sm:justify-between"
+    [attr.aria-label]="'CLIENT_INVOICES.PAGINATION.ARIA' | translate">
+    <p class="text-sm text-gray-600">
+        {{ 'CLIENT_INVOICES.PAGINATION.SHOWING' | translate }}
+        {{ from() ?? 0 }} - {{ to() ?? 0 }}
+        {{ 'CLIENT_INVOICES.PAGINATION.OF' | translate }}
+        {{ total() }}
+        {{ 'CLIENT_INVOICES.PAGINATION.INVOICES' | translate }}
+    </p>
+    <div class="flex flex-wrap items-center gap-2">
+        <button type="button"
+            class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+            [disabled]="page() <= 1 || isLoading()" (click)="pageChange.emit(1)"
+            [attr.aria-label]="'CLIENT_INVOICES.PAGINATION.FIRST' | translate"
+            [title]="'CLIENT_INVOICES.PAGINATION.FIRST' | translate">
+            <lucide-icon name="chevrons-left" size="16"></lucide-icon>
+        </button>
+
+        <button type="button"
+            class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+            [disabled]="page() <= 1 || isLoading()" (click)="pageChange.emit(page() - 1)"
+            [attr.aria-label]="'CLIENT_INVOICES.PAGINATION.PREVIOUS' | translate"
+            [title]="'CLIENT_INVOICES.PAGINATION.PREVIOUS' | translate">
+            <lucide-icon name="chevron-left" size="16"></lucide-icon>
+        </button>
+
+        @for (pageNumber of pageNumbers(); track pageNumber) {
+        <button type="button" class="min-w-9 rounded-md border px-3 py-1.5 text-sm font-medium"
+            [class.border-orange-500]="pageNumber === page()" [class.bg-orange-50]="pageNumber === page()"
+            [class.text-orange-700]="pageNumber === page()" [class.border-gray-300]="pageNumber !== page()"
+            [class.bg-white]="pageNumber !== page()" [class.text-gray-700]="pageNumber !== page()"
+            [disabled]="isLoading()" (click)="pageChange.emit(pageNumber)">
+            {{ pageNumber }}
+        </button>
+        }
+
+        <button type="button"
+            class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+            [disabled]="page() >= lastPage() || isLoading()" (click)="pageChange.emit(page() + 1)"
+            [attr.aria-label]="'CLIENT_INVOICES.PAGINATION.NEXT' | translate"
+            [title]="'CLIENT_INVOICES.PAGINATION.NEXT' | translate">
+            <lucide-icon name="chevron-right" size="16"></lucide-icon>
+        </button>
+
+        <button type="button"
+            class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+            [disabled]="page() >= lastPage() || isLoading()" (click)="pageChange.emit(lastPage())"
+            [attr.aria-label]="'CLIENT_INVOICES.PAGINATION.LAST' | translate"
+            [title]="'CLIENT_INVOICES.PAGINATION.LAST' | translate">
+            <lucide-icon name="chevrons-right" size="16"></lucide-icon>
+        </button>
+    </div>
+</nav>
+}

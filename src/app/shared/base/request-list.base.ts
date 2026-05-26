@@ -2,22 +2,16 @@ import { inject, signal } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
-import * as pdfMake from 'pdfmake/build/pdfmake';
-import * as pdfFonts from 'pdfmake/build/vfs_fonts';
 import { Request, RequestType } from '../../data/interfaces/Request';
 import { Role } from '../../data/interfaces/User';
 import { WorkflowDetail } from '../../features/history/components/workflow-history-drawer/workflow-history-drawer';
 import { PermissionAction, RequestTypePermissionRecord } from '../../core/services/role-service';
 import { RequestService } from '../../core/services/request-service';
 import {
-    buildRequestPdfDefinition,
     buildRequestWorkflowDetailFromHistory,
     buildRequestWorkflowDetailFromRequest,
     WorkflowDetailLabels,
 } from '../utils/request-workflow-utils';
-
-const pdf: any = (pdfMake as any).default ?? pdfMake;
-pdf.vfs = (pdfFonts as any).default?.vfs ?? (pdfFonts as any).vfs;
 
 export abstract class RequestListBase {
     protected abstract getI18nPrefix(): string;
@@ -43,12 +37,14 @@ export abstract class RequestListBase {
     public roleFilterOptions = signal<{ label: string; value: string }[]>([]);
     public selectedRoleName = signal<string>('all');
     public showHistoryDrawer = signal<boolean>(false);
+    public showHistoryModal = signal<boolean>(false);
     public workflowDetail: WorkflowDetail | null = null;
     public selectedRequest = signal<Request | null>(null);
     public submitted = signal(false);
     public showDeclineModal = signal<boolean>(false);
     public showInfoModal = signal<boolean>(false);
     public selectedRequestForInfo = signal<Request | null>(null);
+    public canDeleteInfoAttachments = signal<boolean>(false);
     protected readonly requestTypeActionPermissions = signal<Record<number, Record<string, boolean>>>({});
     protected currentLanguage = signal<string>(this._translateService.currentLang || 'es');
     protected searchDebounceTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -120,17 +116,60 @@ export abstract class RequestListBase {
     }
 
     openInfoModal(request: Request): void {
+        const requestTypeId = Number(request.requestTypeId ?? request.requestType?.id);
+        const canDelete = this.hasRequestTypePermission(requestTypeId, [
+            'delete_attachments', 'delete_attachment', 'delete_atachments', 'delete_atachment'
+        ]);
+        this.canDeleteInfoAttachments.set(canDelete);
         this.selectedRequestForInfo.set(request);
         this.showInfoModal.set(true);
     }
 
     onInfoModalChange(isOpen: boolean): void {
         this.showInfoModal.set(isOpen);
-        if (!isOpen) this.selectedRequestForInfo.set(null);
+        if (!isOpen) {
+            this.selectedRequestForInfo.set(null);
+            this.canDeleteInfoAttachments.set(false);
+        }
     }
 
     closeHistoryDrawer(): void {
         this.showHistoryDrawer.set(false);
+    }
+
+    closeHistoryModal(): void {
+        this.showHistoryModal.set(false);
+    }
+
+    onInfoModalViewHistory(): void {
+        const request = this.selectedRequestForInfo();
+        if (!request) return;
+        this.openHistoryModal(request);
+    }
+
+    openHistoryModal(request: Request): void {
+        this.showHistoryModal.set(false);
+        this.workflowDetail = null;
+        const labels = this.getWorkflowLabels();
+
+        if (!request.id) {
+            this.workflowDetail = buildRequestWorkflowDetailFromRequest(request, labels);
+            setTimeout(() => this.showHistoryModal.set(true));
+            return;
+        }
+
+        this._requestsService.getRequestHistory(request.id).subscribe({
+            next: (response) => {
+                this.workflowDetail = response
+                    ? buildRequestWorkflowDetailFromHistory(response, labels)
+                    : buildRequestWorkflowDetailFromRequest(request, labels);
+                setTimeout(() => this.showHistoryModal.set(true));
+            },
+            error: () => {
+                this.workflowDetail = buildRequestWorkflowDetailFromRequest(request, labels);
+                setTimeout(() => this.showHistoryModal.set(true));
+            }
+        });
     }
 
     logAction(request: Request): void {
@@ -138,16 +177,22 @@ export abstract class RequestListBase {
     }
 
     generatePdf(request: Request): void {
-        const docDefinition = buildRequestPdfDefinition(request);
-        (pdf as { createPdf: (definition: Record<string, unknown>) => { open: () => void } }).createPdf(docDefinition).open();
+        if (!request.id) return;
+        this._requestsService.getRequestPdf(request.id).subscribe({
+            next: (blob) => {
+                const url = URL.createObjectURL(blob);
+                window.open(url, '_blank');
+                setTimeout(() => URL.revokeObjectURL(url), 10000);
+            },
+        });
     }
 
-    editRequest(request: Request): void {
+    editRequest(request: Request, returnTo?: string): void {
         const requestTypeId = Number(request.requestTypeId ?? request.requestType?.id);
         if (!requestTypeId || Number.isNaN(requestTypeId)) return;
         this._router.navigate(['/app/request/new-request'], {
             queryParams: { requestTypeId },
-            state: { editRequest: request }
+            state: { editRequest: request, returnTo }
         });
     }
 

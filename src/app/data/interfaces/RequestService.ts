@@ -195,3 +195,11 @@ export interface RejectMassResponse {
   failedRequests: MassActionFailedRequest[];
   commentApplied?: string;
 }
+
+export interface CancelMassResponse {
+  totalReceived: number;
+  totalCancelled: number;
+  totalFailed: number;
+  cancelledRequestIds: number[];
+  failedRequests: MassActionFailedRequest[];
+}

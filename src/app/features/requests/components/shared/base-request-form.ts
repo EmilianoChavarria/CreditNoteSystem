@@ -1,7 +1,7 @@
 import { Directive, inject, Input, OnChanges, OnDestroy, OnInit, signal, SimpleChanges } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { forkJoin, map, Observable, of, Subscription, switchMap, take } from 'rxjs';
+import { finalize, forkJoin, map, Observable, of, Subscription, switchMap, take } from 'rxjs';
 import { Classification, Customer, Reason, Request, RequestAttachment } from '../../../../data/interfaces/Request';
 import { ApiResponse } from '../../../../data/interfaces/ApiResponse-interface';
 import { RequestService } from '../../../../core/services/request-service';
@@ -38,7 +38,13 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
   protected readonly maxSupportFiles = 10;
   @Input() requestTypeId: number | null = null;
   @Input() initialRequestData: Partial<Request> | null = null;
+
+  get isEditing(): boolean {
+    const id = Number(this.initialRequestData?.id);
+    return Number.isFinite(id) && id > 0;
+  }
   public submitted = signal<boolean>(false);
+  public isSaving = signal<boolean>(false);
   public reasons = signal<Reason[]>([]);
   public classifications = signal<Classification[]>([]);
   public isLoadingInitialData = signal<boolean>(false);
@@ -47,6 +53,7 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
   public selectedSapScreenFiles = signal<File[]>([]);
   public existingSapScreenFiles = signal<RequestAttachment[]>([]);
   public existingUploadSupportFiles = signal<RequestAttachment[]>([]);
+  public openingFileId = signal<number | null>(null);
 
   private subscriptions: Subscription[] = [];
   private amountSubscription: Subscription | null = null;
@@ -442,16 +449,16 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
       customerNumber: new FormControl<string>({ value: '', disabled: true }, [Validators.required]),
       area: new FormControl<string>('', [Validators.required]),
       reasonId: new FormControl<string>('', [Validators.required]),
-      classificationId: new FormControl<string>('', [Validators.required]),
+      classificationId: new FormControl<string>(''),
       deliveryNote: new FormControl<string>(''),
-      invoiceNumber: new FormControl<string>('', [Validators.required]),
-      invoiceDate: new FormControl<string>('', [Validators.required]),
+      invoiceNumber: new FormControl<string>(''),
+      invoiceDate: new FormControl<string>(''),
       newInvoice: new FormControl<string>(''),
       warehouseCode: new FormControl<string>(''),
       sapScreen: new FormControl<File | null>(null),
       currency: new FormControl<string>('', [Validators.required]),
-      exchangeRate: new FormControl<number | null>(null, [Validators.required, Validators.min(0)]),
-      amount: new FormControl<number | null>(null, [Validators.required, Validators.min(0)]),
+      exchangeRate: new FormControl<number | null>({ value: null, disabled: true }, []),
+      amount: new FormControl<number | null>(null, [Validators.min(0)]),
       hasIva: new FormControl<boolean>(false),
       hasRga: new FormControl<boolean>(false),
       totalAmount: new FormControl<string>({ value: '', disabled: true }, []),
@@ -612,28 +619,60 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
 
   onAttachSupportsChange(event: Event): void {
     const input = event.target as HTMLInputElement;
-    const files = Array.from(input.files ?? []);
+    const newFiles = Array.from(input.files ?? []);
     const attachSupportsControl = this.form.get('attachSupports');
 
     if (!attachSupportsControl) {
       return;
     }
 
-    if (files.length > this.maxSupportFiles) {
-      const limitedFiles = files.slice(0, this.maxSupportFiles);
+    const existingFiles = this.selectedSupportFiles();
+    const mergedFiles = [...existingFiles, ...newFiles];
+    input.value = '';
+
+    if (mergedFiles.length > this.maxSupportFiles) {
+      this._toastService.error(`Solo puedes subir hasta ${this.maxSupportFiles} archivos`, 'Carga de archivos');
+      const limitedFiles = mergedFiles.slice(0, this.maxSupportFiles);
       this.selectedSupportFiles.set(limitedFiles);
       attachSupportsControl.setValue(limitedFiles);
       attachSupportsControl.setErrors({ maxFiles: true });
       attachSupportsControl.markAsTouched();
-      this._toastService.error(`Solo puedes subir hasta ${this.maxSupportFiles} archivos`, 'Carga de archivos');
-      input.value = '';
       return;
     }
 
-    this.selectedSupportFiles.set(files);
-    attachSupportsControl.setValue(files);
+    this.selectedSupportFiles.set(mergedFiles);
+    attachSupportsControl.setValue(mergedFiles.length ? mergedFiles : null);
     attachSupportsControl.setErrors(null);
     attachSupportsControl.markAsTouched();
+  }
+
+  openExistingFile(file: RequestAttachment): void {
+    this.openingFileId.set(file.id);
+    this._requestService.getRequestAttachmentFileUrl(file.id).pipe(
+      finalize(() => this.openingFileId.set(null))
+    ).subscribe({
+      next: (fileUrl) => {
+        if (!fileUrl) {
+          this._toastService.error('No se pudo obtener la URL del archivo', 'Error');
+          return;
+        }
+        window.open(fileUrl, '_blank', 'noopener,noreferrer');
+      },
+      error: () => {
+        this._toastService.error('No se pudo abrir el archivo', 'Error');
+      }
+    });
+  }
+
+  openLocalFile(file: File): void {
+    const url = URL.createObjectURL(file);
+    window.open(url, '_blank', 'noopener,noreferrer');
+  }
+
+  removeSapScreenFile(): void {
+    this.selectedSapScreenFiles.set([]);
+    this.form.get('sapScreen')?.setValue(null);
+    this.form.get('sapScreen')?.markAsTouched();
   }
 
   removeSupportFile(index: number): void {
@@ -729,8 +768,11 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
       ? this._requestService.updateRequest(editingRequestId, formData)
       : this._requestService.saveRequest(formData);
 
+    this.isSaving.set(true);
+
     request$.pipe(
       take(1),
+      finalize(() => this.isSaving.set(false)),
       switchMap((response: SaveRequestResponse) => {
         if (!response?.success) {
           throw new Error(response?.message ?? 'No se pudo guardar la solicitud');
@@ -759,7 +801,8 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
 
         this._toastService.success(response?.message ?? successMessage, 'Exito');
         this.submitted.set(false);
-        this._router.navigate(['/app/pending']);
+        const returnTo = (history.state as { returnTo?: string })?.returnTo;
+        this._router.navigate([returnTo ?? '/app/pending']);
       },
       error: (error: unknown) => {
         const message = (error as { error?: { message?: string }; message?: string })?.error?.message

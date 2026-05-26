@@ -43,6 +43,10 @@ __screenshots__/
 .DS_Store
 Thumbs.db
 
+# Claude Code
+.claude/
+.claude/commands
+
 # Local environment — never commit
 .env
 .env.local
