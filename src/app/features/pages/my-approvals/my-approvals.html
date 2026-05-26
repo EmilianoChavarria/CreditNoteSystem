@@ -83,6 +83,8 @@
         [serverPagination]="true" [paginaActualExterna]="currentPage()" [totalPaginasExterno]="totalPages()"
         [hasNextPage]="hasNextPage()" [hasPrevPage]="hasPrevPage()" (searchChange)="onSearch($event)"
         (filterChange)="onRoleFilterChange($event)"
+        [secondFilterOptions]="requesterOptions()" [secondFilterDefault]="selectedRequesterId()"
+        (secondFilterChange)="onRequesterFilterChange($event)"
         (paginaSiguiente)="onNextPage()" (paginaAnterior)="onPrevPage()" (paginaPrimera)="onFirstPage()"
         (paginaUltima)="onLastPage()" (registrosPorPaginaChange)="onPageSizeChange($event)">
 

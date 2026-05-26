@@ -171,6 +171,9 @@ export class MyApprovals extends RequestListBase {
             this.searchTerm.set(requestNumber);
             this.resetPagination();
             this.clearSelectedRequests();
+            this.selectedRequesterId.set('all');
+            this.requesterOptions.set([]);
+            this.loadRequesterOptions(resolvedRequestTypeId);
             this.loadMyPendingRequests();
         });
     }
@@ -239,6 +242,8 @@ export class MyApprovals extends RequestListBase {
         this.resetPagination();
         this.clearSelectedRequests();
         this.updateVisibleActions();
+        this.selectedRequesterId.set('all');
+        this.requesterOptions.set([]);
 
         if (value === 'DE') {
             this.requests.set([]);
@@ -247,6 +252,7 @@ export class MyApprovals extends RequestListBase {
             return;
         }
 
+        this.loadRequesterOptions(Number(value));
         this.loadRequests();
     }
 
@@ -294,7 +300,7 @@ export class MyApprovals extends RequestListBase {
 
         this.isLoadingTable.set(true);
 
-        this._requestsService.getMyPendingRequests(requestTypeId, this.pageSize(), this.currentPage(), this.searchTerm(), this.selectedRoleName()).subscribe({
+        this._requestsService.getMyPendingRequests(requestTypeId, this.pageSize(), this.currentPage(), this.searchTerm(), this.selectedRoleName(), this.selectedRequesterId()).subscribe({
             next: (response) => {
                 this.requests.set(response.data ?? []);
                 this.currentPage.set(response.current_page ?? 1);
