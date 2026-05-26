@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpService } from './http-service';
-import { catchError, map, Observable, shareReplay } from 'rxjs';
+import { catchError, map, Observable, of, shareReplay } from 'rxjs';
 import { Classification, Reason, Request, RequestType } from '../../data/interfaces/Request';
 import { ApiResponse } from '../../data/interfaces/ApiResponse-interface';
 import { CursorPagination } from './user-service';
@@ -95,8 +95,17 @@ export class RequestService {
     return reasons$;
   }
 
-  getMyPendingRequests(requestTypeId: number, perPage = 10, page = 1, search?: string, roleName = 'all'): Observable<PagePagination<Request>> {
-    const params: { requestTypeId: number; per_page: number; page: number; search?: string; roleName?: string } = {
+  getRequesters(requestTypeId: number): Observable<{ id: number; fullName: string }[]> {
+    return this._httpService.get<{ id: number; fullName: string }[]>('/requests/requesters', {
+      params: { requestTypeId }
+    }).pipe(
+      map((response: ApiResponse<{ id: number; fullName: string }[]>) => response.data ?? []),
+      catchError(() => of([]))
+    );
+  }
+
+  getMyPendingRequests(requestTypeId: number, perPage = 10, page = 1, search?: string, roleName = 'all', requesterId?: string): Observable<PagePagination<Request>> {
+    const params: { requestTypeId: number; per_page: number; page: number; search?: string; roleName?: string; requesterId?: string } = {
       requestTypeId,
       per_page: perPage,
       page,
@@ -107,6 +116,10 @@ export class RequestService {
     }
 
     params.roleName = roleName?.trim() || 'all';
+
+    if (requesterId && requesterId !== 'all') {
+      params.requesterId = requesterId;
+    }
 
     return this._httpService.get<PagePagination<Request>>('/requests/pending/me', {
       params
@@ -210,14 +223,18 @@ export class RequestService {
     );
   }
 
-  getRequestsByTypeWithPagePagination(id: number, perPage = 10, page = 1, search?: string, roleName = 'all'): Observable<PagePagination<Request>> {
-    const params: { per_page: number; page: number; search?: string; roleName?: string } = { per_page: perPage, page };
+  getRequestsByTypeWithPagePagination(id: number, perPage = 10, page = 1, search?: string, roleName = 'all', requesterId?: string): Observable<PagePagination<Request>> {
+    const params: { per_page: number; page: number; search?: string; roleName?: string; requesterId?: string } = { per_page: perPage, page };
 
     if (search && search.trim().length > 0) {
       params.search = search.trim();
     }
 
     params.roleName = roleName?.trim() || 'all';
+
+    if (requesterId && requesterId !== 'all') {
+      params.requesterId = requesterId;
+    }
 
     return this._httpService.get<PagePagination<Request>>(`/requests/${id}`, { params }).pipe(
       map((response: ApiResponse<PagePagination<Request>>) => {
