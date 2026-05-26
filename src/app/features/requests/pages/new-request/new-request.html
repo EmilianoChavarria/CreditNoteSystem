@@ -16,8 +16,16 @@
             </div>
         </div>
         <div class="flex flex-col items-start">
-            <span class="text-2xl 2xl:text-4xl tracking-wider text-[#ff8200] font-semibold">{{ (isEditingRequest() ? 'NEW_REQ.EDIT_TITLE' : 'NEW_REQ.TITLE') |
-                translate}}</span>
+            <div class="flex items-center gap-3 flex-wrap">
+                <span class="text-2xl 2xl:text-4xl tracking-wider text-[#ff8200] font-semibold">{{ (isEditingRequest() ? 'NEW_REQ.EDIT_TITLE' : 'NEW_REQ.TITLE') |
+                    translate}}</span>
+                @if (isEditingRequest() && editingRequestData()?.requestNumber) {
+                <div class="flex items-center gap-1 text-2xl 2xl:text-4xl text-gray-400 font-medium" aria-label="breadcrumb">
+                    <span class="text-gray-300">›</span>
+                    <span class="text-[#3c6194] font-semibold">{{ editingRequestData()?.requestNumber }}</span>
+                </div>
+                }
+            </div>
             <span class="text-orange-400">{{ (isEditingRequest() ? 'NEW_REQ.EDIT_DESCRIPTION' : 'NEW_REQ.DESCRIPTION') | translate }}</span>
         </div>
     </div>
