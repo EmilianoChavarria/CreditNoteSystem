@@ -476,6 +476,18 @@
       "SAP_COMPLETED": "SAP Return Order bulk upload completed.",
       "SAP_FAILED": "SAP Return Order bulk upload failed.",
       "SAP_POLLING_WARNING": "Could not continue polling for SAP Return Order batch."
+    },
+    "INFO_MODAL": {
+      "TITLE": "Classifications and Reasons",
+      "LOADING": "Loading...",
+      "AREAS_TITLE": "Areas",
+      "AREAS_EMPTY": "No areas registered.",
+      "REASONS_TITLE": "Reasons",
+      "REASONS_EMPTY": "No reasons registered.",
+      "CLASSIFICATIONS_TITLE": "Classifications",
+      "CLASSIFICATIONS_EMPTY": "No classifications registered.",
+      "COPY": "Copy",
+      "CLOSE": "Close"
     }
   },
   "USER_FORM": {

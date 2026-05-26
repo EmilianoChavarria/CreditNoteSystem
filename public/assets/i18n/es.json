@@ -476,6 +476,18 @@
       "SAP_COMPLETED": "Carga masiva de SAP Return Order completada.",
       "SAP_FAILED": "La carga masiva de SAP Return Order falló.",
       "SAP_POLLING_WARNING": "No se pudo continuar el polling del batch SAP Return Order."
+    },
+    "INFO_MODAL": {
+      "TITLE": "Clasificaciones y Razones",
+      "LOADING": "Cargando...",
+      "AREAS_TITLE": "Áreas",
+      "AREAS_EMPTY": "Sin áreas registradas.",
+      "REASONS_TITLE": "Razones",
+      "REASONS_EMPTY": "Sin razones registradas.",
+      "CLASSIFICATIONS_TITLE": "Clasificaciones",
+      "CLASSIFICATIONS_EMPTY": "Sin clasificaciones registradas.",
+      "COPY": "Copiar",
+      "CLOSE": "Cerrar"
     }
   },
   "USER_FORM": {
