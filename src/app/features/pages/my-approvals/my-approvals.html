@@ -92,8 +92,6 @@
                 (change)="toggleRequestSelection(item, $any($event.target).checked)"
                 class="h-4 w-4 rounded border-gray-300 text-[#3c6194] focus:ring-[#3c6194]"
                 [attr.aria-label]="'Select request ' + item.requestNumber">
-            } @else if (column.key === 'requestType.name') {
-            <app-badge color="blue" [text]="item.requestType.name | uppercase" />
             } @else if (column.key === 'status') {
             @if (item.workflowCurrentStep?.assigned_role?.roleName && item.status?.toLowerCase() !== 'cancelled') {
             <div class="inline-flex max-w-55 rounded-lg px-2 py-1"
@@ -112,11 +110,16 @@
             <div class="w-fit rounded-lg px-2"
                 [style]="`background-color: ${item.workflowCurrentStep.assigned_role.color +'1A'}; color:${item.workflowCurrentStep.assigned_role.color}` ">
                 <span
-                    [class]="`text-center font-semibold text-nowrap`">{{item.workflowCurrentStep?.assigned_user?.fullName}}</span>
+                    [class]="`text-center font-semibold text-nowrap`">{{item.workflowCurrentStep?.assigned_user?.fullName | uppercase}}</span>
             </div>
             } @else {
             <app-badge color="green" [text]="item.status | uppercase" />
             }
+            }@else if (column.key === 'razonSocial') {
+            <div class="w-fit">
+                <span
+                    [class]="`text-center font-semibold text-nowrap`">{{item.customerId}} - {{(item.razonSocial .length > 20) ? (item.razonSocial| slice:0:25) + '...' : item.razonSocial}}</span>
+            </div>
             }
         </ng-template>
     </app-tabla-dinamica>

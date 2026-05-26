@@ -10,7 +10,7 @@ import { ToastService } from '../../../core/services/toast-service';
 import moment from 'moment';
 import { Modal } from '../../../shared/components/ui/modal/modal';
 import { Badge } from '../../../shared/components/ui/badge/badge';
-import { UpperCasePipe } from '@angular/common';
+import { SlicePipe, UpperCasePipe } from '@angular/common';
 import { Spinner } from '../../../shared/components/ui/spinner/spinner';
 import { RoleService } from '../../../core/services/role-service';
 import { ActivatedRoute } from '@angular/router';
@@ -24,7 +24,7 @@ import { SendBackModal } from './components/send-back-modal/send-back-modal';
 
 @Component({
     selector: 'app-my-approvals',
-    imports: [TranslatePipe, WorkflowHistoryDrawer, WorkflowHistoryModal, Modal, Table, Badge, UpperCasePipe, Spinner, ReactiveFormsModule, FullSpinnerComponent, RequestInfoModal, ApproveConfirmModal, SendBackModal],
+    imports: [TranslatePipe, WorkflowHistoryDrawer, WorkflowHistoryModal, Modal, Table, Badge, UpperCasePipe, Spinner, ReactiveFormsModule, FullSpinnerComponent, RequestInfoModal, ApproveConfirmModal, SendBackModal, SlicePipe],
     templateUrl: './my-approvals.html',
     styleUrl: './my-approvals.css',
 })
@@ -70,17 +70,18 @@ export class MyApprovals extends RequestListBase {
         { key: 'bulkSelect', label: 'MY_APPROVALS.SELECT', sortable: false, customTemplate: true },
         { key: 'requestNumber', label: 'MY_APPROVALS.REQUEST_NUMBER', sortable: true },
         {
-            key: 'razonSocial', label: 'MY_APPROVALS.SOCIAL_REASON', sortable: true,
-            render: (value) => value ? value : '-'
+            key: 'razonSocial', label: 'MY_APPROVALS.SOCIAL_REASON', sortable: true, customTemplate: true
         },
-        { key: 'requestType.name', label: 'MY_APPROVALS.REQUEST_TYPE', sortable: true, customTemplate: true },
+        // { key: 'requestType.name', label: 'MY_APPROVALS.REQUEST_TYPE', sortable: true, customTemplate: true },
         { key: 'classification.name', label: 'MY_APPROVALS.CLASSIFICATION', sortable: true },
         { key: 'username', label: 'Assigned User', sortable: true, customTemplate: true },
         { key: 'status', label: 'MY_APPROVALS.STATUS', sortable: true, customTemplate: true },
         {
             key: 'createdAt', label: 'MY_APPROVALS.CREATED_AT', sortable: true,
             render: (value) => value ? moment(value).format('DD/MM/YYYY HH:mm:ss') : '-'
-        }
+        },
+        { key: 'user.fullName', label: 'CREATED BY', sortable: true }
+
     ];
 
     private readonly baseAcciones: AccionPersonalizada<Request>[] = [
