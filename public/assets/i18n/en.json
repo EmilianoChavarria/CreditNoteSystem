@@ -505,6 +505,10 @@
   "REJECTION": {
     "REASON": "Reason"
   },
+  "FILTERS": {
+    "CREATED_BY": "Created by",
+    "ALL_REQUESTERS": "All users"
+  },
   "MY_APPROVALS": {
     "TITLE": "My Approvals",
     "DESCRIPTION": "List of requests that the user has to approve",

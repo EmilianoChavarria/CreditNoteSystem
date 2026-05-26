@@ -505,6 +505,10 @@
   "REJECTION": {
     "REASON": "Razón"
   },
+  "FILTERS": {
+    "CREATED_BY": "Creado por",
+    "ALL_REQUESTERS": "Todos los usuarios"
+  },
   "MY_APPROVALS": {
     "TITLE": "Mis aprobaciones",
     "DESCRIPTION": "Listado de solicitudes que el usuario tiene por aprobar",
