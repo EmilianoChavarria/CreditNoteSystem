@@ -45,11 +45,6 @@
         @if (!hideHeaderActions()) {
         <div class="grid grid-cols-2 gap-2 sm:flex sm:flex-row sm:gap-x-4 w-full sm:w-auto justify-start sm:justify-end">
             <button
-                class="w-full sm:w-auto rounded-md bg-[#328e9f] px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center">
-                <lucide-icon name="folder-archive" size="18"></lucide-icon>
-                {{'TABLE.ZIP_BUTTON' | translate}}
-            </button>
-            <button
                 type="button"
                 (click)="onExcelExportClick()"
                 [disabled]="!excelExportModule() || isExportingExcel()"
