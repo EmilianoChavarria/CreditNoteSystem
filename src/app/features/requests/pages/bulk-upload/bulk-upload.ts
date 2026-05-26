@@ -8,7 +8,7 @@ import { AuthService } from '../../../../core/services/auth-service';
 import { BatchFinishedMessage, ReverbSocketService } from '../../../../core/services/reverb-socket-service';
 import { ToastService } from '../../../../core/services/toast-service';
 import { RequestService } from '../../../../core/services/request-service';
-import { Classification, Reason, RequestType } from '../../../../data/interfaces/Request';
+import { RequestType } from '../../../../data/interfaces/Request';
 import { ActivatedRoute } from '@angular/router';
 import { BulkNewRequestsUpload } from '../../components/batchs/bulk-new-requests-upload/bulk-new-requests-upload';
 import { BulkUploadSupportUpload } from '../../components/batchs/bulk-upload-support-upload/bulk-upload-support-upload';
@@ -18,9 +18,9 @@ import { BulkSapReturnOrderUpload } from '../../components/batchs/bulk-sap-retur
 import { BulkHistoryTab } from '../../components/batchs/bulk-history-tab/bulk-history-tab';
 import { BatchRequestsModal } from '../../components/batchs/batch-requests-modal/batch-requests-modal';
 import { RequestErrorModal } from '../../components/batchs/request-error-modal/request-error-modal';
+import { BulkInfoModal } from '../../components/batchs/bulk-info-modal/bulk-info-modal';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { PermissionAction, RequestTypePermissionRecord, RoleService } from '../../../../core/services/role-service';
-import { Modal } from '../../../../shared/components/ui/modal/modal';
 
 interface BatchHistoryRow {
     idBatch: string;
@@ -60,8 +60,8 @@ interface RequestHistoryRow {
         BulkHistoryTab,
         BatchRequestsModal,
         RequestErrorModal,
+        BulkInfoModal,
         TranslatePipe,
-        Modal,
     ]
 })
 export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
@@ -113,10 +113,6 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
     public batchRequestRows = signal<RequestHistoryRow[]>([]);
 
     public showInfoModal = signal<boolean>(false);
-    public isLoadingInfoModal = signal<boolean>(false);
-    public infoModalReasons = signal<Reason[]>([]);
-    public infoModalClassifications = signal<Classification[]>([]);
-    public copiedText = signal<string | null>(null);
 
     ngOnInit(): void {
         this.loadRequestTypes();
@@ -265,62 +261,7 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
     public openInfoModal(): void {
         const requestTypeId = this.selectedRequestTypeId();
         if (!requestTypeId) return;
-
-        this.infoModalReasons.set([]);
-        this.infoModalClassifications.set([]);
-        this.isLoadingInfoModal.set(true);
         this.showInfoModal.set(true);
-
-        const subscription = forkJoin({
-            reasons: this.requestService.getReasons(requestTypeId),
-            classifications: this.requestService.getClassificationsByType(requestTypeId),
-        }).subscribe({
-            next: ({ reasons, classifications }) => {
-                this.infoModalReasons.set(reasons);
-                this.infoModalClassifications.set(classifications);
-                this.isLoadingInfoModal.set(false);
-            },
-            error: () => {
-                this.isLoadingInfoModal.set(false);
-                this.toastService.error(
-                    this.translateService.instant('BULK.TOAST.LOAD_REQUEST_TYPES_ERROR'),
-                    this.translateService.instant('BULK.TABS.UPLOAD')
-                );
-            }
-        });
-
-        this.subscriptions.push(subscription);
-    }
-
-    public closeInfoModal(): void {
-        this.showInfoModal.set(false);
-    }
-
-    public copyText(text: string): void {
-        if (navigator?.clipboard?.writeText) {
-            navigator.clipboard.writeText(text).then(() => {
-                this.copiedText.set(text);
-                setTimeout(() => this.copiedText.set(null), 1500);
-            }).catch(() => this.fallbackCopy(text));
-        } else {
-            this.fallbackCopy(text);
-        }
-    }
-
-    private fallbackCopy(text: string): void {
-        const textarea = document.createElement('textarea');
-        textarea.value = text;
-        textarea.style.position = 'fixed';
-        textarea.style.opacity = '0';
-        document.body.appendChild(textarea);
-        textarea.focus();
-        textarea.select();
-        try {
-            document.execCommand('copy');
-            this.copiedText.set(text);
-            setTimeout(() => this.copiedText.set(null), 1500);
-        } catch {}
-        document.body.removeChild(textarea);
     }
 
     private buildPermissionMatrix(
