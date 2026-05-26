@@ -121,6 +121,8 @@ export class Pending extends RequestListBase {
         this.selectedRequestType = value;
         this.updateVisibleActions();
         this.resetPagination();
+        this.selectedRequesterId.set('all');
+        this.requesterOptions.set([]);
 
         if (value === 'DE') {
             this.requests.set([]);
@@ -129,6 +131,7 @@ export class Pending extends RequestListBase {
             return;
         }
 
+        this.loadRequesterOptions(Number(value));
         this.loadRequests();
     }
 
@@ -148,7 +151,8 @@ export class Pending extends RequestListBase {
             this.pageSize(),
             this.currentPage(),
             this.searchTerm(),
-            this.selectedRoleName()
+            this.selectedRoleName(),
+            this.selectedRequesterId()
         ).pipe(
             finalize(() => {
                 this.isLoadingTable.set(false);

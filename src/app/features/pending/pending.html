@@ -35,7 +35,9 @@
         [hasPrevPage]="hasPrevPage()" [loading]="isLoadingTable()" (paginaSiguiente)="onNextPage()"
         (paginaAnterior)="onPrevPage()" (paginaPrimera)="onFirstPage()" (paginaUltima)="onLastPage()"
         (registrosPorPaginaChange)="onPageSizeChange($event)" (searchChange)="onSearch($event)"
-        (filterChange)="onRoleFilterChange($event)">
+        (filterChange)="onRoleFilterChange($event)"
+        [secondFilterOptions]="requesterOptions()" [secondFilterDefault]="selectedRequesterId()"
+        (secondFilterChange)="onRequesterFilterChange($event)">
 
         <ng-template #cellTemplate let-item let-column="column">
             @if (column.key === 'status') {
