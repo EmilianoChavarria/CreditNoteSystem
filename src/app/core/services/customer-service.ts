@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpService } from './http-service';
 import { catchError, map, Observable, of, tap, throwError } from 'rxjs';
-import { Customer, CustomerLocal } from '../../data/interfaces/Customer';
+import { Customer, CustomerLocal, CustomerLocalPayload } from '../../data/interfaces/Customer';
 import { ApiResponse } from '../../data/interfaces/ApiResponse-interface';
 
 export interface PagePagination<T> {
@@ -234,7 +234,7 @@ export class CustomerService {
     )
   }
 
-  saveExtraData(customer: CustomerLocal) {
+  saveExtraData(customer: CustomerLocalPayload) {
     return this._httpService.post('/customers/saveLocal', customer).pipe(
       tap((response) => {
 

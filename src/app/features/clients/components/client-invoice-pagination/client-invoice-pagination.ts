@@ -1,9 +1,10 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { LucideAngularModule } from 'lucide-angular';
 
 @Component({
   selector: 'app-client-invoice-pagination',
-  imports: [LucideAngularModule],
+  imports: [LucideAngularModule, TranslatePipe],
   templateUrl: './client-invoice-pagination.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

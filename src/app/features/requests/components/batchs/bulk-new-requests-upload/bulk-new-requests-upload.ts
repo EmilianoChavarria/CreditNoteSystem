@@ -28,6 +28,7 @@ export class BulkNewRequestsUpload {
 
   selectedRequestTypeId = input<number | null>(null);
   batchCreated = output<void>();
+  openInfo = output<void>();
 
   isDragOver = signal(false);
   isCreatingBatch = signal(false);

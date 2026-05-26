@@ -5,6 +5,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { AccionPersonalizada, Column, Table } from '../../../shared/components/ui/table/table';
 import { Request, RequestType } from '../../../data/interfaces/Request';
 import { WorkflowHistoryDrawer } from '../../history/components/workflow-history-drawer/workflow-history-drawer';
+import { WorkflowHistoryModal } from '../../history/components/workflow-history-modal/workflow-history-modal';
 import { ToastService } from '../../../core/services/toast-service';
 import moment from 'moment';
 import { Modal } from '../../../shared/components/ui/modal/modal';
@@ -13,7 +14,7 @@ import { UpperCasePipe } from '@angular/common';
 import { Spinner } from '../../../shared/components/ui/spinner/spinner';
 import { RoleService } from '../../../core/services/role-service';
 import { ActivatedRoute } from '@angular/router';
-import { catchError, forkJoin, map, of, switchMap } from 'rxjs';
+import { catchError, finalize, forkJoin, map, of, switchMap } from 'rxjs';
 import { normalizeRequestNumber } from '../../../shared/utils/notification-navigation';
 import { FullSpinnerComponent } from '../../../shared/components/ui/full-spinner/full-spinner';
 import { RequestListBase } from '../../../shared/base/request-list.base';
@@ -23,7 +24,7 @@ import { SendBackModal } from './components/send-back-modal/send-back-modal';
 
 @Component({
     selector: 'app-my-approvals',
-    imports: [TranslatePipe, WorkflowHistoryDrawer, Modal, Table, Badge, UpperCasePipe, Spinner, ReactiveFormsModule, FullSpinnerComponent, RequestInfoModal, ApproveConfirmModal, SendBackModal],
+    imports: [TranslatePipe, WorkflowHistoryDrawer, WorkflowHistoryModal, Modal, Table, Badge, UpperCasePipe, Spinner, ReactiveFormsModule, FullSpinnerComponent, RequestInfoModal, ApproveConfirmModal, SendBackModal],
     templateUrl: './my-approvals.html',
     styleUrl: './my-approvals.css',
 })
@@ -49,7 +50,14 @@ export class MyApprovals extends RequestListBase {
     public requestToApprove = signal<Request | null>(null);
     public showBulkApproveModal = signal<boolean>(false);
     public showBulkDeclineModal = signal<boolean>(false);
+    public showBulkCancelModal = signal<boolean>(false);
     public isBulkProcessing = signal<boolean>(false);
+    public canBulkApprove = signal<boolean>(false);
+    public canBulkReject = signal<boolean>(false);
+    public canBulkCancel = signal<boolean>(false);
+    public isApproving = signal<boolean>(false);
+    public isDeclining = signal<boolean>(false);
+    public isCancelling = signal<boolean>(false);
     public isInitializingDeepLink = signal<boolean>(false);
     public showCancelModal = signal<boolean>(false);
     public cancelComments = new FormControl<string>('');
@@ -61,6 +69,10 @@ export class MyApprovals extends RequestListBase {
     public columns: Column<Request>[] = [
         { key: 'bulkSelect', label: 'MY_APPROVALS.SELECT', sortable: false, customTemplate: true },
         { key: 'requestNumber', label: 'MY_APPROVALS.REQUEST_NUMBER', sortable: true },
+        {
+            key: 'razonSocial', label: 'MY_APPROVALS.SOCIAL_REASON', sortable: true,
+            render: (value) => value ? value : '-'
+        },
         { key: 'requestType.name', label: 'MY_APPROVALS.REQUEST_TYPE', sortable: true, customTemplate: true },
         { key: 'classification.name', label: 'MY_APPROVALS.CLASSIFICATION', sortable: true },
         { key: 'username', label: 'Assigned User', sortable: true, customTemplate: true },
@@ -78,7 +90,7 @@ export class MyApprovals extends RequestListBase {
         { key: 'return_order', icon: 'corner-up-left', label: 'MY_APPROVALS.RETURN_ORDER', accion: (request) => this.openSendBackModal(request) },
         { key: 'pdf', icon: 'file-text', label: 'MY_APPROVALS.PDF', accion: (request) => this.generatePdf(request) },
         { key: 'see_info', icon: 'info', label: 'PENDING_PAGE.SEE_INFO', accion: (request) => this.openInfoModal(request) },
-        { key: 'edit', icon: 'pencil', label: 'MY_APPROVALS.EDIT', accion: (request) => this.editRequest(request) },
+        { key: 'edit', icon: 'pencil', label: 'MY_APPROVALS.EDIT', accion: (request) => this.editRequest(request, '/app/my-approvals') },
         { key: 'history', icon: 'history', label: 'MY_APPROVALS.SEE_HISTORY', accion: (request) => this.logAction(request) },
     ];
     public acciones = signal<AccionPersonalizada<Request>[]>([]);
@@ -154,6 +166,7 @@ export class MyApprovals extends RequestListBase {
             }
             this.appliedShortcutRequestNumber = requestNumber;
             this.selectedRequestType = String(resolvedRequestTypeId);
+            this.updateVisibleActions();
             this.searchTerm.set(requestNumber);
             this.resetPagination();
             this.clearSelectedRequests();
@@ -240,6 +253,9 @@ export class MyApprovals extends RequestListBase {
         const requestTypeId = Number(this.selectedRequestType);
         if (!requestTypeId || Number.isNaN(requestTypeId)) {
             this.acciones.set([]);
+            this.canBulkApprove.set(false);
+            this.canBulkReject.set(false);
+            this.canBulkCancel.set(false);
             return;
         }
         const permissionsBySlug = this.requestTypeActionPermissions()[requestTypeId] ?? {};
@@ -247,6 +263,9 @@ export class MyApprovals extends RequestListBase {
             getPermissionSlugsForCustomAction(action.key).some(slug => permissionsBySlug[slug])
         );
         this.acciones.set(visibleActions);
+        this.canBulkApprove.set(getPermissionSlugsForCustomAction('approve').some(s => permissionsBySlug[s]));
+        this.canBulkReject.set(getPermissionSlugsForCustomAction('decline').some(s => permissionsBySlug[s]));
+        this.canBulkCancel.set(getPermissionSlugsForCustomAction('cancel').some(s => permissionsBySlug[s]));
     }
 
     override onSearch(term: string): void {
@@ -304,7 +323,6 @@ export class MyApprovals extends RequestListBase {
     onApproveConfirmed(comments: string): void {
         const request = this.requestToApprove();
         if (!request) return;
-        this.showApproveModal.set(false);
         this.approveRequest(request, comments);
     }
 
@@ -372,6 +390,51 @@ export class MyApprovals extends RequestListBase {
     openBulkDeclineModal(): void {
         if (!this.selectedCount()) return;
         this.onBulkDeclineModalChange(true);
+    }
+
+    openBulkCancelModal(): void {
+        if (!this.selectedCount()) return;
+        this.showBulkCancelModal.set(true);
+    }
+
+    onBulkCancelModalChange(isOpen: boolean = true): void {
+        this.showBulkCancelModal.set(isOpen);
+    }
+
+    cancelSelectedRequests(): void {
+        const requestIds = Array.from(this.selectedRequestIds());
+        if (!requestIds.length) return;
+
+        this.isBulkProcessing.set(true);
+
+        this._requestsService.cancelMassRequests(requestIds).subscribe({
+            next: (response) => {
+                if (response.totalCancelled > 0) {
+                    this._toastService.success(
+                        this._translateService.instant('MY_APPROVALS.TOAST.BULK_CANCEL_SUCCESS', { cancelled: response.totalCancelled, total: response.totalReceived }),
+                        this._translateService.instant('MY_APPROVALS.TOAST.SUCCESS')
+                    );
+                }
+                if (response.totalFailed > 0) {
+                    this._toastService.warning(
+                        this._translateService.instant('MY_APPROVALS.TOAST.BULK_CANCEL_PARTIAL', { failed: response.totalFailed }),
+                        this._translateService.instant('MY_APPROVALS.TOAST.ERROR')
+                    );
+                }
+                this.onBulkCancelModalChange(false);
+                this.clearSelectedRequests();
+                this.loadMyPendingRequests();
+                this.isBulkProcessing.set(false);
+            },
+            error: (error) => {
+                this.isBulkProcessing.set(false);
+                this._toastService.error(
+                    this.getErrorMessageFromResponse(error, 'MY_APPROVALS.TOAST.BULK_CANCEL_ERROR'),
+                    this._translateService.instant('MY_APPROVALS.TOAST.ERROR')
+                );
+                console.error('Error cancelling requests in bulk:', error);
+            }
+        });
     }
 
     approveSelectedRequests(): void {
@@ -458,7 +521,10 @@ export class MyApprovals extends RequestListBase {
         if (!request.id || !this.form.valid) return;
         const comments = this.form.get('comments')?.value || '';
 
-        this._requestsService.rejectRequest(request.id, comments).subscribe({
+        this.isDeclining.set(true);
+        this._requestsService.rejectRequest(request.id, comments).pipe(
+            finalize(() => this.isDeclining.set(false))
+        ).subscribe({
             next: () => {
                 this._toastService.success(
                     this._translateService.instant('MY_APPROVALS.TOAST.REQUEST_REJECTED_SUCCESS'),
@@ -480,8 +546,12 @@ export class MyApprovals extends RequestListBase {
     approveRequest(request: Request, comments?: string): void {
         if (!request.id) return;
 
-        this._requestsService.approveRequest(request.id, comments).subscribe({
+        this.isApproving.set(true);
+        this._requestsService.approveRequest(request.id, comments).pipe(
+            finalize(() => this.isApproving.set(false))
+        ).subscribe({
             next: () => {
+                this.showApproveModal.set(false);
                 this._toastService.success(
                     this._translateService.instant('MY_APPROVALS.TOAST.REQUEST_APPROVED_SUCCESS'),
                     this._translateService.instant('MY_APPROVALS.TOAST.SUCCESS')
@@ -530,7 +600,10 @@ export class MyApprovals extends RequestListBase {
         const request = this.selectedRequest();
         if (!request?.id) return;
 
-        this._requestsService.cancelRequest(request.id, this.cancelComments.value ?? '').subscribe({
+        this.isCancelling.set(true);
+        this._requestsService.cancelRequest(request.id, this.cancelComments.value ?? '').pipe(
+            finalize(() => this.isCancelling.set(false))
+        ).subscribe({
             next: () => {
                 this._toastService.success(
                     this._translateService.instant('MY_APPROVALS.TOAST.REQUEST_CANCELLED_SUCCESS'),

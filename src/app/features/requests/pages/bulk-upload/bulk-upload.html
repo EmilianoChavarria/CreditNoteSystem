@@ -19,7 +19,8 @@
             <accordeon-container>
                 <app-bulk-new-requests-upload
                     [selectedRequestTypeId]="selectedRequestTypeId()"
-                    (batchCreated)="onUploadBatchCreated()"></app-bulk-new-requests-upload>
+                    (batchCreated)="onUploadBatchCreated()"
+                    (openInfo)="openInfoModal()"></app-bulk-new-requests-upload>
 
                 <app-bulk-upload-support-upload
                     [selectedRequestTypeId]="selectedRequestTypeId()"
@@ -94,3 +95,8 @@
     </app-tabs-container>
 
 </div>
+
+<app-bulk-info-modal
+    [open]="showInfoModal()"
+    [selectedRequestTypeId]="selectedRequestTypeId()"
+    (openChange)="showInfoModal.set($event)"></app-bulk-info-modal>

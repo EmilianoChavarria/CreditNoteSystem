@@ -1,17 +1,21 @@
 <article class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
     <header class="flex items-center justify-between gap-3 border-b border-gray-200 px-4 py-3">
         <div>
-            <p class="text-sm font-semibold text-gray-800">Factura {{ invoice().invoiceNumber }}</p>
-            <p class="text-xs text-gray-500">Fecha: {{ invoice().date | date: 'dd/MM/yyyy' }}</p>
+            <p class="text-sm font-semibold text-gray-800">{{ 'CLIENT_INVOICES.INVOICE.INVOICE' | translate }} {{ invoice().invoiceNumber }}</p>
+            <p class="text-xs text-gray-500">{{ 'CLIENT_INVOICES.INVOICE.DATE' | translate }}: {{ invoice().date | date: 'dd/MM/yyyy' }}</p>
         </div>
         <div class="flex items-center gap-2">
             <span class="rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-xs font-medium text-gray-600">
-                {{ productCountText() }}
+                @if (productCount() !== null) {
+                {{ productCount() }} {{ 'CLIENT_INVOICES.INVOICE.PRODUCTS' | translate }}
+                } @else {
+                {{ 'CLIENT_INVOICES.INVOICE.PRODUCTS_PENDING' | translate }}
+                }
             </span>
             <button type="button"
                 class="rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
                 (click)="toggle.emit()">
-                {{ expanded() ? 'Ocultar' : 'Mostrar' }}
+                {{ expanded() ? ('CLIENT_INVOICES.INVOICE.HIDE' | translate) : ('CLIENT_INVOICES.INVOICE.SHOW' | translate) }}
             </button>
         </div>
     </header>
@@ -21,20 +25,20 @@
         <table class="min-w-225 w-full border-collapse bg-white">
             <thead class="bg-white text-xs uppercase tracking-wide text-gray-600">
                 <tr>
-                    <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">No.PEDIDO / CUST PO NBR</th>
-                    <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">REMISION / DELIVERY NOTE</th>
-                    <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">No. PARTE / PART NUMBER</th>
-                    <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">CANT EMB / QTY SHIP</th>
-                    <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">PRECIO UNITARIO / UNIT PRICE</th>
-                    <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">TOTAL NETO / EXT PRICE</th>
-                    <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">Accion</th>
+                    <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">{{ 'CLIENT_INVOICES.INVOICE.COL_ORDER' | translate }}</th>
+                    <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">{{ 'CLIENT_INVOICES.INVOICE.COL_DELIVERY' | translate }}</th>
+                    <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">{{ 'CLIENT_INVOICES.INVOICE.COL_PART' | translate }}</th>
+                    <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">{{ 'CLIENT_INVOICES.INVOICE.COL_QTY' | translate }}</th>
+                    <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">{{ 'CLIENT_INVOICES.INVOICE.COL_UNIT_PRICE' | translate }}</th>
+                    <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">{{ 'CLIENT_INVOICES.INVOICE.COL_TOTAL' | translate }}</th>
+                    <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">{{ 'CLIENT_INVOICES.INVOICE.COL_ACTION' | translate }}</th>
                 </tr>
             </thead>
             <tbody>
                 @if (loading()) {
                 <tr>
                     <td class="border-b border-gray-200 bg-white px-3 py-3 text-sm text-gray-600" colspan="7">
-                        Cargando productos de la factura...
+                        {{ 'CLIENT_INVOICES.INVOICE.LOADING_PRODUCTS' | translate }}
                     </td>
                 </tr>
                 } @else if (error(); as invoiceError) {
@@ -46,7 +50,7 @@
                 } @else if (invoice().products.length === 0) {
                 <tr>
                     <td class="border-b border-gray-200 bg-white px-3 py-3 text-sm text-gray-600" colspan="7">
-                        Esta factura no tiene productos disponibles para devolucion.
+                        {{ 'CLIENT_INVOICES.INVOICE.NO_PRODUCTS' | translate }}
                     </td>
                 </tr>
                 } @else {
@@ -98,7 +102,7 @@
                             <button type="button"
                                 class="rounded-md border border-orange-200 bg-white px-2 py-1.5 text-xs font-semibold text-orange-700 hover:bg-orange-50"
                                 (click)="addProduct.emit({ invoice: invoice(), product })">
-                                Agregar
+                                {{ 'CLIENT_INVOICES.INVOICE.ADD' | translate }}
                             </button>
                         </div>
                     </td>

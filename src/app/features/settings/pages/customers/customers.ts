@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { AccionPersonalizada, Column, Table } from "../../../../shared/components/ui/table/table";
-import { Customer } from '../../../../data/interfaces/Customer';
+import { Customer, CustomerLocalPayload } from '../../../../data/interfaces/Customer';
 import { CustomerService } from '../../../../core/services/customer-service';
 import { LucideAngularModule } from "lucide-angular";
 import { finalize } from 'rxjs';
@@ -57,31 +57,31 @@ export class Customers {
             key: 'salesEngineerId',
             label: 'CUSTOMERS_PAGE.SALES_ENGINEER',
             sortable: true,
-            render: (value, item) => item.customer?.salesEngineer?.fullName ?? '-'
+            render: (value, item) => item.clienteExt?.salesEngineerId?.fullName ?? '-'
         },
         {
             key: 'salesManagerId',
             label: 'CUSTOMERS_PAGE.SALES_MANAGER',
             sortable: true,
-            render: (value, item) => item.customer?.salesManager?.fullName ?? '-'
+            render: (value, item) => item.clienteExt?.salesManagerId?.fullName ?? '-'
         },
         {
             key: 'financeManagerId',
             label: 'CUSTOMERS_PAGE.FINANCE_MANAGER',
             sortable: true,
-            render: (value, item) => item.customer?.financeManager?.fullName ?? '-'
+            render: (value, item) => item.clienteExt?.financeManagerId?.fullName ?? '-'
         },
         {
             key: 'marketingManagerId',
             label: 'CUSTOMERS_PAGE.MARKETING_MANAGER',
             sortable: true,
-            render: (value, item) => item.customer?.marketingManager?.fullName ?? '-'
+            render: (value, item) => item.clienteExt?.marketingManagerId?.fullName ?? '-'
         },
         {
             key: 'customerServiceManagerId',
             label: 'Customer Service Manager',
             sortable: true,
-            render: (value, item) => item.customer?.customerServiceManager?.fullName ?? '-'
+            render: (value, item) => item.clienteExt?.customerServiceManagerId?.fullName ?? '-'
         }
     ];
 
@@ -125,7 +125,7 @@ export class Customers {
 
     public assignManagers(payload: AssignManagersPayload) {
         console.log('Assign managers payload:', payload);
-        let newObject = {
+        let newObject: CustomerLocalPayload = {
             idClient: this.customer?.idCliente,
             salesEngineerId: payload.salesEngineer,
             salesManagerId: payload.salesManager,

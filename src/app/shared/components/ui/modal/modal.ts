@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 
-type ModalSize = 'sm' | 'md' | 'lg' | 'xl' | 'full';
+type ModalSize = 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full';
 
 @Component({
   selector: 'app-modal',
@@ -24,6 +24,8 @@ export class Modal {
   readonly showPrimaryButton = input<boolean>(true);
   readonly closeText = input<string>('Cerrar');
   readonly primaryText = input<string>('Aceptar');
+  readonly primaryLoading = input<boolean>(false);
+  readonly primaryDisabled = input<boolean>(false);
 
   readonly closed = output<void>();
   readonly primaryAction = output<void>();
@@ -41,6 +43,8 @@ export class Modal {
         return 'max-w-2xl';
       case 'xl':
         return 'max-w-4xl';
+      case '2xl':
+        return 'max-w-6xl';
       case 'full':
         return 'h-[90vh] max-w-6xl';
       default:

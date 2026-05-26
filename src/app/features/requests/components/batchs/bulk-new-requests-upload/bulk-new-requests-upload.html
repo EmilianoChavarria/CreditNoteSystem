@@ -2,6 +2,17 @@
     [openButtonText]="'BULK.OPEN' | translate" [closeButtonText]="'BULK.CLOSE' | translate">
     <div class="w-full flex flex-col p-3 sm:p-4">
         <div class="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-end justify-start gap-3 sm:gap-4">
+            <button
+                type="button"
+                (click)="openInfo.emit()"
+                class="w-full sm:w-auto sm:mr-auto flex items-center justify-center gap-2 border border-blue-300 bg-blue-50 text-blue-700 rounded-md px-3 py-2 hover:bg-blue-100 transition text-sm font-medium">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                {{ 'BULK.NEW_REQUESTS.VIEW_REASONS' | translate }}
+            </button>
             <div class="gap-1 w-full sm:min-w-44 sm:w-auto hidden">
                 <span class="text-sm font-medium text-[#395f93]">{{ 'BULK.COMMON.BATCH_TYPE' | translate }}</span>
                 <input

@@ -47,16 +47,27 @@
                     class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50">
                     {{'MY_APPROVALS.CLEAR_SELECTION' | translate}}
                 </button>
+                @if (canBulkApprove()) {
                 <button type="button" (click)="openBulkApproveModal()"
                     [disabled]="!selectedCount() || isBulkProcessing()"
                     class="rounded-md bg-[#21760e] px-3 py-2 text-sm font-semibold text-white hover:bg-[#1c630c] disabled:cursor-not-allowed disabled:opacity-50">
                     {{'MY_APPROVALS.BULK_APPROVE' | translate}}
                 </button>
+                }
+                @if (canBulkReject()) {
                 <button type="button" (click)="openBulkDeclineModal()"
                     [disabled]="!selectedCount() || isBulkProcessing()"
                     class="rounded-md bg-[#b42318] px-3 py-2 text-sm font-semibold text-white hover:bg-[#9d1f15] disabled:cursor-not-allowed disabled:opacity-50">
                     {{'MY_APPROVALS.BULK_REJECT' | translate}}
                 </button>
+                }
+                @if (canBulkCancel()) {
+                <button type="button" (click)="openBulkCancelModal()"
+                    [disabled]="!selectedCount() || isBulkProcessing()"
+                    class="rounded-md bg-[#6b7280] px-3 py-2 text-sm font-semibold text-white hover:bg-[#4b5563] disabled:cursor-not-allowed disabled:opacity-50">
+                    {{'MY_APPROVALS.BULK_CANCEL' | translate}}
+                </button>
+                }
             </div>
         </div>
     </section>
@@ -120,7 +131,9 @@
     }
 
     <app-modal size="md" [titleM]="'MY_APPROVALS.REJECTION_MODAL_TITLE' | translate" [open]="showDeclineModal()"
-        [closeText]="'MY_APPROVALS.CANCEL' | translate" [primaryText]="'MY_APPROVALS.REJECT' | translate"
+        [closeText]="'MY_APPROVALS.CANCEL' | translate"
+        [primaryText]="isDeclining() ? ('MY_APPROVALS.REJECTING' | translate) : ('MY_APPROVALS.REJECT' | translate)"
+        [primaryLoading]="isDeclining()" [primaryDisabled]="isDeclining()"
         (openChange)="onDeclineModalChange($event)" (primaryAction)="declineRequest(selectedRequest()!)">
         <div [formGroup]="form">
             <label class="block font-medium text-[#395f93] text-lg">{{'REJECTION.REASON' | translate}}
@@ -137,14 +150,18 @@
     </app-modal>
 
     <app-modal size="md" [titleM]="'MY_APPROVALS.BULK_APPROVE_MODAL_TITLE' | translate" [open]="showBulkApproveModal()"
-        [closeText]="'MY_APPROVALS.CANCEL' | translate" [primaryText]="'MY_APPROVALS.BULK_APPROVE' | translate"
+        [closeText]="'MY_APPROVALS.CANCEL' | translate"
+        [primaryText]="isBulkProcessing() ? ('MY_APPROVALS.BULK_APPROVING' | translate) : ('MY_APPROVALS.BULK_APPROVE' | translate)"
+        [primaryLoading]="isBulkProcessing()" [primaryDisabled]="isBulkProcessing()"
         (openChange)="onBulkApproveModalChange($event)" (primaryAction)="approveSelectedRequests()">
         <p class="text-sm text-gray-700">{{ 'MY_APPROVALS.BULK_APPROVE_CONFIRM' | translate : { count: selectedCount() }
             }}</p>
     </app-modal>
 
     <app-modal size="md" [titleM]="'MY_APPROVALS.BULK_REJECT_MODAL_TITLE' | translate" [open]="showBulkDeclineModal()"
-        [closeText]="'MY_APPROVALS.CANCEL' | translate" [primaryText]="'MY_APPROVALS.BULK_REJECT' | translate"
+        [closeText]="'MY_APPROVALS.CANCEL' | translate"
+        [primaryText]="isBulkProcessing() ? ('MY_APPROVALS.BULK_REJECTING' | translate) : ('MY_APPROVALS.BULK_REJECT' | translate)"
+        [primaryLoading]="isBulkProcessing()" [primaryDisabled]="isBulkProcessing()"
         (openChange)="onBulkDeclineModalChange($event)" (primaryAction)="declineSelectedRequests()">
         <div [formGroup]="form">
             <p class="mb-2 text-sm text-gray-700">{{ 'MY_APPROVALS.BULK_REJECT_CONFIRM' | translate : { count:
@@ -160,13 +177,27 @@
         </div>
     </app-modal>
 
+    <app-modal size="md" [titleM]="'MY_APPROVALS.BULK_CANCEL_MODAL_TITLE' | translate" [open]="showBulkCancelModal()"
+        [closeText]="'MY_APPROVALS.CANCEL' | translate"
+        [primaryText]="isBulkProcessing() ? ('MY_APPROVALS.BULK_CANCELLING' | translate) : ('MY_APPROVALS.BULK_CANCEL' | translate)"
+        [primaryLoading]="isBulkProcessing()" [primaryDisabled]="isBulkProcessing()"
+        (openChange)="onBulkCancelModalChange($event)" (primaryAction)="cancelSelectedRequests()">
+        <p class="text-sm text-gray-700">{{ 'MY_APPROVALS.BULK_CANCEL_CONFIRM' | translate : { count: selectedCount() } }}</p>
+    </app-modal>
+
     <app-request-info-modal [open]="showInfoModal()" [request]="selectedRequestForInfo()"
-        (openChange)="onInfoModalChange($event)">
+        [canDelete]="canDeleteInfoAttachments()"
+        (openChange)="onInfoModalChange($event)" (viewHistory)="onInfoModalViewHistory()">
     </app-request-info-modal>
+
+    <app-workflow-history-modal [open]="showHistoryModal()" [detail]="workflowDetail"
+        (closed)="closeHistoryModal()">
+    </app-workflow-history-modal>
 
     <app-approve-confirm-modal
         [open]="showApproveModal()"
         [request]="requestToApprove()"
+        [isLoading]="isApproving()"
         (openChange)="showApproveModal.set($event)"
         (confirmed)="onApproveConfirmed($event)">
     </app-approve-confirm-modal>
@@ -179,7 +210,9 @@
     </app-send-back-modal>
 
     <app-modal size="md" [titleM]="'MY_APPROVALS.CANCEL_REQUEST_MODAL_TITLE' | translate" [open]="showCancelModal()"
-        [closeText]="'MY_APPROVALS.CANCEL' | translate" [primaryText]="'MY_APPROVALS.CANCEL_REQUEST_CONFIRM_BTN' | translate"
+        [closeText]="'MY_APPROVALS.CANCEL' | translate"
+        [primaryText]="isCancelling() ? ('MY_APPROVALS.CANCELLING' | translate) : ('MY_APPROVALS.CANCEL_REQUEST_CONFIRM_BTN' | translate)"
+        [primaryLoading]="isCancelling()" [primaryDisabled]="isCancelling()"
         (openChange)="onCancelModalChange($event)" (primaryAction)="cancelRequest()">
         <textarea [formControl]="cancelComments"
             [placeholder]="'MY_APPROVALS.CANCEL_REQUEST_COMMENTS_PLACEHOLDER' | translate"

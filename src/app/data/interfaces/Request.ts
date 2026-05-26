@@ -10,6 +10,7 @@ export interface Request {
     requestDate: string;
     currency: string;
     customerId: number;
+    razonSocial: string;
     area: string;
     reasonId: number;
     classificationId: number;

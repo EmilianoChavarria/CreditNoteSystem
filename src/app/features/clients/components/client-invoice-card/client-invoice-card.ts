@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { LucideAngularModule } from 'lucide-angular';
 import {
   CustomerInvoice,
@@ -10,7 +11,7 @@ import {
 
 @Component({
   selector: 'app-client-invoice-card',
-  imports: [CommonModule, LucideAngularModule],
+  imports: [CommonModule, LucideAngularModule, TranslatePipe],
   templateUrl: './client-invoice-card.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -28,19 +29,19 @@ export class ClientInvoiceCard {
   readonly adjustQuantity = output<DraftQuantityAdjust>();
   readonly quantityChange = output<DraftQuantityChange>();
 
-  protected readonly productCountText = computed(() => {
+  protected readonly productCount = computed(() => {
     const invoice = this.invoice();
     const loadedCount = invoice.products.length;
 
     if (loadedCount > 0) {
-      return `${loadedCount} productos`;
+      return loadedCount;
     }
 
     if (invoice.productsCount !== null) {
-      return `${invoice.productsCount} productos`;
+      return invoice.productsCount;
     }
 
-    return 'Productos por cargar';
+    return null;
   });
 
   protected productTotal(product: InvoiceProduct): number {

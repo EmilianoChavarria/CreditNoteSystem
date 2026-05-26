@@ -15,6 +15,20 @@ function passwordMatchValidator(): ValidatorFn {
     };
 }
 
+function passwordStrengthValidator(): ValidatorFn {
+    return (control: AbstractControl) => {
+        const v: string = control.value ?? '';
+        if (!v) return null;
+        const invalid =
+            v.length < 8 ||
+            !/[A-Z]/.test(v) ||
+            !/[a-z]/.test(v) ||
+            !/[0-9]/.test(v) ||
+            !/[.!@#$%^&*]/.test(v);
+        return invalid ? { passwordStrength: true } : null;
+    };
+}
+
 @Component({
     selector: 'app-change-password',
     templateUrl: './change-password.html',
@@ -32,7 +46,7 @@ export class ChangePassword {
     isLoading = false;
 
     form = new FormGroup({
-        newPassword: new FormControl<string>('', Validators.required),
+        newPassword: new FormControl<string>('', [Validators.required, passwordStrengthValidator()]),
         newPassword_confirmation: new FormControl<string>('', Validators.required),
     }, { validators: passwordMatchValidator() });
 

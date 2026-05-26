@@ -17,7 +17,7 @@
           </span>
           <h2 class="text-2xl font-bold text-slate-900">{{ req.requestNumber }}</h2>
         </div>
-        <div class="flex flex-col items-end gap-1">
+        <div class="flex flex-col items-end gap-2">
           <span class="text-xs font-bold uppercase tracking-widest text-slate-400">
             {{ 'REQUEST_INFO.STATUS' | translate }}
           </span>
@@ -188,7 +188,7 @@
               {{ 'REQUEST_INFO.COMMENTS' | translate }}
             </h3>
           </div>
-          <p class="rounded-2xl border border-slate-100 bg-slate-50/30 p-6 text-sm text-slate-700 leading-relaxed">
+          <p class="rounded-2xl border border-slate-100 bg-slate-50/30 p-6 text-sm text-slate-700 leading-relaxed wrap-break-word">
             {{ req.comments }}
           </p>
         </section>
@@ -267,6 +267,155 @@
         </div>
       }
 
+      <!-- Secuencia actual -->
+      <section>
+        <div class="flex items-center justify-between gap-4 mb-4">
+          <div class="flex items-center gap-2">
+            <div class="p-1.5 bg-purple-100 rounded-lg text-purple-600">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+              </svg>
+            </div>
+            <h3 class="text-sm font-bold uppercase tracking-wider text-purple-600">
+              {{ 'REQUEST_INFO.CURRENT_SEQUENCE' | translate }}
+            </h3>
+          </div>
+          <button type="button"
+            class="inline-flex items-center gap-1.5 rounded-lg bg-[#3c6194] px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-[#2f4e7a]"
+            (click)="viewHistory.emit()">
+            {{ 'REQUEST_INFO.GRAPHIC_SEQUENCE' | translate }}
+          </button>
+        </div>
+
+        @if (isLoadingSequence()) {
+          <div class="flex items-center justify-center py-10 rounded-2xl border border-purple-100">
+            <svg class="animate-spin h-6 w-6 text-purple-400" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+            </svg>
+          </div>
+        } @else if (sequenceSteps().length > 0) {
+          <div class="rounded-2xl border border-purple-100 overflow-hidden">
+            <table class="w-full text-sm">
+              <thead class="bg-purple-50/60 border-b border-purple-100">
+                <tr>
+                  <th class="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">
+                    {{ 'REQUEST_INFO.SEQ_PERSON' | translate }}
+                  </th>
+                  <th class="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">
+                    {{ 'REQUEST_INFO.SEQ_STEP' | translate }}
+                  </th>
+                  <th class="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">
+                    {{ 'REQUEST_INFO.SEQ_ROLE' | translate }}
+                  </th>
+                  <th class="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">
+                    {{ 'REQUEST_INFO.SEQ_ASSIGNED_AT' | translate }}
+                  </th>
+                  <th class="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">
+                    {{ 'REQUEST_INFO.SEQ_ACTION_AT' | translate }}
+                  </th>
+                  <th class="text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">
+                    {{ 'REQUEST_INFO.SEQ_ACTION' | translate }}
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                @for (step of sequenceSteps(); track step.stepOrder) {
+                  <tr [class]="step.isCurrent ? 'bg-blue-50/40' : 'bg-white hover:bg-slate-50/50'">
+                    <td class="px-4 py-3 font-medium text-slate-700">{{ step.userName }}</td>
+                    <td class="px-4 py-3">
+                      <span class="inline-flex items-center gap-0.5 font-semibold">
+                        <span class="text-slate-800">{{ step.stepOrder }}</span>
+                        <span class="text-slate-400">/</span>
+                        <span class="text-slate-500">{{ step.totalSteps }}</span>
+                      </span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="rounded-md px-2 py-0.5 text-xs font-bold bg-slate-100 text-slate-600">
+                        {{ step.roleName }}
+                      </span>
+                    </td>
+                    <td class="px-4 py-3 text-xs text-slate-600">
+                      {{ step.assignedAt ? (step.assignedAt | date: 'dd/MM/yyyy HH:mm') : '---' }}
+                    </td>
+                    <td class="px-4 py-3 text-xs text-slate-600">
+                      @if (step.statusKey && step.statusKey !== 'pending' && step.actionAt) {
+                        {{ step.actionAt | date: 'dd/MM/yyyy HH:mm' }}
+                      } @else {
+                        ---
+                      }
+                    </td>
+                    <td class="px-4 py-3">
+                      @if (step.statusKey) {
+                        <span [class]="getStatusClasses(step.statusKey)"
+                          class="inline-flex rounded-full px-2.5 py-0.5 text-xs font-bold">
+                          {{ ('REQUEST_INFO.STATUS_' + (step.statusKey | uppercase)) | translate }}
+                        </span>
+                      } @else {
+                        <span class="text-slate-400 text-xs">---</span>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </section>
+
+      <!-- Attachments -->
+      <section>
+        <div class="flex items-center gap-2 mb-4">
+          <div class="p-1.5 bg-teal-100 rounded-lg text-teal-600">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg>
+          </div>
+          <h3 class="text-sm font-bold uppercase tracking-wider text-teal-600">
+            {{ 'PENDING_ATTACHMENTS.TITLE' | translate }}
+          </h3>
+        </div>
+
+        @if (isLoadingAttachments()) {
+          <div class="flex items-center justify-center py-6 rounded-2xl border border-teal-100">
+            <app-spinner></app-spinner>
+          </div>
+        } @else if (attachments().length === 0) {
+          <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center">
+            <p class="text-slate-500 text-sm">{{ 'PENDING_ATTACHMENTS.EMPTY' | translate }}</p>
+          </div>
+        } @else {
+          <ul class="space-y-3">
+            @for (attachment of attachments(); track attachment.id) {
+              <li class="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                <div class="min-w-0">
+                  <p class="truncate text-sm font-semibold text-slate-800">{{ getAttachmentName(attachment) }}</p>
+                  <p class="text-xs text-slate-500">{{ 'PENDING_ATTACHMENTS.CREATED' | translate }}: {{ getAttachmentDate(attachment) }}</p>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    class="inline-flex items-center rounded-lg border border-slate-200 bg-white p-2 text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                    [disabled]="isOpening(attachment.id)"
+                    (click)="openAttachment(attachment)"
+                    [attr.title]="'PENDING_ATTACHMENTS.OPEN_ATTACHMENT' | translate">
+                    <lucide-icon name="eye" size="16"></lucide-icon>
+                  </button>
+                  @if (canDelete()) {
+                    <button
+                      type="button"
+                      class="inline-flex items-center rounded-lg border border-red-200 bg-red-50 p-2 text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
+                      [disabled]="isDeleting(attachment.id)"
+                      (click)="requestDeleteAttachment(attachment)"
+                      [attr.title]="'PENDING_ATTACHMENTS.DELETE_ATTACHMENT' | translate">
+                      <lucide-icon name="trash" size="16"></lucide-icon>
+                    </button>
+                  }
+                </div>
+              </li>
+            }
+          </ul>
+        }
+      </section>
+
       <!-- Footer -->
       <div class="flex justify-between border-t border-slate-100 pt-6 text-[11px] font-medium text-slate-400 uppercase tracking-widest">
         <span>{{ 'REQUEST_INFO.CREATED_AT' | translate }}: {{ req.createdAt | date: 'dd/MM/yyyy HH:mm' }}</span>
@@ -275,4 +424,29 @@
 
     </div>
   }
+</app-modal>
+
+<app-modal
+  size="sm"
+  [titleM]="'PENDING_ATTACHMENTS.CONFIRM_DELETION' | translate"
+  [open]="showDeleteConfirmModal()"
+  [showCloseButton]="false"
+  [showPrimaryButton]="false"
+  (openChange)="onDeleteConfirmModalChange($event)">
+  <p class="text-sm text-slate-700">
+    {{ 'PENDING_ATTACHMENTS.CONFIRM_TEXT' | translate }}
+    <span class="font-semibold">{{ getPendingDeletionAttachmentName() }}</span>?
+  </p>
+  <div modal-actions class="flex items-center gap-2">
+    <button type="button"
+      class="rounded-md border border-slate-300 bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-200"
+      (click)="onDeleteConfirmModalChange(false)">
+      {{ 'PENDING_ATTACHMENTS.CANCEL' | translate }}
+    </button>
+    <button type="button"
+      class="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700"
+      (click)="confirmDeleteAttachment()">
+      {{ 'PENDING_ATTACHMENTS.DELETE' | translate }}
+    </button>
+  </div>
 </app-modal>

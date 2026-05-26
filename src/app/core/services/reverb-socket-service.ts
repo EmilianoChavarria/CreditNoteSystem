@@ -168,8 +168,9 @@ export class ReverbSocketService {
       this.messages.update((current) => [payload, ...current].slice(0, 50));
       this.messagesSubject.next(payload);
 
-      if (this.isBatchFinishedMessage(payload)) {
-        this.batchFinishedSubject.next(payload);
+      const normalized = this.normalizeBatchMessage(payload);
+      if (normalized) {
+        this.batchFinishedSubject.next(normalized);
       }
 
       console.info('[Reverb] Incoming message:', payload);
@@ -234,17 +235,50 @@ export class ReverbSocketService {
     });
   }
 
-  private isBatchFinishedMessage(payload: IncomingSocketMessage): payload is BatchFinishedMessage {
+  private readonly batchEventNames = ['batch.finished', 'batch_needs_attachments'];
+
+  private parseDataField(payload: IncomingSocketMessage): UnknownRecord | null {
+    const raw = (payload as UnknownRecord)['data'];
+    if (!raw) return null;
+    if (typeof raw === 'object') return raw as UnknownRecord;
+    if (typeof raw === 'string') {
+      try {
+        const parsed = JSON.parse(raw);
+        return typeof parsed === 'object' && parsed !== null ? parsed as UnknownRecord : null;
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  }
+
+  private normalizeBatchMessage(payload: IncomingSocketMessage): BatchFinishedMessage | null {
     const rootEvent = String(payload['event'] ?? '');
-    if (rootEvent === 'batch.finished') {
-      return true;
+
+    if (this.batchEventNames.includes(rootEvent)) {
+      return payload as BatchFinishedMessage;
     }
 
-    const data = (payload as UnknownRecord)['data'];
-    if (!data || typeof data !== 'object') {
-      return false;
+    const data = this.parseDataField(payload);
+    if (!data) return null;
+
+    const dataEvent = String(data['event'] ?? '');
+    if (this.batchEventNames.includes(dataEvent)) {
+      return { ...payload, ...data } as BatchFinishedMessage;
     }
 
-    return String((data as UnknownRecord)['event'] ?? '') === 'batch.finished';
+    // notification.created style: { event: 'notification.created', notification: { type: 'batch_needs_attachments', relatedId, userId }, targetUserId }
+    const notification = data['notification'] as UnknownRecord | null;
+    if (!notification) return null;
+
+    const notificationType = String(notification['type'] ?? '');
+    if (!this.batchEventNames.includes(notificationType)) return null;
+
+    return {
+      event: notificationType,
+      title: String(notification['title'] ?? ''),
+      targetUserId: (data['targetUserId'] ?? notification['userId']) as number | undefined,
+      batch: { id: notification['relatedId'] as number | undefined },
+    };
   }
 }

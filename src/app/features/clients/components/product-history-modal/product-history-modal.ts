@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ProductReturnHistoryEntry } from '../../../../core/services/customer-service';
 import { Modal } from '../../../../shared/components/ui/modal/modal';
 
@@ -12,13 +13,15 @@ interface ProductHistorySummaryView {
 
 @Component({
   selector: 'app-product-history-modal',
-  imports: [CommonModule, Modal],
+  imports: [CommonModule, Modal, TranslatePipe],
   templateUrl: './product-history-modal.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UiProductHistoryModal {
+  private readonly translateService = inject(TranslateService);
+
   readonly open = input(false);
-  readonly title = input('Historial de Devoluciones');
+  readonly title = input('');
   readonly subtitle = input('');
   readonly isLoading = input(false);
   readonly error = input<string | null>(null);
@@ -73,17 +76,21 @@ export class UiProductHistoryModal {
     const normalized = status.trim().toLowerCase();
 
     if (normalized === 'approved') {
-      return 'Completada';
+      return this.translate('CLIENT_INVOICES.HISTORY.STATUS_APPROVED');
     }
 
     if (normalized === 'pending') {
-      return 'En proceso';
+      return this.translate('CLIENT_INVOICES.HISTORY.STATUS_PENDING');
     }
 
     if (normalized === 'cancelled') {
-      return 'Cancelada';
+      return this.translate('CLIENT_INVOICES.HISTORY.STATUS_CANCELLED');
     }
 
     return status;
+  }
+
+  private translate(key: string): string {
+    return this.translateService.instant(key);
   }
 }
