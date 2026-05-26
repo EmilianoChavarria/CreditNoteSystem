@@ -41,6 +41,26 @@
                     <lucide-icon name="chevron-down"></lucide-icon>
                 </div>
             </div>
+
+            <!-- SEGUNDO FILTRO (requester, etc.) -->
+            <div *ngIf="secondFilterOptions()?.length" class="relative w-full sm:min-w-45 sm:w-auto">
+                <div class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                    <lucide-icon name="user"></lucide-icon>
+                </div>
+
+                <select
+                    class="appearance-none w-full bg-white text-sm pl-10 pr-8 py-2 border border-gray-300 rounded-lg"
+                    [value]="secondFilterValue()" (change)="onSecondFilterChange($any($event.target).value)">
+                    <option value="all">{{ 'FILTERS.ALL_REQUESTERS' | translate }}</option>
+                    <option *ngFor="let opt of secondFilterOptions()" [value]="opt.value">
+                        {{ opt.label }}
+                    </option>
+                </select>
+
+                <div class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                    <lucide-icon name="chevron-down"></lucide-icon>
+                </div>
+            </div>
         </div>
         @if (!hideHeaderActions()) {
         <div class="grid grid-cols-2 gap-2 sm:flex sm:flex-row sm:gap-x-4 w-full sm:w-auto justify-start sm:justify-end">

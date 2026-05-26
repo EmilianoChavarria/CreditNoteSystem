@@ -76,6 +76,10 @@ export class Table<T extends Record<string, any>>
 }[]>();
   readonly filterDefault = input<any>('all');
 
+  readonly secondFilterOptions = input<{ label: string; value: any }[]>();
+  readonly secondFilterDefault = input<any>('all');
+  readonly secondFilterChange = output<any>();
+
   readonly sinAcciones = input<boolean>(false);
   readonly actionMode = input<'inline' | 'menu'>('inline');
   readonly accionesPersonalizadas = input<AccionPersonalizada<T>[]>();
@@ -114,6 +118,7 @@ export class Table<T extends Record<string, any>>
   ordenAscendente = signal(true);
   paginaActual = signal(1);
   filterValue = signal<any>('all');
+  secondFilterValue = signal<any>('all');
   registrosPorPaginaInterno = signal(10);
   pageSizeOptions: number[] = [5, 10, 20];
   isExportingExcel = signal(false);
@@ -131,6 +136,9 @@ export class Table<T extends Record<string, any>>
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['filterDefault']) {
       this.filterValue.set(this.filterDefault() ?? 'all');
+    }
+    if (changes['secondFilterDefault']) {
+      this.secondFilterValue.set(this.secondFilterDefault() ?? 'all');
     }
   }
 
@@ -285,6 +293,12 @@ export class Table<T extends Record<string, any>>
     if (this.serverPagination()) {
       this.filterChange.emit(value);
     }
+  }
+
+  onSecondFilterChange(value: any): void {
+    this.secondFilterValue.set(value);
+    this.paginaActual.set(1);
+    this.secondFilterChange.emit(value);
   }
 
 
