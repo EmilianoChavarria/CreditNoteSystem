@@ -1,0 +1,109 @@
+@if (open()) {
+<app-modal [open]="open()" [titleM]="'BULK.INFO_MODAL.TITLE' | translate" size="lg" [showPrimaryButton]="false"
+    [closeText]="'BULK.INFO_MODAL.CLOSE' | translate" (openChange)="openChange.emit($event)">
+
+    @if (isLoading()) {
+    <div class="flex items-center justify-center py-10 text-gray-500 text-sm">{{ 'BULK.INFO_MODAL.LOADING' | translate }}</div>
+    } @else {
+    <div class="flex flex-col gap-6">
+        <div>
+            <h3 class=" bg-white py-2 text-md font-semibold text-[#395f93] border-b border-gray-100">{{ 'BULK.INFO_MODAL.AREAS_TITLE' | translate }}</h3>
+            @if (areas().length === 0) {
+            <p class="text-sm text-gray-400 mt-2">{{ 'BULK.INFO_MODAL.AREAS_EMPTY' | translate }}</p>
+            } @else {
+            <ul class="divide-y divide-gray-100 border border-gray-200 rounded-md overflow-hidden mt-2">
+                @for (a of areas(); track a.id) {
+                <li
+                    class="group px-3 py-2 text-sm text-gray-700 flex items-center justify-between gap-2 hover:bg-gray-50">
+                    <span>{{ a.name }}</span>
+                    <button type="button" (click)="copyText(a.name)" [title]="'BULK.INFO_MODAL.COPY' | translate"
+                        [class]="copiedText() === (a.name)
+                            ? 'shrink-0 p-1 rounded text-green-500 bg-green-50 transition-all duration-200'
+                            : 'opacity-0 group-hover:opacity-100 transition-all duration-200 shrink-0 p-1 rounded text-gray-400 hover:text-gray-700 hover:bg-gray-100'">
+                        @if (copiedText() === (a.name)) {
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 16 4 11"></polyline>
+                        </svg>
+                        } @else {
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                        }
+                    </button>
+                </li>
+                }
+            </ul>
+            }
+        </div>
+        <div>
+            <h3 class=" bg-white py-2 text-md font-semibold text-[#395f93] border-b border-gray-100">{{ 'BULK.INFO_MODAL.REASONS_TITLE' | translate }}</h3>
+            @if (reasons().length === 0) {
+            <p class="text-sm text-gray-400 mt-2">{{ 'BULK.INFO_MODAL.REASONS_EMPTY' | translate }}</p>
+            } @else {
+            <ul class="divide-y divide-gray-100 border border-gray-200 rounded-md overflow-hidden mt-2">
+                @for (reason of reasons(); track reason.id) {
+                <li
+                    class="group px-3 py-2 text-sm text-gray-700 flex items-center justify-between gap-2 hover:bg-gray-50">
+                    <span>{{ reason.name }}</span>
+                    <button type="button" (click)="copyText(reason.name)" [title]="'BULK.INFO_MODAL.COPY' | translate"
+                        [class]="copiedText() === reason.name
+                            ? 'shrink-0 p-1 rounded text-green-500 bg-green-50 transition-all duration-200'
+                            : 'opacity-0 group-hover:opacity-100 transition-all duration-200 shrink-0 p-1 rounded text-gray-400 hover:text-gray-700 hover:bg-gray-100 hover:cursor-pointer'">
+                        @if (copiedText() === reason.name) {
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 16 4 11"></polyline>
+                        </svg>
+                        } @else {
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                        }
+                    </button>
+                </li>
+                }
+            </ul>
+            }
+        </div>
+        <div>
+            <h3 class=" bg-white py-2 text-md font-semibold text-[#395f93] border-b border-gray-100">{{ 'BULK.INFO_MODAL.CLASSIFICATIONS_TITLE' | translate }}</h3>
+            @if (classifications().length === 0) {
+            <p class="text-sm text-gray-400 mt-2">{{ 'BULK.INFO_MODAL.CLASSIFICATIONS_EMPTY' | translate }}</p>
+            } @else {
+            <ul class="divide-y divide-gray-100 border border-gray-200 rounded-md overflow-hidden mt-2">
+                @for (c of classifications(); track c.id) {
+                <li
+                    class="group px-3 py-2 text-sm text-gray-700 flex items-center justify-between gap-2 hover:bg-gray-50">
+                    <span>{{ c.name }}</span>
+                    <button type="button" (click)="copyText(c.name)" [title]="'BULK.INFO_MODAL.COPY' | translate"
+                        [class]="copiedText() === (c.name)
+                            ? 'shrink-0 p-1 rounded text-green-500 bg-green-50 transition-all duration-200'
+                            : 'opacity-0 group-hover:opacity-100 transition-all duration-200 shrink-0 p-1 rounded text-gray-400 hover:text-gray-700 hover:bg-gray-100'">
+                        @if (copiedText() === (c.name)) {
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 16 4 11"></polyline>
+                        </svg>
+                        } @else {
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                        }
+                    </button>
+                </li>
+                }
+            </ul>
+            }
+        </div>
+
+    </div>
+    }
+</app-modal>
+}
