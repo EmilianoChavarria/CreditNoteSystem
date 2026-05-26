@@ -45,6 +45,7 @@ Thumbs.db
 
 # Claude Code
 .claude/
+.claude/commands
 
 # Local environment — never commit
 .env
