@@ -1,8 +1,7 @@
 <div class="p-2 md:p-4 2xl:p-8 flex flex-col">
 
     <header class="w-full flex flex-col-reverse md:flex-row items-center justify-between mb-6">
-        <div
-            class="flex flex-col md:flex-row items-start md:items-center justify-start gap-x-4 w-full md:w-fit">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-start gap-x-4 w-full md:w-fit">
             <label for="request_type" class="font-semibold text-[#3c6194] text-2xl">{{'DASHBOARD.REQ_FILTER'|
                 translate}}</label>
             <div class="flex flex-row items-center w-full md:w-fit">
@@ -28,44 +27,48 @@
     } @else if (selectedRequestType !== 'DE' && selectedRequestType) {
     <app-tabla-dinamica [datos]="requests()" [columnas]="columns" [accionesPersonalizadas]="acciones()"
         actionMode="menu" [enableFilter]="true" filterField="workflowCurrentStep.assigned_role.roleName"
-        [filterOptions]="roleFilterOptions()" [filterDefault]="selectedRoleName()"
-        excelExportModule="requests"
+        [filterOptions]="roleFilterOptions()" [filterDefault]="selectedRoleName()" excelExportModule="requests"
         [excelExportParams]="{ requestTypeId: selectedRequestType, search: searchTerm(), roleName: selectedRoleName() }"
-        excelExportFileName="requests.xls"
-        addLabel="PENDING_PAGE.REQUEST" addRoute="/app/settings/newUser" [canAdd]="false"
-        [registrosPorPagina]="pageSize()" [serverPagination]="true" [paginaActualExterna]="currentPage()"
-        [totalPaginasExterno]="totalPages()" [hasNextPage]="hasNextPage()" [hasPrevPage]="hasPrevPage()"
-        [loading]="isLoadingTable()" (paginaSiguiente)="onNextPage()" (paginaAnterior)="onPrevPage()"
-        (paginaPrimera)="onFirstPage()" (paginaUltima)="onLastPage()"
+        excelExportFileName="requests.xls" addLabel="PENDING_PAGE.REQUEST" addRoute="/app/settings/newUser"
+        [canAdd]="false" [registrosPorPagina]="pageSize()" [serverPagination]="true"
+        [paginaActualExterna]="currentPage()" [totalPaginasExterno]="totalPages()" [hasNextPage]="hasNextPage()"
+        [hasPrevPage]="hasPrevPage()" [loading]="isLoadingTable()" (paginaSiguiente)="onNextPage()"
+        (paginaAnterior)="onPrevPage()" (paginaPrimera)="onFirstPage()" (paginaUltima)="onLastPage()"
         (registrosPorPaginaChange)="onPageSizeChange($event)" (searchChange)="onSearch($event)"
         (filterChange)="onRoleFilterChange($event)">
 
         <ng-template #cellTemplate let-item let-column="column">
-            @if (column.key === 'requestType.name') {
-            <app-badge color="blue" [text]="item.requestType.name | uppercase" />
-            } @else if (column.key === 'status') {
-                @if (item.status?.toLowerCase() === 'approved') {
-                <app-badge color="green" text="RELEASED" />
-                }@else if (item.workflowCurrentStep?.assigned_role?.roleName && item.status?.toLowerCase() !== 'cancelled') {
-                <div class="w-fit rounded-lg px-2"
-                    [style]="`background-color: ${item.workflowCurrentStep.assigned_role.color +'1A'}; color:${item.workflowCurrentStep.assigned_role.color}` ">
-                    <span
-                        [class]="`text-center font-semibold text-nowrap`">{{item.workflowCurrentStep.assigned_role.roleName}}</span>
-                </div>
-                } @else {
-                <app-badge [color]="(item.status?.toLowerCase() === 'rejected' || item.status?.toLowerCase() === 'cancelled') ? 'red' : 'green'"
-                    [text]="item.status | uppercase" />
-                }
+            @if (column.key === 'status') {
+            @if (item.status?.toLowerCase() === 'approved') {
+            <app-badge color="green" text="RELEASED" />
+            }@else if (item.workflowCurrentStep?.assigned_role?.roleName && item.status?.toLowerCase() !== 'cancelled')
+            {
+            <div class="w-fit rounded-lg px-2"
+                [style]="`background-color: ${item.workflowCurrentStep.assigned_role.color +'1A'}; color:${item.workflowCurrentStep.assigned_role.color}` ">
+                <span
+                    [class]="`text-center font-semibold text-nowrap`">{{item.workflowCurrentStep.assigned_role.roleName}}</span>
+            </div>
+            } @else {
+            <app-badge
+                [color]="(item.status?.toLowerCase() === 'rejected' || item.status?.toLowerCase() === 'cancelled') ? 'red' : 'green'"
+                [text]="item.status | uppercase" />
+            }
             }@else if (column.key === 'username') {
             @if (item.workflowCurrentStep?.assigned_user?.fullName) {
             <div class="w-fit rounded-lg px-2"
                 [style]="`background-color: ${item.workflowCurrentStep.assigned_role.color +'1A'}; color:${item.workflowCurrentStep.assigned_role.color}` ">
                 <span
-                    [class]="`text-center font-semibold text-nowrap`">{{item.workflowCurrentStep?.assigned_user?.fullName}}</span>
+                    [class]="`text-center font-semibold text-nowrap`">{{item.workflowCurrentStep?.assigned_user?.fullName
+                    | uppercase}}</span>
             </div>
             } @else {
             <app-badge color="green" [text]="item.status | uppercase" />
             }
+            }@else if (column.key === 'razonSocial') {
+            <div class="w-fit">
+                <span
+                    [class]="`text-center font-semibold text-nowrap`">{{item.customerId}} - {{(item.razonSocial .length > 20) ? (item.razonSocial| slice:0:25) + '...' : item.razonSocial}}</span>
+            </div>
             }
         </ng-template>
     </app-tabla-dinamica>
@@ -97,12 +100,11 @@
     </app-modal>
 
     <app-request-info-modal [open]="showInfoModal()" [request]="selectedRequestForInfo()"
-        [canDelete]="canDeleteInfoAttachments()"
-        (openChange)="onInfoModalChange($event)" (viewHistory)="onInfoModalViewHistory()">
+        [canDelete]="canDeleteInfoAttachments()" (openChange)="onInfoModalChange($event)"
+        (viewHistory)="onInfoModalViewHistory()">
     </app-request-info-modal>
 
-    <app-workflow-history-modal [open]="showHistoryModal()" [detail]="workflowDetail"
-        (closed)="closeHistoryModal()">
+    <app-workflow-history-modal [open]="showHistoryModal()" [detail]="workflowDetail" (closed)="closeHistoryModal()">
     </app-workflow-history-modal>
 
     <app-pending-attachments-modal [open]="showAttachmentsModal()"
