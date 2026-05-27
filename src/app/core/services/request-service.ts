@@ -15,6 +15,8 @@ import {
   RequestAttachment,
   RequestHistoryData,
   RequestNumber,
+  SendBackMassPayload,
+  SendBackMassResponse,
 } from '../../data/interfaces/RequestService';
 
 export type {
@@ -31,6 +33,8 @@ export type {
   RequestHistoryStep,
   RequestHistoryTimelineItem,
   RequestNumber,
+  SendBackMassPayload,
+  SendBackMassResponse,
 } from '../../data/interfaces/RequestService';
 
 interface RequestAttachmentsPayload {
@@ -104,8 +108,17 @@ export class RequestService {
     );
   }
 
-  getMyPendingRequests(requestTypeId: number, perPage = 10, page = 1, search?: string, roleName = 'all', requesterId?: string): Observable<PagePagination<Request>> {
-    const params: { requestTypeId: number; per_page: number; page: number; search?: string; roleName?: string; requesterId?: string } = {
+  getMyPendingClassifications(requestTypeId: number): Observable<{ type: string }[]> {
+    return this._httpService.get<{ type: string }[]>('/classifications/my-pending', {
+      params: { requestTypeId }
+    }).pipe(
+      map((response: ApiResponse<{ type: string }[]>) => response.data ?? []),
+      catchError(() => of([]))
+    );
+  }
+
+  getMyPendingRequests(requestTypeId: number, perPage = 10, page = 1, search?: string, roleName = 'all', requesterId?: string, classificationType?: string): Observable<PagePagination<Request>> {
+    const params: { requestTypeId: number; per_page: number; page: number; search?: string; roleName?: string; requesterId?: string; classificationType?: string } = {
       requestTypeId,
       per_page: perPage,
       page,
@@ -119,6 +132,10 @@ export class RequestService {
 
     if (requesterId && requesterId !== 'all') {
       params.requesterId = requesterId;
+    }
+
+    if (classificationType && classificationType !== 'all') {
+      params.classificationType = classificationType;
     }
 
     return this._httpService.get<PagePagination<Request>>('/requests/pending/me', {
@@ -444,6 +461,23 @@ export class RequestService {
         totalCancelled: 0,
         totalFailed: requestIds.length,
         cancelledRequestIds: [],
+        failedRequests: [],
+      }),
+      catchError((error) => {
+        console.log(error);
+        throw error;
+      })
+    );
+  }
+
+  sendBackMassRequests(requestIds: number[], targetWorkflowStepId: number, comments?: string): Observable<SendBackMassResponse> {
+    const payload: SendBackMassPayload = { requestIds, targetWorkflowStepId, comments };
+    return this._httpService.post<SendBackMassResponse>('/requests/send-back-mass', payload).pipe(
+      map((response: ApiResponse<SendBackMassResponse>) => response.data ?? {
+        totalReceived: requestIds.length,
+        totalSentBack: 0,
+        totalFailed: requestIds.length,
+        sentBackRequestIds: [],
         failedRequests: [],
       }),
       catchError((error) => {

@@ -21,10 +21,11 @@ import { RequestListBase } from '../../../shared/base/request-list.base';
 import { RequestInfoModal } from '../../pending/components/request-info-modal/request-info-modal';
 import { ApproveConfirmModal } from './components/approve-confirm-modal/approve-confirm-modal';
 import { SendBackModal } from './components/send-back-modal/send-back-modal';
+import { BulkSendBackModal } from './components/bulk-send-back-modal/bulk-send-back-modal';
 
 @Component({
     selector: 'app-my-approvals',
-    imports: [TranslatePipe, WorkflowHistoryDrawer, WorkflowHistoryModal, Modal, Table, Badge, UpperCasePipe, Spinner, ReactiveFormsModule, FullSpinnerComponent, RequestInfoModal, ApproveConfirmModal, SendBackModal, SlicePipe],
+    imports: [TranslatePipe, WorkflowHistoryDrawer, WorkflowHistoryModal, Modal, Table, Badge, UpperCasePipe, Spinner, ReactiveFormsModule, FullSpinnerComponent, RequestInfoModal, ApproveConfirmModal, SendBackModal, BulkSendBackModal, SlicePipe],
     templateUrl: './my-approvals.html',
     styleUrl: './my-approvals.css',
 })
@@ -51,10 +52,32 @@ export class MyApprovals extends RequestListBase {
     public showBulkApproveModal = signal<boolean>(false);
     public showBulkDeclineModal = signal<boolean>(false);
     public showBulkCancelModal = signal<boolean>(false);
+    public showBulkSendBackModal = signal<boolean>(false);
     public isBulkProcessing = signal<boolean>(false);
     public canBulkApprove = signal<boolean>(false);
     public canBulkReject = signal<boolean>(false);
     public canBulkCancel = signal<boolean>(false);
+    public canBulkSendBack = signal<boolean>(false);
+
+    /** Todas las notas visibles seleccionadas comparten el mismo paso y el mismo type de clasificación */
+    public canExecuteBulkSendBack = computed(() => {
+        const selectedIds = this.selectedRequestIds();
+        if (selectedIds.size === 0) return false;
+        const visibleSelected = this.requests().filter((r) => selectedIds.has(Number(r.id)));
+        if (visibleSelected.length === 0) return true;
+        const firstStepId = visibleSelected[0]?.workflowCurrentStep?.workflowStepId;
+        const firstClassType = visibleSelected[0]?.classification?.type;
+        return visibleSelected.every(
+            (r) => r.workflowCurrentStep?.workflowStepId === firstStepId && r.classification?.type === firstClassType
+        );
+    });
+
+    /** Primera nota visible seleccionada, usada para cargar los pasos disponibles en el modal */
+    public firstSelectedRequest = computed(() =>
+        this.requests().find((r) => this.selectedRequestIds().has(Number(r.id))) ?? null
+    );
+
+    public selectedRequestIdsArray = computed(() => Array.from(this.selectedRequestIds()));
     public isApproving = signal<boolean>(false);
     public isDeclining = signal<boolean>(false);
     public isCancelling = signal<boolean>(false);
@@ -173,7 +196,10 @@ export class MyApprovals extends RequestListBase {
             this.clearSelectedRequests();
             this.selectedRequesterId.set('all');
             this.requesterOptions.set([]);
+            this.selectedClassificationType.set('all');
+            this.classificationTypeOptions.set([]);
             this.loadRequesterOptions(resolvedRequestTypeId);
+            this.loadClassificationTypeOptions(resolvedRequestTypeId);
             this.loadMyPendingRequests();
         });
     }
@@ -244,6 +270,8 @@ export class MyApprovals extends RequestListBase {
         this.updateVisibleActions();
         this.selectedRequesterId.set('all');
         this.requesterOptions.set([]);
+        this.selectedClassificationType.set('all');
+        this.classificationTypeOptions.set([]);
 
         if (value === 'DE') {
             this.requests.set([]);
@@ -253,7 +281,20 @@ export class MyApprovals extends RequestListBase {
         }
 
         this.loadRequesterOptions(Number(value));
+        this.loadClassificationTypeOptions(Number(value));
         this.loadRequests();
+    }
+
+    private loadClassificationTypeOptions(requestTypeId: number): void {
+        this._requestsService.getMyPendingClassifications(requestTypeId).subscribe({
+            next: (classifications) => {
+                const unique = [...new Map(classifications.map((c) => [c.type, c])).values()];
+                this.classificationTypeOptions.set(
+                    unique.map((c) => ({ label: c.type, value: c.type }))
+                );
+            },
+            error: () => this.classificationTypeOptions.set([])
+        });
     }
 
     private updateVisibleActions(): void {
@@ -263,6 +304,7 @@ export class MyApprovals extends RequestListBase {
             this.canBulkApprove.set(false);
             this.canBulkReject.set(false);
             this.canBulkCancel.set(false);
+            this.canBulkSendBack.set(false);
             return;
         }
         const permissionsBySlug = this.requestTypeActionPermissions()[requestTypeId] ?? {};
@@ -273,6 +315,7 @@ export class MyApprovals extends RequestListBase {
         this.canBulkApprove.set(getPermissionSlugsForCustomAction('approve').some(s => permissionsBySlug[s]));
         this.canBulkReject.set(getPermissionSlugsForCustomAction('decline').some(s => permissionsBySlug[s]));
         this.canBulkCancel.set(getPermissionSlugsForCustomAction('cancel').some(s => permissionsBySlug[s]));
+        this.canBulkSendBack.set(getPermissionSlugsForCustomAction('return_order').some(s => permissionsBySlug[s]));
     }
 
     override onSearch(term: string): void {
@@ -300,7 +343,7 @@ export class MyApprovals extends RequestListBase {
 
         this.isLoadingTable.set(true);
 
-        this._requestsService.getMyPendingRequests(requestTypeId, this.pageSize(), this.currentPage(), this.searchTerm(), this.selectedRoleName(), this.selectedRequesterId()).subscribe({
+        this._requestsService.getMyPendingRequests(requestTypeId, this.pageSize(), this.currentPage(), this.searchTerm(), this.selectedRoleName(), this.selectedRequesterId(), this.selectedClassificationType()).subscribe({
             next: (response) => {
                 this.requests.set(response.data ?? []);
                 this.currentPage.set(response.current_page ?? 1);
@@ -406,6 +449,20 @@ export class MyApprovals extends RequestListBase {
 
     onBulkCancelModalChange(isOpen: boolean = true): void {
         this.showBulkCancelModal.set(isOpen);
+    }
+
+    openBulkSendBackModal(): void {
+        if (!this.selectedCount() || !this.canExecuteBulkSendBack()) return;
+        this.showBulkSendBackModal.set(true);
+    }
+
+    onBulkSendBackModalChange(isOpen: boolean): void {
+        this.showBulkSendBackModal.set(isOpen);
+    }
+
+    onBulkSendBackSent(): void {
+        this.clearSelectedRequests();
+        this.loadMyPendingRequests();
     }
 
     cancelSelectedRequests(): void {

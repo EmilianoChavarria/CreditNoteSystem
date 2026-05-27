@@ -68,6 +68,14 @@
                     {{'MY_APPROVALS.BULK_CANCEL' | translate}}
                 </button>
                 }
+                @if (canBulkSendBack()) {
+                <button type="button" (click)="openBulkSendBackModal()"
+                    [disabled]="!selectedCount() || isBulkProcessing() || !canExecuteBulkSendBack()"
+                    [title]="!canExecuteBulkSendBack() && selectedCount() ? ('MY_APPROVALS.BULK_SEND_BACK_DISABLED_HINT' | translate) : ''"
+                    class="rounded-md bg-[#3c6194] px-3 py-2 text-sm font-semibold text-white hover:bg-[#2e4d7a] disabled:cursor-not-allowed disabled:opacity-50">
+                    {{'MY_APPROVALS.BULK_SEND_BACK' | translate}}
+                </button>
+                }
             </div>
         </div>
     </section>
@@ -85,6 +93,9 @@
         (filterChange)="onRoleFilterChange($event)"
         [secondFilterOptions]="requesterOptions()" [secondFilterDefault]="selectedRequesterId()"
         (secondFilterChange)="onRequesterFilterChange($event)"
+        [thirdFilterOptions]="classificationTypeOptions()" [thirdFilterDefault]="selectedClassificationType()"
+        [thirdFilterAllLabel]="'FILTERS.ALL_CLASSIFICATIONS'"
+        (thirdFilterChange)="onClassificationTypeFilterChange($event)"
         (paginaSiguiente)="onNextPage()" (paginaAnterior)="onPrevPage()" (paginaPrimera)="onFirstPage()"
         (paginaUltima)="onLastPage()" (registrosPorPaginaChange)="onPageSizeChange($event)">
 
@@ -213,6 +224,15 @@
         (openChange)="onSendBackModalChange($event)"
         (sent)="onSendBackSent()">
     </app-send-back-modal>
+
+    <app-bulk-send-back-modal
+        [open]="showBulkSendBackModal()"
+        [requestIds]="selectedRequestIdsArray()"
+        [sampleRequestId]="firstSelectedRequest()?.id ?? null"
+        [selectedCount]="selectedCount()"
+        (openChange)="onBulkSendBackModalChange($event)"
+        (sent)="onBulkSendBackSent()">
+    </app-bulk-send-back-modal>
 
     <app-modal size="md" [titleM]="'MY_APPROVALS.CANCEL_REQUEST_MODAL_TITLE' | translate" [open]="showCancelModal()"
         [closeText]="'MY_APPROVALS.CANCEL' | translate"
