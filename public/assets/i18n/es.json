@@ -507,7 +507,8 @@
   },
   "FILTERS": {
     "CREATED_BY": "Creado por",
-    "ALL_REQUESTERS": "Todos los usuarios"
+    "ALL_REQUESTERS": "Todos los usuarios",
+    "ALL_CLASSIFICATIONS": "Todas las clasificaciones"
   },
   "MY_APPROVALS": {
     "TITLE": "Mis aprobaciones",
@@ -564,6 +565,11 @@
     "BULK_CANCEL_MODAL_TITLE": "Confirmar cancelación masiva",
     "BULK_CANCEL_CONFIRM": "Se cancelarán {{count}} solicitudes seleccionadas.",
     "BULK_CANCELLING": "Cancelando...",
+    "BULK_SEND_BACK": "Regreso masivo",
+    "BULK_SEND_BACK_MODAL_TITLE": "Regresar solicitudes a un paso anterior",
+    "BULK_SEND_BACK_CONFIRM": "Se regresarán {{count}} solicitudes al paso seleccionado.",
+    "BULK_SENDING_BACK": "Regresando...",
+    "BULK_SEND_BACK_DISABLED_HINT": "Las solicitudes seleccionadas deben estar en el mismo paso y pertenecer al mismo tipo de clasificación.",
     "BULK_APPROVING": "Aprobando...",
     "BULK_REJECTING": "Rechazando...",
     "APPROVING": "Aprobando...",
@@ -599,7 +605,10 @@
       "BULK_REJECT_ERROR": "Error al procesar el rechazo masivo.",
       "BULK_CANCEL_SUCCESS": "Se cancelaron {{cancelled}} de {{total}} solicitudes.",
       "BULK_CANCEL_PARTIAL": "{{failed}} solicitudes no pudieron cancelarse.",
-      "BULK_CANCEL_ERROR": "Error al procesar la cancelación masiva."
+      "BULK_CANCEL_ERROR": "Error al procesar la cancelación masiva.",
+      "BULK_SEND_BACK_SUCCESS": "Se regresaron {{sentBack}} de {{total}} solicitudes.",
+      "BULK_SEND_BACK_PARTIAL": "{{failed}} solicitudes no pudieron regresarse.",
+      "BULK_SEND_BACK_ERROR": "Error al procesar el regreso masivo."
     }
   },
   "PENDING_PAGE": {

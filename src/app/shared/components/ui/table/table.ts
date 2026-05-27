@@ -80,6 +80,11 @@ export class Table<T extends Record<string, any>>
   readonly secondFilterDefault = input<any>('all');
   readonly secondFilterChange = output<any>();
 
+  readonly thirdFilterOptions = input<{ label: string; value: any }[]>();
+  readonly thirdFilterDefault = input<any>('all');
+  readonly thirdFilterAllLabel = input<string>('TABLE.ALL');
+  readonly thirdFilterChange = output<any>();
+
   readonly sinAcciones = input<boolean>(false);
   readonly actionMode = input<'inline' | 'menu'>('inline');
   readonly accionesPersonalizadas = input<AccionPersonalizada<T>[]>();
@@ -119,6 +124,7 @@ export class Table<T extends Record<string, any>>
   paginaActual = signal(1);
   filterValue = signal<any>('all');
   secondFilterValue = signal<any>('all');
+  thirdFilterValue = signal<any>('all');
   registrosPorPaginaInterno = signal(10);
   pageSizeOptions: number[] = [5, 10, 20];
   isExportingExcel = signal(false);
@@ -139,6 +145,9 @@ export class Table<T extends Record<string, any>>
     }
     if (changes['secondFilterDefault']) {
       this.secondFilterValue.set(this.secondFilterDefault() ?? 'all');
+    }
+    if (changes['thirdFilterDefault']) {
+      this.thirdFilterValue.set(this.thirdFilterDefault() ?? 'all');
     }
   }
 
@@ -299,6 +308,12 @@ export class Table<T extends Record<string, any>>
     this.secondFilterValue.set(value);
     this.paginaActual.set(1);
     this.secondFilterChange.emit(value);
+  }
+
+  onThirdFilterChange(value: any): void {
+    this.thirdFilterValue.set(value);
+    this.paginaActual.set(1);
+    this.thirdFilterChange.emit(value);
   }
 
 

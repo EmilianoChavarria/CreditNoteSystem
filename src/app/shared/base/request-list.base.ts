@@ -48,6 +48,8 @@ export abstract class RequestListBase {
     protected readonly requestTypeActionPermissions = signal<Record<number, Record<string, boolean>>>({});
     public selectedRequesterId = signal<string>('all');
     public requesterOptions = signal<{ label: string; value: string }[]>([]);
+    public selectedClassificationType = signal<string>('all');
+    public classificationTypeOptions = signal<{ label: string; value: string }[]>([]);
     protected currentLanguage = signal<string>(this._translateService.currentLang || 'es');
     protected searchDebounceTimeout: ReturnType<typeof setTimeout> | null = null;
 
@@ -309,6 +311,16 @@ export abstract class RequestListBase {
         const normalized = value?.trim() || 'all';
         if (normalized === this.selectedRequesterId()) return;
         this.selectedRequesterId.set(normalized);
+        this.resetPagination();
+        if (this.selectedRequestType !== 'DE' && this.selectedRequestType) {
+            this.loadRequests();
+        }
+    }
+
+    onClassificationTypeFilterChange(value: string): void {
+        const normalized = value?.trim() || 'all';
+        if (normalized === this.selectedClassificationType()) return;
+        this.selectedClassificationType.set(normalized);
         this.resetPagination();
         if (this.selectedRequestType !== 'DE' && this.selectedRequestType) {
             this.loadRequests();

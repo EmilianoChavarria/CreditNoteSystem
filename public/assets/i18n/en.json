@@ -507,7 +507,8 @@
   },
   "FILTERS": {
     "CREATED_BY": "Created by",
-    "ALL_REQUESTERS": "All users"
+    "ALL_REQUESTERS": "All users",
+    "ALL_CLASSIFICATIONS": "All classifications"
   },
   "MY_APPROVALS": {
     "TITLE": "My Approvals",
@@ -564,6 +565,11 @@
     "BULK_CANCEL_MODAL_TITLE": "Confirm bulk cancellation",
     "BULK_CANCEL_CONFIRM": "{{count}} selected requests will be cancelled.",
     "BULK_CANCELLING": "Cancelling...",
+    "BULK_SEND_BACK": "Bulk send back",
+    "BULK_SEND_BACK_MODAL_TITLE": "Send requests back to a previous step",
+    "BULK_SEND_BACK_CONFIRM": "{{count}} selected requests will be sent back to the selected step.",
+    "BULK_SENDING_BACK": "Sending back...",
+    "BULK_SEND_BACK_DISABLED_HINT": "Selected requests must be on the same step and belong to the same classification type.",
     "BULK_APPROVING": "Approving...",
     "BULK_REJECTING": "Rejecting...",
     "APPROVING": "Approving...",
@@ -599,7 +605,10 @@
       "BULK_REJECT_ERROR": "Error processing bulk rejection.",
       "BULK_CANCEL_SUCCESS": "{{cancelled}} of {{total}} requests were cancelled.",
       "BULK_CANCEL_PARTIAL": "{{failed}} requests could not be cancelled.",
-      "BULK_CANCEL_ERROR": "Error processing bulk cancellation."
+      "BULK_CANCEL_ERROR": "Error processing bulk cancellation.",
+      "BULK_SEND_BACK_SUCCESS": "{{sentBack}} of {{total}} requests were sent back.",
+      "BULK_SEND_BACK_PARTIAL": "{{failed}} requests could not be sent back.",
+      "BULK_SEND_BACK_ERROR": "Error processing bulk send back."
     }
   },
   "PENDING_PAGE": {
