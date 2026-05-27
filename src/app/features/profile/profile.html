@@ -179,15 +179,19 @@
 
             <form [formGroup]="impersonationForm" class="flex flex-col md:flex-row gap-3 md:items-end">
                 <div class="flex flex-col gap-y-2 md:w-72">
-                    <label class="text-sm font-semibold text-gray-700">User ID a impersonar</label>
-                    <input
-                        type="number"
-                        min="1"
+                    <label class="text-sm font-semibold text-gray-700">Usuario a impersonar</label>
+                    <select
                         formControlName="userId"
-                        placeholder="Ej. 123"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#ff8200] focus:ring-1 focus:ring-[#ff8200]" />
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#ff8200] focus:ring-1 focus:ring-[#ff8200] bg-white">
+                        <option [ngValue]="null" disabled selected>
+                            @if (isLoadingUsers()) { Cargando usuarios... } @else { Selecciona un usuario }
+                        </option>
+                        @for (user of users(); track user.id) {
+                        <option [ngValue]="user.id">{{ user.fullName }} ({{ user.email }})</option>
+                        }
+                    </select>
                     @if (impersonationForm.get('userId')?.invalid && impersonationForm.get('userId')?.touched) {
-                    <span class="text-xs text-red-500">Ingresa un User ID valido.</span>
+                    <span class="text-xs text-red-500">Selecciona un usuario.</span>
                     }
                 </div>
 

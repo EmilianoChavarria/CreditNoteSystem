@@ -27,6 +27,8 @@ export class Profile {
   readonly hasError = signal<boolean>(false);
   readonly isChangingPassword = signal<boolean>(false);
   readonly passwordFormVisible = signal<boolean>(false);
+  readonly users = signal<User[]>([]);
+  readonly isLoadingUsers = signal<boolean>(false);
   private readonly authUser = toSignal(this.authService.user$, { initialValue: null });
 
   readonly isSuperAdmin = computed(() => this.authUser()?.roleName?.trim().toUpperCase() === 'SUPERADMIN');
@@ -73,6 +75,7 @@ export class Profile {
 
   constructor() {
     this.loadProfile();
+    this.loadUsers();
   }
 
   formatDate(date: string | null | undefined): string {
@@ -90,6 +93,17 @@ export class Profile {
       dateStyle: 'short',
       timeStyle: 'short'
     }).format(parsedDate);
+  }
+
+  private loadUsers(): void {
+    this.isLoadingUsers.set(true);
+    this.userService.getUsers().subscribe({
+      next: (users) => {
+        this.users.set(users);
+        this.isLoadingUsers.set(false);
+      },
+      error: () => this.isLoadingUsers.set(false)
+    });
   }
 
   private loadProfile(): void {
