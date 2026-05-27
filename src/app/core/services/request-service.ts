@@ -70,13 +70,32 @@ export class RequestService {
   ) { }
 
   getExchangeRate(): Observable<string> {
-    return this.http.get(`https://www.banxico.org.mx/SieAPIRest/service/v1/series/SF43718/datos/oportuno?token=${this.token}`).pipe(
-      map((response: any) => response?.bmx?.series?.[0]?.datos?.[0]?.dato ?? ''),
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const endDate = this.formatDateForBanxico(yesterday);
+
+    const startFrom = new Date(yesterday);
+    startFrom.setDate(startFrom.getDate() - 7);
+    const startDate = this.formatDateForBanxico(startFrom);
+
+    return this.http.get(`https://www.banxico.org.mx/SieAPIRest/service/v1/series/SF43718/datos/${startDate}/${endDate}?token=${this.token}`).pipe(
+      map((response: any) => {
+        const datos: { fecha: string; dato: string }[] = response?.bmx?.series?.[0]?.datos ?? [];
+        const available = datos.filter((d) => d.dato && d.dato !== 'N/E');
+        return available[available.length - 1]?.dato ?? '';
+      }),
       catchError((error: any) => {
         console.log(error);
         throw error;
       })
-    )
+    );
+  }
+
+  private formatDateForBanxico(date: Date): string {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
   }
 
   getReasons(requestTypeId: number): Observable<Reason[]> {
