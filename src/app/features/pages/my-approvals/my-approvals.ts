@@ -36,6 +36,7 @@ export class MyApprovals extends RequestListBase {
     private readonly cdr = inject(ChangeDetectorRef);
 
     public selectedRequestIds = signal<Set<number>>(new Set<number>());
+    private selectedRequestsMap = signal<Map<number, Request>>(new Map<number, Request>());
     public selectedCount = computed(() => this.selectedRequestIds().size);
     public currentPageRequestIds = computed(() =>
         this.requests().map((r) => Number(r.id)).filter((id) => Number.isFinite(id) && id > 0)
@@ -59,22 +60,20 @@ export class MyApprovals extends RequestListBase {
     public canBulkCancel = signal<boolean>(false);
     public canBulkSendBack = signal<boolean>(false);
 
-    /** Todas las notas visibles seleccionadas comparten el mismo paso y el mismo type de clasificación */
+    /** Todas las notas seleccionadas (de cualquier página) comparten el mismo paso y el mismo type de clasificación */
     public canExecuteBulkSendBack = computed(() => {
-        const selectedIds = this.selectedRequestIds();
-        if (selectedIds.size === 0) return false;
-        const visibleSelected = this.requests().filter((r) => selectedIds.has(Number(r.id)));
-        if (visibleSelected.length === 0) return true;
-        const firstStepId = visibleSelected[0]?.workflowCurrentStep?.workflowStepId;
-        const firstClassType = visibleSelected[0]?.classification?.type;
-        return visibleSelected.every(
+        const allSelected = Array.from(this.selectedRequestsMap().values());
+        if (allSelected.length === 0) return false;
+        const firstStepId = allSelected[0]?.workflowCurrentStep?.workflowStepId;
+        const firstClassType = allSelected[0]?.classification?.type;
+        return allSelected.every(
             (r) => r.workflowCurrentStep?.workflowStepId === firstStepId && r.classification?.type === firstClassType
         );
     });
 
-    /** Primera nota visible seleccionada, usada para cargar los pasos disponibles en el modal */
+    /** Primera nota seleccionada (de cualquier página), usada para cargar los pasos disponibles en el modal */
     public firstSelectedRequest = computed(() =>
-        this.requests().find((r) => this.selectedRequestIds().has(Number(r.id))) ?? null
+        Array.from(this.selectedRequestsMap().values())[0] ?? null
     );
 
     public selectedRequestIdsArray = computed(() => Array.from(this.selectedRequestIds()));
@@ -414,15 +413,30 @@ export class MyApprovals extends RequestListBase {
             checked ? next.add(requestId) : next.delete(requestId);
             return next;
         });
+        this.selectedRequestsMap.update((current) => {
+            const next = new Map(current);
+            checked ? next.set(requestId, request) : next.delete(requestId);
+            return next;
+        });
     }
 
     toggleSelectCurrentPage(checked: boolean): void {
-        const pageIds = this.currentPageRequestIds();
-        if (!pageIds.length) return;
+        const pageRequests = this.requests().filter((r) => {
+            const id = Number(r.id);
+            return Number.isFinite(id) && id > 0;
+        });
+        if (!pageRequests.length) return;
         this.selectedRequestIds.update((current) => {
             const next = new Set(current);
-            for (const id of pageIds) {
-                checked ? next.add(id) : next.delete(id);
+            for (const r of pageRequests) {
+                checked ? next.add(Number(r.id)) : next.delete(Number(r.id));
+            }
+            return next;
+        });
+        this.selectedRequestsMap.update((current) => {
+            const next = new Map(current);
+            for (const r of pageRequests) {
+                checked ? next.set(Number(r.id), r) : next.delete(Number(r.id));
             }
             return next;
         });
@@ -430,6 +444,7 @@ export class MyApprovals extends RequestListBase {
 
     clearSelectedRequests(): void {
         this.selectedRequestIds.set(new Set<number>());
+        this.selectedRequestsMap.set(new Map<number, Request>());
     }
 
     openBulkApproveModal(): void {
