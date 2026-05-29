@@ -43,6 +43,7 @@ export interface ChargeTypeOption {
   id: number;
   name: InvoiceChargeType;
   label: string;
+  percentage?: string | number;
 }
 
 export interface CustomerInvoiceProduct {
@@ -123,6 +124,9 @@ export interface ReturnOrderListEntry {
   notes?: string | null;
   createdAt: string;
   updatedAt: string;
+  chargeTypeId?: number | null;
+  customRate?: number | null;
+  chargeType?: { percentage: number } | null;
   items: ReturnOrderListItem[];
 }
 
