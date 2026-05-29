@@ -1,7 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { RequestService } from '../../../../../core/services/request-service';
-import { CustomerService, ReturnOrderListEntry, ReturnOrderListItem } from '../../../../../core/services/customer-service';
+import { ChargeTypeOption, CustomerService, ReturnOrderListEntry, ReturnOrderListItem } from '../../../../../core/services/customer-service';
 import { ToastService } from '../../../../../core/services/toast-service';
 import { BaseRequestForm } from '../../shared/base-request-form';
 import { TabsContainer } from '../../../../../shared/components/ui/tab/tab-container/tab-container';
@@ -11,7 +11,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { Autocomplete } from '../../../../../shared/components/ui/autocomplete/autocomplete';
 import { CurrencyPipe, DecimalPipe, TitleCasePipe } from '@angular/common';
 import { Spinner } from '../../../../../shared/components/ui/spinner/spinner';
-import { Observable, of, switchMap, take, catchError } from 'rxjs';
+import { Observable, of, forkJoin, switchMap, take, catchError } from 'rxjs';
 import { SimpleChanges } from '@angular/core';
 import {
   ReturnOrderRequestByRequestData,
@@ -277,8 +277,38 @@ export class MaterialReturnForm extends BaseRequestForm {
     this.materialList.set([]);
     this.resetItemInputState();
 
-    this._customerService.getReturnOrderById(orderId).subscribe({
-      next: (order: ReturnOrderListEntry | null) => {
+    forkJoin({
+      order: this._customerService.getReturnOrderById(orderId).pipe(catchError(() => of(null))),
+      chargeTypes: this._customerService.getChargeTypes().pipe(catchError(() => of([] as ChargeTypeOption[]))),
+    }).subscribe({
+      next: ({ order, chargeTypes }) => {
+        const chargeTypeId = order?.chargeTypeId ?? null;
+        const customRate = order?.customRate ?? null;
+        const hasCharge = chargeTypeId != null || (customRate != null && Number(customRate) > 0);
+
+        let chargePercent = 0;
+        let effectiveChargeTypeId: number | null = null;
+
+        if (customRate !== null && Number.isFinite(Number(customRate)) && Number(customRate) > 0) {
+          chargePercent = Number(customRate);
+          effectiveChargeTypeId = null;
+        } else if (chargeTypeId !== null) {
+          const fromResponse = Number(order?.chargeType?.percentage);
+          const fromCatalog = Number(chargeTypes.find(ct => ct.id === chargeTypeId)?.percentage ?? 0);
+          const policyPercent = Number.isFinite(fromResponse) && fromResponse > 0 ? fromResponse : fromCatalog;
+          chargePercent = Number.isFinite(policyPercent) ? policyPercent : 0;
+          effectiveChargeTypeId = chargeTypeId;
+        }
+
+        this.hasReturnCharge.set(hasCharge);
+        this.returnChargePercent.set(chargePercent > 0 ? chargePercent : 0);
+        this.chargeTypeId.set(effectiveChargeTypeId);
+
+        const clientId = order?.clientId;
+        if (clientId && Number.isFinite(clientId) && clientId > 0) {
+          this.preFillCustomerFromClientId(clientId);
+        }
+
         this.materialList.set(order?.items ?? []);
         this.syncMaterialAmountsToForm();
         this.isLoadingMaterialList.set(false);

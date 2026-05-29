@@ -373,6 +373,17 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
     return '';
   }
 
+  protected preFillCustomerFromClientId(clientId: number): void {
+    const currentValue = this.form.get('customerId')?.value;
+    const isEmpty = !currentValue || (typeof currentValue === 'string' && currentValue.trim().length === 0);
+    if (!isEmpty) {
+      return;
+    }
+
+    this.populateCustomerNameFromService(clientId);
+    this.populateCustomerNumberFromService(clientId);
+  }
+
   private populateCustomerNameFromService(customerId: string | number): void {
     const searchValue = String(customerId ?? '').trim();
     if (!searchValue) {
