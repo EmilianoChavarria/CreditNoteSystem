@@ -91,6 +91,7 @@ export class Table<T extends Record<string, any>>
   readonly accionesPersonalizadas = input<AccionPersonalizada<T>[]>();
   readonly canAdd = input<boolean>(true);
   readonly canBulk = input<boolean>(false);
+  readonly showRefresh = input<boolean>(true);
   readonly addLabel = input('User');
   readonly addRoute = input<string>();
   readonly botonesCabeceraPersonalizados = input<BotonCabeceraPersonalizado[]>([]);
@@ -110,6 +111,7 @@ export class Table<T extends Record<string, any>>
   readonly filterChange = output<any>();
   readonly addClick = output<void>();
   readonly bulkClick = output<void>();
+  readonly refreshClick = output<void>();
 
   // Template personalizado para celdas
   @ContentChild('cellTemplate', { static: false }) cellTemplate?: TemplateRef<any>;

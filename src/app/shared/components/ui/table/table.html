@@ -139,6 +139,13 @@
                     </div>
                 </div>
             </app-modal>
+            @if (showRefresh()) {
+            <button type="button" (click)="refreshClick.emit()"
+                [disabled]="loading()"
+                class="w-full sm:w-auto rounded-md border border-gray-300 bg-white px-2 py-1 whitespace-nowrap text-gray-600 flex gap-x-2 items-center justify-center hover:bg-gray-50 hover:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition">
+                <lucide-icon name="refresh-cw" size="16" [class.animate-spin]="loading()"></lucide-icon>
+            </button>
+            }
             @if (canAdd()) {
             @if (canBulk()) {
             <button type="button" (click)="bulkClick.emit()"
@@ -229,8 +236,8 @@
                             <!-- ACCIONES PERSONALIZADAS -->
                             <button *ngFor="let accion of accionesPersonalizadas()"
                                 (click)="ejecutarAccion(accion, item)"
-                                class="w-full sm:w-auto p-1.5 rounded-md text-[#ff8200] hover:bg-[#ff82001A] transition hover:cursor-pointer flex items-center justify-center"
-                                [ngClass]="accion.className">
+                                class="w-full sm:w-auto p-1.5 rounded-md transition hover:cursor-pointer flex items-center justify-center"
+                                [ngClass]="accion.className ?? 'text-[#ff8200] hover:bg-[#ff82001A]'">
                                 <lucide-icon *ngIf="accion.icon" [name]="accion.icon"></lucide-icon>
                             </button>
 
