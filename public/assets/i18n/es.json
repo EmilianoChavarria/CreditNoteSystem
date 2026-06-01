@@ -542,6 +542,7 @@
     "PDF": "PDF",
     "EDIT": "Editar",
     "EDIT_AND_APPROVE": "Aprobar",
+    "EDIT_ONLY": "Editar cambios",
     "SEE_HISTORY": "Ver historial",
     "DELETE": "Eliminar",
     "REJECTION_MODAL_TITLE": "Razón de Rechazo",
