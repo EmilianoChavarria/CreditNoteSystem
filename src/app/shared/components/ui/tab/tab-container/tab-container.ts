@@ -56,7 +56,7 @@ import { fromEvent, Subscription } from 'rxjs';
             @if (approvalMode() && isEditing()) {
               @if (canReturn()) {
                 <button (click)="onReturnAction.emit()"
-                        [disabled]="isSaving()"
+                        [disabled]="isSaving() || actionsDisabledExceptCancel()"
                         class="px-2 py-2 md:px-4 md:py-2 text-xs md:text-sm font-semibold text-white bg-[#3c6194] rounded-md hover:bg-[#2e4d7a] transition disabled:opacity-50 disabled:cursor-not-allowed">
                   {{ 'MY_APPROVALS.RETURN_ORDER' | translate }}
                 </button>
@@ -64,13 +64,13 @@ import { fromEvent, Subscription } from 'rxjs';
               @if (canCancel()) {
                 <button (click)="onCancelAction.emit()"
                         [disabled]="isSaving()"
-                        class="px-2 py-2 md:px-4 md:py-2 text-xs md:text-sm font-semibold text-white bg-[#6b7280] rounded-md hover:bg-[#4b5563] transition disabled:opacity-50 disabled:cursor-not-allowed">
+                        class="px-2 py-2 md:px-4 md:py-2 text-xs md:text-sm font-semibold text-white bg-[#ff8200] rounded-md hover:bg-[#db7201] transition disabled:opacity-50 disabled:cursor-not-allowed">
                   {{ 'MY_APPROVALS.CANCEL_REQUEST' | translate }}
                 </button>
               }
               @if (canDecline()) {
                 <button (click)="onDeclineAction.emit()"
-                        [disabled]="isSaving()"
+                        [disabled]="isSaving() || actionsDisabledExceptCancel()"
                         class="px-2 py-2 md:px-4 md:py-2 text-xs md:text-sm font-semibold text-white bg-[#b42318] rounded-md hover:bg-[#9d1f15] transition disabled:opacity-50 disabled:cursor-not-allowed">
                   {{ 'MY_APPROVALS.DECLINE' | translate }}
                 </button>
@@ -79,8 +79,8 @@ import { fromEvent, Subscription } from 'rxjs';
 
             @if (approvalMode() && isEditing() && canApprove()) {
               <button (click)="onSaveAndApprove.emit()"
-                      [disabled]="registerDisabled() || isSaving()"
-                      [ngClass]="registerDisabled() || isSaving() ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'"
+                      [disabled]="registerDisabled() || isSaving() || actionsDisabledExceptCancel()"
+                      [ngClass]="registerDisabled() || isSaving() || actionsDisabledExceptCancel() ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'"
                       class="px-2 py-2 md:px-4 md:py-2 text-xs md:text-sm font-semibold text-white rounded-md transition flex items-center gap-2">
                 @if (isSaving()) {
                   <svg class="animate-spin h-4 w-4 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -133,6 +133,7 @@ export class TabsContainer implements AfterContentInit, AfterViewInit, OnDestroy
   readonly canDecline = input<boolean>(false);
   readonly canCancel = input<boolean>(false);
   readonly canReturn = input<boolean>(false);
+  readonly actionsDisabledExceptCancel = input<boolean>(false);
   selectedIndex: number = 0;
   showLeftFade = false;
   showRightFade = false;
