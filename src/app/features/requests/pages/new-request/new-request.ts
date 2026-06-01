@@ -1,13 +1,15 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { FormBuilder, FormGroup, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, FormControl, FormGroup as FG, Validators, ReactiveFormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
+import { TranslateService } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 import formFieldsConfig from '../../../../data/form-fields-config.json';
 import { RequestService } from '../../../../core/services/request-service';
 import { CustomerService } from '../../../../core/services/customer-service';
+import { ToastService } from '../../../../core/services/toast-service';
 import { AutocompleteOption } from '../../../../shared/components/ui/autocomplete/autocomplete';
 import { Observable, of, forkJoin, combineLatest, Subscription } from 'rxjs';
-import { map, catchError, startWith } from 'rxjs/operators';
+import { map, catchError, startWith, finalize } from 'rxjs/operators';
 import { Classification, Reason, RequestType, Request } from '../../../../data/interfaces/Request';
 import { ToastrService } from 'ngx-toastr';
 import { CreditForm } from "../../components/forms/credit-form/credit-form";
@@ -18,12 +20,16 @@ import { AuditorDebitForm } from "../../components/forms/auditor-debit-form/audi
 import { ActivatedRoute, Router } from '@angular/router';
 import { MaterialReturnForm } from "../../components/forms/material-return-form/material-return-form";
 import { ReInvoicingForm } from "../../components/forms/re-invoicing-form/re-invoicing-form";
+import { ApprovalContext } from '../../components/shared/base-request-form';
+import { Modal } from '../../../../shared/components/ui/modal/modal';
+import { ApproveConfirmModal } from '../../../pages/my-approvals/components/approve-confirm-modal/approve-confirm-modal';
+import { SendBackModal } from '../../../pages/my-approvals/components/send-back-modal/send-back-modal';
 
 @Component({
     selector: 'app-new-request',
     templateUrl: './new-request.html',
     styleUrl: './new-request.css',
-    imports: [ReactiveFormsModule, TranslatePipe, CommonModule, CreditForm, DebitForm, AuditorCreditForm, AuditorDebitForm, MaterialReturnForm, ReInvoicingForm],
+    imports: [ReactiveFormsModule, TranslatePipe, CommonModule, CreditForm, DebitForm, AuditorCreditForm, AuditorDebitForm, MaterialReturnForm, ReInvoicingForm, Modal, ApproveConfirmModal, SendBackModal],
 })
 export class NewRequest implements OnInit {
     public profileForm: FormGroup;
@@ -43,9 +49,25 @@ export class NewRequest implements OnInit {
         const requestId = Number(this.editingRequestData()?.id);
         return Number.isFinite(requestId) && requestId > 0;
     });
+    public approvalContext = signal<ApprovalContext | null>(null);
+    private returnTo = '/app/pending';
+
+    public showApproveModal = signal<boolean>(false);
+    public showDeclineModal = signal<boolean>(false);
+    public showCancelModal = signal<boolean>(false);
+    public showSendBackModal = signal<boolean>(false);
+    public isApproving = signal<boolean>(false);
+    public isDeclining = signal<boolean>(false);
+    public isCancelling = signal<boolean>(false);
+    public cancelComments = new FormControl<string>('');
+    public declineForm = new FormGroup({ comments: new FormControl<string>('', Validators.required) });
+    public declineSubmitted = signal<boolean>(false);
+
     private computedSubscriptions: Subscription[] = [];
     private requestTypeActionPermissions = signal<Record<number, Record<string, boolean>>>({});
     private toastr = inject(ToastrService);
+    private readonly _toastService = inject(ToastService);
+    private readonly _translateService = inject(TranslateService);
     private roleService = inject(RoleService);
     constructor(
         private fb: FormBuilder,
@@ -72,12 +94,21 @@ export class NewRequest implements OnInit {
             this.selectedRequestType = this.resolveRequestTypeModuleKey(requestTypeId);
         }
 
-        const navigationState = this.router.getCurrentNavigation()?.extras?.state as { editRequest?: Request } | undefined;
-        const browserState = history.state as { editRequest?: Request };
+        const navigationState = this.router.getCurrentNavigation()?.extras?.state as { editRequest?: Request; approvalActions?: ApprovalContext; returnTo?: string } | undefined;
+        const browserState = history.state as { editRequest?: Request; approvalActions?: ApprovalContext; returnTo?: string };
         const editRequest = navigationState?.editRequest ?? browserState?.editRequest;
+        const approvalActions = navigationState?.approvalActions ?? browserState?.approvalActions;
+        const returnTo = navigationState?.returnTo ?? browserState?.returnTo;
+
+        if (returnTo) {
+            this.returnTo = returnTo;
+        }
+
+        if (approvalActions) {
+            this.approvalContext.set(approvalActions);
+        }
 
         if (editRequest) {
-            console.log(editRequest);
             this.editingRequestData.set(editRequest);
 
             if ((this.selectedRequestTypeId === null || this.selectedRequestType === '') && Number(editRequest.requestTypeId) > 0) {
@@ -397,7 +428,7 @@ export class NewRequest implements OnInit {
         delete formValue.reviewComments;
         delete formValue.creditNumber;
         delete formValue.orderNumber;
-        
+
         const newObject = {
             requestTypeId: this.selectedRequestTypeId,
             ...formValue,
@@ -405,9 +436,116 @@ export class NewRequest implements OnInit {
             totalAmount: formValue.totalAmount ? formValue.totalAmount.toFixed(2) : 0,
             status: 'draft'
         }
-        
+
         this.saveDraft(newObject);
         this.submitted = false;
+    }
+
+    onSavedForApproval(): void {
+        this.showApproveModal.set(true);
+    }
+
+    onApproveConfirmed(comments: string): void {
+        const ctx = this.approvalContext();
+        if (!ctx) return;
+        this.isApproving.set(true);
+        this._requestService.approveRequest(ctx.requestId, comments).pipe(
+            finalize(() => this.isApproving.set(false))
+        ).subscribe({
+            next: () => {
+                this.showApproveModal.set(false);
+                this._toastService.success(
+                    this._translateService.instant('MY_APPROVALS.TOAST.REQUEST_APPROVED_SUCCESS'),
+                    this._translateService.instant('MY_APPROVALS.TOAST.SUCCESS')
+                );
+                this.router.navigate([this.returnTo]);
+            },
+            error: (error: any) => {
+                this._toastService.error(
+                    error?.error?.message ?? this._translateService.instant('MY_APPROVALS.TOAST.REQUEST_APPROVED_ERROR'),
+                    this._translateService.instant('MY_APPROVALS.TOAST.ERROR')
+                );
+            }
+        });
+    }
+
+    openDeclineModal(): void {
+        this.declineForm.reset();
+        this.declineSubmitted.set(false);
+        this.showDeclineModal.set(true);
+    }
+
+    submitDecline(): void {
+        this.declineSubmitted.set(true);
+        if (this.declineForm.invalid) {
+            this.declineForm.markAllAsTouched();
+            return;
+        }
+        const ctx = this.approvalContext();
+        if (!ctx) return;
+        const comments = this.declineForm.get('comments')?.value ?? '';
+        this.isDeclining.set(true);
+        this._requestService.rejectRequest(ctx.requestId, comments).pipe(
+            finalize(() => this.isDeclining.set(false))
+        ).subscribe({
+            next: () => {
+                this.showDeclineModal.set(false);
+                this._toastService.success(
+                    this._translateService.instant('MY_APPROVALS.TOAST.REQUEST_REJECTED_SUCCESS'),
+                    this._translateService.instant('MY_APPROVALS.TOAST.SUCCESS')
+                );
+                this.router.navigate([this.returnTo]);
+            },
+            error: (error: any) => {
+                this._toastService.error(
+                    error?.error?.message ?? this._translateService.instant('MY_APPROVALS.TOAST.REQUEST_REJECTED_ERROR'),
+                    this._translateService.instant('MY_APPROVALS.TOAST.ERROR')
+                );
+            }
+        });
+    }
+
+    openCancelModal(): void {
+        this.cancelComments.reset();
+        this.showCancelModal.set(true);
+    }
+
+    submitCancel(): void {
+        const ctx = this.approvalContext();
+        if (!ctx) return;
+        this.isCancelling.set(true);
+        this._requestService.cancelRequest(ctx.requestId, this.cancelComments.value ?? '').pipe(
+            finalize(() => this.isCancelling.set(false))
+        ).subscribe({
+            next: () => {
+                this.showCancelModal.set(false);
+                this._toastService.success(
+                    this._translateService.instant('MY_APPROVALS.TOAST.REQUEST_CANCELLED_SUCCESS'),
+                    this._translateService.instant('MY_APPROVALS.TOAST.SUCCESS')
+                );
+                this.router.navigate([this.returnTo]);
+            },
+            error: (error: any) => {
+                this._toastService.error(
+                    error?.error?.message ?? this._translateService.instant('MY_APPROVALS.TOAST.REQUEST_CANCELLED_ERROR'),
+                    this._translateService.instant('MY_APPROVALS.TOAST.ERROR')
+                );
+            }
+        });
+    }
+
+    openReturnModal(): void {
+        this.showSendBackModal.set(true);
+    }
+
+    onSendBackSent(): void {
+        this.showSendBackModal.set(false);
+        this.router.navigate([this.returnTo]);
+    }
+
+    declineCampoVacio(controlName: string): boolean {
+        const control = this.declineForm.get(controlName);
+        return !!control?.invalid && (!!control?.touched || this.declineSubmitted());
     }
 
 }

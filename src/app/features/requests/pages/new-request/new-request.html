@@ -33,27 +33,57 @@
     @switch (selectedRequestType) {
     @case ('credits') {
     <app-credit-form [requestTypeId]="selectedRequestTypeId"
-        [initialRequestData]="editingRequestData()"></app-credit-form>
+        [initialRequestData]="editingRequestData()"
+        [approvalContext]="approvalContext()"
+        (savedForApproval)="onSavedForApproval()"
+        (declineActionTriggered)="openDeclineModal()"
+        (cancelActionTriggered)="openCancelModal()"
+        (returnActionTriggered)="openReturnModal()"></app-credit-form>
     }
     @case ('debits') {
     <app-debit-form [requestTypeId]="selectedRequestTypeId"
-        [initialRequestData]="editingRequestData()"></app-debit-form>
+        [initialRequestData]="editingRequestData()"
+        [approvalContext]="approvalContext()"
+        (savedForApproval)="onSavedForApproval()"
+        (declineActionTriggered)="openDeclineModal()"
+        (cancelActionTriggered)="openCancelModal()"
+        (returnActionTriggered)="openReturnModal()"></app-debit-form>
     }
     @case ('auditor-credits') {
     <app-auditor-credit-form [requestTypeId]="selectedRequestTypeId"
-        [initialRequestData]="editingRequestData()"></app-auditor-credit-form>
+        [initialRequestData]="editingRequestData()"
+        [approvalContext]="approvalContext()"
+        (savedForApproval)="onSavedForApproval()"
+        (declineActionTriggered)="openDeclineModal()"
+        (cancelActionTriggered)="openCancelModal()"
+        (returnActionTriggered)="openReturnModal()"></app-auditor-credit-form>
     }
     @case ('auditor-debits') {
     <app-auditor-debit-form [requestTypeId]="selectedRequestTypeId"
-        [initialRequestData]="editingRequestData()"></app-auditor-debit-form>
+        [initialRequestData]="editingRequestData()"
+        [approvalContext]="approvalContext()"
+        (savedForApproval)="onSavedForApproval()"
+        (declineActionTriggered)="openDeclineModal()"
+        (cancelActionTriggered)="openCancelModal()"
+        (returnActionTriggered)="openReturnModal()"></app-auditor-debit-form>
     }
     @case ('re-invoicing') {
     <app-re-invoicing-form [requestTypeId]="selectedRequestTypeId"
-        [initialRequestData]="editingRequestData()"></app-re-invoicing-form>
+        [initialRequestData]="editingRequestData()"
+        [approvalContext]="approvalContext()"
+        (savedForApproval)="onSavedForApproval()"
+        (declineActionTriggered)="openDeclineModal()"
+        (cancelActionTriggered)="openCancelModal()"
+        (returnActionTriggered)="openReturnModal()"></app-re-invoicing-form>
     }
     @case ('material-return') {
     <app-material-return-form [requestTypeId]="selectedRequestTypeId"
-        [initialRequestData]="editingRequestData()"></app-material-return-form>
+        [initialRequestData]="editingRequestData()"
+        [approvalContext]="approvalContext()"
+        (savedForApproval)="onSavedForApproval()"
+        (declineActionTriggered)="openDeclineModal()"
+        (cancelActionTriggered)="openCancelModal()"
+        (returnActionTriggered)="openReturnModal()"></app-material-return-form>
     }
     }
 
@@ -62,4 +92,46 @@
             class="mx-auto h-auto w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg object-contain">
         <p class="text-2xl text-[#3c6194] font-semibold">{{'REQUEST_TYPES.DEFAULT_TEXT'| translate}}</p>
     </div>
+
+    <app-approve-confirm-modal
+        [open]="showApproveModal()"
+        [request]="$any(editingRequestData())"
+        [isLoading]="isApproving()"
+        (openChange)="showApproveModal.set($event)"
+        (confirmed)="onApproveConfirmed($event)">
+    </app-approve-confirm-modal>
+
+    <app-modal size="md" [titleM]="'MY_APPROVALS.REJECTION_MODAL_TITLE' | translate" [open]="showDeclineModal()"
+        [closeText]="'MY_APPROVALS.CANCEL' | translate"
+        [primaryText]="isDeclining() ? ('MY_APPROVALS.REJECTING' | translate) : ('MY_APPROVALS.REJECT' | translate)"
+        [primaryLoading]="isDeclining()" [primaryDisabled]="isDeclining()"
+        (openChange)="showDeclineModal.set($event)" (primaryAction)="submitDecline()">
+        <div [formGroup]="declineForm">
+            <label class="block font-medium text-[#395f93] text-lg">{{'REJECTION.REASON' | translate}}
+                <span class="text-red-500 text-lg">*</span>
+            </label>
+            <textarea [placeholder]="'MY_APPROVALS.ADD_COMMENTS' | translate" formControlName="comments"
+                [class]="declineCampoVacio('comments') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'"></textarea>
+            @if (declineCampoVacio('comments')) {
+            <span class="text-sm text-red-500">{{'MY_APPROVALS.REQUIRED_FIELD' | translate}}</span>
+            }
+        </div>
+    </app-modal>
+
+    <app-modal size="md" [titleM]="'MY_APPROVALS.CANCEL_REQUEST_MODAL_TITLE' | translate" [open]="showCancelModal()"
+        [closeText]="'MY_APPROVALS.CANCEL' | translate"
+        [primaryText]="isCancelling() ? ('MY_APPROVALS.CANCELLING' | translate) : ('MY_APPROVALS.CANCEL_REQUEST_CONFIRM_BTN' | translate)"
+        [primaryLoading]="isCancelling()" [primaryDisabled]="isCancelling()"
+        (openChange)="showCancelModal.set($event)" (primaryAction)="submitCancel()">
+        <textarea [formControl]="cancelComments"
+            [placeholder]="'MY_APPROVALS.CANCEL_REQUEST_COMMENTS_PLACEHOLDER' | translate"
+            class="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500"></textarea>
+    </app-modal>
+
+    <app-send-back-modal
+        [open]="showSendBackModal()"
+        [request]="$any(editingRequestData())"
+        (openChange)="showSendBackModal.set($event)"
+        (sent)="onSendBackSent()">
+    </app-send-back-modal>
 </div>
