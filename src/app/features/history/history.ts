@@ -176,9 +176,11 @@ export class History {
         this.openHistoryDrawer(request);
     }
 
+    public refreshData(): void { this.onRequestTypeChange({ target: { value: this.selectedRequestType } }); }
+
     // =============================
     // GENERAR PDF
     // =============================
 
-    
+
 }

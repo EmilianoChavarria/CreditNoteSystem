@@ -194,4 +194,6 @@ export class Pending extends RequestListBase {
         this.canDeleteSelectedAttachments.set(canDelete);
         this.showAttachmentsModal.set(true);
     }
+
+    public refreshData(): void { this.loadRequests(); }
 }

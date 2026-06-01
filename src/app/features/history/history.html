@@ -30,7 +30,7 @@
     } @else if (requests().length > 0) {
     <app-tabla-dinamica [datos]="requests()" [columnas]="columns" [accionesPersonalizadas]="acciones"
         actionMode="inline" [enableFilter]="true" filterField="area" addLabel="Request" addRoute="/app/settings/newUser"
-        [canAdd]="false">
+        [canAdd]="false" (refreshClick)="refreshData()">
 
         <ng-template #cellTemplate let-item let-column="column">
             @if (column.key === 'request_type.name') {

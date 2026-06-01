@@ -38,7 +38,7 @@
 					</div>
 					<app-tabla-dinamica [datos]="blockedUsers()" [columnas]="userColumns" [sinAcciones]="true"
 						[enableFilter]="true" filterField="reason" [canAdd]="false" [registrosPorPagina]="5"
-						[hideHeaderActions]="true" [searchFullWidth]="true" [loading]="isLoadingBlockedUsers()">
+						[hideHeaderActions]="true" [searchFullWidth]="true" [loading]="isLoadingBlockedUsers()" (refreshClick)="loadBlockedUsers()">
 						<ng-template #cellTemplate let-item let-column="column">
 							@if (column.key === 'reason') {
 							<span class="font-medium text-[#ff6f1a]">{{ item.reason }}</span>
@@ -68,7 +68,7 @@
 					</div>
 					<app-tabla-dinamica [datos]="blockedIps()" [columnas]="ipColumns" [sinAcciones]="true"
 						[enableFilter]="true" filterField="reason" [canAdd]="false" [registrosPorPagina]="5"
-						[hideHeaderActions]="true" [searchFullWidth]="true" [loading]="isLoadingBlockedIps()">
+						[hideHeaderActions]="true" [searchFullWidth]="true" [loading]="isLoadingBlockedIps()" (refreshClick)="loadBlockedIps()">
 						<ng-template #cellTemplate let-item let-column="column">
 							@if (column.key === 'reason') {
 							<span class="font-medium text-[#ff6f1a]">{{ item.reason }}</span>

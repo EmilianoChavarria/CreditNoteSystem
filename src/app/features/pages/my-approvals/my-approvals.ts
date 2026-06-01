@@ -721,4 +721,6 @@ export class MyApprovals extends RequestListBase {
     private getErrorMessageFromResponse(error: any, fallbackKey: string): string {
         return error?.error?.message ?? this._translateService.instant(fallbackKey);
     }
+
+    public refreshData(): void { this.loadMyPendingRequests(); }
 }

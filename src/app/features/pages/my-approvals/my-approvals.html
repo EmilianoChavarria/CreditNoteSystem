@@ -97,7 +97,7 @@
         [thirdFilterAllLabel]="'FILTERS.ALL_CLASSIFICATIONS'"
         (thirdFilterChange)="onClassificationTypeFilterChange($event)"
         (paginaSiguiente)="onNextPage()" (paginaAnterior)="onPrevPage()" (paginaPrimera)="onFirstPage()"
-        (paginaUltima)="onLastPage()" (registrosPorPaginaChange)="onPageSizeChange($event)">
+        (paginaUltima)="onLastPage()" (registrosPorPaginaChange)="onPageSizeChange($event)" (refreshClick)="refreshData()">
 
         <ng-template #cellTemplate let-item let-column="column">
             @if (column.key === 'bulkSelect') {
