@@ -54,6 +54,12 @@ import { fromEvent, Subscription } from 'rxjs';
             </button>
 
             @if (approvalMode() && isEditing()) {
+              <button (click)="onSaveOnly.emit()"
+                      [disabled]="registerDisabled() || isSaving() || actionsDisabledExceptCancel()"
+                      [ngClass]="registerDisabled() || isSaving() || actionsDisabledExceptCancel() ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#3c6194] hover:bg-[#2e4d7a]'"
+                      class="px-2 py-2 md:px-4 md:py-2 text-xs md:text-sm font-semibold text-white rounded-md transition flex items-center gap-2">
+                {{ 'MY_APPROVALS.EDIT_ONLY' | translate }}
+              </button>
               @if (canReturn()) {
                 <button (click)="onReturnAction.emit()"
                         [disabled]="isSaving() || actionsDisabledExceptCancel()"
@@ -76,7 +82,6 @@ import { fromEvent, Subscription } from 'rxjs';
                 </button>
               }
             }
-
             @if (approvalMode() && isEditing() && canApprove()) {
               <button (click)="onSaveAndApprove.emit()"
                       [disabled]="registerDisabled() || isSaving() || actionsDisabledExceptCancel()"
@@ -120,6 +125,7 @@ export class TabsContainer implements AfterContentInit, AfterViewInit, OnDestroy
   readonly onSave = output<void>();
   readonly onSaveDraft = output<void>();
   readonly onSaveAndApprove = output<void>();
+  readonly onSaveOnly = output<void>();
   readonly onDeclineAction = output<void>();
   readonly onCancelAction = output<void>();
   readonly onReturnAction = output<void>();
