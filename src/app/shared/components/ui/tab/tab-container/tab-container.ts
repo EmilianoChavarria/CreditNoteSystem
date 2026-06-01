@@ -33,9 +33,9 @@ import { fromEvent, Subscription } from 'rxjs';
       </div>
 
       @if (showBottomButtons()) {
-        <div class="flex justify-between items-center p-4 ">
-          
-          <button (click)="prev()" 
+        <div class="flex justify-between items-center p-4 flex-wrap gap-2">
+
+          <button (click)="prev()"
                   *ngIf="selectedIndex > 0"
                   class="px-2 py-2 md:px-4 md:py-2 text-xs md:text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition">
             {{ 'TAB_CONTAINER.BACK' | translate }}
@@ -46,27 +46,68 @@ import { fromEvent, Subscription } from 'rxjs';
             {{ 'TAB_CONTAINER.NEXT' | translate }}
           </button>
 
-          <div class="flex gap-x-2">
+          <div class="flex gap-x-2 flex-wrap">
             <button (click)="saveDraft()"
                     *ngIf="!isEditing()"
                     class="px-2 py-2 md:px-4 md:py-2 text-xs md:text-sm font-semibold text-white bg-gray-600 rounded-md hover:bg-gray-700 transition">
               {{ 'TAB_CONTAINER.SAVE_DRAFT' | translate }}
             </button>
-            <button (click)="save()"
-                    *ngIf="isEditing() || selectedIndex === tabs.length - 1"
-                    [disabled]="registerDisabled() || isSaving()"
-                    [ngClass]="registerDisabled() || isSaving() ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'"
-                    class="px-2 py-2 md:px-4 md:py-2 text-xs md:text-sm font-semibold text-white rounded-md transition flex items-center gap-2">
-              @if (isSaving()) {
-                <svg class="animate-spin h-4 w-4 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                {{ isEditing() ? ('TAB_CONTAINER.UPDATING' | translate) : ('TAB_CONTAINER.SAVING' | translate) }}
-              } @else {
-                {{ 'TAB_CONTAINER.REGISTER_REQUEST' | translate }}
+
+            @if (approvalMode() && isEditing()) {
+              @if (canReturn()) {
+                <button (click)="onReturnAction.emit()"
+                        [disabled]="isSaving()"
+                        class="px-2 py-2 md:px-4 md:py-2 text-xs md:text-sm font-semibold text-white bg-[#3c6194] rounded-md hover:bg-[#2e4d7a] transition disabled:opacity-50 disabled:cursor-not-allowed">
+                  {{ 'MY_APPROVALS.RETURN_ORDER' | translate }}
+                </button>
               }
-            </button>
+              @if (canCancel()) {
+                <button (click)="onCancelAction.emit()"
+                        [disabled]="isSaving()"
+                        class="px-2 py-2 md:px-4 md:py-2 text-xs md:text-sm font-semibold text-white bg-[#6b7280] rounded-md hover:bg-[#4b5563] transition disabled:opacity-50 disabled:cursor-not-allowed">
+                  {{ 'MY_APPROVALS.CANCEL_REQUEST' | translate }}
+                </button>
+              }
+              @if (canDecline()) {
+                <button (click)="onDeclineAction.emit()"
+                        [disabled]="isSaving()"
+                        class="px-2 py-2 md:px-4 md:py-2 text-xs md:text-sm font-semibold text-white bg-[#b42318] rounded-md hover:bg-[#9d1f15] transition disabled:opacity-50 disabled:cursor-not-allowed">
+                  {{ 'MY_APPROVALS.DECLINE' | translate }}
+                </button>
+              }
+            }
+
+            @if (approvalMode() && isEditing() && canApprove()) {
+              <button (click)="onSaveAndApprove.emit()"
+                      [disabled]="registerDisabled() || isSaving()"
+                      [ngClass]="registerDisabled() || isSaving() ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'"
+                      class="px-2 py-2 md:px-4 md:py-2 text-xs md:text-sm font-semibold text-white rounded-md transition flex items-center gap-2">
+                @if (isSaving()) {
+                  <svg class="animate-spin h-4 w-4 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  {{ 'TAB_CONTAINER.UPDATING' | translate }}
+                } @else {
+                  {{ 'MY_APPROVALS.EDIT_AND_APPROVE' | translate }}
+                }
+              </button>
+            } @else if (isEditing() || selectedIndex === tabs.length - 1) {
+              <button (click)="save()"
+                      [disabled]="registerDisabled() || isSaving()"
+                      [ngClass]="registerDisabled() || isSaving() ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'"
+                      class="px-2 py-2 md:px-4 md:py-2 text-xs md:text-sm font-semibold text-white rounded-md transition flex items-center gap-2">
+                @if (isSaving()) {
+                  <svg class="animate-spin h-4 w-4 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  {{ isEditing() ? ('TAB_CONTAINER.UPDATING' | translate) : ('TAB_CONTAINER.SAVING' | translate) }}
+                } @else {
+                  {{ 'TAB_CONTAINER.REGISTER_REQUEST' | translate }}
+                }
+              </button>
+            }
           </div>
         </div>
       }
@@ -78,11 +119,20 @@ export class TabsContainer implements AfterContentInit, AfterViewInit, OnDestroy
   @ViewChild('tabsScroll', { static: false }) tabsScrollContainer?: ElementRef<HTMLElement>;
   readonly onSave = output<void>();
   readonly onSaveDraft = output<void>();
+  readonly onSaveAndApprove = output<void>();
+  readonly onDeclineAction = output<void>();
+  readonly onCancelAction = output<void>();
+  readonly onReturnAction = output<void>();
   readonly showBottomButtons = input<boolean>(true);
   readonly registerDisabled = input<boolean>(false);
   readonly isSaving = input<boolean>(false);
   readonly initialTabIndex = input<number>(0);
   readonly isEditing = input<boolean>(false);
+  readonly approvalMode = input<boolean>(false);
+  readonly canApprove = input<boolean>(false);
+  readonly canDecline = input<boolean>(false);
+  readonly canCancel = input<boolean>(false);
+  readonly canReturn = input<boolean>(false);
   selectedIndex: number = 0;
   showLeftFade = false;
   showRightFade = false;
