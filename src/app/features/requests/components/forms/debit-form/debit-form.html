@@ -6,8 +6,8 @@
         [approvalMode]="!!approvalContext" [canApprove]="approvalContext?.canApprove ?? false"
         [canDecline]="approvalContext?.canDecline ?? false" [canCancel]="approvalContext?.canCancel ?? false"
         [canReturn]="approvalContext?.canReturn ?? false"
-        (onSaveAndApprove)="saveAndApprove()" (onDeclineAction)="declineActionTriggered.emit()"
-        (onCancelAction)="cancelActionTriggered.emit()" (onReturnAction)="returnActionTriggered.emit()">
+        (onSaveAndApprove)="saveAndApprove()" (onDeclineAction)="saveAndDecline()"
+        (onCancelAction)="saveAndCancel()" (onReturnAction)="saveAndReturn()">
         <app-tab [titleT]="'NEW_REQUEST_FORM.TAB_REQUEST_CUSTOMER' | translate">
             <div class="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-4 md:gap-8">
                 <div>

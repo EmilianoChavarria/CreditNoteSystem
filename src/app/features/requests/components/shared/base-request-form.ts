@@ -59,7 +59,7 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
   }
   public submitted = signal<boolean>(false);
   public isSaving = signal<boolean>(false);
-  private pendingApproval = false;
+  private pendingPostSaveAction: 'approve' | 'decline' | 'cancel' | 'return' | null = null;
   public reasons = signal<Reason[]>([]);
   public classifications = signal<Classification[]>([]);
   public isLoadingInitialData = signal<boolean>(false);
@@ -796,8 +796,8 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
 
     this.isSaving.set(true);
 
-    const wasPendingApproval = this.pendingApproval;
-    this.pendingApproval = false;
+    const pendingAction = this.pendingPostSaveAction;
+    this.pendingPostSaveAction = null;
 
     request$.pipe(
       take(1),
@@ -826,8 +826,20 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
       next: (response: SaveRequestResponse) => {
         this.submitted.set(false);
 
-        if (wasPendingApproval) {
+        if (pendingAction === 'approve') {
           this.savedForApproval.emit();
+          return;
+        }
+        if (pendingAction === 'decline') {
+          this.declineActionTriggered.emit();
+          return;
+        }
+        if (pendingAction === 'cancel') {
+          this.cancelActionTriggered.emit();
+          return;
+        }
+        if (pendingAction === 'return') {
+          this.returnActionTriggered.emit();
           return;
         }
 
@@ -869,7 +881,22 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
   }
 
   saveAndApprove(): void {
-    this.pendingApproval = true;
+    this.pendingPostSaveAction = 'approve';
+    this.saveRequest();
+  }
+
+  saveAndDecline(): void {
+    this.pendingPostSaveAction = 'decline';
+    this.saveRequest();
+  }
+
+  saveAndCancel(): void {
+    this.pendingPostSaveAction = 'cancel';
+    this.saveRequest();
+  }
+
+  saveAndReturn(): void {
+    this.pendingPostSaveAction = 'return';
     this.saveRequest();
   }
 
