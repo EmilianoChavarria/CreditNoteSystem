@@ -3,11 +3,15 @@
 }@else {
 <form action="" [formGroup]="form">
     <app-tabs-container (onSave)="saveRequest()" (onSaveDraft)="saveDraft()" [isEditing]="isEditing" [isSaving]="isSaving()"
-        [approvalMode]="!!approvalContext" [canApprove]="approvalContext?.canApprove ?? false"
-        [canDecline]="approvalContext?.canDecline ?? false" [canCancel]="approvalContext?.canCancel ?? false"
+        [registerDisabled]="allReplenishmentZero()"
+        [approvalMode]="!!approvalContext"
+        [canApprove]="approvalContext?.canApprove ?? false"
+        [canDecline]="approvalContext?.canDecline ?? false"
+        [canCancel]="approvalContext?.canCancel ?? false"
         [canReturn]="approvalContext?.canReturn ?? false"
-        (onSaveAndApprove)="saveAndApprove()" (onDeclineAction)="declineActionTriggered.emit()"
-        (onCancelAction)="cancelActionTriggered.emit()" (onReturnAction)="returnActionTriggered.emit()">
+        [actionsDisabledExceptCancel]="allReplenishmentZero()"
+        (onSaveAndApprove)="saveAndApprove()" (onDeclineAction)="saveAndDecline()"
+        (onCancelAction)="saveAndCancel()" (onReturnAction)="saveAndReturn()">
         <app-tab [titleT]="'NEW_REQUEST_FORM.TAB_REQUEST_CUSTOMER' | translate">
             <div class="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-4 md:gap-8">
                 <div>
@@ -346,7 +350,24 @@
                 La orden {{ orderId() }} no tiene materiales registrados.
             </div>
             } @else {
-            <div class="flex flex-col">
+            @if (allReplenishmentZero()) {
+            <div class="rounded-md border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700 font-medium">
+                La Nota de Devolución de Material no puede carecer de artículos que procesar. Si no desea proceder con la devolución de ningún artículo, debe de "Cancelar" esta solicitud.
+            </div>
+            }
+            <div class="flex flex-col gap-2">
+                <div class="flex justify-end gap-2 flex-wrap">
+                    <button type="button" (click)="exportMaterialList()"
+                        class="flex items-center gap-2 rounded-md border border-[#3c6194] bg-white px-3 py-1.5 text-xs font-medium text-[#3c6194] hover:bg-[#3c61940d] transition">
+                        <lucide-icon name="download" size="14"></lucide-icon>
+                        Descargar
+                    </button>
+                    <label class="flex items-center gap-2 rounded-md border border-[#3c6194] bg-[#3c6194] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#2e4d7a] transition cursor-pointer">
+                        <lucide-icon name="upload" size="14"></lucide-icon>
+                        Cargar
+                        <input type="file" accept=".xlsx,.xls" class="hidden" (change)="onBulkTemplateUpload($event)">
+                    </label>
+                </div>
                 <div class="overflow-x-auto rounded-md border border-gray-200">
                     <table class="w-full table-fixed divide-y divide-gray-200 bg-white">
                         <thead class="bg-gray-50">
