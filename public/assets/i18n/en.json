@@ -531,6 +531,7 @@
     "DECLINE": "Decline",
     "PDF": "PDF",
     "EDIT": "Edit",
+    "EDIT_AND_APPROVE": "Edit & Approve",
     "SEE_HISTORY": "See history",
     "DELETE": "Delete",
     "REJECTION_MODAL_TITLE": "Reason for Rejection",
@@ -893,6 +894,7 @@
     "WAREHOUSE_ACCEPTED": "Warehouse Accepted",
     "WAREHOUSE_REJECTION_REASON": "Warehouse Rejection Reason",
     "SAP_ID": "SAP ID",
+    "INVOICE_FOLIO": "Invoice Number",
     "PART_NUMBER": "Part Number",
     "UNIT_PRICE": "Unit Price",
     "SUBTOTAL": "Subtotal",
@@ -1010,6 +1012,8 @@
       "SEARCH_FOLIO": "Search folio",
       "SEARCH_PLACEHOLDER": "e.g. 545092",
       "CLEAR_SEARCH": "Clear search",
+      "CURRENCY": "Currency",
+      "CURRENCY_PLACEHOLDER": "Select currency",
       "HELP": "Annual retrieves all invoices. Sporadic limits the query to the last 30 days."
     },
     "INVOICE": {
@@ -1178,7 +1182,14 @@
     "COL_UNIT_PRICE": "Unit Price",
     "COL_AMOUNT": "Amount",
     "ADD_TO_EXISTING": "Add to existing request",
-    "ADD_TO_NEW": "Add to new request"
+    "ADD_TO_NEW": "Add to new request",
+    "TAB_SEARCH": "Search orders",
+    "TAB_CREATE": "New return order",
+    "CLIENT_SEARCH_LABEL": "Search client",
+    "CLIENT_SEARCH_PLACEHOLDER": "Business name or client number",
+    "CLIENT_SEARCH_HINT": "Type to search and select the client to generate the order for.",
+    "SEARCHING_CLIENTS": "Searching clients...",
+    "CHANGE_CLIENT": "Change client"
   },
   "TAB_CONTAINER": {
     "BACK": "Back",

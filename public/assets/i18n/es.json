@@ -531,6 +531,7 @@
     "DECLINE": "Rechazar",
     "PDF": "PDF",
     "EDIT": "Editar",
+    "EDIT_AND_APPROVE": "Editar y Aprobar",
     "SEE_HISTORY": "Ver historial",
     "DELETE": "Eliminar",
     "REJECTION_MODAL_TITLE": "Razón de Rechazo",
@@ -893,6 +894,7 @@
     "WAREHOUSE_ACCEPTED": "Almacén Aceptado",
     "WAREHOUSE_REJECTION_REASON": "Motivo de Rechazo Almacén",
     "SAP_ID": "ID SAP",
+    "INVOICE_FOLIO": "Número de Factura",
     "PART_NUMBER": "Número de Parte",
     "UNIT_PRICE": "Precio Unitario",
     "SUBTOTAL": "Subtotal",
@@ -1010,6 +1012,8 @@
       "SEARCH_FOLIO": "Buscar folio",
       "SEARCH_PLACEHOLDER": "Ej. 545092",
       "CLEAR_SEARCH": "Limpiar búsqueda",
+      "CURRENCY": "Moneda",
+      "CURRENCY_PLACEHOLDER": "Seleccionar moneda",
       "HELP": "Anual trae todas las facturas. Esporádica limita la consulta a los últimos 30 días."
     },
     "INVOICE": {
@@ -1178,7 +1182,14 @@
     "COL_UNIT_PRICE": "P.U.",
     "COL_AMOUNT": "Importe",
     "ADD_TO_EXISTING": "Agregar a solicitud existente",
-    "ADD_TO_NEW": "Agregar a solicitud nueva"
+    "ADD_TO_NEW": "Agregar a solicitud nueva",
+    "TAB_SEARCH": "Buscar órdenes",
+    "TAB_CREATE": "Nueva orden de devolución",
+    "CLIENT_SEARCH_LABEL": "Buscar cliente",
+    "CLIENT_SEARCH_PLACEHOLDER": "Razón social o número de cliente",
+    "CLIENT_SEARCH_HINT": "Escribe para buscar y selecciona el cliente para el que quieres generar la orden.",
+    "SEARCHING_CLIENTS": "Buscando clientes...",
+    "CHANGE_CLIENT": "Cambiar cliente"
   },
   "TAB_CONTAINER": {
     "BACK": "Atrás",
