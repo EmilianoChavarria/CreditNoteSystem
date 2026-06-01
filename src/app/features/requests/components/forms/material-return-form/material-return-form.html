@@ -10,7 +10,7 @@
         [canCancel]="approvalContext?.canCancel ?? false"
         [canReturn]="approvalContext?.canReturn ?? false"
         [actionsDisabledExceptCancel]="allReplenishmentZero()"
-        (onSaveAndApprove)="saveAndApprove()" (onDeclineAction)="saveAndDecline()"
+        (onSaveAndApprove)="saveAndApprove()" (onSaveOnly)="saveRequest()" (onDeclineAction)="saveAndDecline()"
         (onCancelAction)="saveAndCancel()" (onReturnAction)="saveAndReturn()">
         <app-tab [titleT]="'NEW_REQUEST_FORM.TAB_REQUEST_CUSTOMER' | translate">
             <div class="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-4 md:gap-8">
