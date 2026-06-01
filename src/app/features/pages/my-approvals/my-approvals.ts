@@ -113,7 +113,7 @@ export class MyApprovals extends RequestListBase {
         { key: 'return_order', icon: 'corner-up-left', label: 'MY_APPROVALS.RETURN_ORDER', accion: (request) => this.openSendBackModal(request) },
         { key: 'pdf', icon: 'file-text', label: 'MY_APPROVALS.PDF', accion: (request) => this.generatePdf(request) },
         { key: 'see_info', icon: 'info', label: 'PENDING_PAGE.SEE_INFO', accion: (request) => this.openInfoModal(request) },
-        { key: 'edit', icon: 'pencil', label: 'MY_APPROVALS.EDIT', accion: (request) => this.editRequest(request, '/app/my-approvals') },
+        { key: 'edit', icon: 'pencil', label: 'MY_APPROVALS.EDIT', accion: (request) => this.editRequestWithApprovalContext(request) },
         { key: 'history', icon: 'history', label: 'MY_APPROVALS.SEE_HISTORY', accion: (request) => this.logAction(request) },
     ];
     public acciones = signal<AccionPersonalizada<Request>[]>([]);
@@ -361,6 +361,23 @@ export class MyApprovals extends RequestListBase {
                 this.isInitializingDeepLink.set(false);
                 this.cdr.markForCheck();
             }
+        });
+    }
+
+    private editRequestWithApprovalContext(request: Request): void {
+        const requestTypeId = Number(request.requestTypeId ?? request.requestType?.id);
+        if (!requestTypeId || Number.isNaN(requestTypeId)) return;
+        const permissionsBySlug = this.requestTypeActionPermissions()[requestTypeId] ?? {};
+        const approvalActions = {
+            requestId: Number(request.id),
+            canApprove: getPermissionSlugsForCustomAction('approve').some(s => permissionsBySlug[s]),
+            canDecline: getPermissionSlugsForCustomAction('decline').some(s => permissionsBySlug[s]),
+            canCancel: getPermissionSlugsForCustomAction('cancel').some(s => permissionsBySlug[s]),
+            canReturn: getPermissionSlugsForCustomAction('return_order').some(s => permissionsBySlug[s]),
+        };
+        this._router.navigate(['/app/request/new-request'], {
+            queryParams: { requestTypeId },
+            state: { editRequest: request, returnTo: '/app/my-approvals', approvalActions }
         });
     }
 
