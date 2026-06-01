@@ -4,9 +4,11 @@ import { ChangeDetectionStrategy, Component, DestroyRef, effect, inject, signal 
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
-import { debounceTime, distinctUntilChanged, map, startWith } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, map, of, startWith, switchMap } from 'rxjs';
 import { CustomerService, ReturnOrderSearchEntry, ReturnOrderListItem } from '../../../core/services/customer-service';
 import { AssignExistingRequestModal } from './assign-existing-request-modal';
+import { Clients } from '../../clients/clients';
+import { Customer } from '../../../data/interfaces/Customer';
 
 interface ApprovalOrderProduct {
   id: string;
@@ -41,7 +43,7 @@ interface ReturnOrderForApproval {
 
 @Component({
   selector: 'app-return-orders-approval',
-  imports: [CommonModule, ReactiveFormsModule, AssignExistingRequestModal, TranslatePipe],
+  imports: [CommonModule, ReactiveFormsModule, AssignExistingRequestModal, TranslatePipe, Clients],
   templateUrl: './return-orders-approval.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -50,7 +52,16 @@ export class ReturnOrdersApproval {
   private readonly destroyRef = inject(DestroyRef);
   private readonly router = inject(Router);
 
+  protected readonly viewMode = signal<'search' | 'create'>('search');
+
+  // ── search-existing mode ──────────────────────────────────────────────────
   protected readonly searchControl = new FormControl<string>('', { nonNullable: true });
+
+  // ── create-new mode ───────────────────────────────────────────────────────
+  protected readonly clientSearchControl = new FormControl<string>('', { nonNullable: true });
+  protected readonly clientSearchResults = signal<Customer[]>([]);
+  protected readonly isSearchingClients = signal<boolean>(false);
+  protected readonly selectedClient = signal<Customer | null>(null);
   private readonly searchTerm = toSignal(
     this.searchControl.valueChanges.pipe(
       startWith(this.searchControl.value),
@@ -74,6 +85,27 @@ export class ReturnOrdersApproval {
   protected readonly selectedOrderId = signal<number | null>(null);
 
   constructor() {
+    this.clientSearchControl.valueChanges.pipe(
+      debounceTime(350),
+      distinctUntilChanged(),
+      map(v => v.trim()),
+      switchMap(term => {
+        if (!term) {
+          this.clientSearchResults.set([]);
+          this.isSearchingClients.set(false);
+          return of([]);
+        }
+        this.isSearchingClients.set(true);
+        return this.customerService.getCustomersByName(term).pipe(
+          catchError(() => of([])),
+        );
+      }),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(results => {
+      this.clientSearchResults.set(results as Customer[]);
+      this.isSearchingClients.set(false);
+    });
+
     effect(() => {
       const term = this.searchTerm();
 
@@ -89,6 +121,25 @@ export class ReturnOrdersApproval {
       this.hasSearched.set(true);
       this.loadOrders(term);
     });
+  }
+
+  protected selectClient(client: Customer): void {
+    this.selectedClient.set(client);
+    this.clientSearchControl.setValue('');
+    this.clientSearchResults.set([]);
+  }
+
+  protected clearSelectedClient(): void {
+    this.selectedClient.set(null);
+    this.clientSearchControl.setValue('');
+    this.clientSearchResults.set([]);
+  }
+
+  protected switchMode(mode: 'search' | 'create'): void {
+    this.viewMode.set(mode);
+    if (mode === 'search') {
+      this.clearSelectedClient();
+    }
   }
 
   protected toggleOrder(orderId: number): void {
