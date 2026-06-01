@@ -307,7 +307,17 @@
     "CREATED_AT": "Fecha de Creación",
     "UPDATED_AT": "Fecha de Actualización",
     "EDIT": "Editar",
-    "NO_DRAFTS": "No hay borradores"
+    "DELETE": "Eliminar",
+    "NO_DRAFTS": "No hay borradores",
+    "DELETE_CONFIRM_TITLE": "Eliminar borrador",
+    "DELETE_CONFIRM_MSG": "¿Estás seguro de que deseas eliminar este borrador? Esta acción no se puede deshacer.",
+    "DELETE_CONFIRM_BTN": "Eliminar",
+    "DELETING": "Eliminando...",
+    "CANCEL": "Cancelar",
+    "DELETE_SUCCESS": "Borrador eliminado correctamente",
+    "DELETE_ERROR": "No se pudo eliminar el borrador",
+    "SUCCESS": "Éxito",
+    "ERROR": "Error"
   },
   "BULK": {
     "OPEN": "Abrir",
@@ -531,7 +541,7 @@
     "DECLINE": "Rechazar",
     "PDF": "PDF",
     "EDIT": "Editar",
-    "EDIT_AND_APPROVE": "Editar y Aprobar",
+    "EDIT_AND_APPROVE": "Aprobar",
     "SEE_HISTORY": "Ver historial",
     "DELETE": "Eliminar",
     "REJECTION_MODAL_TITLE": "Razón de Rechazo",
