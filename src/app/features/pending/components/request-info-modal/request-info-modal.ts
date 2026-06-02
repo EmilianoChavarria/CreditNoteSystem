@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, inject, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal } from '@angular/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Modal } from '../../../../shared/components/ui/modal/modal';
 import { Spinner } from '../../../../shared/components/ui/spinner/spinner';
@@ -10,6 +10,8 @@ import { ApiResponse } from '../../../../data/interfaces/ApiResponse-interface';
 import { ToastService } from '../../../../core/services/toast-service';
 import { LucideAngularModule } from 'lucide-angular';
 import { finalize } from 'rxjs';
+import { ReturnOrderRequestService, ReturnOrderRequestByRequestData } from '../../../../core/services/return-order-request-service';
+import { ReturnOrderItemsModal } from './return-order-items-modal';
 
 interface SequenceStep {
   stepOrder: number;
@@ -24,12 +26,13 @@ interface SequenceStep {
 
 @Component({
   selector: 'app-request-info-modal',
-  imports: [Modal, TranslatePipe, DatePipe, UpperCasePipe, CurrencyPipe, Spinner, LucideAngularModule],
+  imports: [Modal, TranslatePipe, DatePipe, UpperCasePipe, CurrencyPipe, Spinner, LucideAngularModule, ReturnOrderItemsModal],
   templateUrl: './request-info-modal.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class RequestInfoModal {
   private readonly requestService = inject(RequestService);
+  private readonly returnOrderRequestService = inject(ReturnOrderRequestService);
   private readonly translateService = inject(TranslateService);
   private readonly toastService = inject(ToastService);
 
@@ -42,6 +45,14 @@ export class RequestInfoModal {
 
   readonly sequenceSteps = signal<SequenceStep[]>([]);
   readonly isLoadingSequence = signal(false);
+
+  readonly isLoadingReturnOrder = signal(false);
+  readonly returnOrderData = signal<ReturnOrderRequestByRequestData | null>(null);
+  readonly showReturnOrderItemsModal = signal(false);
+
+  readonly effectiveCurrency = computed(() =>
+    this.returnOrderData()?.returnOrder?.currency ?? this.request()?.currency ?? 'MXN'
+  );
 
   readonly isLoadingAttachments = signal(false);
   readonly attachments = signal<RequestAttachment[]>([]);
@@ -57,6 +68,7 @@ export class RequestInfoModal {
       if (!isOpen || !req?.id) {
         this.sequenceSteps.set([]);
         this.attachments.set([]);
+        this.returnOrderData.set(null);
         this.deletingAttachmentIds.set([]);
         this.openingAttachmentIds.set([]);
         this.showDeleteConfirmModal.set(false);
@@ -65,6 +77,17 @@ export class RequestInfoModal {
       }
       this.loadSequence(req);
       this.loadAttachments(req.id);
+      this.loadReturnOrderData(req.id);
+    });
+  }
+
+  private loadReturnOrderData(requestId: number): void {
+    this.isLoadingReturnOrder.set(true);
+    this.returnOrderRequestService.getByRequestId(requestId).pipe(
+      finalize(() => this.isLoadingReturnOrder.set(false))
+    ).subscribe({
+      next: (data) => this.returnOrderData.set(data),
+      error: () => this.returnOrderData.set(null)
     });
   }
 

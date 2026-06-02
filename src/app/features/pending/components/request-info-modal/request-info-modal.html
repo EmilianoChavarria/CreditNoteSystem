@@ -78,7 +78,7 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 rounded-2xl border border-indigo-100 bg-indigo-50/20 p-6">
           <div class="space-y-1">
             <label class="text-xs font-medium text-slate-500">{{ 'REQUEST_INFO.CURRENCY' | translate }}</label>
-            <p class="text-sm font-semibold text-slate-800">{{ req.currency }}</p>
+            <p class="text-sm font-semibold text-slate-800">{{ effectiveCurrency() }}</p>
           </div>
           <div class="space-y-1">
             <label class="text-xs font-medium text-slate-500">{{ 'REQUEST_INFO.EXCHANGE_RATE' | translate }}</label>
@@ -92,11 +92,11 @@
           </div>
           <div class="space-y-1">
             <label class="text-xs font-medium text-slate-500">{{ 'REQUEST_INFO.AMOUNT' | translate }}</label>
-            <p class="text-lg font-bold text-indigo-600">{{ req.amount | currency: req.currency }}</p>
+            <p class="text-lg font-bold text-indigo-600">{{ req.amount | currency: effectiveCurrency() }}</p>
           </div>
           <div class="space-y-1">
             <label class="text-xs font-medium text-slate-500">{{ 'REQUEST_INFO.TOTAL_AMOUNT' | translate }}</label>
-            <p class="text-lg font-bold text-indigo-700">{{ req.totalAmount | currency: req.currency }}</p>
+            <p class="text-lg font-bold text-indigo-700">{{ req.totalAmount | currency: effectiveCurrency() }}</p>
           </div>
         </div>
       </section>
@@ -161,17 +161,70 @@
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6 rounded-2xl border border-emerald-100 bg-emerald-50/20 p-6">
             <div class="space-y-1">
               <label class="text-xs font-medium text-slate-500">{{ 'REQUEST_INFO.REPLENISHMENT_AMOUNT' | translate }}</label>
-              <p class="text-sm font-semibold text-slate-800">{{ req.replenishmentAmount | currency: req.currency }}</p>
+              <p class="text-sm font-semibold text-slate-800">{{ req.replenishmentAmount | currency: effectiveCurrency() }}</p>
             </div>
             <div class="space-y-1">
               <label class="text-xs font-medium text-slate-500">{{ 'REQUEST_INFO.REPLENISHMENT_TOTAL' | translate }}</label>
-              <p class="text-sm font-semibold text-slate-800">{{ req.replenishmentTotal | currency: req.currency }}</p>
+              <p class="text-sm font-semibold text-slate-800">{{ req.replenishmentTotal | currency: effectiveCurrency() }}</p>
             </div>
             <div class="space-y-1">
               <label class="text-xs font-medium text-slate-500">{{ 'REQUEST_INFO.HAS_REPLENISHMENT_IVA' | translate }}</label>
               <p class="text-sm font-semibold text-slate-800">
                 {{ req.hasReplenishmentIva ? ('REQUEST_INFO.YES' | translate) : ('REQUEST_INFO.NO' | translate) }}
               </p>
+            </div>
+          </div>
+        </section>
+      }
+
+      <!-- Return Order -->
+      @if (isLoadingReturnOrder()) {
+        <section class="rounded-2xl border border-orange-100 bg-orange-50/20 p-5">
+          <div class="flex items-center gap-3">
+            <div class="p-1.5 bg-orange-100 rounded-lg text-orange-600">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+            <span class="text-sm font-bold uppercase tracking-wider text-orange-600">
+              {{ 'REQUEST_INFO.RETURN_ORDER' | translate }}
+            </span>
+            <app-spinner></app-spinner>
+          </div>
+        </section>
+      } @else if (returnOrderData(); as ro) {
+        <section class="rounded-2xl border border-orange-100 bg-orange-50/20 p-5">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+              <div class="p-1.5 bg-orange-100 rounded-lg text-orange-600">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              </div>
+              <div>
+                <p class="text-xs font-bold uppercase tracking-wider text-orange-600">
+                  {{ 'REQUEST_INFO.RETURN_ORDER' | translate }}
+                </p>
+                <p class="text-sm font-semibold text-slate-800 mt-0.5">
+                  RO-{{ ro.returnOrderId }}
+                  <span class="ml-2 inline-flex items-center rounded-full bg-orange-100 px-2 py-0.5 text-xs font-bold text-orange-700">
+                    {{ ro.returnOrder.status | uppercase }}
+                  </span>
+                </p>
+              </div>
+            </div>
+            <div class="flex items-center gap-6">
+              <div class="text-center">
+                <p class="text-xs text-slate-500">{{ 'REQUEST_INFO.RETURN_ORDER_CHARGE_PERCENT' | translate }}</p>
+                <p class="text-sm font-bold text-slate-800">{{ (ro.returnOrder.customRate ?? ro.returnOrder.chargeType.percentage) }}%</p>
+              </div>
+              <div class="text-center">
+                <p class="text-xs text-slate-500">{{ 'REQUEST_INFO.RETURN_ORDER_SUBTOTAL' | translate }}</p>
+                <p class="text-sm font-bold text-slate-800">{{ ro.globalSubTotal | currency: effectiveCurrency() }}</p>
+              </div>
+              <button
+                type="button"
+                class="inline-flex items-center gap-1.5 rounded-lg bg-orange-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-orange-700"
+                (click)="showReturnOrderItemsModal.set(true)">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
+                {{ 'REQUEST_INFO.RETURN_ORDER_VIEW_ITEMS' | translate }}
+              </button>
             </div>
           </div>
         </section>
@@ -425,6 +478,15 @@
     </div>
   }
 </app-modal>
+
+@if (returnOrderData(); as ro) {
+  <app-return-order-items-modal
+    [open]="showReturnOrderItemsModal()"
+    [returnOrderData]="ro"
+    [currency]="effectiveCurrency()"
+    (openChange)="showReturnOrderItemsModal.set($event)">
+  </app-return-order-items-modal>
+}
 
 <app-modal
   size="sm"

@@ -1,0 +1,124 @@
+<app-modal
+  size="2xl"
+  [titleM]="'REQUEST_INFO.RETURN_ORDER_MODAL_TITLE' | translate"
+  [open]="open()"
+  [closeText]="'REQUEST_INFO.CLOSE' | translate"
+  [showPrimaryButton]="false"
+  (openChange)="openChange.emit($event)">
+  <div class="space-y-6">
+
+    <!-- Summary row -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 rounded-xl border border-orange-100 bg-orange-50/30 p-4">
+      <div class="space-y-0.5">
+        <p class="text-xs text-slate-500">{{ 'REQUEST_INFO.RETURN_ORDER_ID' | translate }}</p>
+        <p class="text-sm font-bold text-slate-800">RO-{{ returnOrderData().returnOrderId }}</p>
+      </div>
+      <div class="space-y-0.5">
+        <p class="text-xs text-slate-500">{{ 'REQUEST_INFO.RETURN_ORDER_STATUS' | translate }}</p>
+        <p class="text-sm font-bold text-slate-800">{{ returnOrderData().returnOrder.status | uppercase }}</p>
+      </div>
+      <div class="space-y-0.5">
+        <p class="text-xs text-slate-500">{{ 'REQUEST_INFO.RETURN_ORDER_CHARGE_TYPE' | translate }}</p>
+        <p class="text-sm font-bold text-slate-800">
+          {{ returnOrderData().returnOrder.chargeType?.label || returnOrderData().returnOrder.chargeType?.name || '---' }}
+        </p>
+      </div>
+      <div class="space-y-0.5">
+        <p class="text-xs text-slate-500">{{ 'REQUEST_INFO.RETURN_ORDER_CHARGE_PERCENT' | translate }}</p>
+        <p class="text-sm font-bold text-orange-600">
+          {{ (returnOrderData().returnOrder.customRate ?? returnOrderData().returnOrder.chargeType.percentage) }}% 
+        </p>
+      </div>
+      @if (returnOrderData().returnOrder.notes) {
+        <div class="space-y-0.5 col-span-2 md:col-span-4">
+          <p class="text-xs text-slate-500">{{ 'REQUEST_INFO.RETURN_ORDER_NOTES' | translate }}</p>
+          <p class="text-sm text-slate-700 wrap-break-word">{{ returnOrderData().returnOrder.notes }}</p>
+        </div>
+      }
+    </div>
+
+    <!-- Items table -->
+    <div class="overflow-x-auto rounded-xl border border-slate-200">
+      <table class="w-full text-sm min-w-[900px]">
+        <thead class="bg-slate-50 border-b border-slate-200">
+          <tr>
+            <th class="text-left px-3 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">
+              {{ 'REQUEST_INFO.RETURN_ORDER_INVOICE' | translate }}
+            </th>
+            <th class="text-left px-3 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">
+              {{ 'REQUEST_INFO.RETURN_ORDER_DESCRIPTION' | translate }}
+            </th>
+            <th class="text-left px-3 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">
+              {{ 'REQUEST_INFO.RETURN_ORDER_SAP_ID' | translate }}
+            </th>
+            <th class="text-right px-3 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">
+              {{ 'REQUEST_INFO.RETURN_ORDER_QTY' | translate }}
+            </th>
+            <th class="text-right px-3 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 bg-emerald-50/50">
+              {{ 'REQUEST_INFO.RETURN_ORDER_REPLENISHMENT_ACCEPTED' | translate }}
+            </th>
+            <th class="text-left px-3 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 bg-emerald-50/50">
+              {{ 'REQUEST_INFO.RETURN_ORDER_REPLENISHMENT_REJECTED' | translate }}
+            </th>
+            <th class="text-right px-3 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 bg-blue-50/50">
+              {{ 'REQUEST_INFO.RETURN_ORDER_WAREHOUSE_RECEIVED' | translate }}
+            </th>
+            <th class="text-right px-3 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 bg-blue-50/50">
+              {{ 'REQUEST_INFO.RETURN_ORDER_WAREHOUSE_ACCEPTED' | translate }}
+            </th>
+            <th class="text-left px-3 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 bg-blue-50/50">
+              {{ 'REQUEST_INFO.RETURN_ORDER_WAREHOUSE_REJECTED' | translate }}
+            </th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          @for (item of returnOrderData().items; track item.id) {
+            <tr class="hover:bg-slate-50/50">
+              <td class="px-3 py-3 text-xs text-slate-600 whitespace-nowrap">{{ item.invoiceFolio }}</td>
+              <td class="px-3 py-3 text-slate-700 max-w-[200px]">
+                <p class="truncate" [title]="item.descripcion">{{ item.descripcion }}</p>
+                @if (item.partNumber) {
+                  <p class="text-xs text-slate-400">{{ item.partNumber }}</p>
+                }
+              </td>
+              <td class="px-3 py-3 text-xs font-mono text-slate-700">{{ item.sapId || '---' }}</td>
+              <td class="px-3 py-3 text-right font-semibold text-slate-800">{{ item.qtyToReturn }}</td>
+              <td class="px-3 py-3 text-right bg-emerald-50/30">
+                @if (item.replenishmentAccepted !== null && item.replenishmentAccepted !== undefined) {
+                  <span class="font-semibold text-emerald-700">{{ item.replenishmentAccepted }}</span>
+                } @else {
+                  <span class="text-slate-400">---</span>
+                }
+              </td>
+              <td class="px-3 py-3 text-xs text-slate-600 bg-emerald-50/30 max-w-[150px]">
+                <p class="truncate" [title]="item.replenishmentReasonForRejection ?? ''">
+                  {{ item.replenishmentReasonForRejection || '---' }}
+                </p>
+              </td>
+              <td class="px-3 py-3 text-right bg-blue-50/30">
+                @if (item.warehouseReceived !== null && item.warehouseReceived !== undefined) {
+                  <span class="font-semibold text-blue-700">{{ item.warehouseReceived }}</span>
+                } @else {
+                  <span class="text-slate-400">---</span>
+                }
+              </td>
+              <td class="px-3 py-3 text-right bg-blue-50/30">
+                @if (item.warehouseAccepted !== null && item.warehouseAccepted !== undefined) {
+                  <span class="font-semibold text-blue-700">{{ item.warehouseAccepted }}</span>
+                } @else {
+                  <span class="text-slate-400">---</span>
+                }
+              </td>
+              <td class="px-3 py-3 text-xs text-slate-600 bg-blue-50/30 max-w-[150px]">
+                <p class="truncate" [title]="item.warehouseReasonForRejection ?? ''">
+                  {{ item.warehouseReasonForRejection || '---' }}
+                </p>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</app-modal>
