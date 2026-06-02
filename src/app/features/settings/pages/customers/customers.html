@@ -15,7 +15,7 @@
         [paginaActualExterna]="currentPage()" [totalPaginasExterno]="totalPages()" [hasNextPage]="hasNextPage()"
         [hasPrevPage]="hasPrevPage()" [loading]="isLoadingTable()" (paginaSiguiente)="onNextPage()"
         (paginaAnterior)="onPrevPage()" (paginaPrimera)="onFirstPage()" (paginaUltima)="onLastPage()"
-        (registrosPorPaginaChange)="onPageSizeChange($event)" (searchChange)="onSearch($event)">
+        (registrosPorPaginaChange)="onPageSizeChange($event)" (searchChange)="onSearch($event)" (refreshClick)="getUsers()">
 
     </app-tabla-dinamica>
 

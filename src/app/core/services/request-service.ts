@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpService } from './http-service';
-import { catchError, map, Observable, shareReplay } from 'rxjs';
+import { catchError, map, Observable, of, shareReplay } from 'rxjs';
 import { Classification, Reason, Request, RequestType } from '../../data/interfaces/Request';
 import { ApiResponse } from '../../data/interfaces/ApiResponse-interface';
 import { CursorPagination } from './user-service';
@@ -15,6 +15,8 @@ import {
   RequestAttachment,
   RequestHistoryData,
   RequestNumber,
+  SendBackMassPayload,
+  SendBackMassResponse,
 } from '../../data/interfaces/RequestService';
 
 export type {
@@ -31,6 +33,8 @@ export type {
   RequestHistoryStep,
   RequestHistoryTimelineItem,
   RequestNumber,
+  SendBackMassPayload,
+  SendBackMassResponse,
 } from '../../data/interfaces/RequestService';
 
 interface RequestAttachmentsPayload {
@@ -66,13 +70,32 @@ export class RequestService {
   ) { }
 
   getExchangeRate(): Observable<string> {
-    return this.http.get(`https://www.banxico.org.mx/SieAPIRest/service/v1/series/SF43718/datos/oportuno?token=${this.token}`).pipe(
-      map((response: any) => response?.bmx?.series?.[0]?.datos?.[0]?.dato ?? ''),
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const endDate = this.formatDateForBanxico(yesterday);
+
+    const startFrom = new Date(yesterday);
+    startFrom.setDate(startFrom.getDate() - 7);
+    const startDate = this.formatDateForBanxico(startFrom);
+
+    return this.http.get(`https://www.banxico.org.mx/SieAPIRest/service/v1/series/SF43718/datos/${startDate}/${endDate}?token=${this.token}`).pipe(
+      map((response: any) => {
+        const datos: { fecha: string; dato: string }[] = response?.bmx?.series?.[0]?.datos ?? [];
+        const available = datos.filter((d) => d.dato && d.dato !== 'N/E');
+        return available[available.length - 1]?.dato ?? '';
+      }),
       catchError((error: any) => {
         console.log(error);
         throw error;
       })
-    )
+    );
+  }
+
+  private formatDateForBanxico(date: Date): string {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
   }
 
   getReasons(requestTypeId: number): Observable<Reason[]> {
@@ -95,8 +118,26 @@ export class RequestService {
     return reasons$;
   }
 
-  getMyPendingRequests(requestTypeId: number, perPage = 10, page = 1, search?: string, roleName = 'all'): Observable<PagePagination<Request>> {
-    const params: { requestTypeId: number; per_page: number; page: number; search?: string; roleName?: string } = {
+  getRequesters(requestTypeId: number): Observable<{ id: number; fullName: string }[]> {
+    return this._httpService.get<{ id: number; fullName: string }[]>('/requests/requesters', {
+      params: { requestTypeId }
+    }).pipe(
+      map((response: ApiResponse<{ id: number; fullName: string }[]>) => response.data ?? []),
+      catchError(() => of([]))
+    );
+  }
+
+  getMyPendingClassifications(requestTypeId: number): Observable<{ type: string }[]> {
+    return this._httpService.get<{ type: string }[]>('/classifications/my-pending', {
+      params: { requestTypeId }
+    }).pipe(
+      map((response: ApiResponse<{ type: string }[]>) => response.data ?? []),
+      catchError(() => of([]))
+    );
+  }
+
+  getMyPendingRequests(requestTypeId: number, perPage = 10, page = 1, search?: string, roleName = 'all', requesterId?: string, classificationType?: string): Observable<PagePagination<Request>> {
+    const params: { requestTypeId: number; per_page: number; page: number; search?: string; roleName?: string; requesterId?: string; classificationType?: string } = {
       requestTypeId,
       per_page: perPage,
       page,
@@ -107,6 +148,14 @@ export class RequestService {
     }
 
     params.roleName = roleName?.trim() || 'all';
+
+    if (requesterId && requesterId !== 'all') {
+      params.requesterId = requesterId;
+    }
+
+    if (classificationType && classificationType !== 'all') {
+      params.classificationType = classificationType;
+    }
 
     return this._httpService.get<PagePagination<Request>>('/requests/pending/me', {
       params
@@ -210,14 +259,18 @@ export class RequestService {
     );
   }
 
-  getRequestsByTypeWithPagePagination(id: number, perPage = 10, page = 1, search?: string, roleName = 'all'): Observable<PagePagination<Request>> {
-    const params: { per_page: number; page: number; search?: string; roleName?: string } = { per_page: perPage, page };
+  getRequestsByTypeWithPagePagination(id: number, perPage = 10, page = 1, search?: string, roleName = 'all', requesterId?: string): Observable<PagePagination<Request>> {
+    const params: { per_page: number; page: number; search?: string; roleName?: string; requesterId?: string } = { per_page: perPage, page };
 
     if (search && search.trim().length > 0) {
       params.search = search.trim();
     }
 
     params.roleName = roleName?.trim() || 'all';
+
+    if (requesterId && requesterId !== 'all') {
+      params.requesterId = requesterId;
+    }
 
     return this._httpService.get<PagePagination<Request>>(`/requests/${id}`, { params }).pipe(
       map((response: ApiResponse<PagePagination<Request>>) => {
@@ -240,23 +293,19 @@ export class RequestService {
     );
   }
 
-  getDraftsPaginated(perPage = 10, cursor?: string | null): Observable<CursorPagination<Request>> {
-    const params: { perPage: number; cursor?: string } = { perPage };
-
-    if (cursor) {
-      params.cursor = cursor;
-    }
-
-    return this._httpService.get<CursorPagination<Request>>(`/requests/drafts`, { params }).pipe(
-      map((response: ApiResponse<CursorPagination<Request>>) => {
+  getDraftsPaginated(perPage = 10, page = 1): Observable<PagePagination<Request>> {
+    return this._httpService.get<PagePagination<Request>>('/requests/drafts', {
+      params: { per_page: perPage, page }
+    }).pipe(
+      map((response: ApiResponse<PagePagination<Request>>) => {
         const payload = response.data;
-
         return {
           data: payload?.data ?? [],
+          current_page: payload?.current_page ?? 1,
+          last_page: payload?.last_page ?? 1,
           per_page: payload?.per_page,
-          next_cursor: payload?.next_cursor ?? null,
+          total: payload?.total,
           next_page_url: payload?.next_page_url ?? null,
-          prev_cursor: payload?.prev_cursor ?? null,
           prev_page_url: payload?.prev_page_url ?? null,
         };
       }),
@@ -324,6 +373,15 @@ export class RequestService {
         throw error;
       })
     )
+  }
+
+  deleteDraft(id: number): Observable<ApiResponse<null>> {
+    return this._httpService.delete<null>(`/requests/drafts/${id}`).pipe(
+      catchError((error) => {
+        console.log(error);
+        throw error;
+      })
+    );
   }
 
   getRequestTypes(): Observable<RequestType[]> {
@@ -427,6 +485,23 @@ export class RequestService {
         totalCancelled: 0,
         totalFailed: requestIds.length,
         cancelledRequestIds: [],
+        failedRequests: [],
+      }),
+      catchError((error) => {
+        console.log(error);
+        throw error;
+      })
+    );
+  }
+
+  sendBackMassRequests(requestIds: number[], targetWorkflowStepId: number, comments?: string): Observable<SendBackMassResponse> {
+    const payload: SendBackMassPayload = { requestIds, targetWorkflowStepId, comments };
+    return this._httpService.post<SendBackMassResponse>('/requests/send-back-mass', payload).pipe(
+      map((response: ApiResponse<SendBackMassResponse>) => response.data ?? {
+        totalReceived: requestIds.length,
+        totalSentBack: 0,
+        totalFailed: requestIds.length,
+        sentBackRequestIds: [],
         failedRequests: [],
       }),
       catchError((error) => {

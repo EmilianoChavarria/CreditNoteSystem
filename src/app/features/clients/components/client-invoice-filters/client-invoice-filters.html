@@ -1,23 +1,33 @@
 <section class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
     [attr.aria-label]="'CLIENT_INVOICES.FILTERS.ARIA' | translate">
-    <div class="grid grid-cols-1 gap-3 md:grid-cols-[280px_minmax(260px,360px)]">
+    <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
         <label class="flex flex-col gap-1 text-sm text-gray-700">
-            <span class="text-xs font-medium text-gray-600">{{ 'CLIENT_INVOICES.FILTERS.CHARGE_TYPE' | translate }}</span>
+            <span class="text-xs font-medium text-gray-600">{{ 'CLIENT_INVOICES.FILTERS.CHARGE_TYPE' | translate
+                }}</span>
             <select class="h-10 rounded-md border border-gray-300 px-3 text-sm" [formControl]="chargeType()">
                 @for (option of chargeTypeOptions(); track option.id) {
                 <option [value]="option.id">{{ option.label }}</option>
                 }
             </select>
         </label>
-
         <label class="flex flex-col gap-1 text-sm text-gray-700">
-            <span class="text-xs font-medium text-gray-600">{{ 'CLIENT_INVOICES.FILTERS.SEARCH_FOLIO' | translate }}</span>
+            <span class="text-xs font-medium text-gray-600">{{ 'CLIENT_INVOICES.FILTERS.CURRENCY' | translate }}</span>
+            <select class="h-10 rounded-md border border-gray-300 px-3 text-sm" [formControl]="currency()">
+                <option value="" disabled>{{ 'CLIENT_INVOICES.FILTERS.CURRENCY_PLACEHOLDER' | translate }}</option>
+                <option value="MXN">MXN</option>
+                <option value="USD">USD</option>
+            </select>
+        </label>
+        <label class="flex flex-col gap-1 text-sm text-gray-700">
+            <span class="text-xs font-medium text-gray-600">{{ 'CLIENT_INVOICES.FILTERS.SEARCH_FOLIO' | translate
+                }}</span>
             <span class="relative">
                 <lucide-icon class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
                     name="search" size="16"></lucide-icon>
                 <input
                     class="h-10 w-full rounded-md border border-gray-300 pl-12 pr-9 text-sm text-gray-700 outline-none placeholder:text-gray-400 focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
-                    type="search" [formControl]="search()" [placeholder]="'CLIENT_INVOICES.FILTERS.SEARCH_PLACEHOLDER' | translate" />
+                    type="search" [formControl]="search()"
+                    [placeholder]="'CLIENT_INVOICES.FILTERS.SEARCH_PLACEHOLDER' | translate" />
                 @if (search().value) {
                 <button type="button"
                     class="absolute right-2 top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-gray-500 hover:bg-gray-100"
@@ -28,6 +38,8 @@
                 }
             </span>
         </label>
+
+
     </div>
 
     <p class="mt-2 text-xs text-gray-500">

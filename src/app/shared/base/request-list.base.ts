@@ -46,6 +46,10 @@ export abstract class RequestListBase {
     public selectedRequestForInfo = signal<Request | null>(null);
     public canDeleteInfoAttachments = signal<boolean>(false);
     protected readonly requestTypeActionPermissions = signal<Record<number, Record<string, boolean>>>({});
+    public selectedRequesterId = signal<string>('all');
+    public requesterOptions = signal<{ label: string; value: string }[]>([]);
+    public selectedClassificationType = signal<string>('all');
+    public classificationTypeOptions = signal<{ label: string; value: string }[]>([]);
     protected currentLanguage = signal<string>(this._translateService.currentLang || 'es');
     protected searchDebounceTimeout: ReturnType<typeof setTimeout> | null = null;
 
@@ -287,6 +291,37 @@ export abstract class RequestListBase {
         this.selectedRoleName.set(normalizedRoleName);
         this.resetPagination();
 
+        if (this.selectedRequestType !== 'DE' && this.selectedRequestType) {
+            this.loadRequests();
+        }
+    }
+
+    protected loadRequesterOptions(requestTypeId: number): void {
+        this._requestsService.getRequesters(requestTypeId).subscribe({
+            next: (requesters) => {
+                this.requesterOptions.set(
+                    requesters.map((r) => ({ label: r.fullName.toUpperCase(), value: String(r.id) }))
+                );
+            },
+            error: () => this.requesterOptions.set([])
+        });
+    }
+
+    onRequesterFilterChange(value: string): void {
+        const normalized = value?.trim() || 'all';
+        if (normalized === this.selectedRequesterId()) return;
+        this.selectedRequesterId.set(normalized);
+        this.resetPagination();
+        if (this.selectedRequestType !== 'DE' && this.selectedRequestType) {
+            this.loadRequests();
+        }
+    }
+
+    onClassificationTypeFilterChange(value: string): void {
+        const normalized = value?.trim() || 'all';
+        if (normalized === this.selectedClassificationType()) return;
+        this.selectedClassificationType.set(normalized);
+        this.resetPagination();
         if (this.selectedRequestType !== 'DE' && this.selectedRequestType) {
             this.loadRequests();
         }

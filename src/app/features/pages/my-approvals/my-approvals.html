@@ -68,6 +68,14 @@
                     {{'MY_APPROVALS.BULK_CANCEL' | translate}}
                 </button>
                 }
+                @if (canBulkSendBack()) {
+                <button type="button" (click)="openBulkSendBackModal()"
+                    [disabled]="!selectedCount() || isBulkProcessing() || !canExecuteBulkSendBack()"
+                    [title]="!canExecuteBulkSendBack() && selectedCount() ? ('MY_APPROVALS.BULK_SEND_BACK_DISABLED_HINT' | translate) : ''"
+                    class="rounded-md bg-[#3c6194] px-3 py-2 text-sm font-semibold text-white hover:bg-[#2e4d7a] disabled:cursor-not-allowed disabled:opacity-50">
+                    {{'MY_APPROVALS.BULK_SEND_BACK' | translate}}
+                </button>
+                }
             </div>
         </div>
     </section>
@@ -83,8 +91,13 @@
         [serverPagination]="true" [paginaActualExterna]="currentPage()" [totalPaginasExterno]="totalPages()"
         [hasNextPage]="hasNextPage()" [hasPrevPage]="hasPrevPage()" (searchChange)="onSearch($event)"
         (filterChange)="onRoleFilterChange($event)"
+        [secondFilterOptions]="requesterOptions()" [secondFilterDefault]="selectedRequesterId()"
+        (secondFilterChange)="onRequesterFilterChange($event)"
+        [thirdFilterOptions]="classificationTypeOptions()" [thirdFilterDefault]="selectedClassificationType()"
+        [thirdFilterAllLabel]="'FILTERS.ALL_CLASSIFICATIONS'"
+        (thirdFilterChange)="onClassificationTypeFilterChange($event)"
         (paginaSiguiente)="onNextPage()" (paginaAnterior)="onPrevPage()" (paginaPrimera)="onFirstPage()"
-        (paginaUltima)="onLastPage()" (registrosPorPaginaChange)="onPageSizeChange($event)">
+        (paginaUltima)="onLastPage()" (registrosPorPaginaChange)="onPageSizeChange($event)" (refreshClick)="refreshData()">
 
         <ng-template #cellTemplate let-item let-column="column">
             @if (column.key === 'bulkSelect') {
@@ -92,8 +105,6 @@
                 (change)="toggleRequestSelection(item, $any($event.target).checked)"
                 class="h-4 w-4 rounded border-gray-300 text-[#3c6194] focus:ring-[#3c6194]"
                 [attr.aria-label]="'Select request ' + item.requestNumber">
-            } @else if (column.key === 'requestType.name') {
-            <app-badge color="blue" [text]="item.requestType.name | uppercase" />
             } @else if (column.key === 'status') {
             @if (item.workflowCurrentStep?.assigned_role?.roleName && item.status?.toLowerCase() !== 'cancelled') {
             <div class="inline-flex max-w-55 rounded-lg px-2 py-1"
@@ -112,11 +123,16 @@
             <div class="w-fit rounded-lg px-2"
                 [style]="`background-color: ${item.workflowCurrentStep.assigned_role.color +'1A'}; color:${item.workflowCurrentStep.assigned_role.color}` ">
                 <span
-                    [class]="`text-center font-semibold text-nowrap`">{{item.workflowCurrentStep?.assigned_user?.fullName}}</span>
+                    [class]="`text-center font-semibold text-nowrap`">{{item.workflowCurrentStep?.assigned_user?.fullName | uppercase}}</span>
             </div>
             } @else {
             <app-badge color="green" [text]="item.status | uppercase" />
             }
+            }@else if (column.key === 'razonSocial') {
+            <div class="w-fit">
+                <span
+                    [class]="`text-center font-semibold text-nowrap`">{{item.customerId}} - {{(item.razonSocial .length > 20) ? (item.razonSocial| slice:0:25) + '...' : item.razonSocial}}</span>
+            </div>
             }
         </ng-template>
     </app-tabla-dinamica>
@@ -208,6 +224,15 @@
         (openChange)="onSendBackModalChange($event)"
         (sent)="onSendBackSent()">
     </app-send-back-modal>
+
+    <app-bulk-send-back-modal
+        [open]="showBulkSendBackModal()"
+        [requestIds]="selectedRequestIdsArray()"
+        [sampleRequestId]="firstSelectedRequest()?.id ?? null"
+        [selectedCount]="selectedCount()"
+        (openChange)="onBulkSendBackModalChange($event)"
+        (sent)="onBulkSendBackSent()">
+    </app-bulk-send-back-modal>
 
     <app-modal size="md" [titleM]="'MY_APPROVALS.CANCEL_REQUEST_MODAL_TITLE' | translate" [open]="showCancelModal()"
         [closeText]="'MY_APPROVALS.CANCEL' | translate"

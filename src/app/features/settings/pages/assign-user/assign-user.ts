@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { finalize, forkJoin } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
+import { TranslatePipe } from '@ngx-translate/core';
 import {
   AssignmentBatchItemResult,
   AssignmentBatchSummary,
@@ -11,7 +12,7 @@ import {
 
 @Component({
   selector: 'app-assign-user',
-  imports: [],
+  imports: [TranslatePipe],
   templateUrl: './assign-user.html',
   styleUrl: './assign-user.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

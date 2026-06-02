@@ -96,7 +96,13 @@
     "ZIP_BUTTON": "Export to ZIP",
     "EXCEL_BUTTON": "Export to Excel",
     "BULK_BUTTON": "Bulk Upload",
-    "ADD_BUTTON": "Add"
+    "ADD_BUTTON": "Add",
+    "EXPORT_ALL": "All data",
+    "EXPORT_DATE_RANGE": "Date range",
+    "EXPORT_DATE_RANGE_TITLE": "Export by date range",
+    "DATE_FROM": "Start date",
+    "DATE_TO": "End date",
+    "EXPORT": "Export"
   },
   "USER_MANAGE": {
     "TITLE": "User Management",
@@ -301,7 +307,17 @@
     "CREATED_AT": "Created At",
     "UPDATED_AT": "Updated At",
     "EDIT": "Edit",
-    "NO_DRAFTS": "No drafts found"
+    "DELETE": "Delete",
+    "NO_DRAFTS": "No drafts found",
+    "DELETE_CONFIRM_TITLE": "Delete draft",
+    "DELETE_CONFIRM_MSG": "Are you sure you want to delete this draft? This action cannot be undone.",
+    "DELETE_CONFIRM_BTN": "Delete",
+    "DELETING": "Deleting...",
+    "CANCEL": "Cancel",
+    "DELETE_SUCCESS": "Draft deleted successfully",
+    "DELETE_ERROR": "Could not delete the draft",
+    "SUCCESS": "Success",
+    "ERROR": "Error"
   },
   "BULK": {
     "OPEN": "Open",
@@ -505,6 +521,11 @@
   "REJECTION": {
     "REASON": "Reason"
   },
+  "FILTERS": {
+    "CREATED_BY": "Created by",
+    "ALL_REQUESTERS": "All users",
+    "ALL_CLASSIFICATIONS": "All classifications"
+  },
   "MY_APPROVALS": {
     "TITLE": "My Approvals",
     "DESCRIPTION": "List of requests that the user has to approve",
@@ -520,6 +541,8 @@
     "DECLINE": "Decline",
     "PDF": "PDF",
     "EDIT": "Edit",
+    "EDIT_AND_APPROVE": "Approve",
+    "EDIT_ONLY": "Edit changes",
     "SEE_HISTORY": "See history",
     "DELETE": "Delete",
     "REJECTION_MODAL_TITLE": "Reason for Rejection",
@@ -560,6 +583,11 @@
     "BULK_CANCEL_MODAL_TITLE": "Confirm bulk cancellation",
     "BULK_CANCEL_CONFIRM": "{{count}} selected requests will be cancelled.",
     "BULK_CANCELLING": "Cancelling...",
+    "BULK_SEND_BACK": "Bulk send back",
+    "BULK_SEND_BACK_MODAL_TITLE": "Send requests back to a previous step",
+    "BULK_SEND_BACK_CONFIRM": "{{count}} selected requests will be sent back to the selected step.",
+    "BULK_SENDING_BACK": "Sending back...",
+    "BULK_SEND_BACK_DISABLED_HINT": "Selected requests must be on the same step and belong to the same classification type.",
     "BULK_APPROVING": "Approving...",
     "BULK_REJECTING": "Rejecting...",
     "APPROVING": "Approving...",
@@ -595,7 +623,10 @@
       "BULK_REJECT_ERROR": "Error processing bulk rejection.",
       "BULK_CANCEL_SUCCESS": "{{cancelled}} of {{total}} requests were cancelled.",
       "BULK_CANCEL_PARTIAL": "{{failed}} requests could not be cancelled.",
-      "BULK_CANCEL_ERROR": "Error processing bulk cancellation."
+      "BULK_CANCEL_ERROR": "Error processing bulk cancellation.",
+      "BULK_SEND_BACK_SUCCESS": "{{sentBack}} of {{total}} requests were sent back.",
+      "BULK_SEND_BACK_PARTIAL": "{{failed}} requests could not be sent back.",
+      "BULK_SEND_BACK_ERROR": "Error processing bulk send back."
     }
   },
   "PENDING_PAGE": {
@@ -874,6 +905,7 @@
     "WAREHOUSE_ACCEPTED": "Warehouse Accepted",
     "WAREHOUSE_REJECTION_REASON": "Warehouse Rejection Reason",
     "SAP_ID": "SAP ID",
+    "INVOICE_FOLIO": "Invoice Number",
     "PART_NUMBER": "Part Number",
     "UNIT_PRICE": "Unit Price",
     "SUBTOTAL": "Subtotal",
@@ -918,26 +950,25 @@
   },
   "ASSIGN_USER": {
     "TITLE": "Leader User Assignment",
+    "SUBTITLE": "Select a CS LEADER and manage their assignments",
     "DESCRIPTION": "Assign or unassign REQUESTER/PROCESSOR users to CS LEADER profiles",
-    "LOADING": "Loading assignment catalogs...",
-    "ASSIGNMENT_PANEL": "Assignment Panel",
+    "LOADING_CATALOGS": "Loading leaders and assignable users...",
     "LEADER": "Leader (CS LEADER)",
     "SELECT_LEADER": "Select a leader",
-    "ASSIGNABLE_USER": "Assignable User",
-    "SELECT_ASSIGNABLE": "Select a user",
+    "NO_ROLE": "No role",
+    "SAVING": "Saving...",
+    "SAVE_ASSIGNMENTS": "Save assignments",
+    "SELECT_LEADER_TO_VIEW": "Select a leader to view the assignment lists.",
+    "AVAILABLE_USERS": "Assignable users",
+    "NO_AVAILABLE": "No users available to assign.",
+    "ASSIGNED_TO_LEADER": "Assigned to leader",
+    "LOADING_ASSIGNED": "Loading leader's assigned users...",
+    "NO_ASSIGNED": "This leader has no assigned users.",
+    "PENDING": "Pending",
+    "ADD_USER_ARIA": "Add user",
+    "REMOVE_USER_ARIA": "Remove user",
     "ASSIGN": "Assign",
-    "ASSIGNING": "Assigning...",
-    "ASSIGNED_LIST": "Assigned Users",
-    "PICK_LEADER_FIRST": "Select a leader to view their assignments.",
-    "LOADING_ASSIGNED": "Loading assigned users...",
-    "NO_ASSIGNED": "This leader has no assigned users yet.",
-    "USER": "User",
-    "ROLE": "Role",
-    "ACTIONS": "Actions",
-    "UNASSIGN": "Unassign",
-    "UNASSIGNING": "Processing...",
-    "UX_HINT_TITLE": "Tip",
-    "UX_HINT_DESC": "Candidates list automatically excludes users already assigned to the selected leader."
+    "UNASSIGN": "Unassign"
   },
   "INVOICE_SEARCH": {
     "PORTAL_LABEL": "Customer Portal",
@@ -992,6 +1023,8 @@
       "SEARCH_FOLIO": "Search folio",
       "SEARCH_PLACEHOLDER": "e.g. 545092",
       "CLEAR_SEARCH": "Clear search",
+      "CURRENCY": "Currency",
+      "CURRENCY_PLACEHOLDER": "Select currency",
       "HELP": "Annual retrieves all invoices. Sporadic limits the query to the last 30 days."
     },
     "INVOICE": {
@@ -1160,7 +1193,14 @@
     "COL_UNIT_PRICE": "Unit Price",
     "COL_AMOUNT": "Amount",
     "ADD_TO_EXISTING": "Add to existing request",
-    "ADD_TO_NEW": "Add to new request"
+    "ADD_TO_NEW": "Add to new request",
+    "TAB_SEARCH": "Search orders",
+    "TAB_CREATE": "New return order",
+    "CLIENT_SEARCH_LABEL": "Search client",
+    "CLIENT_SEARCH_PLACEHOLDER": "Business name or client number",
+    "CLIENT_SEARCH_HINT": "Type to search and select the client to generate the order for.",
+    "SEARCHING_CLIENTS": "Searching clients...",
+    "CHANGE_CLIENT": "Change client"
   },
   "TAB_CONTAINER": {
     "BACK": "Back",

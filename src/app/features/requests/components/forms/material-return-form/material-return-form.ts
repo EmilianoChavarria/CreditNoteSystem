@@ -1,7 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { RequestService } from '../../../../../core/services/request-service';
-import { CustomerService, ReturnOrderListEntry, ReturnOrderListItem } from '../../../../../core/services/customer-service';
+import { ChargeTypeOption, CustomerService, ReturnOrderListEntry, ReturnOrderListItem } from '../../../../../core/services/customer-service';
 import { ToastService } from '../../../../../core/services/toast-service';
 import { BaseRequestForm } from '../../shared/base-request-form';
 import { TabsContainer } from '../../../../../shared/components/ui/tab/tab-container/tab-container';
@@ -10,8 +10,9 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Autocomplete } from '../../../../../shared/components/ui/autocomplete/autocomplete';
 import { CurrencyPipe, DecimalPipe, TitleCasePipe } from '@angular/common';
+import { LucideAngularModule } from 'lucide-angular';
 import { Spinner } from '../../../../../shared/components/ui/spinner/spinner';
-import { Observable, of, switchMap, take, catchError } from 'rxjs';
+import { Observable, of, forkJoin, switchMap, take, catchError } from 'rxjs';
 import { SimpleChanges } from '@angular/core';
 import {
   ReturnOrderRequestByRequestData,
@@ -22,7 +23,7 @@ import {
 
 @Component({
   selector: 'app-material-return-form',
-  imports: [TabsContainer, Tab, ReactiveFormsModule, TranslatePipe, Autocomplete, TitleCasePipe, Spinner, DecimalPipe],
+  imports: [TabsContainer, Tab, ReactiveFormsModule, TranslatePipe, Autocomplete, TitleCasePipe, Spinner, DecimalPipe, LucideAngularModule],
   templateUrl: './material-return-form.html',
   styleUrl: './material-return-form.css',
 })
@@ -58,6 +59,14 @@ export class MaterialReturnForm extends BaseRequestForm {
   protected readonly replenishmentReasonByMaterialId = signal<Map<number, string>>(new Map());
   protected readonly warehouseReasonByMaterialId = signal<Map<number, string>>(new Map());
   protected readonly sapIdByMaterialId = signal<Map<number, string>>(new Map());
+
+  protected readonly allReplenishmentZero = computed(() => {
+    const list = this.materialList();
+    if (list.length === 0) return false;
+    const acceptedMap = this.replenishmentAcceptedByMaterialId();
+    if (acceptedMap.size === 0) return false;
+    return !Array.from(acceptedMap.values()).some(v => v > 0);
+  });
 
   // Flags for IVA
   protected readonly hasReplenishmentIva = signal<boolean>(false);
@@ -121,6 +130,21 @@ export class MaterialReturnForm extends BaseRequestForm {
     private readonly returnOrderRequestService: ReturnOrderRequestService,
   ) {
     super(requestService, customerService, toastService);
+  }
+
+  override saveRequest(): void {
+    if (this.allReplenishmentZero()) {
+      return;
+    }
+    super.saveRequest();
+  }
+
+  override saveAndCancel(): void {
+    if (this.allReplenishmentZero()) {
+      this.cancelActionTriggered.emit();
+      return;
+    }
+    super.saveAndCancel();
   }
 
   protected override getFormOptions() {
@@ -277,8 +301,38 @@ export class MaterialReturnForm extends BaseRequestForm {
     this.materialList.set([]);
     this.resetItemInputState();
 
-    this._customerService.getReturnOrderById(orderId).subscribe({
-      next: (order: ReturnOrderListEntry | null) => {
+    forkJoin({
+      order: this._customerService.getReturnOrderById(orderId).pipe(catchError(() => of(null))),
+      chargeTypes: this._customerService.getChargeTypes().pipe(catchError(() => of([] as ChargeTypeOption[]))),
+    }).subscribe({
+      next: ({ order, chargeTypes }) => {
+        const chargeTypeId = order?.chargeTypeId ?? null;
+        const customRate = order?.customRate ?? null;
+        const hasCharge = chargeTypeId != null || (customRate != null && Number(customRate) > 0);
+
+        let chargePercent = 0;
+        let effectiveChargeTypeId: number | null = null;
+
+        if (customRate !== null && Number.isFinite(Number(customRate)) && Number(customRate) > 0) {
+          chargePercent = Number(customRate);
+          effectiveChargeTypeId = null;
+        } else if (chargeTypeId !== null) {
+          const fromResponse = Number(order?.chargeType?.percentage);
+          const fromCatalog = Number(chargeTypes.find(ct => ct.id === chargeTypeId)?.percentage ?? 0);
+          const policyPercent = Number.isFinite(fromResponse) && fromResponse > 0 ? fromResponse : fromCatalog;
+          chargePercent = Number.isFinite(policyPercent) ? policyPercent : 0;
+          effectiveChargeTypeId = chargeTypeId;
+        }
+
+        this.hasReturnCharge.set(hasCharge);
+        this.returnChargePercent.set(chargePercent > 0 ? chargePercent : 0);
+        this.chargeTypeId.set(effectiveChargeTypeId);
+
+        const clientId = order?.clientId;
+        if (clientId && Number.isFinite(clientId) && clientId > 0) {
+          this.preFillCustomerFromClientId(clientId);
+        }
+
         this.materialList.set(order?.items ?? []);
         this.syncMaterialAmountsToForm();
         this.isLoadingMaterialList.set(false);
@@ -363,7 +417,7 @@ export class MaterialReturnForm extends BaseRequestForm {
   }
 
   protected onTableInputChange(materialId: number, fieldType: 'replenishment' | 'warehouseReceived' | 'warehouseAccepted', event: any): void {
-    const value = event?.target?.value || '';
+    const value = event?.target?.value ?? '';
     
     if (fieldType === 'replenishment') {
       this.updateReplenishmentAccepted(materialId, value);
@@ -457,60 +511,78 @@ export class MaterialReturnForm extends BaseRequestForm {
   }
 
   protected updateReplenishmentAccepted(materialId: number, value: string | number): void {
-    const numValue = Number(value) || 0;
+    const str = String(value ?? '').trim();
+    const newMap = new Map(this.replenishmentAcceptedByMaterialId());
+
+    if (str === '') {
+      newMap.delete(materialId);
+      this.replenishmentAcceptedByMaterialId.set(newMap);
+      this.syncMaterialAmountsToForm();
+      return;
+    }
+
+    const numValue = Number(str);
+    if (!Number.isFinite(numValue) || numValue < 0) return;
+
     const material = this.materialList().find(m => m.id === materialId);
     const maxAllowed = Number(material?.requestedQuantity) || 0;
-    
     if (numValue > maxAllowed) {
       this._toastService.error(`Replanishment accepted no puede ser mayor a ${maxAllowed} (Cant. devuelta)`);
       return;
     }
-    
-    const newMap = new Map(this.replenishmentAcceptedByMaterialId());
-    if (numValue === 0) {
-      newMap.delete(materialId);
-    } else {
-      newMap.set(materialId, numValue);
-    }
+
+    newMap.set(materialId, numValue);
     this.replenishmentAcceptedByMaterialId.set(newMap);
     this.syncMaterialAmountsToForm();
   }
 
   protected updateWarehouseReceived(materialId: number, value: string | number): void {
-    const numValue = Number(value) || 0;
+    const str = String(value ?? '').trim();
+    const newMap = new Map(this.warehouseReceivedByMaterialId());
+
+    if (str === '') {
+      newMap.delete(materialId);
+      this.warehouseReceivedByMaterialId.set(newMap);
+      this.syncMaterialAmountsToForm();
+      return;
+    }
+
+    const numValue = Number(str);
+    if (!Number.isFinite(numValue) || numValue < 0) return;
+
     const material = this.materialList().find(m => m.id === materialId);
     const maxAllowed = Number(material?.requestedQuantity) || 0;
-    
     if (numValue > maxAllowed) {
       this._toastService.error(`Warehouse received no puede ser mayor a ${maxAllowed} (Cant. devuelta)`);
       return;
     }
-    
-    const newMap = new Map(this.warehouseReceivedByMaterialId());
-    if (numValue === 0) {
-      newMap.delete(materialId);
-    } else {
-      newMap.set(materialId, numValue);
-    }
+
+    newMap.set(materialId, numValue);
     this.warehouseReceivedByMaterialId.set(newMap);
     this.syncMaterialAmountsToForm();
   }
 
   protected updateWarehouseAccepted(materialId: number, value: string | number): void {
-    const numValue = Number(value) || 0;
-    const warehouseReceivedQty = this.warehouseReceivedByMaterialId().get(materialId) || 0;
-    
+    const str = String(value ?? '').trim();
+    const newMap = new Map(this.warehouseAcceptedByMaterialId());
+
+    if (str === '') {
+      newMap.delete(materialId);
+      this.warehouseAcceptedByMaterialId.set(newMap);
+      this.syncMaterialAmountsToForm();
+      return;
+    }
+
+    const numValue = Number(str);
+    if (!Number.isFinite(numValue) || numValue < 0) return;
+
+    const warehouseReceivedQty = this.warehouseReceivedByMaterialId().get(materialId) ?? 0;
     if (numValue > warehouseReceivedQty) {
       this._toastService.error(`Warehouse accepted no puede ser mayor a ${warehouseReceivedQty} (Warehouse received)`);
       return;
     }
-    
-    const newMap = new Map(this.warehouseAcceptedByMaterialId());
-    if (numValue === 0) {
-      newMap.delete(materialId);
-    } else {
-      newMap.set(materialId, numValue);
-    }
+
+    newMap.set(materialId, numValue);
     this.warehouseAcceptedByMaterialId.set(newMap);
     this.syncMaterialAmountsToForm();
   }
@@ -575,17 +647,17 @@ export class MaterialReturnForm extends BaseRequestForm {
       }
 
       const replenishmentAccepted = Number(item.replenishmentAccepted);
-      if (Number.isFinite(replenishmentAccepted) && replenishmentAccepted > 0) {
+      if (item.replenishmentAccepted != null && Number.isFinite(replenishmentAccepted)) {
         replenishmentMap.set(itemId, replenishmentAccepted);
       }
 
       const warehouseReceived = Number(item.warehouseReceived);
-      if (Number.isFinite(warehouseReceived) && warehouseReceived > 0) {
+      if (item.warehouseReceived != null && Number.isFinite(warehouseReceived)) {
         warehouseReceivedMap.set(itemId, warehouseReceived);
       }
 
       const warehouseAccepted = Number(item.warehouseAccepted);
-      if (Number.isFinite(warehouseAccepted) && warehouseAccepted > 0) {
+      if (item.warehouseAccepted != null && Number.isFinite(warehouseAccepted)) {
         warehouseAcceptedMap.set(itemId, warehouseAccepted);
       }
 
@@ -648,6 +720,106 @@ export class MaterialReturnForm extends BaseRequestForm {
       }),
       catchError(() => of(null))
     );
+  }
+
+  protected exportMaterialList(): void {
+    import('xlsx').then(XLSX => {
+      const materials = this.materialList();
+      if (!materials.length) return;
+
+      const HEADER = [
+        '_id', 'Invoice Folio', 'Descripción', 'Cant. devuelta',
+        'Replenishment Accepted', 'Replenishment Rejection Reason',
+        'Warehouse Received', 'Warehouse Accepted', 'Warehouse Rejection Reason',
+        'SAP ID',
+      ];
+
+      const rows = materials.map(m => ({
+        '_id': m.id,
+        'Invoice Folio': m.invoiceFolio,
+        'Descripción': m.descripcion,
+        'Cant. devuelta': m.requestedQuantity,
+        'Replenishment Accepted': this.replenishmentAcceptedByMaterialId().get(m.id) ?? '',
+        'Replenishment Rejection Reason': this.replenishmentReasonByMaterialId().get(m.id) ?? '',
+        'Warehouse Received': this.warehouseReceivedByMaterialId().get(m.id) ?? '',
+        'Warehouse Accepted': this.warehouseAcceptedByMaterialId().get(m.id) ?? '',
+        'Warehouse Rejection Reason': this.warehouseReasonByMaterialId().get(m.id) ?? '',
+        'SAP ID': this.sapIdByMaterialId().get(m.id) ?? '',
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(rows, { header: HEADER });
+      ws['!cols'] = [
+        { hidden: true }, { wch: 15 }, { wch: 30 }, { wch: 15 },
+        { wch: 22 }, { wch: 32 }, { wch: 20 }, { wch: 20 }, { wch: 32 }, { wch: 20 },
+      ];
+
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Material List');
+      XLSX.writeFile(wb, 'material_list.xlsx');
+    });
+  }
+
+  protected onBulkTemplateUpload(event: Event): void {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    (event.target as HTMLInputElement).value = '';
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      import('xlsx').then(XLSX => {
+        const data = new Uint8Array(e.target!.result as ArrayBuffer);
+        const wb = XLSX.read(data, { type: 'array' });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const rows: any[] = XLSX.utils.sheet_to_json(ws, { defval: '' });
+
+        const materials = this.materialList();
+
+        if (rows.length !== materials.length) {
+          this._toastService.error(
+            `El archivo tiene ${rows.length} fila(s) pero se esperan ${materials.length}. No agregues ni elimines filas.`
+          );
+          return;
+        }
+
+        const errors: string[] = [];
+
+        for (const row of rows) {
+          const materialId = Number(row['_id']);
+          const material = materials.find(m => m.id === materialId);
+          if (!material) {
+            errors.push(`ID ${materialId} no coincide con ningún material.`);
+            continue;
+          }
+
+          const repAcc = row['Replenishment Accepted'];
+          if (repAcc !== '') this.updateReplenishmentAccepted(materialId, String(repAcc));
+
+          const repReason = String(row['Replenishment Rejection Reason'] ?? '').trim();
+          if (repReason) this.setTextMapValue(this.replenishmentReasonByMaterialId, materialId, repReason);
+
+          const whRec = row['Warehouse Received'];
+          if (whRec !== '') this.updateWarehouseReceived(materialId, String(whRec));
+
+          const whAcc = row['Warehouse Accepted'];
+          if (whAcc !== '') this.updateWarehouseAccepted(materialId, String(whAcc));
+
+          const whReason = String(row['Warehouse Rejection Reason'] ?? '').trim();
+          if (whReason) this.setTextMapValue(this.warehouseReasonByMaterialId, materialId, whReason);
+
+          const sapId = String(row['SAP ID'] ?? '').trim();
+          if (sapId) this.setTextMapValue(this.sapIdByMaterialId, materialId, sapId);
+        }
+
+        if (errors.length) {
+          this._toastService.error(errors.join(' | '));
+        } else {
+          this._toastService.success('Datos importados correctamente');
+        }
+
+        this.syncMaterialAmountsToForm();
+      });
+    };
+    reader.readAsArrayBuffer(file);
   }
 
   private mapReturnOrderRequestItemToMaterial(item: ReturnOrderRequestItem, returnOrderId: number): ReturnOrderListItem {

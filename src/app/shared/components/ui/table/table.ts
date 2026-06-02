@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
 import { Spinner } from "../spinner/spinner";
 import { Popover } from "../popover/popover";
+import { Modal } from "../modal/modal";
 import { Router } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { finalize } from 'rxjs';
@@ -38,7 +39,7 @@ export interface BotonCabeceraPersonalizado {
 @Component({
   selector: 'app-tabla-dinamica',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, Spinner, Popover, TranslatePipe],
+  imports: [CommonModule, LucideAngularModule, Spinner, Popover, Modal, TranslatePipe],
   templateUrl: './table.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -76,11 +77,21 @@ export class Table<T extends Record<string, any>>
 }[]>();
   readonly filterDefault = input<any>('all');
 
+  readonly secondFilterOptions = input<{ label: string; value: any }[]>();
+  readonly secondFilterDefault = input<any>('all');
+  readonly secondFilterChange = output<any>();
+
+  readonly thirdFilterOptions = input<{ label: string; value: any }[]>();
+  readonly thirdFilterDefault = input<any>('all');
+  readonly thirdFilterAllLabel = input<string>('TABLE.ALL');
+  readonly thirdFilterChange = output<any>();
+
   readonly sinAcciones = input<boolean>(false);
   readonly actionMode = input<'inline' | 'menu'>('inline');
   readonly accionesPersonalizadas = input<AccionPersonalizada<T>[]>();
   readonly canAdd = input<boolean>(true);
   readonly canBulk = input<boolean>(false);
+  readonly showRefresh = input<boolean>(true);
   readonly addLabel = input('User');
   readonly addRoute = input<string>();
   readonly botonesCabeceraPersonalizados = input<BotonCabeceraPersonalizado[]>([]);
@@ -100,6 +111,7 @@ export class Table<T extends Record<string, any>>
   readonly filterChange = output<any>();
   readonly addClick = output<void>();
   readonly bulkClick = output<void>();
+  readonly refreshClick = output<void>();
 
   // Template personalizado para celdas
   @ContentChild('cellTemplate', { static: false }) cellTemplate?: TemplateRef<any>;
@@ -114,9 +126,14 @@ export class Table<T extends Record<string, any>>
   ordenAscendente = signal(true);
   paginaActual = signal(1);
   filterValue = signal<any>('all');
+  secondFilterValue = signal<any>('all');
+  thirdFilterValue = signal<any>('all');
   registrosPorPaginaInterno = signal(10);
   pageSizeOptions: number[] = [5, 10, 20];
   isExportingExcel = signal(false);
+  showDateRangeModal = signal(false);
+  exportDateFrom = signal('');
+  exportDateTo = signal('');
 
   private readonly syncExternalSearchEffect = effect(() => {
     const externalValue = this.searchValue() ?? '';
@@ -131,6 +148,12 @@ export class Table<T extends Record<string, any>>
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['filterDefault']) {
       this.filterValue.set(this.filterDefault() ?? 'all');
+    }
+    if (changes['secondFilterDefault']) {
+      this.secondFilterValue.set(this.secondFilterDefault() ?? 'all');
+    }
+    if (changes['thirdFilterDefault']) {
+      this.thirdFilterValue.set(this.thirdFilterDefault() ?? 'all');
     }
   }
 
@@ -287,6 +310,18 @@ export class Table<T extends Record<string, any>>
     }
   }
 
+  onSecondFilterChange(value: any): void {
+    this.secondFilterValue.set(value);
+    this.paginaActual.set(1);
+    this.secondFilterChange.emit(value);
+  }
+
+  onThirdFilterChange(value: any): void {
+    this.thirdFilterValue.set(value);
+    this.paginaActual.set(1);
+    this.thirdFilterChange.emit(value);
+  }
+
 
   clearSearch(): void {
     if (!this.busqueda()) {
@@ -367,14 +402,29 @@ export class Table<T extends Record<string, any>>
     this.addClick.emit();
   }
 
-  onExcelExportClick(): void {
+  onExportAll(): void {
+    this._doExport({});
+  }
+
+  onExportSelectDateRange(): void {
+    this.exportDateFrom.set('');
+    this.exportDateTo.set('');
+    this.showDateRangeModal.set(true);
+  }
+
+  onConfirmDateRangeExport(): void {
+    this.showDateRangeModal.set(false);
+    this._doExport({ dateFrom: this.exportDateFrom() || undefined, dateTo: this.exportDateTo() || undefined });
+  }
+
+  private _doExport(extraParams: ExcelExportParams): void {
     const module = this.excelExportModule();
     if (!module || this.isExportingExcel()) {
       return;
     }
 
     this.isExportingExcel.set(true);
-    this.exportService.exportExcel(module, this.excelExportParams()).pipe(
+    this.exportService.exportExcel(module, { ...this.excelExportParams(), ...extraParams }).pipe(
       finalize(() => this.isExportingExcel.set(false))
     ).subscribe({
       next: (blob) => this.exportService.downloadBlob(blob, this.excelExportFileName()),

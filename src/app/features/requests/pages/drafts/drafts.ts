@@ -1,9 +1,11 @@
 import { Component, inject, signal } from '@angular/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { RequestService } from '../../../../core/services/request-service';
+import { ToastService } from '../../../../core/services/toast-service';
 import { Request } from '../../../../data/interfaces/Request';
 import { AccionPersonalizada, Column, Table } from "../../../../shared/components/ui/table/table";
 import { Spinner } from '../../../../shared/components/ui/spinner/spinner';
+import { Modal } from '../../../../shared/components/ui/modal/modal';
 import moment from 'moment';
 import { finalize } from 'rxjs';
 import { Router } from '@angular/router';
@@ -12,21 +14,25 @@ import { Router } from '@angular/router';
     selector: 'app-drafts',
     templateUrl: './drafts.html',
     styleUrl: './drafts.css',
-    imports: [Table, Spinner, TranslatePipe],
+    imports: [Table, Spinner, TranslatePipe, Modal],
 })
 export class Drafts {
 
     private _translate = inject(TranslateService);
+    private _toast = inject(ToastService);
 
     public drafts = signal<Request[]>([]);
     public pageSize = signal<number>(10);
     public currentPage = signal<number>(1);
+    public totalPages = signal<number>(1);
     public hasNextPage = signal<boolean>(false);
     public hasPrevPage = signal<boolean>(false);
     public isLoadingTable = signal<boolean>(true);
-    private nextCursor = signal<string | null>(null);
-    private prevCursor = signal<string | null>(null);
     public isLoading = signal<boolean>(false);
+
+    public showDeleteModal = signal<boolean>(false);
+    public isDeletingDraft = signal<boolean>(false);
+    private draftToDelete = signal<Request | null>(null);
 
     public columns: Column<Request>[] = [];
 
@@ -36,6 +42,13 @@ export class Drafts {
             icon: 'pencil',
             label: 'DRAFTS.EDIT',
             accion: (request) => this.editRequest(request)
+        },
+        {
+            key: 'delete',
+            icon: 'trash-2',
+            label: 'DRAFTS.DELETE',
+            className: 'text-red-600 hover:bg-red-50',
+            accion: (request) => this.openDeleteModal(request)
         }
     ];
 
@@ -79,10 +92,15 @@ export class Drafts {
         this.loadDrafts();
     }
 
-    private loadDrafts(cursor?: string | null): void {
+    refreshDrafts(): void {
+        this.currentPage.set(1);
+        this.loadDrafts();
+    }
+
+    private loadDrafts(): void {
         this.isLoadingTable.set(true);
 
-        this._requestsService.getDraftsPaginated(this.pageSize(), cursor).pipe(
+        this._requestsService.getDraftsPaginated(this.pageSize(), this.currentPage()).pipe(
             finalize(() => {
                 this.isLoadingTable.set(false);
                 this.isLoading.set(false);
@@ -90,10 +108,10 @@ export class Drafts {
         ).subscribe({
             next: (response) => {
                 this.drafts.set(response.data);
-                this.nextCursor.set(response.next_cursor ?? null);
-                this.prevCursor.set(response.prev_cursor ?? null);
-                this.hasNextPage.set(!!response.next_cursor || !!response.next_page_url);
-                this.hasPrevPage.set(!!response.prev_cursor || !!response.prev_page_url);
+                this.currentPage.set(response.current_page ?? 1);
+                this.totalPages.set(response.last_page ?? 1);
+                this.hasNextPage.set(!!response.next_page_url);
+                this.hasPrevPage.set(!!response.prev_page_url);
             },
             error: (error) => {
                 console.error('❌ Error al cargar borradores:', error);
@@ -102,32 +120,20 @@ export class Drafts {
     }
 
     onNextPage(): void {
-        const cursor = this.nextCursor();
-        if (!cursor) {
-            return;
-        }
-
-        this.currentPage.update((value) => value + 1);
-        this.loadDrafts(cursor);
+        if (!this.hasNextPage()) return;
+        this.currentPage.update((v) => v + 1);
+        this.loadDrafts();
     }
 
     onPrevPage(): void {
-        const cursor = this.prevCursor();
-        if (!cursor) {
-            return;
-        }
-
-        this.currentPage.update((value) => Math.max(1, value - 1));
-        this.loadDrafts(cursor);
+        if (!this.hasPrevPage()) return;
+        this.currentPage.update((v) => Math.max(1, v - 1));
+        this.loadDrafts();
     }
 
     onPageSizeChange(size: number): void {
         this.pageSize.set(size);
         this.currentPage.set(1);
-        this.nextCursor.set(null);
-        this.prevCursor.set(null);
-        this.hasNextPage.set(false);
-        this.hasPrevPage.set(false);
         this.loadDrafts();
     }
 
@@ -141,6 +147,42 @@ export class Drafts {
         this.router.navigate(['/app/request/new-request'], {
             queryParams: { requestTypeId },
             state: { editRequest: request }
+        });
+    }
+
+    openDeleteModal(request: Request): void {
+        this.draftToDelete.set(request);
+        this.showDeleteModal.set(true);
+    }
+
+    onDeleteModalChange(isOpen: boolean): void {
+        this.showDeleteModal.set(isOpen);
+        if (!isOpen) this.draftToDelete.set(null);
+    }
+
+    confirmDelete(): void {
+        const draft = this.draftToDelete();
+        if (!draft?.id) return;
+
+        this.isDeletingDraft.set(true);
+        this._requestsService.deleteDraft(Number(draft.id)).pipe(
+            finalize(() => this.isDeletingDraft.set(false))
+        ).subscribe({
+            next: () => {
+                this._toast.success(
+                    this._translate.instant('DRAFTS.DELETE_SUCCESS'),
+                    this._translate.instant('DRAFTS.SUCCESS')
+                );
+                this.onDeleteModalChange(false);
+                this.currentPage.set(1);
+                this.loadDrafts();
+            },
+            error: (error: any) => {
+                this._toast.error(
+                    error?.error?.message ?? this._translate.instant('DRAFTS.DELETE_ERROR'),
+                    this._translate.instant('DRAFTS.ERROR')
+                );
+            }
         });
     }
 }

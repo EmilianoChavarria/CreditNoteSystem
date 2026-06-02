@@ -1,13 +1,13 @@
 <section class="assign-user-page w-full">
 	<header class="assign-user-header">
 		<div>
-			<h1 class="assign-user-title">Asignación de usuarios por líder</h1>
-			<p class="assign-user-subtitle">Selecciona un CS LEADER y administra sus asignaciones</p>
+			<h1 class="assign-user-title">{{ 'ASSIGN_USER.TITLE' | translate }}</h1>
+			<p class="assign-user-subtitle">{{ 'ASSIGN_USER.SUBTITLE' | translate }}</p>
 		</div>
 	</header>
 
 	<div class="assign-user-toolbar">
-		<label for="leaderSelect" class="assign-user-label">Líder (CS LEADER)</label>
+		<label for="leaderSelect" class="assign-user-label">{{ 'ASSIGN_USER.LEADER' | translate }}</label>
 		<div class="assign-user-toolbar-row">
 			<select
 				id="leaderSelect"
@@ -15,9 +15,9 @@
 				[value]="selectedLeaderId() ?? ''"
 				(change)="onLeaderChange($event)"
 			>
-				<option value="">Selecciona un líder</option>
+				<option value="">{{ 'ASSIGN_USER.SELECT_LEADER' | translate }}</option>
 				@for (leader of leaders(); track leader.id) {
-					<option [value]="leader.id">{{ leader.fullName }} ({{ leader.role?.roleName ?? 'Sin rol' }})</option>
+					<option [value]="leader.id">{{ leader.fullName }} ({{ leader.role?.roleName ?? ('ASSIGN_USER.NO_ROLE' | translate) }})</option>
 				}
 			</select>
 
@@ -28,46 +28,46 @@
 				(click)="saveAssignments()"
 			>
 				@if (isSavingAssignments()) {
-					Guardando...
+					{{ 'ASSIGN_USER.SAVING' | translate }}
 				} @else {
-					Guardar asignaciones ({{ pendingUsers().length }})
+					{{ 'ASSIGN_USER.SAVE_ASSIGNMENTS' | translate }} ({{ pendingUsers().length }})
 				}
 			</button>
 		</div>
 	</div>
 
 	@if (isLoadingCatalogs()) {
-		<p class="assign-user-message">Cargando líderes y usuarios asignables...</p>
+		<p class="assign-user-message">{{ 'ASSIGN_USER.LOADING_CATALOGS' | translate }}</p>
 	}
 
 	@if (!selectedLeaderId() && !isLoadingCatalogs()) {
-		<p class="assign-user-message">Selecciona un líder para ver las listas de asignación.</p>
+		<p class="assign-user-message">{{ 'ASSIGN_USER.SELECT_LEADER_TO_VIEW' | translate }}</p>
 	}
 
 	@if (selectedLeaderId()) {
 		<div class="assign-user-lists-grid">
 			<article class="assign-user-list-card">
 				<div class="assign-user-list-header">
-					<h2 class="assign-user-list-title">Usuarios asignables</h2>
+					<h2 class="assign-user-list-title">{{ 'ASSIGN_USER.AVAILABLE_USERS' | translate }}</h2>
 					<span class="assign-user-list-count">{{ availableUsers().length }}</span>
 				</div>
 
 				@if (availableUsers().length < 1) {
-					<p class="assign-user-empty">No hay usuarios disponibles para asignar.</p>
+					<p class="assign-user-empty">{{ 'ASSIGN_USER.NO_AVAILABLE' | translate }}</p>
 				} @else {
 					<ul class="assign-user-list">
 						@for (user of availableUsers(); track user.id) {
 							<li class="assign-user-row">
 								<div class="assign-user-row-content">
 									<span class="assign-user-row-name">{{ user.fullName }}</span>
-									<span class="assign-user-row-role">{{ user.role?.roleName ?? 'Sin rol' }}</span>
+									<span class="assign-user-row-role">{{ user.role?.roleName ?? ('ASSIGN_USER.NO_ROLE' | translate) }}</span>
 								</div>
 								<button
 									type="button"
 									class="assign-user-row-button assign-user-row-button-add"
 									[disabled]="isSavingAssignments()"
 									(click)="addUserToPending(user)"
-									aria-label="Agregar usuario"
+									[attr.aria-label]="'ASSIGN_USER.ADD_USER_ARIA' | translate"
 								>
 									+
 								</button>
@@ -79,14 +79,14 @@
 
 			<article class="assign-user-list-card">
 				<div class="assign-user-list-header">
-					<h2 class="assign-user-list-title">Asignados al líder</h2>
+					<h2 class="assign-user-list-title">{{ 'ASSIGN_USER.ASSIGNED_TO_LEADER' | translate }}</h2>
 					<span class="assign-user-list-count">{{ rightListUsers().length }}</span>
 				</div>
 
 				@if (isLoadingAssignedUsers()) {
-					<p class="assign-user-message">Cargando asignados del líder...</p>
+					<p class="assign-user-message">{{ 'ASSIGN_USER.LOADING_ASSIGNED' | translate }}</p>
 				} @else if (rightListUsers().length < 1) {
-					<p class="assign-user-empty">Este líder no tiene usuarios asignados.</p>
+					<p class="assign-user-empty">{{ 'ASSIGN_USER.NO_ASSIGNED' | translate }}</p>
 				} @else {
 					<ul class="assign-user-list">
 						@for (entry of rightListUsers(); track entry.user.id) {
@@ -94,9 +94,9 @@
 								<div class="assign-user-row-content">
 									<span class="assign-user-row-name">{{ entry.user.fullName }}</span>
 									<div class="assign-user-row-meta">
-										<span class="assign-user-row-role">{{ entry.user.role?.roleName ?? 'Sin rol' }}</span>
+										<span class="assign-user-row-role">{{ entry.user.role?.roleName ?? ('ASSIGN_USER.NO_ROLE' | translate) }}</span>
 										@if (entry.pending) {
-											<span class="assign-user-chip">Pendiente</span>
+											<span class="assign-user-chip">{{ 'ASSIGN_USER.PENDING' | translate }}</span>
 										}
 									</div>
 								</div>
@@ -105,7 +105,7 @@
 									class="assign-user-row-button assign-user-row-button-remove"
 									[disabled]="isSavingAssignments() || unassigningUserId() === entry.user.id"
 									(click)="removeFromRight(entry.user, entry.pending)"
-									aria-label="Quitar usuario"
+									[attr.aria-label]="'ASSIGN_USER.REMOVE_USER_ARIA' | translate"
 								>
 									-
 								</button>
@@ -116,36 +116,4 @@
 			</article>
 		</div>
 	}
-
-	<!-- @if (batchSummary()) {
-		<section class="assign-user-results">
-			<h3 class="assign-user-results-title">Resultado del procesamiento</h3>
-
-			<div class="assign-user-results-grid">
-				<div>Total: <strong>{{ batchSummary()?.total }}</strong></div>
-				<div>Creadas: <strong>{{ batchSummary()?.created }}</strong></div>
-				<div>Reactivadas: <strong>{{ batchSummary()?.reactivated }}</strong></div>
-				<div>Ya activas: <strong>{{ batchSummary()?.alreadyActive }}</strong></div>
-				<div>Errores: <strong>{{ batchSummary()?.errors }}</strong></div>
-			</div>
-
-			@if (batchItems().length > 0) {
-				<ul class="assign-user-item-results">
-					@for (item of batchItems(); track $index) {
-						<li class="assign-user-item-result">
-							<span>
-								Item {{ item.index + 1 }} | Líder: {{ item.leaderUserId }} | Usuario: {{ item.assignedUserId }}
-							</span>
-							<strong [class]="item.status === 'error' ? 'assign-user-status-error' : 'assign-user-status-ok'">
-								{{ item.status }}
-							</strong>
-							@if (item.message) {
-								<span class="assign-user-status-message">{{ item.message }}</span>
-							}
-						</li>
-					}
-				</ul>
-			}
-		</section>
-	} -->
 </section>
