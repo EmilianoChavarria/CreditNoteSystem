@@ -13,6 +13,7 @@ export interface ReturnOrderRequestReturnOrder {
   notes: string | null;
   chargeTypeId: number
   customRate?: number;
+  currency?: string;
   chargeType: ChargeType;
   createdAt: string;
   updatedAt: string;

@@ -70,6 +70,7 @@ export interface CreateReturnOrderRequest {
   clientId: number;
   notes?: string;
   chargeTypeId: number;
+  currency: string;
   items: CreateReturnOrderItemRequest[];
 }
 
