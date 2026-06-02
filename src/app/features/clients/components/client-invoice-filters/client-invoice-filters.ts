@@ -13,6 +13,7 @@ import { ChargeTypeOption } from '../../../../core/services/customer-service';
 export class ClientInvoiceFilters {
   readonly chargeType = input.required<FormControl<number | null>>();
   readonly search = input.required<FormControl<string>>();
+  readonly currency = input.required<FormControl<string>>();
   readonly chargeTypeOptions = input<ChargeTypeOption[]>([]);
   readonly clearSearch = output<void>();
 }

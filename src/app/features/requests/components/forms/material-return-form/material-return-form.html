@@ -2,7 +2,16 @@
 <app-spinner></app-spinner>
 }@else {
 <form action="" [formGroup]="form">
-    <app-tabs-container (onSave)="saveRequest()" (onSaveDraft)="saveDraft()" [isEditing]="isEditing" [isSaving]="isSaving()">
+    <app-tabs-container (onSave)="saveRequest()" (onSaveDraft)="saveDraft()" [isEditing]="isEditing" [isSaving]="isSaving()"
+        [registerDisabled]="allReplenishmentZero()"
+        [approvalMode]="!!approvalContext"
+        [canApprove]="approvalContext?.canApprove ?? false"
+        [canDecline]="approvalContext?.canDecline ?? false"
+        [canCancel]="approvalContext?.canCancel ?? false"
+        [canReturn]="approvalContext?.canReturn ?? false"
+        [actionsDisabledExceptCancel]="allReplenishmentZero()"
+        (onSaveAndApprove)="saveAndApprove()" (onSaveOnly)="saveRequest()" (onDeclineAction)="saveAndDecline()"
+        (onCancelAction)="saveAndCancel()" (onReturnAction)="saveAndReturn()">
         <app-tab [titleT]="'NEW_REQUEST_FORM.TAB_REQUEST_CUSTOMER' | translate">
             <div class="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-4 md:gap-8">
                 <div>
@@ -119,7 +128,7 @@
         <app-tab [titleT]="'NEW_REQUEST_FORM.TAB_REFERENCE_LOGISTICS' | translate">
             <div class="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-4 md:gap-8">
                 
-                <div>
+                <!-- <div>
                     <label for="deliveryNote"
                         class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.DELIVERY_NOTE' |
                         translate}}</label>
@@ -128,7 +137,7 @@
                     @if (campoVacio('deliveryNote')) {
                     <span class="text-sm text-red-500">{{ getErrorMessage('deliveryNote') }}</span>
                     }
-                </div>
+                </div> -->
                 <div>
                     <label for="invoiceNumber"
                         class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.INVOICE_NUMBER' |
@@ -182,16 +191,7 @@
                     @if (existingSapScreenFiles().length > 0) {
                     <div class="mt-2 grid grid-cols-2 md:grid-cols-4 gap-2">
                         @for (file of existingSapScreenFiles(); track file.id) {
-                        <div
-                            class="group relative rounded-md border border-gray-200 bg-gray-50 px-3 py-3 flex flex-col items-center text-center gap-2">
-                            <button type="button" (click)="openExistingFile(file)" [disabled]="openingFileId() === file.id"
-                                class="hidden group-hover:flex absolute top-1 right-1 h-5 w-5 items-center justify-center rounded-md bg-green-100 border border-green-300 text-green-700 hover:cursor-pointer"
-                                aria-label="Ver archivo">
-                                <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                                    <circle cx="12" cy="12" r="3"></circle>
-                                </svg>
-                            </button>
+                        <div class="group relative rounded-md border border-gray-200 bg-gray-50 px-3 py-3 flex flex-col items-center text-center gap-2 cursor-pointer hover:bg-gray-100 transition-colors" (click)="openExistingFile(file)" [class.opacity-60]="openingFileId() === file.id">
                             <div
                                 class="w-8 h-8 rounded-md bg-green-100 text-green-700 flex items-center justify-center">
                                 <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -210,17 +210,8 @@
                     @if (selectedSapScreenFiles().length > 0) {
                     <div class="mt-2 grid grid-cols-2 md:grid-cols-4 gap-2">
                         @for (file of selectedSapScreenFiles(); track file.name + file.size + $index) {
-                        <div
-                            class="group relative rounded-md border border-gray-200 bg-gray-50 px-3 py-3 flex flex-col items-center text-center gap-2">
-                            <button type="button" (click)="openLocalFile(file)"
-                                class="hidden group-hover:flex absolute top-1 left-1 h-5 w-5 items-center justify-center rounded-md bg-blue-100 border border-blue-300 text-blue-700 hover:cursor-pointer"
-                                aria-label="Ver archivo">
-                                <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                                    <circle cx="12" cy="12" r="3"></circle>
-                                </svg>
-                            </button>
-                            <button type="button" (click)="removeSapScreenFile()"
+                        <div class="group relative rounded-md border border-gray-200 bg-gray-50 px-3 py-3 flex flex-col items-center text-center gap-2 cursor-pointer hover:bg-gray-100 transition-colors" (click)="openLocalFile(file)">
+                            <button type="button" (click)="$event.stopPropagation(); removeSapScreenFile()"
                                 class="hidden group-hover:flex absolute top-1 right-1 h-5 w-5 items-center justify-center rounded-md bg-red-100 border border-red-300 text-red-600 hover:cursor-pointer"
                                 aria-label="Eliminar archivo">
                                 <span class="text-xs leading-none">x</span>
@@ -288,16 +279,7 @@
                     @if (existingUploadSupportFiles().length > 0) {
                     <div class="mt-2 grid grid-cols-2 md:grid-cols-4 gap-2">
                         @for (file of existingUploadSupportFiles(); track file.id) {
-                        <div
-                            class="group relative rounded-md border border-gray-200 bg-gray-50 px-3 py-3 flex flex-col items-center text-center gap-2">
-                            <button type="button" (click)="openExistingFile(file)" [disabled]="openingFileId() === file.id"
-                                class="hidden group-hover:flex absolute top-1 right-1 h-5 w-5 items-center justify-center rounded-md bg-green-100 border border-green-300 text-green-700 hover:cursor-pointer"
-                                aria-label="Ver archivo">
-                                <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                                    <circle cx="12" cy="12" r="3"></circle>
-                                </svg>
-                            </button>
+                        <div class="group relative rounded-md border border-gray-200 bg-gray-50 px-3 py-3 flex flex-col items-center text-center gap-2 cursor-pointer hover:bg-gray-100 transition-colors" (click)="openExistingFile(file)" [class.opacity-60]="openingFileId() === file.id">
                             <div
                                 class="w-8 h-8 rounded-md bg-green-100 text-green-700 flex items-center justify-center">
                                 <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -316,17 +298,8 @@
                     @if (selectedSupportFiles().length > 0) {
                     <div class="mt-3 grid grid-cols-2 md:grid-cols-4 gap-2">
                         @for (file of selectedSupportFiles(); track file.name + file.size + $index) {
-                        <div
-                            class="group relative rounded-md border border-gray-200 bg-gray-50 px-3 py-3 flex flex-col items-center text-center gap-2">
-                            <button type="button" (click)="openLocalFile(file)"
-                                class="hidden group-hover:flex absolute top-1 left-1 h-5 w-5 items-center justify-center rounded-md bg-blue-100 border border-blue-300 text-blue-700 hover:cursor-pointer"
-                                aria-label="Ver archivo">
-                                <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                                    <circle cx="12" cy="12" r="3"></circle>
-                                </svg>
-                            </button>
-                            <button type="button" (click)="removeSupportFile($index)"
+                        <div class="group relative rounded-md border border-gray-200 bg-gray-50 px-3 py-3 flex flex-col items-center text-center gap-2 cursor-pointer hover:bg-gray-100 transition-colors" (click)="openLocalFile(file)">
+                            <button type="button" (click)="$event.stopPropagation(); removeSupportFile($index)"
                                 class="hidden group-hover:flex absolute top-1 right-1 h-5 w-5 items-center justify-center rounded-md bg-red-100 border border-red-300 text-red-600 hover:text-red-600 hover:border-red-300 hover:cursor-pointer"
                                 aria-label="Eliminar archivo">
                                 <span class="text-xs leading-none">x</span>
@@ -377,7 +350,24 @@
                 La orden {{ orderId() }} no tiene materiales registrados.
             </div>
             } @else {
-            <div class="flex flex-col">
+            @if (allReplenishmentZero()) {
+            <div class="rounded-md border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700 font-medium">
+                La Nota de Devolución de Material no puede carecer de artículos que procesar. Si no desea proceder con la devolución de ningún artículo, debe de "Cancelar" esta solicitud.
+            </div>
+            }
+            <div class="flex flex-col gap-2">
+                <div class="flex justify-end gap-2 flex-wrap">
+                    <button type="button" (click)="exportMaterialList()"
+                        class="flex items-center gap-2 rounded-md border border-[#3c6194] bg-white px-3 py-1.5 text-xs font-medium text-[#3c6194] hover:bg-[#3c61940d] transition">
+                        <lucide-icon name="download" size="14"></lucide-icon>
+                        Descargar
+                    </button>
+                    <label class="flex items-center gap-2 rounded-md border border-[#3c6194] bg-[#3c6194] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#2e4d7a] transition cursor-pointer">
+                        <lucide-icon name="upload" size="14"></lucide-icon>
+                        Cargar
+                        <input type="file" accept=".xlsx,.xls" class="hidden" (change)="onBulkTemplateUpload($event)">
+                    </label>
+                </div>
                 <div class="overflow-x-auto rounded-md border border-gray-200">
                     <table class="w-full table-fixed divide-y divide-gray-200 bg-white">
                         <thead class="bg-gray-50">
@@ -405,6 +395,9 @@
                                     {{ 'NEW_REQUEST_FORM.SAP_ID' | translate }}</th>
                                 <!-- <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Concepto</th>
                                 <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Clave SAT</th> -->
+                                <th
+                                    class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
+                                    {{ 'NEW_REQUEST_FORM.INVOICE_FOLIO' | translate }}</th>
                                 <th
                                     class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
                                     {{ 'NEW_REQUEST_FORM.PART_NUMBER' | translate }}</th>
@@ -469,6 +462,7 @@
                                 </td>
                                 <!-- <td class="px-3 py-2 text-sm text-gray-700">{{ material.conceptoIndex }}</td> -->
                                 <!-- <td class="px-3 py-2 text-sm text-gray-700">{{ material.claveProdServ }}</td> -->
+                                <td class="px-3 py-2 text-sm text-gray-700">{{ material.invoiceFolio }}</td>
                                 <td class="px-3 py-2 text-sm text-gray-700">{{ material.descripcion }}</td>
                                 <!-- <td class="px-3 py-2 text-sm text-gray-700">{{ material.unidad || material.claveUnidad }}</td> -->
                                 <!-- <td class="px-3 py-2 text-sm text-gray-700">{{ material.originalQuantity }}</td> -->
@@ -484,7 +478,7 @@
                         <tfoot class="bg-gray-50">
                             <tr>
                                 <td colspan="6" class="px-3 py-2"></td>
-                                <td colspan="2" class="px-3 py-2">
+                                <td colspan="3" class="px-3 py-2">
                                     <div
                                         class="flex items-center gap-3 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-800">
                                         <label class="inline-flex items-center gap-2 font-medium">

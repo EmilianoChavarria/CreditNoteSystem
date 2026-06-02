@@ -7,14 +7,19 @@
         </div>
     </header>
 
-    @if (isLoadingTable()) {
-    <app-spinner></app-spinner>
-    } @else {
     <app-tabla-dinamica [columnas]="columns" [datos]="drafts()" [accionesPersonalizadas]="acciones()"
+        [showRefresh]="true" (refreshClick)="refreshDrafts()"
         [loading]="isLoadingTable()" [paginaActualExterna]="currentPage()" [registrosPorPagina]="pageSize()"
+        [serverPagination]="true" [totalPaginasExterno]="totalPages()"
         [hasNextPage]="hasNextPage()" [hasPrevPage]="hasPrevPage()" (paginaSiguiente)="onNextPage()"
         (paginaAnterior)="onPrevPage()" (registrosPorPaginaChange)="onPageSizeChange($event)" [canAdd]="false">
     </app-tabla-dinamica>
-    }
 
+    <app-modal size="md" [titleM]="'DRAFTS.DELETE_CONFIRM_TITLE' | translate" [open]="showDeleteModal()"
+        [closeText]="'DRAFTS.CANCEL' | translate"
+        [primaryText]="isDeletingDraft() ? ('DRAFTS.DELETING' | translate) : ('DRAFTS.DELETE_CONFIRM_BTN' | translate)"
+        [primaryLoading]="isDeletingDraft()" [primaryDisabled]="isDeletingDraft()"
+        (openChange)="onDeleteModalChange($event)" (primaryAction)="confirmDelete()">
+        <p class="text-sm text-gray-700">{{'DRAFTS.DELETE_CONFIRM_MSG' | translate}}</p>
+    </app-modal>
 </div>

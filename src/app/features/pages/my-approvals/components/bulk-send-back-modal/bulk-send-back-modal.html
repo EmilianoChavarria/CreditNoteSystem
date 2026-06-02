@@ -1,0 +1,73 @@
+<app-modal
+  size="md"
+  [titleM]="'MY_APPROVALS.BULK_SEND_BACK_MODAL_TITLE' | translate"
+  [open]="open()"
+  [closeText]="'MY_APPROVALS.CANCEL' | translate"
+  [primaryText]="isSubmitting() ? ('MY_APPROVALS.BULK_SENDING_BACK' | translate) : ('MY_APPROVALS.SEND_BACK_CONFIRM_BTN' | translate)"
+  [showPrimaryButton]="!isLoadingSteps()"
+  [primaryLoading]="isSubmitting()"
+  [primaryDisabled]="isSubmitting()"
+  (openChange)="openChange.emit($event)"
+  (primaryAction)="confirm()">
+
+  @if (isLoadingSteps()) {
+    <div class="flex justify-center py-6">
+      <app-spinner />
+    </div>
+  } @else if (availableSteps().length === 0) {
+    <p class="text-sm text-gray-500 text-center py-4">
+      {{ 'MY_APPROVALS.SEND_BACK_NO_STEPS' | translate }}
+    </p>
+  } @else {
+    <div [formGroup]="form" class="flex flex-col gap-4">
+
+      <p class="text-sm text-gray-700">
+        {{ 'MY_APPROVALS.BULK_SEND_BACK_CONFIRM' | translate : { count: selectedCount() } }}
+      </p>
+
+      <div>
+        <label class="block font-medium text-[#395f93] mb-2">
+          {{ 'MY_APPROVALS.SEND_BACK_SELECT_STEP' | translate }}
+          <span class="text-red-500">*</span>
+        </label>
+        <div class="flex flex-col gap-2">
+          @for (step of availableSteps(); track step.id) {
+            <label
+              class="flex items-center gap-3 rounded-lg border px-4 py-3 cursor-pointer transition"
+              [class.border-[#3c6194]]="form.value.targetWorkflowStepId === step.id"
+              [class.bg-[#3c61940d]]="form.value.targetWorkflowStepId === step.id"
+              [class.border-gray-200]="form.value.targetWorkflowStepId !== step.id"
+              [class.bg-white]="form.value.targetWorkflowStepId !== step.id">
+              <input
+                type="radio"
+                formControlName="targetWorkflowStepId"
+                [value]="step.id"
+                class="accent-[#3c6194]">
+              <div>
+                <p class="font-semibold text-sm text-[#0d1b3f]">{{ step.stepName }}</p>
+                <p class="text-xs text-gray-500">{{ step.role.roleName }}</p>
+              </div>
+            </label>
+          }
+        </div>
+        @if (form.get('targetWorkflowStepId')?.invalid && form.get('targetWorkflowStepId')?.touched) {
+          <span class="text-sm text-red-500 mt-1 block">{{ 'MY_APPROVALS.REQUIRED_FIELD' | translate }}</span>
+        }
+      </div>
+
+      <div>
+        <label class="block font-medium text-[#395f93] mb-1">
+          {{ 'MY_APPROVALS.SEND_BACK_COMMENTS' | translate }}
+        </label>
+        <textarea
+          formControlName="comments"
+          [placeholder]="'MY_APPROVALS.ADD_COMMENTS' | translate"
+          class="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 resize-none"
+          rows="3">
+        </textarea>
+      </div>
+
+    </div>
+  }
+
+</app-modal>

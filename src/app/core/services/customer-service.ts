@@ -43,6 +43,7 @@ export interface ChargeTypeOption {
   id: number;
   name: InvoiceChargeType;
   label: string;
+  percentage?: string | number;
 }
 
 export interface CustomerInvoiceProduct {
@@ -123,6 +124,9 @@ export interface ReturnOrderListEntry {
   notes?: string | null;
   createdAt: string;
   updatedAt: string;
+  chargeTypeId?: number | null;
+  customRate?: number | null;
+  chargeType?: { percentage: number } | null;
   items: ReturnOrderListItem[];
 }
 
@@ -297,10 +301,12 @@ export class CustomerService {
     page = 1,
     perPage = 15,
     search = '',
+    currency = '',
   ): Observable<PagePagination<CustomerInvoiceSummary>> {
     const normalizedClientId = clientId.trim();
     const normalizedChargeType = chargeType.trim();
     const normalizedSearch = search.trim();
+    const normalizedCurrency = currency.trim();
 
     if (!normalizedClientId || !normalizedChargeType) {
       return of({
@@ -319,7 +325,14 @@ export class CustomerService {
     return this._httpService
       .get<PagePagination<CustomerInvoiceSummary>>(
         `/invoices/${encodeURIComponent(normalizedClientId)}/charge-type/${encodeURIComponent(normalizedChargeType)}`,
-        { params: { per_page: perPage, page, ...(normalizedSearch ? { search: normalizedSearch } : {}) } },
+        {
+          params: {
+            per_page: perPage,
+            page,
+            ...(normalizedSearch ? { search: normalizedSearch } : {}),
+            ...(normalizedCurrency ? { moneda: normalizedCurrency } : {}),
+          },
+        },
       )
       .pipe(
         map((response: ApiResponse<PagePagination<CustomerInvoiceSummary>>) => {

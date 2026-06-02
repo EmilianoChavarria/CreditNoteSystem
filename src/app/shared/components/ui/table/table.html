@@ -41,22 +41,111 @@
                     <lucide-icon name="chevron-down"></lucide-icon>
                 </div>
             </div>
+
+            <!-- SEGUNDO FILTRO (requester, etc.) -->
+            <div *ngIf="secondFilterOptions()?.length" class="relative w-full sm:min-w-45 sm:w-auto">
+                <div class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                    <lucide-icon name="user"></lucide-icon>
+                </div>
+
+                <select
+                    class="appearance-none w-full bg-white text-sm pl-10 pr-8 py-2 border border-gray-300 rounded-lg"
+                    [value]="secondFilterValue()" (change)="onSecondFilterChange($any($event.target).value)">
+                    <option value="all">{{ 'FILTERS.ALL_REQUESTERS' | translate }}</option>
+                    <option *ngFor="let opt of secondFilterOptions()" [value]="opt.value">
+                        {{ opt.label }}
+                    </option>
+                </select>
+
+                <div class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                    <lucide-icon name="chevron-down"></lucide-icon>
+                </div>
+            </div>
+
+            <!-- TERCER FILTRO (clasificación, etc.) -->
+            <div *ngIf="thirdFilterOptions()?.length" class="relative w-full sm:min-w-45 sm:w-auto">
+                <div class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                    <lucide-icon name="tag"></lucide-icon>
+                </div>
+
+                <select
+                    class="appearance-none w-full bg-white text-sm pl-10 pr-8 py-2 border border-gray-300 rounded-lg"
+                    [value]="thirdFilterValue()" (change)="onThirdFilterChange($any($event.target).value)">
+                    <option value="all">{{ thirdFilterAllLabel() | translate }}</option>
+                    <option *ngFor="let opt of thirdFilterOptions()" [value]="opt.value">
+                        {{ opt.label }}
+                    </option>
+                </select>
+
+                <div class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                    <lucide-icon name="chevron-down"></lucide-icon>
+                </div>
+            </div>
         </div>
         @if (!hideHeaderActions()) {
         <div class="grid grid-cols-2 gap-2 sm:flex sm:flex-row sm:gap-x-4 w-full sm:w-auto justify-start sm:justify-end">
-            <button
-                class="w-full sm:w-auto rounded-md bg-[#328e9f] px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center">
-                <lucide-icon name="folder-archive" size="18"></lucide-icon>
-                {{'TABLE.ZIP_BUTTON' | translate}}
+            <app-popover #exportPopover position="bottom-right" width="200px"
+                [class.pointer-events-none]="!excelExportModule() || isExportingExcel()"
+                [class.opacity-50]="!excelExportModule() || isExportingExcel()">
+                <div trigger>
+                    <button
+                        type="button"
+                        class="w-full sm:w-auto rounded-md bg-[#21760e] px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center cursor-pointer">
+                        <lucide-icon name="sheet" size="18" [class.animate-spin]="isExportingExcel()"></lucide-icon>
+                        {{'TABLE.EXCEL_BUTTON' | translate}}
+                    </button>
+                </div>
+                <div content class="p-2 space-y-1">
+                    <button type="button"
+                        (click)="onExportAll(); exportPopover.close()"
+                        class="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-gray-100 transition text-left">
+                        <lucide-icon name="download" size="16"></lucide-icon>
+                        {{ 'TABLE.EXPORT_ALL' | translate }}
+                    </button>
+                    <button type="button"
+                        (click)="onExportSelectDateRange(); exportPopover.close()"
+                        class="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-gray-100 transition text-left">
+                        <lucide-icon name="calendar" size="16"></lucide-icon>
+                        {{ 'TABLE.EXPORT_DATE_RANGE' | translate }}
+                    </button>
+                </div>
+            </app-popover>
+
+            <app-modal
+                [open]="showDateRangeModal()"
+                [titleM]="'TABLE.EXPORT_DATE_RANGE_TITLE' | translate"
+                size="sm"
+                [primaryText]="'TABLE.EXPORT' | translate"
+                [primaryLoading]="isExportingExcel()"
+                [primaryDisabled]="!exportDateFrom() || !exportDateTo()"
+                [closeOnBackdrop]="true"
+                (openChange)="showDateRangeModal.set($event)"
+                (primaryAction)="onConfirmDateRangeExport()">
+                <div class="flex flex-col gap-4">
+                    <div class="flex flex-col gap-1">
+                        <label class="text-sm font-medium text-gray-700">{{ 'TABLE.DATE_FROM' | translate }}</label>
+                        <input type="date"
+                            [value]="exportDateFrom()"
+                            (change)="exportDateFrom.set($any($event.target).value)"
+                            class="w-full text-sm px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <label class="text-sm font-medium text-gray-700">{{ 'TABLE.DATE_TO' | translate }}</label>
+                        <input type="date"
+                            [value]="exportDateTo()"
+                            [min]="exportDateFrom()"
+                            (change)="exportDateTo.set($any($event.target).value)"
+                            class="w-full text-sm px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                </div>
+            </app-modal>
+            @if (showRefresh()) {
+            <button type="button" (click)="refreshClick.emit()"
+                [disabled]="loading()"
+                class="w-full sm:w-auto rounded-md border border-gray-300 bg-white px-2 py-1 whitespace-nowrap text-gray-600 flex gap-x-2 items-center justify-center hover:bg-gray-50 hover:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition">
+                <lucide-icon name="refresh-cw" size="16" [class.animate-spin]="loading()"></lucide-icon>
             </button>
-            <button
-                type="button"
-                (click)="onExcelExportClick()"
-                [disabled]="!excelExportModule() || isExportingExcel()"
-                class="w-full sm:w-auto rounded-md bg-[#21760e] px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed">
-                <lucide-icon name="sheet" size="18" [class.animate-spin]="isExportingExcel()"></lucide-icon>
-                {{'TABLE.EXCEL_BUTTON' | translate}}
-            </button>
+            }
             @if (canAdd()) {
             @if (canBulk()) {
             <button type="button" (click)="bulkClick.emit()"
@@ -147,8 +236,8 @@
                             <!-- ACCIONES PERSONALIZADAS -->
                             <button *ngFor="let accion of accionesPersonalizadas()"
                                 (click)="ejecutarAccion(accion, item)"
-                                class="w-full sm:w-auto p-1.5 rounded-md text-[#ff8200] hover:bg-[#ff82001A] transition hover:cursor-pointer flex items-center justify-center"
-                                [ngClass]="accion.className">
+                                class="w-full sm:w-auto p-1.5 rounded-md transition hover:cursor-pointer flex items-center justify-center"
+                                [ngClass]="accion.className ?? 'text-[#ff8200] hover:bg-[#ff82001A]'">
                                 <lucide-icon *ngIf="accion.icon" [name]="accion.icon"></lucide-icon>
                             </button>
 

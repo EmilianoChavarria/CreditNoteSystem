@@ -1,4 +1,4 @@
-import { Directive, inject, Input, OnChanges, OnDestroy, OnInit, signal, SimpleChanges } from '@angular/core';
+import { Directive, EventEmitter, inject, Input, OnChanges, OnDestroy, OnInit, Output, signal, SimpleChanges } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { finalize, forkJoin, map, Observable, of, Subscription, switchMap, take } from 'rxjs';
@@ -7,6 +7,14 @@ import { ApiResponse } from '../../../../data/interfaces/ApiResponse-interface';
 import { RequestService } from '../../../../core/services/request-service';
 import { CustomerService } from '../../../../core/services/customer-service';
 import { ToastService } from '../../../../core/services/toast-service';
+
+export interface ApprovalContext {
+  requestId: number;
+  canApprove: boolean;
+  canDecline: boolean;
+  canCancel: boolean;
+  canReturn: boolean;
+}
 
 interface RequestFormOptions {
   includeOrderNumber: boolean;
@@ -38,6 +46,12 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
   protected readonly maxSupportFiles = 10;
   @Input() requestTypeId: number | null = null;
   @Input() initialRequestData: Partial<Request> | null = null;
+  @Input() approvalContext: ApprovalContext | null = null;
+
+  @Output() savedForApproval = new EventEmitter<void>();
+  @Output() declineActionTriggered = new EventEmitter<void>();
+  @Output() cancelActionTriggered = new EventEmitter<void>();
+  @Output() returnActionTriggered = new EventEmitter<void>();
 
   get isEditing(): boolean {
     const id = Number(this.initialRequestData?.id);
@@ -45,6 +59,7 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
   }
   public submitted = signal<boolean>(false);
   public isSaving = signal<boolean>(false);
+  private pendingPostSaveAction: 'approve' | 'decline' | 'cancel' | 'return' | null = null;
   public reasons = signal<Reason[]>([]);
   public classifications = signal<Classification[]>([]);
   public isLoadingInitialData = signal<boolean>(false);
@@ -371,6 +386,17 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
     }
 
     return '';
+  }
+
+  protected preFillCustomerFromClientId(clientId: number): void {
+    const currentValue = this.form.get('customerId')?.value;
+    const isEmpty = !currentValue || (typeof currentValue === 'string' && currentValue.trim().length === 0);
+    if (!isEmpty) {
+      return;
+    }
+
+    this.populateCustomerNameFromService(clientId);
+    this.populateCustomerNumberFromService(clientId);
   }
 
   private populateCustomerNameFromService(customerId: string | number): void {
@@ -770,6 +796,9 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
 
     this.isSaving.set(true);
 
+    const pendingAction = this.pendingPostSaveAction;
+    this.pendingPostSaveAction = null;
+
     request$.pipe(
       take(1),
       finalize(() => this.isSaving.set(false)),
@@ -795,12 +824,30 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
       })
     ).subscribe({
       next: (response: SaveRequestResponse) => {
+        this.submitted.set(false);
+
+        if (pendingAction === 'approve') {
+          this.savedForApproval.emit();
+          return;
+        }
+        if (pendingAction === 'decline') {
+          this.declineActionTriggered.emit();
+          return;
+        }
+        if (pendingAction === 'cancel') {
+          this.cancelActionTriggered.emit();
+          return;
+        }
+        if (pendingAction === 'return') {
+          this.returnActionTriggered.emit();
+          return;
+        }
+
         const successMessage = editingRequestId !== null
           ? 'Solicitud actualizada correctamente'
           : 'Solicitud guardada correctamente';
 
         this._toastService.success(response?.message ?? successMessage, 'Exito');
-        this.submitted.set(false);
         const returnTo = (history.state as { returnTo?: string })?.returnTo;
         this._router.navigate([returnTo ?? '/app/pending']);
       },
@@ -831,6 +878,26 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
     const requestId = Number(candidateId);
 
     return Number.isFinite(requestId) && requestId > 0 ? requestId : null;
+  }
+
+  saveAndApprove(): void {
+    this.pendingPostSaveAction = 'approve';
+    this.saveRequest();
+  }
+
+  saveAndDecline(): void {
+    this.pendingPostSaveAction = 'decline';
+    this.saveRequest();
+  }
+
+  saveAndCancel(): void {
+    this.pendingPostSaveAction = 'cancel';
+    this.saveRequest();
+  }
+
+  saveAndReturn(): void {
+    this.pendingPostSaveAction = 'return';
+    this.saveRequest();
   }
 
   saveDraft(): void {

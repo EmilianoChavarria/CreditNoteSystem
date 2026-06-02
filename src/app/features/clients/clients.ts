@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, input, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -52,9 +52,22 @@ export class Clients {
   private readonly destroyRef = inject(DestroyRef);
   private readonly translateService = inject(TranslateService);
 
+  readonly clientIdOverride = input<string>('');
+
+  private readonly clientId$ = toObservable(this.clientIdOverride).pipe(
+    switchMap(override => {
+      if (override.trim()) return of(override.trim());
+      return this.authService.user$.pipe(
+        map(user => (typeof user?.clientId === 'string' ? user.clientId.trim() : '')),
+      );
+    }),
+    distinctUntilChanged(),
+  );
+
   // protected readonly taxRate = 0.16;
   protected readonly invoiceChargeType = new FormControl<number | null>(null, { nonNullable: true });
   protected readonly invoiceSearch = new FormControl<string>('', { nonNullable: true });
+  protected readonly invoiceCurrency = new FormControl<string>('', { nonNullable: true });
   protected readonly invoiceChargeTypeOptions = signal<ChargeTypeOption[]>([]);
   protected readonly collapsedInvoiceKeys = signal<Set<string>>(new Set());
   protected readonly draftQuantities = signal<Record<string, number>>({});
@@ -185,6 +198,9 @@ export class Clients {
       },
     });
     this.invoiceChargeType.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.invoicePage.set(1);
+    });
+    this.invoiceCurrency.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       this.invoicePage.set(1);
     });
     this.invoiceSearch.valueChanges.pipe(debounceTime(300), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef)).subscribe(() => {
@@ -531,13 +547,7 @@ export class Clients {
 
   private syncInvoicesFromAuthenticatedClient(): void {
     combineLatest([
-      this.authService.user$.pipe(
-        map(user => {
-          const clientId = user?.clientId;
-          return typeof clientId === 'string' ? clientId.trim() : '';
-        }),
-        distinctUntilChanged(),
-      ),
+      this.clientId$,
       this.invoiceChargeType.valueChanges.pipe(
         startWith(this.invoiceChargeType.getRawValue()),
         distinctUntilChanged(),
@@ -549,13 +559,17 @@ export class Clients {
         map(value => value.trim()),
       ),
       this.invoicePage$,
+      this.invoiceCurrency.valueChanges.pipe(
+        startWith(this.invoiceCurrency.getRawValue()),
+        distinctUntilChanged(),
+      ),
     ])
       .pipe(
-        switchMap(([clientId, chargeTypeId, search, page]) => {
-          const chargeTypeName = this.invoiceChargeTypeOptions().find(o => { 
-            return o.id == chargeTypeId 
+        switchMap(([clientId, chargeTypeId, search, page, currency]) => {
+          const chargeTypeName = this.invoiceChargeTypeOptions().find(o => {
+            return o.id == chargeTypeId;
           })?.name;
-          const invoiceScope = `${clientId}|${chargeTypeName ?? ''}`;
+          const invoiceScope = `${clientId}|${chargeTypeName ?? ''}|${currency}`;
           const invoiceScopeChanged = invoiceScope !== this.lastInvoiceScope;
           this.lastInvoiceScope = invoiceScope;
 
@@ -575,14 +589,14 @@ export class Clients {
           this.invoicesLoadError.set(null);
           this.isLoadingInvoices.set(false);
 
-          if (!clientId || !chargeTypeName) {
+          if (!clientId || !chargeTypeName || !currency) {
             this.resetInvoicePagination();
             return of<CustomerInvoice[]>([]);
           }
 
           this.isLoadingInvoices.set(true);
 
-          return this.customerService.getInvoicesByClientId(clientId, chargeTypeName, page, this.invoicePerPage(), search).pipe(
+          return this.customerService.getInvoicesByClientId(clientId, chargeTypeName, page, this.invoicePerPage(), search, currency).pipe(
             map(pagination => {
               this.invoicePage.set(pagination.current_page);
               this.invoiceLastPage.set(pagination.last_page);

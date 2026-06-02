@@ -9,7 +9,7 @@
         </header>
 
         <app-client-invoice-filters [chargeType]="invoiceChargeType" [search]="invoiceSearch"
-            [chargeTypeOptions]="invoiceChargeTypeOptions()"
+            [currency]="invoiceCurrency" [chargeTypeOptions]="invoiceChargeTypeOptions()"
             (clearSearch)="clearInvoiceSearch()"></app-client-invoice-filters>
 
         <section class="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_420px]">

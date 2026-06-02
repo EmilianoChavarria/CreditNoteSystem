@@ -203,3 +203,17 @@ export interface CancelMassResponse {
   cancelledRequestIds: number[];
   failedRequests: MassActionFailedRequest[];
 }
+
+export interface SendBackMassPayload {
+  requestIds: number[];
+  targetWorkflowStepId: number;
+  comments?: string;
+}
+
+export interface SendBackMassResponse {
+  totalReceived: number;
+  totalSentBack: number;
+  totalFailed: number;
+  sentBackRequestIds: number[];
+  failedRequests: MassActionFailedRequest[];
+}

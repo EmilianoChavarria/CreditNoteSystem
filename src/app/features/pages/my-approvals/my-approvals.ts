@@ -10,7 +10,7 @@ import { ToastService } from '../../../core/services/toast-service';
 import moment from 'moment';
 import { Modal } from '../../../shared/components/ui/modal/modal';
 import { Badge } from '../../../shared/components/ui/badge/badge';
-import { UpperCasePipe } from '@angular/common';
+import { SlicePipe, UpperCasePipe } from '@angular/common';
 import { Spinner } from '../../../shared/components/ui/spinner/spinner';
 import { RoleService } from '../../../core/services/role-service';
 import { ActivatedRoute } from '@angular/router';
@@ -21,10 +21,11 @@ import { RequestListBase } from '../../../shared/base/request-list.base';
 import { RequestInfoModal } from '../../pending/components/request-info-modal/request-info-modal';
 import { ApproveConfirmModal } from './components/approve-confirm-modal/approve-confirm-modal';
 import { SendBackModal } from './components/send-back-modal/send-back-modal';
+import { BulkSendBackModal } from './components/bulk-send-back-modal/bulk-send-back-modal';
 
 @Component({
     selector: 'app-my-approvals',
-    imports: [TranslatePipe, WorkflowHistoryDrawer, WorkflowHistoryModal, Modal, Table, Badge, UpperCasePipe, Spinner, ReactiveFormsModule, FullSpinnerComponent, RequestInfoModal, ApproveConfirmModal, SendBackModal],
+    imports: [TranslatePipe, WorkflowHistoryDrawer, WorkflowHistoryModal, Modal, Table, Badge, UpperCasePipe, Spinner, ReactiveFormsModule, FullSpinnerComponent, RequestInfoModal, ApproveConfirmModal, SendBackModal, BulkSendBackModal, SlicePipe],
     templateUrl: './my-approvals.html',
     styleUrl: './my-approvals.css',
 })
@@ -35,6 +36,7 @@ export class MyApprovals extends RequestListBase {
     private readonly cdr = inject(ChangeDetectorRef);
 
     public selectedRequestIds = signal<Set<number>>(new Set<number>());
+    private selectedRequestsMap = signal<Map<number, Request>>(new Map<number, Request>());
     public selectedCount = computed(() => this.selectedRequestIds().size);
     public currentPageRequestIds = computed(() =>
         this.requests().map((r) => Number(r.id)).filter((id) => Number.isFinite(id) && id > 0)
@@ -51,10 +53,30 @@ export class MyApprovals extends RequestListBase {
     public showBulkApproveModal = signal<boolean>(false);
     public showBulkDeclineModal = signal<boolean>(false);
     public showBulkCancelModal = signal<boolean>(false);
+    public showBulkSendBackModal = signal<boolean>(false);
     public isBulkProcessing = signal<boolean>(false);
     public canBulkApprove = signal<boolean>(false);
     public canBulkReject = signal<boolean>(false);
     public canBulkCancel = signal<boolean>(false);
+    public canBulkSendBack = signal<boolean>(false);
+
+    /** Todas las notas seleccionadas (de cualquier página) comparten el mismo paso y el mismo type de clasificación */
+    public canExecuteBulkSendBack = computed(() => {
+        const allSelected = Array.from(this.selectedRequestsMap().values());
+        if (allSelected.length === 0) return false;
+        const firstStepId = allSelected[0]?.workflowCurrentStep?.workflowStepId;
+        const firstClassType = allSelected[0]?.classification?.type;
+        return allSelected.every(
+            (r) => r.workflowCurrentStep?.workflowStepId === firstStepId && r.classification?.type === firstClassType
+        );
+    });
+
+    /** Primera nota seleccionada (de cualquier página), usada para cargar los pasos disponibles en el modal */
+    public firstSelectedRequest = computed(() =>
+        Array.from(this.selectedRequestsMap().values())[0] ?? null
+    );
+
+    public selectedRequestIdsArray = computed(() => Array.from(this.selectedRequestIds()));
     public isApproving = signal<boolean>(false);
     public isDeclining = signal<boolean>(false);
     public isCancelling = signal<boolean>(false);
@@ -70,17 +92,18 @@ export class MyApprovals extends RequestListBase {
         { key: 'bulkSelect', label: 'MY_APPROVALS.SELECT', sortable: false, customTemplate: true },
         { key: 'requestNumber', label: 'MY_APPROVALS.REQUEST_NUMBER', sortable: true },
         {
-            key: 'razonSocial', label: 'MY_APPROVALS.SOCIAL_REASON', sortable: true,
-            render: (value) => value ? value : '-'
+            key: 'razonSocial', label: 'MY_APPROVALS.SOCIAL_REASON', sortable: true, customTemplate: true
         },
-        { key: 'requestType.name', label: 'MY_APPROVALS.REQUEST_TYPE', sortable: true, customTemplate: true },
+        // { key: 'requestType.name', label: 'MY_APPROVALS.REQUEST_TYPE', sortable: true, customTemplate: true },
         { key: 'classification.name', label: 'MY_APPROVALS.CLASSIFICATION', sortable: true },
         { key: 'username', label: 'Assigned User', sortable: true, customTemplate: true },
         { key: 'status', label: 'MY_APPROVALS.STATUS', sortable: true, customTemplate: true },
         {
             key: 'createdAt', label: 'MY_APPROVALS.CREATED_AT', sortable: true,
             render: (value) => value ? moment(value).format('DD/MM/YYYY HH:mm:ss') : '-'
-        }
+        },
+        { key: 'user.fullName', label: 'CREATED BY', sortable: true }
+
     ];
 
     private readonly baseAcciones: AccionPersonalizada<Request>[] = [
@@ -90,7 +113,7 @@ export class MyApprovals extends RequestListBase {
         { key: 'return_order', icon: 'corner-up-left', label: 'MY_APPROVALS.RETURN_ORDER', accion: (request) => this.openSendBackModal(request) },
         { key: 'pdf', icon: 'file-text', label: 'MY_APPROVALS.PDF', accion: (request) => this.generatePdf(request) },
         { key: 'see_info', icon: 'info', label: 'PENDING_PAGE.SEE_INFO', accion: (request) => this.openInfoModal(request) },
-        { key: 'edit', icon: 'pencil', label: 'MY_APPROVALS.EDIT', accion: (request) => this.editRequest(request, '/app/my-approvals') },
+        { key: 'edit', icon: 'pencil', label: 'MY_APPROVALS.EDIT', accion: (request) => this.editRequestWithApprovalContext(request) },
         { key: 'history', icon: 'history', label: 'MY_APPROVALS.SEE_HISTORY', accion: (request) => this.logAction(request) },
     ];
     public acciones = signal<AccionPersonalizada<Request>[]>([]);
@@ -170,6 +193,12 @@ export class MyApprovals extends RequestListBase {
             this.searchTerm.set(requestNumber);
             this.resetPagination();
             this.clearSelectedRequests();
+            this.selectedRequesterId.set('all');
+            this.requesterOptions.set([]);
+            this.selectedClassificationType.set('all');
+            this.classificationTypeOptions.set([]);
+            this.loadRequesterOptions(resolvedRequestTypeId);
+            this.loadClassificationTypeOptions(resolvedRequestTypeId);
             this.loadMyPendingRequests();
         });
     }
@@ -238,6 +267,10 @@ export class MyApprovals extends RequestListBase {
         this.resetPagination();
         this.clearSelectedRequests();
         this.updateVisibleActions();
+        this.selectedRequesterId.set('all');
+        this.requesterOptions.set([]);
+        this.selectedClassificationType.set('all');
+        this.classificationTypeOptions.set([]);
 
         if (value === 'DE') {
             this.requests.set([]);
@@ -246,7 +279,21 @@ export class MyApprovals extends RequestListBase {
             return;
         }
 
+        this.loadRequesterOptions(Number(value));
+        this.loadClassificationTypeOptions(Number(value));
         this.loadRequests();
+    }
+
+    private loadClassificationTypeOptions(requestTypeId: number): void {
+        this._requestsService.getMyPendingClassifications(requestTypeId).subscribe({
+            next: (classifications) => {
+                const unique = [...new Map(classifications.map((c) => [c.type, c])).values()];
+                this.classificationTypeOptions.set(
+                    unique.map((c) => ({ label: c.type, value: c.type }))
+                );
+            },
+            error: () => this.classificationTypeOptions.set([])
+        });
     }
 
     private updateVisibleActions(): void {
@@ -256,6 +303,7 @@ export class MyApprovals extends RequestListBase {
             this.canBulkApprove.set(false);
             this.canBulkReject.set(false);
             this.canBulkCancel.set(false);
+            this.canBulkSendBack.set(false);
             return;
         }
         const permissionsBySlug = this.requestTypeActionPermissions()[requestTypeId] ?? {};
@@ -266,6 +314,7 @@ export class MyApprovals extends RequestListBase {
         this.canBulkApprove.set(getPermissionSlugsForCustomAction('approve').some(s => permissionsBySlug[s]));
         this.canBulkReject.set(getPermissionSlugsForCustomAction('decline').some(s => permissionsBySlug[s]));
         this.canBulkCancel.set(getPermissionSlugsForCustomAction('cancel').some(s => permissionsBySlug[s]));
+        this.canBulkSendBack.set(getPermissionSlugsForCustomAction('return_order').some(s => permissionsBySlug[s]));
     }
 
     override onSearch(term: string): void {
@@ -293,7 +342,7 @@ export class MyApprovals extends RequestListBase {
 
         this.isLoadingTable.set(true);
 
-        this._requestsService.getMyPendingRequests(requestTypeId, this.pageSize(), this.currentPage(), this.searchTerm(), this.selectedRoleName()).subscribe({
+        this._requestsService.getMyPendingRequests(requestTypeId, this.pageSize(), this.currentPage(), this.searchTerm(), this.selectedRoleName(), this.selectedRequesterId(), this.selectedClassificationType()).subscribe({
             next: (response) => {
                 this.requests.set(response.data ?? []);
                 this.currentPage.set(response.current_page ?? 1);
@@ -312,6 +361,23 @@ export class MyApprovals extends RequestListBase {
                 this.isInitializingDeepLink.set(false);
                 this.cdr.markForCheck();
             }
+        });
+    }
+
+    private editRequestWithApprovalContext(request: Request): void {
+        const requestTypeId = Number(request.requestTypeId ?? request.requestType?.id);
+        if (!requestTypeId || Number.isNaN(requestTypeId)) return;
+        const permissionsBySlug = this.requestTypeActionPermissions()[requestTypeId] ?? {};
+        const approvalActions = {
+            requestId: Number(request.id),
+            canApprove: getPermissionSlugsForCustomAction('approve').some(s => permissionsBySlug[s]),
+            canDecline: getPermissionSlugsForCustomAction('decline').some(s => permissionsBySlug[s]),
+            canCancel: getPermissionSlugsForCustomAction('cancel').some(s => permissionsBySlug[s]),
+            canReturn: getPermissionSlugsForCustomAction('return_order').some(s => permissionsBySlug[s]),
+        };
+        this._router.navigate(['/app/request/new-request'], {
+            queryParams: { requestTypeId },
+            state: { editRequest: request, returnTo: '/app/my-approvals', approvalActions }
         });
     }
 
@@ -364,15 +430,30 @@ export class MyApprovals extends RequestListBase {
             checked ? next.add(requestId) : next.delete(requestId);
             return next;
         });
+        this.selectedRequestsMap.update((current) => {
+            const next = new Map(current);
+            checked ? next.set(requestId, request) : next.delete(requestId);
+            return next;
+        });
     }
 
     toggleSelectCurrentPage(checked: boolean): void {
-        const pageIds = this.currentPageRequestIds();
-        if (!pageIds.length) return;
+        const pageRequests = this.requests().filter((r) => {
+            const id = Number(r.id);
+            return Number.isFinite(id) && id > 0;
+        });
+        if (!pageRequests.length) return;
         this.selectedRequestIds.update((current) => {
             const next = new Set(current);
-            for (const id of pageIds) {
-                checked ? next.add(id) : next.delete(id);
+            for (const r of pageRequests) {
+                checked ? next.add(Number(r.id)) : next.delete(Number(r.id));
+            }
+            return next;
+        });
+        this.selectedRequestsMap.update((current) => {
+            const next = new Map(current);
+            for (const r of pageRequests) {
+                checked ? next.set(Number(r.id), r) : next.delete(Number(r.id));
             }
             return next;
         });
@@ -380,6 +461,7 @@ export class MyApprovals extends RequestListBase {
 
     clearSelectedRequests(): void {
         this.selectedRequestIds.set(new Set<number>());
+        this.selectedRequestsMap.set(new Map<number, Request>());
     }
 
     openBulkApproveModal(): void {
@@ -399,6 +481,20 @@ export class MyApprovals extends RequestListBase {
 
     onBulkCancelModalChange(isOpen: boolean = true): void {
         this.showBulkCancelModal.set(isOpen);
+    }
+
+    openBulkSendBackModal(): void {
+        if (!this.selectedCount() || !this.canExecuteBulkSendBack()) return;
+        this.showBulkSendBackModal.set(true);
+    }
+
+    onBulkSendBackModalChange(isOpen: boolean): void {
+        this.showBulkSendBackModal.set(isOpen);
+    }
+
+    onBulkSendBackSent(): void {
+        this.clearSelectedRequests();
+        this.loadMyPendingRequests();
     }
 
     cancelSelectedRequests(): void {
@@ -625,4 +721,6 @@ export class MyApprovals extends RequestListBase {
     private getErrorMessageFromResponse(error: any, fallbackKey: string): string {
         return error?.error?.message ?? this._translateService.instant(fallbackKey);
     }
+
+    public refreshData(): void { this.loadMyPendingRequests(); }
 }

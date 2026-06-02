@@ -4,7 +4,7 @@ import { AccionPersonalizada, Column, Table } from '../../shared/components/ui/t
 import { Spinner } from '../../shared/components/ui/spinner/spinner';
 import moment from 'moment';
 import { Badge } from '../../shared/components/ui/badge/badge';
-import { UpperCasePipe } from '@angular/common';
+import { SlicePipe, UpperCasePipe } from '@angular/common';
 import { Modal } from '../../shared/components/ui/modal/modal';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { WorkflowHistoryDrawer } from '../history/components/workflow-history-drawer/workflow-history-drawer';
@@ -21,7 +21,7 @@ import { RequestListBase } from '../../shared/base/request-list.base';
     selector: 'app-pending',
     templateUrl: './pending.html',
     styleUrl: './pending.css',
-    imports: [TranslatePipe, Table, Spinner, Badge, UpperCasePipe, Modal, WorkflowHistoryDrawer, WorkflowHistoryModal, PendingAttachmentsModal, RequestInfoModal, ReactiveFormsModule]
+    imports: [TranslatePipe, Table, Spinner, Badge, UpperCasePipe, Modal, WorkflowHistoryDrawer, WorkflowHistoryModal, PendingAttachmentsModal, RequestInfoModal, ReactiveFormsModule, SlicePipe]
 })
 export class Pending extends RequestListBase {
     private readonly _roleService = inject(RoleService);
@@ -34,17 +34,17 @@ export class Pending extends RequestListBase {
     public columns: Column<Request>[] = [
         { key: 'requestNumber', label: 'PENDING_PAGE.REQUEST_NUMBER', sortable: true },
         {
-            key: 'razonSocial', label: 'PENDING_PAGE.SOCIAL_REASON', sortable: true,
-            render: (value) => value ? value : '-'
+            key: 'razonSocial', label: 'PENDING_PAGE.SOCIAL_REASON', sortable: true, customTemplate: true
         },
-        { key: 'requestType.name', label: 'PENDING_PAGE.REQUEST_TYPE', sortable: true, customTemplate: true },
+        // { key: 'requestType.name', label: 'PENDING_PAGE.REQUEST_TYPE', sortable: true, customTemplate: true },
         { key: 'classification.name', label: 'PENDING_PAGE.CLASSIFICATION', sortable: true },
         { key: 'username', label: 'Assigned User', sortable: true, customTemplate: true },
         { key: 'status', label: 'PENDING_PAGE.STATUS', sortable: true, customTemplate: true },
         {
             key: 'createdAt', label: 'PENDING_PAGE.CREATED_AT', sortable: true,
             render: (value) => value ? moment(value).format('DD/MM/YYYY HH:mm:ss') : '-'
-        }
+        },
+        { key: 'user.fullName', label: 'CREATED BY', sortable: true}
     ];
 
     private readonly baseAcciones: AccionPersonalizada<Request>[] = [
@@ -121,6 +121,8 @@ export class Pending extends RequestListBase {
         this.selectedRequestType = value;
         this.updateVisibleActions();
         this.resetPagination();
+        this.selectedRequesterId.set('all');
+        this.requesterOptions.set([]);
 
         if (value === 'DE') {
             this.requests.set([]);
@@ -129,6 +131,7 @@ export class Pending extends RequestListBase {
             return;
         }
 
+        this.loadRequesterOptions(Number(value));
         this.loadRequests();
     }
 
@@ -148,7 +151,8 @@ export class Pending extends RequestListBase {
             this.pageSize(),
             this.currentPage(),
             this.searchTerm(),
-            this.selectedRoleName()
+            this.selectedRoleName(),
+            this.selectedRequesterId()
         ).pipe(
             finalize(() => {
                 this.isLoadingTable.set(false);
@@ -190,4 +194,6 @@ export class Pending extends RequestListBase {
         this.canDeleteSelectedAttachments.set(canDelete);
         this.showAttachmentsModal.set(true);
     }
+
+    public refreshData(): void { this.loadRequests(); }
 }

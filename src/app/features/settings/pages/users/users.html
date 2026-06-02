@@ -22,7 +22,7 @@
         (searchChange)="onSearch($event)"
         (filterChange)="onRoleFilterChange($event)"
         (addClick)="openUserModalForCreate()"
-        (bulkClick)="openBulkUploadModal()">
+        (bulkClick)="openBulkUploadModal()" (refreshClick)="getUsers()">
         
 
         <ng-template #cellTemplate let-item let-column="column">
