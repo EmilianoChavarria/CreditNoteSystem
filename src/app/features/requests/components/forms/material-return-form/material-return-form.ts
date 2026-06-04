@@ -1,18 +1,19 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { RequestService } from '../../../../../core/services/request-service';
-import { ChargeTypeOption, CustomerService, ReturnOrderListEntry, ReturnOrderListItem } from '../../../../../core/services/customer-service';
+import { ChargeTypeOption, CustomerService, ReturnOrderListItem } from '../../../../../core/services/customer-service';
 import { ToastService } from '../../../../../core/services/toast-service';
 import { BaseRequestForm } from '../../shared/base-request-form';
+import { ConstraintContext, WorkflowFieldConstraint, WORKFLOW_FIELD_CONSTRAINTS } from '../../shared/request-form-workflow-constraints';
 import { TabsContainer } from '../../../../../shared/components/ui/tab/tab-container/tab-container';
 import { Tab } from '../../../../../shared/components/ui/tab/tab';
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormArray, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Autocomplete } from '../../../../../shared/components/ui/autocomplete/autocomplete';
-import { CurrencyPipe, DecimalPipe, TitleCasePipe } from '@angular/common';
+import { DecimalPipe, TitleCasePipe } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
 import { Spinner } from '../../../../../shared/components/ui/spinner/spinner';
-import { Observable, of, forkJoin, switchMap, take, catchError } from 'rxjs';
+import { Observable, of, forkJoin, switchMap, take, catchError, Subscription } from 'rxjs';
 import { SimpleChanges } from '@angular/core';
 import {
   ReturnOrderRequestByRequestData,
@@ -52,7 +53,6 @@ export class MaterialReturnForm extends BaseRequestForm {
   protected readonly isLoadingMaterialList = signal<boolean>(false);
   protected readonly materialListError = signal<string | null>(null);
 
-  // Signals for table row data (keyed by material.id)
   protected readonly replenishmentAcceptedByMaterialId = signal<Map<number, number>>(new Map());
   protected readonly warehouseReceivedByMaterialId = signal<Map<number, number>>(new Map());
   protected readonly warehouseAcceptedByMaterialId = signal<Map<number, number>>(new Map());
@@ -68,51 +68,40 @@ export class MaterialReturnForm extends BaseRequestForm {
     return !Array.from(acceptedMap.values()).some(v => v > 0);
   });
 
-  // Flags for IVA
   protected readonly hasReplenishmentIva = signal<boolean>(false);
   protected readonly hasWarehouseIva = signal<boolean>(false);
 
-  // Computed totals for replenishment (quantity * unit price)
   protected readonly replenishmentAcceptedTotal = computed(() => {
     const acceptedMap = this.replenishmentAcceptedByMaterialId();
     const materials = this.materialList();
     let total = 0;
-    
     materials.forEach((material) => {
       const acceptedQty = acceptedMap.get(material.id) || 0;
       const unitPrice = Number(material.valorUnitario) || 0;
       total += (acceptedQty * unitPrice);
     });
-    
     return total;
   });
 
-  // Computed total for warehouse received (quantity only, no price multiplication)
   protected readonly warehouseReceivedTotal = computed(() => {
     const map = this.warehouseReceivedByMaterialId();
     let total = 0;
-    map.forEach((value) => {
-      total += Number(value) || 0;
-    });
+    map.forEach((value) => { total += Number(value) || 0; });
     return total;
   });
 
-  // Computed total for warehouse accepted (quantity * unit price)
   protected readonly warehouseAcceptedTotal = computed(() => {
     const acceptedMap = this.warehouseAcceptedByMaterialId();
     const materials = this.materialList();
     let total = 0;
-    
     materials.forEach((material) => {
       const acceptedQty = acceptedMap.get(material.id) || 0;
       const unitPrice = Number(material.valorUnitario) || 0;
       total += (acceptedQty * unitPrice);
     });
-    
     return total;
   });
 
-  // Computed IVA amounts (16% = 0.16)
   protected readonly replenishmentIvaAmount = computed(() => {
     const total = this.replenishmentAcceptedTotal();
     return this.hasReplenishmentIva() ? total * 0.16 : 0;
@@ -123,6 +112,12 @@ export class MaterialReturnForm extends BaseRequestForm {
     return this.hasWarehouseIva() ? total * 0.16 : 0;
   });
 
+  get materialItemsForm(): FormArray<FormGroup> {
+    return this.form.get('materialItems') as FormArray<FormGroup>;
+  }
+
+  private materialItemsSub: Subscription | null = null;
+
   constructor(
     requestService: RequestService,
     customerService: CustomerService,
@@ -132,10 +127,14 @@ export class MaterialReturnForm extends BaseRequestForm {
     super(requestService, customerService, toastService);
   }
 
+  protected override createForm(): FormGroup {
+    const base = super.createForm();
+    base.addControl('materialItems', new FormArray([]));
+    return base;
+  }
+
   override saveRequest(): void {
-    if (this.allReplenishmentZero()) {
-      return;
-    }
+    if (this.allReplenishmentZero()) { return; }
     super.saveRequest();
   }
 
@@ -148,58 +147,64 @@ export class MaterialReturnForm extends BaseRequestForm {
   }
 
   protected override getFormOptions() {
-    return {
-      includeOrderNumber: true,
-      includeCreditNumber: true,
-      includeStatus: false,
-    };
+    return { includeOrderNumber: true, includeCreditNumber: true, includeStatus: false };
   }
 
   override ngOnInit(): void {
     super.ngOnInit();
+    this.materialItemsSub = this.materialItemsForm.valueChanges.subscribe(() => {
+      this.syncFormArrayToSignals();
+      this.syncMaterialAmountsToForm();
+    });
     this.syncIvaFlagsFromForm();
     this.loadMaterialListContext();
   }
 
+  override ngOnDestroy(): void {
+    super.ngOnDestroy();
+    this.materialItemsSub?.unsubscribe();
+  }
+
   override ngOnChanges(changes: SimpleChanges): void {
     super.ngOnChanges(changes);
-
     if (changes['initialRequestData']) {
       this.syncIvaFlagsFromForm();
       this.syncMaterialAmountsToForm();
     }
-
     if (changes['initialRequestData'] && !changes['initialRequestData'].firstChange) {
       this.loadMaterialListContext();
     }
   }
 
+  protected override applyConstraintsToArrayFields(constraints: WorkflowFieldConstraint[], ctx: ConstraintContext): void {
+    for (const constraint of constraints) {
+      if (!constraint.arrayFields?.length) continue;
+      const shouldDisable = constraint.disableWhen(ctx);
+      for (const group of this.materialItemsForm.controls) {
+        for (const field of constraint.arrayFields) {
+          const control = (group as FormGroup).get(field);
+          if (!control) continue;
+          if (shouldDisable) control.disable({ emitEvent: false });
+          else control.enable({ emitEvent: false });
+        }
+      }
+    }
+  }
+
   protected override onRequestCreated(requestId: number, _response: unknown): Observable<unknown> {
     const returnOrderId = this.orderId();
-    if (!returnOrderId) {
-      return of(null);
-    }
-
-    return this._requestService.linkReturnOrderToRequest({
-      returnOrderId,
-      requestId,
-    }).pipe(take(1));
+    if (!returnOrderId) { return of(null); }
+    return this._requestService.linkReturnOrderToRequest({ returnOrderId, requestId }).pipe(take(1));
   }
 
   protected override onRequestUpdated(requestId: number, _response: unknown): Observable<unknown> {
     return this.resolveReturnOrderRequestId(requestId).pipe(
       take(1),
       switchMap((resolvedReturnOrderRequestId) => {
-        if (!resolvedReturnOrderRequestId) {
-          return of(null);
-        }
-
+        if (!resolvedReturnOrderRequestId) { return of(null); }
         return this.returnOrderRequestService.updateItems(resolvedReturnOrderRequestId, {
           items: this.buildReturnOrderItemsPayload(),
-        }).pipe(
-          take(1),
-          catchError(() => of(null))
-        );
+        }).pipe(take(1), catchError(() => of(null)));
       }),
       catchError(() => of(null))
     );
@@ -227,6 +232,7 @@ export class MaterialReturnForm extends BaseRequestForm {
     this.isLoadingMaterialList.set(true);
     this.materialListError.set(null);
     this.materialList.set([]);
+    this.rebuildMaterialFormArray();
     this.resetItemInputState();
 
     this.returnOrderRequestService.getByRequestId(requestId).pipe(take(1)).subscribe({
@@ -265,6 +271,7 @@ export class MaterialReturnForm extends BaseRequestForm {
           this.materialList.set(
             materialReturn.items.map((item) => this.mapReturnOrderRequestItemToMaterial(item, returnOrderId))
           );
+          this.rebuildMaterialFormArray();
           this.syncMaterialAmountsToForm();
           this.isLoadingMaterialList.set(false);
           return;
@@ -278,12 +285,12 @@ export class MaterialReturnForm extends BaseRequestForm {
           this.setNoAssignedReturnOrderState();
           return;
         }
-
         const apiMessage = (error as { error?: { message?: string } })?.error?.message;
         this.materialListError.set(apiMessage?.trim() || 'No fue posible cargar la orden de devolución relacionada.');
         this.orderId.set(null);
         this.returnOrderRequestId.set(null);
         this.materialList.set([]);
+        this.rebuildMaterialFormArray();
         this.resetItemInputState();
         this.isLoadingMaterialList.set(false);
       },
@@ -299,6 +306,7 @@ export class MaterialReturnForm extends BaseRequestForm {
     this.isLoadingMaterialList.set(true);
     this.materialListError.set(null);
     this.materialList.set([]);
+    this.rebuildMaterialFormArray();
     this.resetItemInputState();
 
     forkJoin({
@@ -334,6 +342,7 @@ export class MaterialReturnForm extends BaseRequestForm {
         }
 
         this.materialList.set(order?.items ?? []);
+        this.rebuildMaterialFormArray();
         this.syncMaterialAmountsToForm();
         this.isLoadingMaterialList.set(false);
       },
@@ -341,6 +350,7 @@ export class MaterialReturnForm extends BaseRequestForm {
         const apiMessage = (error as { error?: { message?: string } })?.error?.message;
         this.materialListError.set(apiMessage?.trim() || 'No fue posible cargar la lista de materiales de la orden.');
         this.materialList.set([]);
+        this.rebuildMaterialFormArray();
         this.resetItemInputState();
         this.isLoadingMaterialList.set(false);
       },
@@ -354,6 +364,7 @@ export class MaterialReturnForm extends BaseRequestForm {
     this.orderId.set(null);
     this.returnOrderRequestId.set(null);
     this.materialList.set([]);
+    this.rebuildMaterialFormArray();
     this.resetItemInputState();
     this.materialListError.set(null);
     this.isLoadingMaterialList.set(false);
@@ -394,7 +405,6 @@ export class MaterialReturnForm extends BaseRequestForm {
     }
 
     this.isSavingCharge.set(true);
-
     this._customerService.updateReturnOrderCharge(returnOrderId, payload).pipe(take(1)).subscribe({
       next: () => this.isSavingCharge.set(false),
       error: () => {
@@ -416,186 +426,99 @@ export class MaterialReturnForm extends BaseRequestForm {
     this.syncMaterialAmountsToForm();
   }
 
-  protected onTableInputChange(materialId: number, fieldType: 'replenishment' | 'warehouseReceived' | 'warehouseAccepted', event: any): void {
-    const value = event?.target?.value ?? '';
-    
-    if (fieldType === 'replenishment') {
-      this.updateReplenishmentAccepted(materialId, value);
-    } else if (fieldType === 'warehouseReceived') {
-      this.updateWarehouseReceived(materialId, value);
-    } else if (fieldType === 'warehouseAccepted') {
-      this.updateWarehouseAccepted(materialId, value);
-    }
-
-    this.syncMaterialAmountsToForm();
-  }
-
-  protected onTextFieldChange(
-    materialId: number,
-    fieldType: 'replenishmentReason' | 'warehouseReason' | 'sapId',
-    event: Event
-  ): void {
-    const value = ((event.target as HTMLInputElement | null)?.value ?? '').trim();
-
-    if (fieldType === 'replenishmentReason') {
-      this.setTextMapValue(this.replenishmentReasonByMaterialId, materialId, value);
-      return;
-    }
-
-    if (fieldType === 'warehouseReason') {
-      this.setTextMapValue(this.warehouseReasonByMaterialId, materialId, value);
-      return;
-    }
-
-    this.setTextMapValue(this.sapIdByMaterialId, materialId, value);
-  }
-
-  protected getTextFieldValue(
-    materialId: number,
-    fieldType: 'replenishmentReason' | 'warehouseReason' | 'sapId'
-  ): string {
-    if (fieldType === 'replenishmentReason') {
-      return this.replenishmentReasonByMaterialId().get(materialId) ?? '';
-    }
-
-    if (fieldType === 'warehouseReason') {
-      return this.warehouseReasonByMaterialId().get(materialId) ?? '';
-    }
-
-    return this.sapIdByMaterialId().get(materialId) ?? '';
-  }
-
-  protected getMaterialAmount(materialId: number, fieldType: 'replenishment' | 'warehouseAccepted'): number {
-    const material = this.materialList().find(m => m.id === materialId);
-    if (!material) return 0;
-    
-    const unitPrice = Number(material.valorUnitario) || 0;
-    let quantity = 0;
-    
-    if (fieldType === 'replenishment') {
-      quantity = this.replenishmentAcceptedByMaterialId().get(materialId) || 0;
-    } else if (fieldType === 'warehouseAccepted') {
-      quantity = this.warehouseAcceptedByMaterialId().get(materialId) || 0;
-    }
-    
-    return quantity * unitPrice;
-  }
-
-  protected validateReplenishmentInput(materialId: number, event: any): void {
-    const numValue = Number(event.target.value) || 0;
-    const material = this.materialList().find(m => m.id === materialId);
-    const maxAllowed = Number(material?.requestedQuantity) || 0;
-    
-    if (numValue > maxAllowed) {
-      event.target.value = '';
-    }
-  }
-
-  protected validateWarehouseReceivedInput(materialId: number, event: any): void {
-    const numValue = Number(event.target.value) || 0;
-    const material = this.materialList().find(m => m.id === materialId);
-    const maxAllowed = Number(material?.requestedQuantity) || 0;
-    
-    if (numValue > maxAllowed) {
-      event.target.value = '';
-    }
-  }
-
-  protected validateWarehouseAcceptedInput(materialId: number, event: any): void {
-    const numValue = Number(event.target.value) || 0;
-    const warehouseReceivedQty = this.warehouseReceivedByMaterialId().get(materialId) || 0;
-    
-    if (numValue > warehouseReceivedQty) {
-      event.target.value = '';
-    }
-  }
-
-  protected updateReplenishmentAccepted(materialId: number, value: string | number): void {
-    const str = String(value ?? '').trim();
-    const newMap = new Map(this.replenishmentAcceptedByMaterialId());
-
-    if (str === '') {
-      newMap.delete(materialId);
-      this.replenishmentAcceptedByMaterialId.set(newMap);
-      this.syncMaterialAmountsToForm();
-      return;
-    }
-
-    const numValue = Number(str);
-    if (!Number.isFinite(numValue) || numValue < 0) return;
-
+  protected validateReplenishmentInput(materialId: number, idx: number): void {
+    const group = this.materialItemsForm.at(idx) as FormGroup;
+    const control = group.get('replenishmentAccepted');
+    const numValue = Number(control?.value) || 0;
     const material = this.materialList().find(m => m.id === materialId);
     const maxAllowed = Number(material?.requestedQuantity) || 0;
     if (numValue > maxAllowed) {
       this._toastService.error(`Replanishment accepted no puede ser mayor a ${maxAllowed} (Cant. devuelta)`);
-      return;
+      control?.setValue(null);
     }
-
-    newMap.set(materialId, numValue);
-    this.replenishmentAcceptedByMaterialId.set(newMap);
-    this.syncMaterialAmountsToForm();
   }
 
-  protected updateWarehouseReceived(materialId: number, value: string | number): void {
-    const str = String(value ?? '').trim();
-    const newMap = new Map(this.warehouseReceivedByMaterialId());
-
-    if (str === '') {
-      newMap.delete(materialId);
-      this.warehouseReceivedByMaterialId.set(newMap);
-      this.syncMaterialAmountsToForm();
-      return;
-    }
-
-    const numValue = Number(str);
-    if (!Number.isFinite(numValue) || numValue < 0) return;
-
+  protected validateWarehouseReceivedInput(materialId: number, idx: number): void {
+    const group = this.materialItemsForm.at(idx) as FormGroup;
+    const control = group.get('warehouseReceived');
+    const numValue = Number(control?.value) || 0;
     const material = this.materialList().find(m => m.id === materialId);
     const maxAllowed = Number(material?.requestedQuantity) || 0;
     if (numValue > maxAllowed) {
       this._toastService.error(`Warehouse received no puede ser mayor a ${maxAllowed} (Cant. devuelta)`);
-      return;
+      control?.setValue(null);
     }
-
-    newMap.set(materialId, numValue);
-    this.warehouseReceivedByMaterialId.set(newMap);
-    this.syncMaterialAmountsToForm();
   }
 
-  protected updateWarehouseAccepted(materialId: number, value: string | number): void {
-    const str = String(value ?? '').trim();
-    const newMap = new Map(this.warehouseAcceptedByMaterialId());
-
-    if (str === '') {
-      newMap.delete(materialId);
-      this.warehouseAcceptedByMaterialId.set(newMap);
-      this.syncMaterialAmountsToForm();
-      return;
-    }
-
-    const numValue = Number(str);
-    if (!Number.isFinite(numValue) || numValue < 0) return;
-
-    const warehouseReceivedQty = this.warehouseReceivedByMaterialId().get(materialId) ?? 0;
+  protected validateWarehouseAcceptedInput(materialId: number, idx: number): void {
+    const group = this.materialItemsForm.at(idx) as FormGroup;
+    const control = group.get('warehouseAccepted');
+    const numValue = Number(control?.value) || 0;
+    const warehouseReceivedQty = this.warehouseReceivedByMaterialId().get(materialId) || 0;
     if (numValue > warehouseReceivedQty) {
       this._toastService.error(`Warehouse accepted no puede ser mayor a ${warehouseReceivedQty} (Warehouse received)`);
-      return;
+      control?.setValue(null);
+    }
+  }
+
+  private rebuildMaterialFormArray(): void {
+    const array = this.materialItemsForm;
+    array.clear({ emitEvent: false });
+    for (const material of this.materialList()) {
+      const id = material.id;
+      array.push(new FormGroup({
+        replenishmentAccepted: new FormControl<number | null>(this.replenishmentAcceptedByMaterialId().get(id) ?? null),
+        replenishmentReason: new FormControl<string>(this.replenishmentReasonByMaterialId().get(id) ?? ''),
+        warehouseReceived: new FormControl<number | null>(this.warehouseReceivedByMaterialId().get(id) ?? null),
+        warehouseAccepted: new FormControl<number | null>(this.warehouseAcceptedByMaterialId().get(id) ?? null),
+        warehouseReason: new FormControl<string>(this.warehouseReasonByMaterialId().get(id) ?? ''),
+        sapId: new FormControl<string>(this.sapIdByMaterialId().get(id) ?? ''),
+      }), { emitEvent: false });
     }
 
-    newMap.set(materialId, numValue);
-    this.warehouseAcceptedByMaterialId.set(newMap);
-    this.syncMaterialAmountsToForm();
+    if (this.isEditing) {
+      const ctx: ConstraintContext = {
+        step: this.initialRequestData?.workflowCurrentStep?.workflow_step,
+        assignedRoleName: this.initialRequestData?.workflowCurrentStep?.assigned_role?.roleName,
+      };
+      this.applyConstraintsToArrayFields(WORKFLOW_FIELD_CONSTRAINTS, ctx);
+    }
+  }
+
+  private syncFormArrayToSignals(): void {
+    const materials = this.materialList();
+    const repMap = new Map<number, number>();
+    const recMap = new Map<number, number>();
+    const accMap = new Map<number, number>();
+    const repReasonMap = new Map<number, string>();
+    const whReasonMap = new Map<number, string>();
+    const sapIdMap = new Map<number, string>();
+
+    this.materialItemsForm.controls.forEach((group, idx) => {
+      const id = materials[idx]?.id;
+      if (id == null) return;
+      const v = (group as FormGroup).getRawValue();
+      if (v.replenishmentAccepted != null) repMap.set(id, v.replenishmentAccepted);
+      if (v.warehouseReceived != null) recMap.set(id, v.warehouseReceived);
+      if (v.warehouseAccepted != null) accMap.set(id, v.warehouseAccepted);
+      if (v.replenishmentReason) repReasonMap.set(id, v.replenishmentReason);
+      if (v.warehouseReason) whReasonMap.set(id, v.warehouseReason);
+      if (v.sapId) sapIdMap.set(id, v.sapId);
+    });
+
+    this.replenishmentAcceptedByMaterialId.set(repMap);
+    this.warehouseReceivedByMaterialId.set(recMap);
+    this.warehouseAcceptedByMaterialId.set(accMap);
+    this.replenishmentReasonByMaterialId.set(repReasonMap);
+    this.warehouseReasonByMaterialId.set(whReasonMap);
+    this.sapIdByMaterialId.set(sapIdMap);
   }
 
   private syncMaterialAmountsToForm(): void {
     const replenishmentAmount = this.replenishmentAcceptedTotal();
     const warehouseAmount = this.warehouseAcceptedTotal();
-    const replenishmentTotal = this.hasReplenishmentIva()
-      ? replenishmentAmount * 1.16
-      : replenishmentAmount;
-    const warehouseTotal = this.hasWarehouseIva()
-      ? warehouseAmount * 1.16
-      : warehouseAmount;
+    const replenishmentTotal = this.hasReplenishmentIva() ? replenishmentAmount * 1.16 : replenishmentAmount;
+    const warehouseTotal = this.hasWarehouseIva() ? warehouseAmount * 1.16 : warehouseAmount;
 
     this.form.patchValue({
       replenishmentAmount: replenishmentAmount.toFixed(2),
@@ -606,21 +529,8 @@ export class MaterialReturnForm extends BaseRequestForm {
   }
 
   private syncIvaFlagsFromForm(): void {
-    const hasReplenishmentIva = this.form.get('hasReplenishmentIva')?.value === true;
-    const hasWarehouseIva = this.form.get('hasWarehouseIva')?.value === true;
-
-    this.hasReplenishmentIva.set(hasReplenishmentIva);
-    this.hasWarehouseIva.set(hasWarehouseIva);
-  }
-
-  private setTextMapValue(targetSignal: { (): Map<number, string>; set(value: Map<number, string>): void }, materialId: number, value: string): void {
-    const newMap = new Map(targetSignal());
-    if (value.length === 0) {
-      newMap.delete(materialId);
-    } else {
-      newMap.set(materialId, value);
-    }
-    targetSignal.set(newMap);
+    this.hasReplenishmentIva.set(this.form.get('hasReplenishmentIva')?.value === true);
+    this.hasWarehouseIva.set(this.form.get('hasWarehouseIva')?.value === true);
   }
 
   private resetItemInputState(): void {
@@ -642,9 +552,7 @@ export class MaterialReturnForm extends BaseRequestForm {
 
     for (const item of items) {
       const itemId = Number(item.id);
-      if (!Number.isFinite(itemId) || itemId <= 0) {
-        continue;
-      }
+      if (!Number.isFinite(itemId) || itemId <= 0) continue;
 
       const replenishmentAccepted = Number(item.replenishmentAccepted);
       if (item.replenishmentAccepted != null && Number.isFinite(replenishmentAccepted)) {
@@ -662,19 +570,13 @@ export class MaterialReturnForm extends BaseRequestForm {
       }
 
       const replenishmentReason = (item.replenishmentReasonForRejection ?? '').trim();
-      if (replenishmentReason.length > 0) {
-        replenishmentReasonMap.set(itemId, replenishmentReason);
-      }
+      if (replenishmentReason.length > 0) replenishmentReasonMap.set(itemId, replenishmentReason);
 
       const warehouseReason = (item.warehouseReasonForRejection ?? '').trim();
-      if (warehouseReason.length > 0) {
-        warehouseReasonMap.set(itemId, warehouseReason);
-      }
+      if (warehouseReason.length > 0) warehouseReasonMap.set(itemId, warehouseReason);
 
       const sapId = (item.sapId ?? '').trim();
-      if (sapId.length > 0) {
-        sapIdMap.set(itemId, sapId);
-      }
+      if (sapId.length > 0) sapIdMap.set(itemId, sapId);
     }
 
     this.replenishmentAcceptedByMaterialId.set(replenishmentMap);
@@ -686,35 +588,30 @@ export class MaterialReturnForm extends BaseRequestForm {
   }
 
   private buildReturnOrderItemsPayload(): ReturnOrderRequestItemUpdate[] {
-    return this.materialList().map((material) => {
-      const itemId = Number(material.id);
-
+    return this.materialList().map((material, idx) => {
+      const group = this.materialItemsForm.at(idx) as FormGroup;
+      const v = group.getRawValue();
       return {
-        id: itemId,
-        replenishmentAccepted: this.replenishmentAcceptedByMaterialId().get(itemId) ?? null,
-        replenishmentReasonForRejection: this.replenishmentReasonByMaterialId().get(itemId) ?? null,
-        warehouseReceived: this.warehouseReceivedByMaterialId().get(itemId) ?? null,
-        warehouseAccepted: this.warehouseAcceptedByMaterialId().get(itemId) ?? null,
-        warehouseReasonForRejection: this.warehouseReasonByMaterialId().get(itemId) ?? null,
-        sapId: this.sapIdByMaterialId().get(itemId) ?? null,
+        id: Number(material.id),
+        replenishmentAccepted: v.replenishmentAccepted ?? null,
+        replenishmentReasonForRejection: v.replenishmentReason || null,
+        warehouseReceived: v.warehouseReceived ?? null,
+        warehouseAccepted: v.warehouseAccepted ?? null,
+        warehouseReasonForRejection: v.warehouseReason || null,
+        sapId: v.sapId || null,
       };
     });
   }
 
   private resolveReturnOrderRequestId(requestId: number): Observable<number | null> {
     const currentId = this.returnOrderRequestId();
-    if (currentId && currentId > 0) {
-      return of(currentId);
-    }
+    if (currentId && currentId > 0) { return of(currentId); }
 
     return this.returnOrderRequestService.getByRequestId(requestId).pipe(
       take(1),
       switchMap((response) => {
         const resolvedId = Number(response?.id);
-        if (!Number.isFinite(resolvedId) || resolvedId <= 0) {
-          return of(null);
-        }
-
+        if (!Number.isFinite(resolvedId) || resolvedId <= 0) { return of(null); }
         this.returnOrderRequestId.set(resolvedId);
         return of(resolvedId);
       }),
@@ -734,18 +631,22 @@ export class MaterialReturnForm extends BaseRequestForm {
         'SAP ID',
       ];
 
-      const rows = materials.map(m => ({
-        '_id': m.id,
-        'Invoice Folio': m.invoiceFolio,
-        'Descripción': m.descripcion,
-        'Cant. devuelta': m.requestedQuantity,
-        'Replenishment Accepted': this.replenishmentAcceptedByMaterialId().get(m.id) ?? '',
-        'Replenishment Rejection Reason': this.replenishmentReasonByMaterialId().get(m.id) ?? '',
-        'Warehouse Received': this.warehouseReceivedByMaterialId().get(m.id) ?? '',
-        'Warehouse Accepted': this.warehouseAcceptedByMaterialId().get(m.id) ?? '',
-        'Warehouse Rejection Reason': this.warehouseReasonByMaterialId().get(m.id) ?? '',
-        'SAP ID': this.sapIdByMaterialId().get(m.id) ?? '',
-      }));
+      const rows = materials.map((m, idx) => {
+        const group = this.materialItemsForm.at(idx) as FormGroup;
+        const v = group.getRawValue();
+        return {
+          '_id': m.id,
+          'Invoice Folio': m.invoiceFolio,
+          'Descripción': m.descripcion,
+          'Cant. devuelta': m.requestedQuantity,
+          'Replenishment Accepted': v.replenishmentAccepted ?? '',
+          'Replenishment Rejection Reason': v.replenishmentReason ?? '',
+          'Warehouse Received': v.warehouseReceived ?? '',
+          'Warehouse Accepted': v.warehouseAccepted ?? '',
+          'Warehouse Rejection Reason': v.warehouseReason ?? '',
+          'SAP ID': v.sapId ?? '',
+        };
+      });
 
       const ws = XLSX.utils.json_to_sheet(rows, { header: HEADER });
       ws['!cols'] = [
@@ -771,7 +672,6 @@ export class MaterialReturnForm extends BaseRequestForm {
         const wb = XLSX.read(data, { type: 'array' });
         const ws = wb.Sheets[wb.SheetNames[0]];
         const rows: any[] = XLSX.utils.sheet_to_json(ws, { defval: '' });
-
         const materials = this.materialList();
 
         if (rows.length !== materials.length) {
@@ -785,29 +685,49 @@ export class MaterialReturnForm extends BaseRequestForm {
 
         for (const row of rows) {
           const materialId = Number(row['_id']);
-          const material = materials.find(m => m.id === materialId);
-          if (!material) {
+          const idx = materials.findIndex(m => m.id === materialId);
+          if (idx === -1) {
             errors.push(`ID ${materialId} no coincide con ningún material.`);
             continue;
           }
 
+          const group = this.materialItemsForm.at(idx) as FormGroup;
+          const material = materials[idx];
+
           const repAcc = row['Replenishment Accepted'];
-          if (repAcc !== '') this.updateReplenishmentAccepted(materialId, String(repAcc));
+          if (repAcc !== '') {
+            const val = Number(repAcc);
+            if (Number.isFinite(val) && val >= 0) {
+              const max = Number(material.requestedQuantity) || 0;
+              group.get('replenishmentAccepted')?.setValue(val > max ? null : val, { emitEvent: false });
+            }
+          }
 
           const repReason = String(row['Replenishment Rejection Reason'] ?? '').trim();
-          if (repReason) this.setTextMapValue(this.replenishmentReasonByMaterialId, materialId, repReason);
+          if (repReason) group.get('replenishmentReason')?.setValue(repReason, { emitEvent: false });
 
           const whRec = row['Warehouse Received'];
-          if (whRec !== '') this.updateWarehouseReceived(materialId, String(whRec));
+          if (whRec !== '') {
+            const val = Number(whRec);
+            if (Number.isFinite(val) && val >= 0) {
+              const max = Number(material.requestedQuantity) || 0;
+              group.get('warehouseReceived')?.setValue(val > max ? null : val, { emitEvent: false });
+            }
+          }
 
           const whAcc = row['Warehouse Accepted'];
-          if (whAcc !== '') this.updateWarehouseAccepted(materialId, String(whAcc));
+          if (whAcc !== '') {
+            const val = Number(whAcc);
+            if (Number.isFinite(val) && val >= 0) {
+              group.get('warehouseAccepted')?.setValue(val, { emitEvent: false });
+            }
+          }
 
           const whReason = String(row['Warehouse Rejection Reason'] ?? '').trim();
-          if (whReason) this.setTextMapValue(this.warehouseReasonByMaterialId, materialId, whReason);
+          if (whReason) group.get('warehouseReason')?.setValue(whReason, { emitEvent: false });
 
           const sapId = String(row['SAP ID'] ?? '').trim();
-          if (sapId) this.setTextMapValue(this.sapIdByMaterialId, materialId, sapId);
+          if (sapId) group.get('sapId')?.setValue(sapId, { emitEvent: false });
         }
 
         if (errors.length) {
@@ -816,6 +736,7 @@ export class MaterialReturnForm extends BaseRequestForm {
           this._toastService.success('Datos importados correctamente');
         }
 
+        this.syncFormArrayToSignals();
         this.syncMaterialAmountsToForm();
       });
     };
@@ -839,5 +760,4 @@ export class MaterialReturnForm extends BaseRequestForm {
       createdAt: item.createdAt,
     };
   }
-
 }
