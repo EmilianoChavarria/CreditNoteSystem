@@ -3,6 +3,7 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { finalize, forkJoin, map, Observable, of, Subscription, switchMap, take } from 'rxjs';
 import { Classification, Customer, Reason, Request, RequestAttachment } from '../../../../data/interfaces/Request';
+import { ConstraintContext, WorkflowFieldConstraint, WORKFLOW_FIELD_CONSTRAINTS } from './request-form-workflow-constraints';
 import { ApiResponse } from '../../../../data/interfaces/ApiResponse-interface';
 import { RequestService } from '../../../../core/services/request-service';
 import { CustomerService } from '../../../../core/services/customer-service';
@@ -215,6 +216,39 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
     }
 
     this.form.patchValue(patchValue, { emitEvent: false });
+    this.applyWorkflowStepConstraints();
+  }
+
+  private applyWorkflowStepConstraints(): void {
+    if (!this.isEditing) {
+      return;
+    }
+
+    const ctx: ConstraintContext = {
+      step: this.initialRequestData?.workflowCurrentStep?.workflow_step,
+      assignedRoleName: this.initialRequestData?.workflowCurrentStep?.assigned_role?.roleName,
+    };
+
+    for (const constraint of WORKFLOW_FIELD_CONSTRAINTS) {
+      const shouldDisable = constraint.disableWhen(ctx);
+      for (const field of constraint.fields) {
+        const control = this.form.get(field);
+        if (!control) {
+          continue;
+        }
+        if (shouldDisable) {
+          control.disable({ emitEvent: false });
+        } else {
+          control.enable({ emitEvent: false });
+        }
+      }
+    }
+
+    this.applyConstraintsToArrayFields(WORKFLOW_FIELD_CONSTRAINTS, ctx);
+  }
+
+  protected applyConstraintsToArrayFields(_constraints: WorkflowFieldConstraint[], _ctx: ConstraintContext): void {
+    // Hook para que subclases apliquen restricciones a campos dentro de un FormArray.
   }
 
   private resolveCustomerName(requestData: Partial<Request>): string {
@@ -1004,6 +1038,11 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
     console.log(option);
     if (option) {
       this.form.controls['customerNumber'].setValue(this.resolveCustomerNumberFromSelection(option));
+
+      const customerArea = option?.data?.clienteExt?.area;
+      if (customerArea && 'area' in this.form.controls) {
+        this.form.controls['area'].setValue(String(customerArea).toUpperCase());
+      }
     }
   }
 

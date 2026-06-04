@@ -96,6 +96,8 @@ export class NewRequest implements OnInit {
 
         const navigationState = this.router.getCurrentNavigation()?.extras?.state as { editRequest?: Request; approvalActions?: ApprovalContext; returnTo?: string } | undefined;
         const browserState = history.state as { editRequest?: Request; approvalActions?: ApprovalContext; returnTo?: string };
+        console.log("🚀 ~ NewRequest ~ applyIncomingEditState ~ browserState:", browserState)
+        
         const editRequest = navigationState?.editRequest ?? browserState?.editRequest;
         const approvalActions = navigationState?.approvalActions ?? browserState?.approvalActions;
         const returnTo = navigationState?.returnTo ?? browserState?.returnTo;
