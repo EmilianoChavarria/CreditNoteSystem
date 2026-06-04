@@ -98,25 +98,25 @@ export class RequestService {
     return `${y}-${m}-${d}`;
   }
 
-  getReasons(requestTypeId: number): Observable<Reason[]> {
-    const cachedReasons = this.reasonsByType.get(requestTypeId);
-    if (cachedReasons) {
-      return cachedReasons;
+    getReasons(requestTypeId: number): Observable<Reason[]> {
+      const cachedReasons = this.reasonsByType.get(requestTypeId);
+      if (cachedReasons) {
+        return cachedReasons;
+      }
+
+      const reasons$ = this._httpService.get<Reason[]>(`/requests/reasons/${requestTypeId}`).pipe(
+          map((response: ApiResponse<Reason[]>) => response.data ?? []),
+          catchError((error) => {
+            this.reasonsByType.delete(requestTypeId);
+            console.log(error);
+            throw error;
+          }),
+          shareReplay(1),
+        );
+
+      this.reasonsByType.set(requestTypeId, reasons$);
+      return reasons$;
     }
-
-    const reasons$ = this._httpService.get<Reason[]>(`/requests/reasons/${requestTypeId}`).pipe(
-        map((response: ApiResponse<Reason[]>) => response.data ?? []),
-        catchError((error) => {
-          this.reasonsByType.delete(requestTypeId);
-          console.log(error);
-          throw error;
-        }),
-        shareReplay(1),
-      );
-
-    this.reasonsByType.set(requestTypeId, reasons$);
-    return reasons$;
-  }
 
   getRequesters(requestTypeId: number): Observable<{ id: number; fullName: string }[]> {
     return this._httpService.get<{ id: number; fullName: string }[]>('/requests/requesters', {
