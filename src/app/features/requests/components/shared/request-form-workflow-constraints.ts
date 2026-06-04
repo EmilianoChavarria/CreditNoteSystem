@@ -16,6 +16,14 @@ export interface WorkflowFieldConstraint {
   arrayFields?: string[];
 }
 
+/**
+ * Ocultar fila de material en paso WAREHOUSE si replenishmentAccepted es 0.
+ * En paso REPLENISHMENT siempre visible (el usuario puede editarlo).
+ */
+export function shouldHideMaterialRow(ctx: ConstraintContext, replenishmentAccepted: number | null | undefined): boolean {
+  return ctx.assignedRoleName === 'WAREHOUSE' && (replenishmentAccepted === 0 || replenishmentAccepted == null);
+}
+
 export const WORKFLOW_FIELD_CONSTRAINTS: WorkflowFieldConstraint[] = [
   {
     disableWhen: ({ step }) => !(step?.isFinalStep ?? true),

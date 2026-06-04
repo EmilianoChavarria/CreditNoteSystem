@@ -4,7 +4,7 @@ import { RequestService } from '../../../../../core/services/request-service';
 import { ChargeTypeOption, CustomerService, ReturnOrderListItem } from '../../../../../core/services/customer-service';
 import { ToastService } from '../../../../../core/services/toast-service';
 import { BaseRequestForm } from '../../shared/base-request-form';
-import { ConstraintContext, WorkflowFieldConstraint, WORKFLOW_FIELD_CONSTRAINTS } from '../../shared/request-form-workflow-constraints';
+import { ConstraintContext, WorkflowFieldConstraint, WORKFLOW_FIELD_CONSTRAINTS, shouldHideMaterialRow } from '../../shared/request-form-workflow-constraints';
 import { TabsContainer } from '../../../../../shared/components/ui/tab/tab-container/tab-container';
 import { Tab } from '../../../../../shared/components/ui/tab/tab';
 import { FormArray, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
@@ -21,10 +21,11 @@ import {
   ReturnOrderRequestItemUpdate,
   ReturnOrderRequestService,
 } from '../../../../../core/services/return-order-request-service';
+import { InvalidInvoicesModal } from '../invalid-invoices-modal/invalid-invoices-modal';
 
 @Component({
   selector: 'app-material-return-form',
-  imports: [TabsContainer, Tab, ReactiveFormsModule, TranslatePipe, Autocomplete, TitleCasePipe, Spinner, DecimalPipe, LucideAngularModule],
+  imports: [TabsContainer, Tab, ReactiveFormsModule, TranslatePipe, Autocomplete, TitleCasePipe, Spinner, DecimalPipe, LucideAngularModule, InvalidInvoicesModal],
   templateUrl: './material-return-form.html',
   styleUrl: './material-return-form.css',
 })
@@ -59,6 +60,18 @@ export class MaterialReturnForm extends BaseRequestForm {
   protected readonly replenishmentReasonByMaterialId = signal<Map<number, string>>(new Map());
   protected readonly warehouseReasonByMaterialId = signal<Map<number, string>>(new Map());
   protected readonly sapIdByMaterialId = signal<Map<number, string>>(new Map());
+
+  private readonly currentConstraintCtx = signal<ConstraintContext>({ step: undefined, assignedRoleName: undefined });
+
+  protected readonly hiddenMaterialIds = computed(() => {
+    const ctx = this.currentConstraintCtx();
+    const acceptedMap = this.replenishmentAcceptedByMaterialId();
+    const hidden = new Set<number>();
+    for (const [id, val] of acceptedMap) {
+      if (shouldHideMaterialRow(ctx, val)) hidden.add(id);
+    }
+    return hidden;
+  });
 
   protected readonly allReplenishmentZero = computed(() => {
     const list = this.materialList();
@@ -177,6 +190,7 @@ export class MaterialReturnForm extends BaseRequestForm {
   }
 
   protected override applyConstraintsToArrayFields(constraints: WorkflowFieldConstraint[], ctx: ConstraintContext): void {
+    this.currentConstraintCtx.set(ctx);
     for (const constraint of constraints) {
       if (!constraint.arrayFields?.length) continue;
       const shouldDisable = constraint.disableWhen(ctx);

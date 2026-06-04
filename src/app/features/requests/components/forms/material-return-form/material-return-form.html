@@ -413,6 +413,7 @@
                         </thead>
                         <tbody class="divide-y divide-gray-200" formArrayName="materialItems">
                             @for (material of materialList(); track material.id; let idx = $index) {
+                            @if (!hiddenMaterialIds().has(material.id)) {
                             <tr class="hover:bg-gray-50" [formGroupName]="idx">
                                 <td class="px-3 py-2 text-sm text-gray-700">{{ material.requestedQuantity }}</td>
                                 <td class="px-3 py-2 text-sm text-gray-700">
@@ -458,6 +459,7 @@
                                 <td class="px-3 py-2 text-sm text-gray-700">{{ material.valorUnitario *
                                     material.requestedQuantity | number : '1.2-2' }}</td>
                             </tr>
+                            }
                             }
                         </tbody>
                         <tfoot class="bg-gray-50">
@@ -581,4 +583,10 @@
         </app-tab>
     </app-tabs-container>
 </form>
+
+<app-invalid-invoices-modal
+  [open]="showInvalidInvoicesModal()"
+  [invoices]="invalidInvoices()"
+  (openChange)="showInvalidInvoicesModal.set($event)"
+/>
 }
