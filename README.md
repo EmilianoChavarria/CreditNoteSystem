@@ -127,6 +127,8 @@ src/
     │   ├── auth/                    # Login, cambio de contraseña
     │   ├── dashboard/               # Estadísticas y gráficas
     │   ├── requests/                # Nueva solicitud, borradores, carga masiva
+    │   │   └── components/shared/
+    │   │       └── request-form-workflow-constraints.ts  # Reglas de enable/disable por rol y paso de workflow
     │   ├── pending/                 # Solicitudes pendientes paginadas
     │   ├── approvals/
     │   │   └── return-orders-approval/  # Aprobación de órdenes de devolución
@@ -581,6 +583,41 @@ Orden de devolución vinculada a una solicitud de tipo material return.
 - Clasificación y razón se cargan dinámicamente por tipo.
 - Si el tipo es **Material Return** y viene con `orderId` en query params, se vincula automáticamente la orden de devolución al crear la solicitud.
 - Tipo de cambio: se consulta automáticamente a la API de Banxico (puede fallar por CORS en producción — ver sección de CORS).
+- Al seleccionar un cliente, el campo `area` se rellena automáticamente desde `clienteExt.area` si el formulario lo expone.
+
+**`BaseRequestForm` — restricciones de campos por paso de workflow:**
+
+Al editar una solicitud, `BaseRequestForm` aplica automáticamente restricciones de enable/disable sobre los controles del formulario según el paso actual y el rol asignado. Las reglas están centralizadas en:
+
+```
+src/app/features/requests/components/shared/request-form-workflow-constraints.ts
+```
+
+Ese archivo exporta `WORKFLOW_FIELD_CONSTRAINTS: WorkflowFieldConstraint[]`. Cada entrada define:
+
+```typescript
+{
+  disableWhen: (ctx: ConstraintContext) => boolean,  // condición
+  fields: string[],        // controles en el FormGroup principal
+  arrayFields?: string[]   // controles dentro de cada fila del FormArray materialItems
+}
+```
+
+`ConstraintContext` contiene `step` (`WorkflowStep`) y `assignedRoleName` (string).
+
+**Restricciones actuales:**
+
+| Condición | Campos bloqueados |
+|---|---|
+| El paso actual **no** es `isFinalStep` | `creditNumber`, `orderNumber` |
+| El rol asignado **no** es `WAREHOUSE` | `warehouseAmount`, `hasWarehouseIva`, `warehouseTotal`, y columnas de almacén en cada fila de la tabla |
+| El rol asignado **no** es `REPLENISHMENT` | `replenishmentAmount`, `hasReplenishmentIva`, `replenishmentTotal`, y columnas de reabasto en cada fila |
+
+Para agregar una nueva restricción basta con añadir una entrada al array `WORKFLOW_FIELD_CONSTRAINTS`. `BaseRequestForm` la aplicará automáticamente; si el formulario tiene un `FormArray`, la subclase puede sobreescribir `applyConstraintsToArrayFields()`.
+
+**Material Return — tabla de artículos con FormArray reactivo:**
+
+Los campos editables de cada fila (replenishment, warehouse, razones, SAP ID) están vinculados a un `FormArray<FormGroup>` llamado `materialItems`. Esto permite que las restricciones de workflow se apliquen por control y que el formulario sea la fuente de verdad única para el payload de actualización.
 
 **Borradores (`/app/request/drafts`):**
 - Lista paginada de borradores del usuario.
@@ -656,7 +693,7 @@ Timeline visual del flujo de aprobación de una solicitud:
 | Clientes | `/settings/customers` | CRUD de clientes, datos extra (área, gerentes) |
 | Roles | `/settings/roles` | CRUD de roles, mapeo de rol equivalente |
 | Permisos | `/settings/roles/manage-permissions` | Asignar permisos por tipo de solicitud a roles |
-| Workflows | `/settings/workflows` | Definir pasos de aprobación por tipo/clasificación |
+| Workflows | `/settings/workflows` | Definir pasos de aprobación por tipo/clasificación. Cada paso puede marcarse como `isFinalStep`, lo que habilita los campos `creditNumber` y `orderNumber` en el formulario de la solicitud cuando ese paso está activo |
 | Config Sistema | `/settings/system-configuration` | Parámetros globales |
 | Seguridad | `/settings/security-management` | Bloqueo/desbloqueo de IPs |
 | Asignar usuarios | `/settings/assign-user` | Asignación masiva de usuarios a workflows |
