@@ -13,18 +13,12 @@
                 </svg>
                 {{ 'BULK.NEW_REQUESTS.VIEW_REASONS' | translate }}
             </button>
-            <div class="gap-1 w-full sm:min-w-44 sm:w-auto hidden">
-                <span class="text-sm font-medium text-[#395f93]">{{ 'BULK.COMMON.BATCH_TYPE' | translate }}</span>
-                <input
-                    type="text"
-                    value="newRequest"
-                    disabled
-                    class="h-10 w-full border border-gray-200 rounded-md px-2 bg-gray-100 text-gray-600" />
-            </div>
 
-            <a href="/assets/templates/TemplateNewRequest.csv" download="template-new-requests.csv" class="w-full sm:w-auto bg-[#ff8200] text-white rounded-md px-3 py-2 hover:cursor-pointer hover:bg-[#fc9629] flex flex-row items-center justify-center text-center gap-x-2">
+            <a href="/assets/templates/TemplateNewRequest - re-invoicing.csv" download="template-re-invoicing.csv"
+                class="w-full sm:w-auto bg-[#ff8200] text-white rounded-md px-3 py-2 hover:cursor-pointer hover:bg-[#fc9629] flex flex-row items-center justify-center text-center gap-x-2">
                 <lucide-icon name="download" size="16"></lucide-icon>
-                {{ 'USERS_PAGE.BULK_DOWNLOAD_TEMPLATE' | translate }}</a>
+                {{ 'USERS_PAGE.BULK_DOWNLOAD_TEMPLATE' | translate }}
+            </a>
 
             <button
                 type="button"
@@ -35,7 +29,7 @@
             </button>
         </div>
         <app-bulk-file-dropzone
-            [inputId]="'dropzone-file-new-request'"
+            [inputId]="'dropzone-file-re-invoicing'"
             [dropHint]="'BULK.NEW_REQUESTS.DROP_HINT' | translate"
             [clickUploadText]="'BULK.COMMON.CLICK_UPLOAD' | translate"
             [isDragOver]="isDragOver()"
