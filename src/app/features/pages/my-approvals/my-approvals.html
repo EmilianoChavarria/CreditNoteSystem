@@ -106,12 +106,12 @@
                 class="h-4 w-4 rounded border-gray-300 text-[#3c6194] focus:ring-[#3c6194]"
                 [attr.aria-label]="'Select request ' + item.requestNumber">
             } @else if (column.key === 'status') {
-            @if (item.workflowCurrentStep?.assigned_role?.roleName && item.status?.toLowerCase() !== 'cancelled') {
+            @if (item.workflowCurrentStep?.workflow_step?.stepName && item.status?.toLowerCase() !== 'cancelled') {
             <div class="inline-flex max-w-55 rounded-lg px-2 py-1"
                 [style]="`background-color: ${item.workflowCurrentStep.assigned_role.color +'1A'}; color:${item.workflowCurrentStep.assigned_role.color}` ">
                 <span class="block w-full truncate text-center font-semibold"
-                    [title]="item.workflowCurrentStep.assigned_role.roleName">
-                    {{item.workflowCurrentStep.assigned_role.roleName}}
+                    [title]="item.workflowCurrentStep.workflow_step.stepName">
+                    {{item.workflowCurrentStep.workflow_step.stepName | uppercase}}
                 </span>
             </div>
             } @else {

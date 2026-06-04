@@ -43,12 +43,12 @@
             @if (column.key === 'status') {
             @if (item.status?.toLowerCase() === 'approved') {
             <app-badge color="green" text="RELEASED" />
-            }@else if (item.workflowCurrentStep?.assigned_role?.roleName && item.status?.toLowerCase() !== 'cancelled')
+            }@else if (item.workflowCurrentStep?.workflow_step?.stepName && item.status?.toLowerCase() !== 'cancelled')
             {
             <div class="w-fit rounded-lg px-2"
                 [style]="`background-color: ${item.workflowCurrentStep.assigned_role.color +'1A'}; color:${item.workflowCurrentStep.assigned_role.color}` ">
                 <span
-                    [class]="`text-center font-semibold text-nowrap`">{{item.workflowCurrentStep.assigned_role.roleName}}</span>
+                    [class]="`text-center font-semibold text-nowrap`">{{item.workflowCurrentStep.workflow_step.stepName | uppercase}}</span>
             </div>
             } @else {
             <app-badge
