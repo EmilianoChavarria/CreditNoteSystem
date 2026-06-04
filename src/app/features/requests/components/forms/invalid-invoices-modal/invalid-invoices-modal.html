@@ -1,0 +1,47 @@
+<app-modal
+  size="md"
+  titleM="Facturas inválidas"
+  [open]="open()"
+  [showPrimaryButton]="false"
+  closeText="Entendido"
+  (openChange)="openChange.emit($event)"
+>
+  <div class="flex flex-col gap-4">
+
+    <!-- Warning banner -->
+    <div class="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4">
+      <svg class="mt-0.5 h-5 w-5 shrink-0 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+      </svg>
+      <div class="flex flex-col gap-1">
+        <p class="text-sm font-semibold text-red-700">{{ message() }}</p>
+        <p class="text-xs text-red-500">
+          {{ invoices().length }} factura{{ invoices().length === 1 ? '' : 's' }} no pudi{{ invoices().length === 1 ? 'o' : 'eron' }} procesarse.
+        </p>
+      </div>
+    </div>
+
+    <!-- Invoice pills grid -->
+    <div>
+      <p class="mb-2 text-xs font-medium text-slate-500 uppercase tracking-wide">Números de factura</p>
+      <div class="max-h-56 overflow-y-auto rounded-md border border-slate-200 bg-slate-50 p-3">
+        <div class="flex flex-wrap gap-2">
+          @for (invoice of invoices(); track invoice) {
+            <span class="inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-white px-3 py-1 text-sm font-medium text-red-700 shadow-sm">
+              <svg class="h-3 w-3 text-red-400" fill="currentColor" viewBox="0 0 8 8">
+                <circle cx="4" cy="4" r="3" />
+              </svg>
+              {{ invoice }}
+            </span>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Helper text -->
+    <p class="text-xs text-slate-400">
+      Verifica que las facturas existan y tengan status <span class="font-semibold text-slate-500">"Emitido"</span> antes de volver a intentarlo.
+    </p>
+
+  </div>
+</app-modal>

@@ -60,6 +60,8 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
   }
   public submitted = signal<boolean>(false);
   public isSaving = signal<boolean>(false);
+  public invalidInvoices = signal<string[]>([]);
+  public showInvalidInvoicesModal = signal<boolean>(false);
   private pendingPostSaveAction: 'approve' | 'decline' | 'cancel' | 'return' | null = null;
   public reasons = signal<Reason[]>([]);
   public classifications = signal<Classification[]>([]);
@@ -886,7 +888,17 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
         this._router.navigate([returnTo ?? '/app/pending']);
       },
       error: (error: unknown) => {
-        const message = (error as { error?: { message?: string }; message?: string })?.error?.message
+        const errorBody = (error as { error?: { message?: string; errors?: { comments?: string[] } } })?.error;
+        const invalidInvoices = errorBody?.errors?.comments;
+
+        if (Array.isArray(invalidInvoices) && invalidInvoices.length > 0) {
+          this.invalidInvoices.set(invalidInvoices);
+          this.showInvalidInvoicesModal.set(true);
+          this.form.get('comments')?.setErrors({ serverError: true });
+          return;
+        }
+
+        const message = errorBody?.message
           ?? (error as { message?: string })?.message
           ?? 'No se pudo guardar la solicitud';
         this._toastService.error(message, 'Error');
