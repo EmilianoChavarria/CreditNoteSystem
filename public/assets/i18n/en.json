@@ -250,6 +250,7 @@
     "PRIORITY": "Priority",
     "PRIORITY_PLACEHOLDER": "1",
     "REMOVE": "Remove",
+    "IS_FINAL_STEP": "Final step",
     "VISUAL": {
       "CURRENT_STEP": "Current step",
       "CONDITIONAL_JUMP": "Conditional jump",
