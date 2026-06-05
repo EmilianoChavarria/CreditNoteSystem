@@ -375,9 +375,11 @@ export class MyApprovals extends RequestListBase {
             canCancel: getPermissionSlugsForCustomAction('cancel').some(s => permissionsBySlug[s]),
             canReturn: getPermissionSlugsForCustomAction('return_order').some(s => permissionsBySlug[s]),
         };
+        const navState = { editRequest: request, returnTo: '/app/my-approvals', approvalActions };
+        console.log('[my-approvals] editRequest navigate → queryParams:', { requestTypeId }, '| state:', navState);
         this._router.navigate(['/app/request/new-request'], {
             queryParams: { requestTypeId },
-            state: { editRequest: request, returnTo: '/app/my-approvals', approvalActions }
+            state: navState
         });
     }
 
