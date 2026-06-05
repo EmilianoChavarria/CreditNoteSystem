@@ -500,13 +500,11 @@ export class MaterialReturnForm extends BaseRequestForm {
       }), { emitEvent: false });
     }
 
-    if (this.isEditing) {
-      const ctx: ConstraintContext = {
-        step: this.initialRequestData?.workflowCurrentStep?.workflow_step,
-        assignedRoleName: this.initialRequestData?.workflowCurrentStep?.assigned_role?.roleName,
-      };
-      this.applyConstraintsToArrayFields(WORKFLOW_FIELD_CONSTRAINTS, ctx);
-    }
+    const ctx: ConstraintContext = {
+      step: this.initialRequestData?.workflowCurrentStep?.workflow_step,
+      assignedRoleName: this.initialRequestData?.workflowCurrentStep?.assigned_role?.roleName,
+    };
+    this.applyConstraintsToArrayFields(WORKFLOW_FIELD_CONSTRAINTS, ctx);
   }
 
   private syncFormArrayToSignals(): void {
