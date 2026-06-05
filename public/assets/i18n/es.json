@@ -41,7 +41,7 @@
       "APPROVE": "Listado de solicitudes que un usuario tiene por aprobar",
       "MY_INVOICES": "Vista para el cliente donde puede visualizar sus facturas y generar una órden de devolución",
       "MY_INVOICES_FILTER": "Vista para el cliente donde puede visualizar sus facturas y descargar XML y PDF",
-      "ORDERS": "Mis Órdenes",
+      "ORDERS": "Órdenes de devolución generadas por el cliente.",
       "RETURN_ORDERS_APPROVAL": "Vista donde el usuario puede ver las órdenes de devolución y agregarla a una solicitud",
       "HISTORY": "Historial",
       "NOTIFICATIONS": "Vista donde el usuario ve sus notificaciones nuevas y leídas",

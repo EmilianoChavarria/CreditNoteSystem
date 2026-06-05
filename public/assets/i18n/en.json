@@ -41,7 +41,7 @@
       "APPROVE": "List of requests awaiting user approval",
       "MY_INVOICES": "Client view where they can view their invoices and generate a return order",
       "MY_INVOICES_FILTER": "Client view for viewing invoices and downloading XML and PDF files",
-      "ORDERS": "My Orders",
+      "ORDERS": "Orders that a customer has created",
       "RETURN_ORDERS_APPROVAL": "View where users can view return orders and add them to a request",
       "HISTORY": "History",
       "NOTIFICATIONS": "View where users can see new and read notifications",
