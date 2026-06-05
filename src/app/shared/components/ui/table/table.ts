@@ -129,7 +129,7 @@ export class Table<T extends Record<string, any>>
   secondFilterValue = signal<any>('all');
   thirdFilterValue = signal<any>('all');
   registrosPorPaginaInterno = signal(10);
-  pageSizeOptions: number[] = [5, 10, 20];
+  pageSizeOptions: number[] = [10, 25, 50, 100, 150, 200, 500];
   isExportingExcel = signal(false);
   showDateRangeModal = signal(false);
   exportDateFrom = signal('');
