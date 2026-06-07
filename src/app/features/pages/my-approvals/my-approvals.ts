@@ -38,15 +38,6 @@ export class MyApprovals extends RequestListBase {
     public selectedRequestIds = signal<Set<number>>(new Set<number>());
     private selectedRequestsMap = signal<Map<number, Request>>(new Map<number, Request>());
     public selectedCount = computed(() => this.selectedRequestIds().size);
-    public currentPageRequestIds = computed(() =>
-        this.requests().map((r) => Number(r.id)).filter((id) => Number.isFinite(id) && id > 0)
-    );
-    public allVisibleSelected = computed(() => {
-        const pageIds = this.currentPageRequestIds();
-        if (!pageIds.length) return false;
-        const selectedIds = this.selectedRequestIds();
-        return pageIds.every((id) => selectedIds.has(id));
-    });
 
     public showApproveModal = signal<boolean>(false);
     public requestToApprove = signal<Request | null>(null);
@@ -77,6 +68,8 @@ export class MyApprovals extends RequestListBase {
     );
 
     public selectedRequestIdsArray = computed(() => Array.from(this.selectedRequestIds()));
+    public isLoadingSelectAll = signal<boolean>(false);
+    public allPendingIsSelected = signal<boolean>(false);
     public isApproving = signal<boolean>(false);
     public isDeclining = signal<boolean>(false);
     public isCancelling = signal<boolean>(false);
@@ -108,7 +101,7 @@ export class MyApprovals extends RequestListBase {
 
     private readonly baseAcciones: AccionPersonalizada<Request>[] = [
         { key: 'approve', icon: 'check', label: 'MY_APPROVALS.APPROVE', accion: (request) => this.openApproveModal(request) },
-        { key: 'decline', icon: 'x', label: 'MY_APPROVALS.DECLINE', accion: (request) => this.onDeclineModalChange(true, request) },
+        { key: 'decline', icon: 'x', label: 'MY_APPROVALS.DECLINE', disabled: (request) => request.workflowCurrentStep?.workflow_step?.stepOrder === 1, accion: (request) => this.onDeclineModalChange(true, request) },
         { key: 'cancel', icon: 'ban', label: 'MY_APPROVALS.CANCEL_REQUEST', accion: (request) => this.openCancelModal(request) },
         { key: 'return_order', icon: 'corner-up-left', label: 'MY_APPROVALS.RETURN_ORDER', accion: (request) => this.openSendBackModal(request) },
         { key: 'pdf', icon: 'file-text', label: 'MY_APPROVALS.PDF', accion: (request) => this.generatePdf(request) },
@@ -425,6 +418,7 @@ export class MyApprovals extends RequestListBase {
     toggleRequestSelection(request: Request, checked: boolean): void {
         const requestId = Number(request.id);
         if (!Number.isFinite(requestId) || requestId <= 0) return;
+        this.allPendingIsSelected.set(false);
         this.selectedRequestIds.update((current) => {
             const next = new Set(current);
             checked ? next.add(requestId) : next.delete(requestId);
@@ -437,31 +431,50 @@ export class MyApprovals extends RequestListBase {
         });
     }
 
-    toggleSelectCurrentPage(checked: boolean): void {
-        const pageRequests = this.requests().filter((r) => {
-            const id = Number(r.id);
-            return Number.isFinite(id) && id > 0;
-        });
-        if (!pageRequests.length) return;
-        this.selectedRequestIds.update((current) => {
-            const next = new Set(current);
-            for (const r of pageRequests) {
-                checked ? next.add(Number(r.id)) : next.delete(Number(r.id));
+    selectAllPendingRequests(checked: boolean): void {
+        if (!checked) {
+            this.clearSelectedRequests();
+            return;
+        }
+
+        const requestTypeId = Number(this.selectedRequestType);
+        if (!Number.isFinite(requestTypeId) || requestTypeId <= 0) return;
+
+        this.isLoadingSelectAll.set(true);
+
+        this._requestsService.getAllMyPendingRequests(
+            requestTypeId,
+            this.searchTerm(),
+            this.selectedRoleName(),
+            this.selectedRequesterId(),
+            this.selectedClassificationType()
+        ).subscribe({
+            next: (requests) => {
+                this.selectedRequestIds.set(new Set(
+                    requests.map(r => Number(r.id)).filter(id => Number.isFinite(id) && id > 0)
+                ));
+                this.selectedRequestsMap.set(new Map(
+                    requests
+                        .filter(r => Number.isFinite(Number(r.id)) && Number(r.id) > 0)
+                        .map(r => [Number(r.id), r])
+                ));
+                this.allPendingIsSelected.set(true);
+                this.isLoadingSelectAll.set(false);
+            },
+            error: () => {
+                this.isLoadingSelectAll.set(false);
+                this._toastService.error(
+                    this._translateService.instant('MY_APPROVALS.TOAST.LOAD_ALL_PENDING_ERROR'),
+                    this._translateService.instant('MY_APPROVALS.TOAST.ERROR')
+                );
             }
-            return next;
-        });
-        this.selectedRequestsMap.update((current) => {
-            const next = new Map(current);
-            for (const r of pageRequests) {
-                checked ? next.set(Number(r.id), r) : next.delete(Number(r.id));
-            }
-            return next;
         });
     }
 
     clearSelectedRequests(): void {
         this.selectedRequestIds.set(new Set<number>());
         this.selectedRequestsMap.set(new Map<number, Request>());
+        this.allPendingIsSelected.set(false);
     }
 
     openBulkApproveModal(): void {
