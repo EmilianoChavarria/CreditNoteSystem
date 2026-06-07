@@ -375,13 +375,12 @@ export class Table<T extends Record<string, any>>
     this.cambiarPagina(this.totalPaginas());
   }
 
-  ejecutarAccion(accion: AccionPersonalizada<T>, item: T) {
-    const disabled =
-      typeof accion.disabled === 'function'
-        ? accion.disabled(item)
-        : accion.disabled;
+  isAccionDisabled(accion: AccionPersonalizada<T>, item: T): boolean {
+    return typeof accion.disabled === 'function' ? accion.disabled(item) : !!accion.disabled;
+  }
 
-    if (!disabled) {
+  ejecutarAccion(accion: AccionPersonalizada<T>, item: T) {
+    if (!this.isAccionDisabled(accion, item)) {
       accion.accion(item);
     }
   }

@@ -259,7 +259,8 @@
                                 <!-- ACCIONES PERSONALIZADAS -->
                                 <button *ngFor="let accion of accionesPersonalizadas()"
                                     (click)="ejecutarAccion(accion, item); popoverMenu.close()"
-                                    class="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-gray-100 transition"
+                                    [disabled]="isAccionDisabled(accion, item)"
+                                    class="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-gray-100 transition disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
                                     [ngClass]="accion.className">
                                     <lucide-icon *ngIf="accion.icon" [name]="accion.icon" size="18"></lucide-icon>
                                     <span>{{ accion.label | translate}}</span>
