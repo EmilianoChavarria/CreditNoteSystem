@@ -569,6 +569,8 @@
     "NO_PENDING_APPROVALS": "No hay aprobaciones pendientes",
     "SELECT": "Seleccionar",
     "SELECT_CURRENT_PAGE": "Seleccionar solicitudes visibles de esta página",
+    "SELECT_ALL_PENDING": "Seleccionar todas las solicitudes pendientes",
+    "SELECTING_ALL_PENDING": "Seleccionando todas...",
     "SELECTED_COUNT": "{{count}} solicitudes seleccionadas",
     "CLEAR_SELECTION": "Limpiar selección",
     "BULK_APPROVE": "Aprobación masiva",
@@ -627,7 +629,8 @@
       "BULK_CANCEL_ERROR": "Error al procesar la cancelación masiva.",
       "BULK_SEND_BACK_SUCCESS": "Se regresaron {{sentBack}} de {{total}} solicitudes.",
       "BULK_SEND_BACK_PARTIAL": "{{failed}} solicitudes no pudieron regresarse.",
-      "BULK_SEND_BACK_ERROR": "Error al procesar el regreso masivo."
+      "BULK_SEND_BACK_ERROR": "Error al procesar el regreso masivo.",
+      "LOAD_ALL_PENDING_ERROR": "Error al cargar todas las solicitudes pendientes."
     }
   },
   "PENDING_PAGE": {

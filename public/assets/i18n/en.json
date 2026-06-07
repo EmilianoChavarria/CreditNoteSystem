@@ -569,6 +569,8 @@
     "NO_PENDING_APPROVALS": "No pending approvals",
     "SELECT": "Select",
     "SELECT_CURRENT_PAGE": "Select visible requests on this page",
+    "SELECT_ALL_PENDING": "Select all pending requests",
+    "SELECTING_ALL_PENDING": "Selecting all...",
     "SELECTED_COUNT": "{{count}} selected requests",
     "CLEAR_SELECTION": "Clear selection",
     "BULK_APPROVE": "Bulk approve",
@@ -627,7 +629,8 @@
       "BULK_CANCEL_ERROR": "Error processing bulk cancellation.",
       "BULK_SEND_BACK_SUCCESS": "{{sentBack}} of {{total}} requests were sent back.",
       "BULK_SEND_BACK_PARTIAL": "{{failed}} requests could not be sent back.",
-      "BULK_SEND_BACK_ERROR": "Error processing bulk send back."
+      "BULK_SEND_BACK_ERROR": "Error processing bulk send back.",
+      "LOAD_ALL_PENDING_ERROR": "Error loading all pending requests."
     }
   },
   "PENDING_PAGE": {
