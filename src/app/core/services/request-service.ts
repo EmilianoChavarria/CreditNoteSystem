@@ -180,6 +180,34 @@ export class RequestService {
     )
   }
 
+  getAllMyPendingRequests(requestTypeId: number, search?: string, roleName = 'all', requesterId?: string, classificationType?: string): Observable<Request[]> {
+    const params: { requestTypeId: number; search?: string; roleName?: string; requesterId?: string; classificationType?: string } = {
+      requestTypeId,
+    };
+
+    if (search && search.trim().length > 0) {
+      params.search = search.trim();
+    }
+
+    params.roleName = roleName?.trim() || 'all';
+
+    if (requesterId && requesterId !== 'all') {
+      params.requesterId = requesterId;
+    }
+
+    if (classificationType && classificationType !== 'all') {
+      params.classificationType = classificationType;
+    }
+
+    return this._httpService.get<Request[]>('/requests/pending/me/all', { params }).pipe(
+      map((response: ApiResponse<Request[]>) => response.data ?? []),
+      catchError((error) => {
+        console.log(error);
+        throw error;
+      })
+    );
+  }
+
   getRequestsByCustomerId(customerId: number | string): Observable<PagePagination<Request>> {
     return this._httpService.get<PagePagination<Request>>(`/requests/customer/${customerId}`).pipe(
       map((response: ApiResponse<PagePagination<Request>>) => {
