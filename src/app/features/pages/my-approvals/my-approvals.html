@@ -139,7 +139,7 @@
             }@else if (column.key === 'razonSocial') {
             <div class="w-fit">
                 <span
-                    [class]="`text-center font-semibold text-nowrap`">{{item.customerId}} - {{(item.razonSocial .length > 20) ? (item.razonSocial| slice:0:25) + '...' : item.razonSocial}}</span>
+                    [class]="`text-center font-semibold text-nowrap`">{{item.customerId}} - {{(item.razonSocial.length > 20) ? (item.razonSocial| slice:0:25) + '...' : item.razonSocial}}</span>
             </div>
             }
         </ng-template>

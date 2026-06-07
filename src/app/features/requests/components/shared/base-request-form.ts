@@ -139,6 +139,7 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
 
   private applyInitialRequestData(): void {
     if (!this.initialRequestData) {
+      this.applyWorkflowStepConstraints();
       return;
     }
 
@@ -222,10 +223,6 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
   }
 
   private applyWorkflowStepConstraints(): void {
-    if (!this.isEditing) {
-      return;
-    }
-
     const ctx: ConstraintContext = {
       step: this.initialRequestData?.workflowCurrentStep?.workflow_step,
       assignedRoleName: this.initialRequestData?.workflowCurrentStep?.assigned_role?.roleName,

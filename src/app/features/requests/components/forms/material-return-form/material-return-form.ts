@@ -273,6 +273,11 @@ export class MaterialReturnForm extends BaseRequestForm {
         this.returnChargePercent.set(chargePercent > 0 ? chargePercent : 0);
         this.chargeTypeId.set(effectiveChargeTypeId);
 
+        const currency = materialReturn?.returnOrder?.currency;
+        if (currency) {
+          this.form.patchValue({ currency }, { emitEvent: false });
+        }
+
         if (!Number.isFinite(returnOrderId) || returnOrderId <= 0) {
           this.setNoAssignedReturnOrderState();
           return;
@@ -349,6 +354,11 @@ export class MaterialReturnForm extends BaseRequestForm {
         this.hasReturnCharge.set(hasCharge);
         this.returnChargePercent.set(chargePercent > 0 ? chargePercent : 0);
         this.chargeTypeId.set(effectiveChargeTypeId);
+
+        const orderCurrency = order?.currency;
+        if (orderCurrency) {
+          this.form.patchValue({ currency: orderCurrency }, { emitEvent: false });
+        }
 
         const clientId = order?.clientId;
         if (clientId && Number.isFinite(clientId) && clientId > 0) {
@@ -490,13 +500,11 @@ export class MaterialReturnForm extends BaseRequestForm {
       }), { emitEvent: false });
     }
 
-    if (this.isEditing) {
-      const ctx: ConstraintContext = {
-        step: this.initialRequestData?.workflowCurrentStep?.workflow_step,
-        assignedRoleName: this.initialRequestData?.workflowCurrentStep?.assigned_role?.roleName,
-      };
-      this.applyConstraintsToArrayFields(WORKFLOW_FIELD_CONSTRAINTS, ctx);
-    }
+    const ctx: ConstraintContext = {
+      step: this.initialRequestData?.workflowCurrentStep?.workflow_step,
+      assignedRoleName: this.initialRequestData?.workflowCurrentStep?.assigned_role?.roleName,
+    };
+    this.applyConstraintsToArrayFields(WORKFLOW_FIELD_CONSTRAINTS, ctx);
   }
 
   private syncFormArrayToSignals(): void {
