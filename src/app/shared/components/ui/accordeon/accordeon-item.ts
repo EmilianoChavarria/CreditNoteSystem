@@ -1,8 +1,10 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, input, output, signal } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'accordeon-item',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [TranslatePipe],
   host: {
     class: 'block'
   },
@@ -14,8 +16,8 @@ export class AccordeonItem implements OnInit {
 
   readonly titleM = input.required<string>();
   readonly description = input<string>('');
-  readonly openButtonText = input<string>('Abrir');
-  readonly closeButtonText = input<string>('Cerrar');
+  readonly openButtonText = input<string>('COMMON.OPEN');
+  readonly closeButtonText = input<string>('COMMON.CLOSE');
   readonly initiallyOpen = input<boolean>(false);
 
   readonly openChange = output<boolean>();
