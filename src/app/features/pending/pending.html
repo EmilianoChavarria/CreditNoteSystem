@@ -41,8 +41,10 @@
 
         <ng-template #cellTemplate let-item let-column="column">
             @if (column.key === 'status') {
-            @if (item.status?.toLowerCase() === 'approved') {
+            @if (item.status?.toLowerCase() === 'released') {
             <app-badge color="green" text="RELEASED" />
+            }@else if (item.status?.toLowerCase() === 'approved') {
+            <app-badge color="green" text="APPROVED" />
             }@else if (item.workflowCurrentStep?.workflow_step?.stepName && item.status?.toLowerCase() !== 'cancelled')
             {
             <div class="w-fit rounded-lg px-2"

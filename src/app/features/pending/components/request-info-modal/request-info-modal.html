@@ -212,7 +212,11 @@
             <div class="flex items-center gap-6">
               <div class="text-center">
                 <p class="text-xs text-slate-500">{{ 'REQUEST_INFO.RETURN_ORDER_CHARGE_PERCENT' | translate }}</p>
-                <p class="text-sm font-bold text-slate-800">{{ (ro.returnOrder.customRate ?? ro.returnOrder.chargeType.percentage) }}%</p>
+                @if ((ro.returnOrder.customRate ?? ro.returnOrder.chargeType?.percentage) != null) {
+                  <p class="text-sm font-bold text-slate-800">{{ (ro.returnOrder.customRate ?? ro.returnOrder.chargeType?.percentage) }}%</p>
+                } @else {
+                  <p class="text-sm font-bold text-slate-800">{{ 'NEW_REQUEST_FORM.NO_CHARGE' | translate }}</p>
+                }
               </div>
               <div class="text-center">
                 <p class="text-xs text-slate-500">{{ 'REQUEST_INFO.RETURN_ORDER_SUBTOTAL' | translate }}</p>

@@ -25,9 +25,11 @@
       </div>
       <div class="space-y-0.5">
         <p class="text-xs text-slate-500">{{ 'REQUEST_INFO.RETURN_ORDER_CHARGE_PERCENT' | translate }}</p>
-        <p class="text-sm font-bold text-orange-600">
-          {{ (returnOrderData().returnOrder.customRate ?? returnOrderData().returnOrder.chargeType.percentage) }}% 
-        </p>
+        @if ((returnOrderData().returnOrder.customRate ?? returnOrderData().returnOrder.chargeType?.percentage) != null) {
+          <p class="text-sm font-bold text-orange-600">{{ (returnOrderData().returnOrder.customRate ?? returnOrderData().returnOrder.chargeType?.percentage) }}%</p>
+        } @else {
+          <p class="text-sm font-bold text-orange-600">{{ 'NEW_REQUEST_FORM.NO_CHARGE' | translate }}</p>
+        }
       </div>
       @if (returnOrderData().returnOrder.notes) {
         <div class="space-y-0.5 col-span-2 md:col-span-4">
