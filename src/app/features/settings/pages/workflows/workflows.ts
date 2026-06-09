@@ -308,7 +308,7 @@ export class Workflows {
   public openAddWorkflowModal(): void {
     this.getClassificationTypesS();
     this.isOpenAddWorkflowModal.set(true);
-    this.workflowForm.reset({ requestTypeId: 0, classificationType: '' });
+    this.workflowForm.reset({ requestTypeId: 0, classificationType: 'DE' });
   }
 
   // ─── Step list event handlers (from WorkflowStepList) ─────────────────────
