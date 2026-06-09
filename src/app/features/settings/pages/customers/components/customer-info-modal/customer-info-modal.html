@@ -1,9 +1,9 @@
 <app-modal
   size="lg"
-  titleM="Información del Cliente"
+  [titleM]="'CUSTOMER_INFO_MODAL.TITLE' | translate"
   [open]="open()"
   [showPrimaryButton]="false"
-  closeText="Cerrar"
+  [closeText]="'CUSTOMER_INFO_MODAL.CLOSE' | translate"
   (openChange)="openChange.emit($event)">
 
   @if (customer(); as c) {
@@ -11,34 +11,34 @@
 
       <!-- General -->
       <div>
-        <p class="text-xs font-semibold uppercase tracking-widest text-orange-400 mb-2">General</p>
+        <p class="text-xs font-semibold uppercase tracking-widest text-orange-400 mb-2">{{ 'CUSTOMER_INFO_MODAL.SECTION_GENERAL' | translate }}</p>
         <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
           <div>
-            <dt class="text-xs text-gray-500">ID Cliente</dt>
+            <dt class="text-xs text-gray-500">{{ 'CUSTOMER_INFO_MODAL.CUSTOMER_ID' | translate }}</dt>
             <dd class="text-sm font-medium text-gray-800 break-all">{{ c.idCliente || '—' }}</dd>
           </div>
           <div>
-            <dt class="text-xs text-gray-500">Razón Social</dt>
+            <dt class="text-xs text-gray-500">{{ 'CUSTOMER_INFO_MODAL.RAZON_SOCIAL' | translate }}</dt>
             <dd class="text-sm font-medium text-gray-800">{{ c.razonSocial || '—' }}</dd>
           </div>
           <div>
-            <dt class="text-xs text-gray-500">RFC</dt>
+            <dt class="text-xs text-gray-500">{{ 'CUSTOMER_INFO_MODAL.RFC' | translate }}</dt>
             <dd class="text-sm font-medium text-gray-800">{{ c.rfc || '—' }}</dd>
           </div>
           <div>
-            <dt class="text-xs text-gray-500">Estatus</dt>
+            <dt class="text-xs text-gray-500">{{ 'CUSTOMER_INFO_MODAL.STATUS' | translate }}</dt>
             <dd class="text-sm font-medium text-gray-800">{{ c.estatus || '—' }}</dd>
           </div>
           <div>
-            <dt class="text-xs text-gray-500">Moneda</dt>
+            <dt class="text-xs text-gray-500">{{ 'CUSTOMER_INFO_MODAL.CURRENCY' | translate }}</dt>
             <dd class="text-sm font-medium text-gray-800">{{ c.moneda || '—' }}</dd>
           </div>
           <div>
-            <dt class="text-xs text-gray-500">Régimen Capital</dt>
+            <dt class="text-xs text-gray-500">{{ 'CUSTOMER_INFO_MODAL.REGIMEN_CAPITAL' | translate }}</dt>
             <dd class="text-sm font-medium text-gray-800">{{ c.RegimenCapital || '—' }}</dd>
           </div>
           <div class="sm:col-span-2">
-            <dt class="text-xs text-gray-500">Dirección</dt>
+            <dt class="text-xs text-gray-500">{{ 'CUSTOMER_INFO_MODAL.ADDRESS' | translate }}</dt>
             <dd class="text-sm font-medium text-gray-800">{{ c.direccion || '—' }}</dd>
           </div>
         </dl>
@@ -48,22 +48,22 @@
 
       <!-- Fiscal -->
       <div>
-        <p class="text-xs font-semibold uppercase tracking-widest text-orange-400 mb-2">Datos Fiscales</p>
+        <p class="text-xs font-semibold uppercase tracking-widest text-orange-400 mb-2">{{ 'CUSTOMER_INFO_MODAL.SECTION_FISCAL' | translate }}</p>
         <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
           <div>
-            <dt class="text-xs text-gray-500">Régimen Fiscal</dt>
+            <dt class="text-xs text-gray-500">{{ 'CUSTOMER_INFO_MODAL.REGIMEN_FISCAL' | translate }}</dt>
             <dd class="text-sm font-medium text-gray-800">{{ c.RegimenFiscal || '—' }}</dd>
           </div>
           <div>
-            <dt class="text-xs text-gray-500">Residencia Fiscal</dt>
+            <dt class="text-xs text-gray-500">{{ 'CUSTOMER_INFO_MODAL.RESIDENCIA_FISCAL' | translate }}</dt>
             <dd class="text-sm font-medium text-gray-800">{{ c.ResidenciaFiscal || '—' }}</dd>
           </div>
           <div>
-            <dt class="text-xs text-gray-500">Núm. Reg. Id. Trib.</dt>
+            <dt class="text-xs text-gray-500">{{ 'CUSTOMER_INFO_MODAL.NUM_REG_ID_TRIB' | translate }}</dt>
             <dd class="text-sm font-medium text-gray-800">{{ c.NumRegIdTrib || '—' }}</dd>
           </div>
           <div>
-            <dt class="text-xs text-gray-500">Uso CFDI</dt>
+            <dt class="text-xs text-gray-500">{{ 'CUSTOMER_INFO_MODAL.USO_CFDI' | translate }}</dt>
             <dd class="text-sm font-medium text-gray-800">{{ c.UsoCFDI || '—' }}</dd>
           </div>
         </dl>
@@ -73,18 +73,18 @@
 
       <!-- Pago -->
       <div>
-        <p class="text-xs font-semibold uppercase tracking-widest text-orange-400 mb-2">Pago</p>
+        <p class="text-xs font-semibold uppercase tracking-widest text-orange-400 mb-2">{{ 'CUSTOMER_INFO_MODAL.SECTION_PAYMENT' | translate }}</p>
         <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
           <div>
-            <dt class="text-xs text-gray-500">Método de Pago</dt>
+            <dt class="text-xs text-gray-500">{{ 'CUSTOMER_INFO_MODAL.METODO_PAGO' | translate }}</dt>
             <dd class="text-sm font-medium text-gray-800">{{ c.MetodoPago || '—' }}</dd>
           </div>
           <div>
-            <dt class="text-xs text-gray-500">Forma de Pago</dt>
+            <dt class="text-xs text-gray-500">{{ 'CUSTOMER_INFO_MODAL.FORMA_PAGO' | translate }}</dt>
             <dd class="text-sm font-medium text-gray-800">{{ c.FormaPago || '—' }}</dd>
           </div>
           <div>
-            <dt class="text-xs text-gray-500">Condiciones de Pago</dt>
+            <dt class="text-xs text-gray-500">{{ 'CUSTOMER_INFO_MODAL.CONDICIONES_PAGO' | translate }}</dt>
             <dd class="text-sm font-medium text-gray-800">{{ c.condicionesPago || '—' }}</dd>
           </div>
         </dl>
@@ -94,14 +94,14 @@
 
       <!-- Contacto -->
       <div>
-        <p class="text-xs font-semibold uppercase tracking-widest text-orange-400 mb-2">Contacto</p>
+        <p class="text-xs font-semibold uppercase tracking-widest text-orange-400 mb-2">{{ 'CUSTOMER_INFO_MODAL.SECTION_CONTACT' | translate }}</p>
         <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
           <div class="sm:col-span-2">
-            <dt class="text-xs text-gray-500">Correos</dt>
+            <dt class="text-xs text-gray-500">{{ 'CUSTOMER_INFO_MODAL.CORREOS' | translate }}</dt>
             <dd class="text-sm font-medium text-gray-800 break-all">{{ c.correos || '—' }}</dd>
           </div>
           <div class="sm:col-span-2">
-            <dt class="text-xs text-gray-500">Correos de Pagos</dt>
+            <dt class="text-xs text-gray-500">{{ 'CUSTOMER_INFO_MODAL.CORREOS_PAGOS' | translate }}</dt>
             <dd class="text-sm font-medium text-gray-800 break-all">{{ c.correosPagos || '—' }}</dd>
           </div>
         </dl>
@@ -112,30 +112,30 @@
 
         <!-- Managers -->
         <div>
-          <p class="text-xs font-semibold uppercase tracking-widest text-orange-400 mb-2">Managers Asignados</p>
+          <p class="text-xs font-semibold uppercase tracking-widest text-orange-400 mb-2">{{ 'CUSTOMER_INFO_MODAL.SECTION_MANAGERS' | translate }}</p>
           <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
             <div>
-              <dt class="text-xs text-gray-500">Sales Engineer</dt>
+              <dt class="text-xs text-gray-500">{{ 'CUSTOMER_INFO_MODAL.SALES_ENGINEER' | translate }}</dt>
               <dd class="text-sm font-medium text-gray-800">{{ c.clienteExt.salesEngineerId || '—' }}</dd>
             </div>
             <div>
-              <dt class="text-xs text-gray-500">Sales Manager</dt>
+              <dt class="text-xs text-gray-500">{{ 'CUSTOMER_INFO_MODAL.SALES_MANAGER' | translate }}</dt>
               <dd class="text-sm font-medium text-gray-800">{{ c.clienteExt.salesManagerId?.fullName || '—' }}</dd>
             </div>
             <div>
-              <dt class="text-xs text-gray-500">Finance Manager</dt>
+              <dt class="text-xs text-gray-500">{{ 'CUSTOMER_INFO_MODAL.FINANCE_MANAGER' | translate }}</dt>
               <dd class="text-sm font-medium text-gray-800">{{ c.clienteExt.financeManagerId?.fullName || '—' }}</dd>
             </div>
             <div>
-              <dt class="text-xs text-gray-500">Marketing Manager</dt>
+              <dt class="text-xs text-gray-500">{{ 'CUSTOMER_INFO_MODAL.MARKETING_MANAGER' | translate }}</dt>
               <dd class="text-sm font-medium text-gray-800">{{ c.clienteExt.marketingManagerId?.fullName || '—' }}</dd>
             </div>
             <div>
-              <dt class="text-xs text-gray-500">Customer Service Manager</dt>
+              <dt class="text-xs text-gray-500">{{ 'CUSTOMER_INFO_MODAL.CS_MANAGER' | translate }}</dt>
               <dd class="text-sm font-medium text-gray-800">{{ c.clienteExt.customerServiceManagerId?.fullName || '—' }}</dd>
             </div>
             <div>
-              <dt class="text-xs text-gray-500">Área</dt>
+              <dt class="text-xs text-gray-500">{{ 'CUSTOMER_INFO_MODAL.AREA' | translate }}</dt>
               <dd class="text-sm font-medium text-gray-800">{{ c.clienteExt.area || '—' }}</dd>
             </div>
           </dl>
