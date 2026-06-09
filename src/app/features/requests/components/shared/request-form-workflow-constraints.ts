@@ -41,7 +41,7 @@ export const WORKFLOW_FIELD_CONSTRAINTS: WorkflowFieldConstraint[] = [
     // Habilitado solo cuando el rol asignado es WAREHOUSE.
     // Al crear (!step) queda deshabilitado; en cualquier otro rol también.
     // Nota: usa || en lugar de && — cualquier rol distinto a WAREHOUSE deshabilita.
-    disableWhen: ({ step, assignedRoleName }) => !step || (!!assignedRoleName || assignedRoleName !== 'WAREHOUSE'),
+    disableWhen: ({ step, assignedRoleName }) => !step || (!!assignedRoleName && assignedRoleName !== 'WAREHOUSE'),
     fields: ['warehouseAmount', 'hasWarehouseIva', 'warehouseTotal'],
     arrayFields: ['warehouseReceived', 'warehouseAccepted', 'warehouseReason'],
   },

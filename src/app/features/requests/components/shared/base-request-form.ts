@@ -114,13 +114,19 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
 
     this.isLoadingInitialData.set(true);
 
+    const requestNumber$ = this.isEditing
+      ? of(null)
+      : this._requestService.getNextRequestNumber(this.requestTypeId);
+
     forkJoin({
-      requestNumber: this._requestService.getNextRequestNumber(this.requestTypeId),
+      requestNumber: requestNumber$,
       reasons: this._requestService.getReasons(this.requestTypeId),
       classifications: this._requestService.getClassificationsByType(this.requestTypeId),
     }).subscribe({
       next: ({ requestNumber, reasons, classifications }) => {
-        this.form.controls['requestNumber'].setValue(requestNumber.requestNumber);
+        if (requestNumber) {
+          this.form.controls['requestNumber'].setValue(requestNumber.requestNumber);
+        }
         this.reasons.set(reasons);
         this.classifications.set(classifications);
         this.applyInitialRequestData();
@@ -817,6 +823,7 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
     delete payload.sapScreen;
     delete payload.attachSupports;
     delete payload.reviewComments;
+    this.getExtraPayloadKeysToExclude().forEach(key => delete payload[key]);
 
     const formData = this.buildFormData(payload);
     this.selectedSapScreenFiles().forEach(file => formData.append('sapScreen[]', file));
@@ -901,6 +908,10 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
         this._toastService.error(message, 'Error');
       }
     });
+  }
+
+  protected getExtraPayloadKeysToExclude(): string[] {
+    return [];
   }
 
   protected onRequestCreated(_requestId: number, _response: SaveRequestResponse): Observable<unknown> {
