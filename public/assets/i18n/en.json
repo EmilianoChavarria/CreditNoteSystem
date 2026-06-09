@@ -31,6 +31,12 @@
     "SYS_CONFIG": "System Configuration",
     "SEC_MANAGE": "Security Management",
     "ASSIGN_USER": "Assign User",
+    "FORECAST": "Forecast",
+    "SALES_OBJECTIVE": "Sales Objective",
+    "DISTRIBUTOR_MANAGE": "Distributor Manage",
+    "FORECAST_MANAGE": "Forecast Manage",
+    "PRODUCT_MANAGE": "Product Manage",
+    "SALES_MANAGER_MANAGE": "Sales Manager Manage",
     "DESCRIPTION": {
       "HOME": "Initial view with statistical data",
       "REQUESTS": "General module for request management",
@@ -161,6 +167,10 @@
     "DESCRIPTION": "See the customers list and Assign their Managers"
   },
   "ROLE_MANAGE": {
+    "EQUIVALENT_ROLE_TITLE": "Equivalent Role",
+    "EQUIVALENT_ROLE_DESCRIPTION": "Secondary backup role. If no user with this role is found, it is assigned to the secondary role.",
+    "EQUIVALENT_ROLE_LABEL": "Equivalent role",
+    "EQUIVALENT_ROLE_NONE": "No equivalent role",
     "TITLE": "Roles Manage",
     "DESCRIPTION": "Manage system roles and their associated permissions.",
     "MODAL_TITLE": "Manage Roles",
@@ -266,7 +276,9 @@
   },
   "COMMON": {
     "SAVE": "Save Changes",
-    "CANCEL": "Cancel"
+    "CANCEL": "Cancel",
+    "OPEN": "Open",
+    "CLOSE": "Close"
   },
   "PENDING": {
     "TITLE": "Pending Requests",

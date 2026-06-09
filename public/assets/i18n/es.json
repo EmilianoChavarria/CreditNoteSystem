@@ -31,6 +31,12 @@
     "SYS_CONFIG": "Configuración del Sistema",
     "SEC_MANAGE": "Gestión de la Seguridad",
     "ASSIGN_USER": "Asignar Usuario",
+    "FORECAST": "Forecast",
+    "SALES_OBJECTIVE": "Objetivo de Ventas",
+    "DISTRIBUTOR_MANAGE": "Gestión de Distribuidores",
+    "FORECAST_MANAGE": "Gestión de Forecast",
+    "PRODUCT_MANAGE": "Gestión de Productos",
+    "SALES_MANAGER_MANAGE": "Gestión de Gerentes de Ventas",
     "DESCRIPTION": {
       "HOME": "Vista inicial con datos estadísticos",
       "REQUESTS": "Módulo general de gestión de solicitudes",
@@ -161,6 +167,10 @@
     "DESCRIPTION": "Mira la lista de clientes y asigna sus gerentes"
   },
   "ROLE_MANAGE": {
+    "EQUIVALENT_ROLE_TITLE": "Rol Equivalente",
+    "EQUIVALENT_ROLE_DESCRIPTION": "Rol secundario de respaldo. Si no se encuentra un usuario con este rol, se asigna al rol secundario.",
+    "EQUIVALENT_ROLE_LABEL": "Rol equivalente",
+    "EQUIVALENT_ROLE_NONE": "Sin rol equivalente",
     "TITLE": "Gestión de Roles",
     "DESCRIPTION": "Configurar permisos de roles para tipos de solicitud",
     "MODAL_TITLE": "Gestionar Roles",
@@ -266,7 +276,9 @@
   },
   "COMMON": {
     "SAVE": "Guardar Cambios",
-    "CANCEL": "Cancelar"
+    "CANCEL": "Cancelar",
+    "OPEN": "Abrir",
+    "CLOSE": "Cerrar"
   },
   "PENDING": {
     "TITLE": "Solicitudes Pendientes",
