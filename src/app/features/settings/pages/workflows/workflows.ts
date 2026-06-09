@@ -141,7 +141,8 @@ export class Workflows {
             conditionField: t.conditionField ?? '',
             conditionOperator: t.conditionOperator ?? '',
             conditionValue: t.conditionValue ?? '',
-            priority: t.priority ?? i + 1
+            priority: t.priority ?? i + 1,
+            markAsApproved: t.markAsApproved ?? false
           }))
           .sort((a: WorkflowTransition, b: WorkflowTransition) => a.priority - b.priority);
 
