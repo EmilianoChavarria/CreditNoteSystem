@@ -26,7 +26,7 @@ interface SequenceStep {
 
 @Component({
   selector: 'app-request-info-modal',
-  imports: [Modal, TranslatePipe, DatePipe, UpperCasePipe, CurrencyPipe, Spinner, LucideAngularModule, ReturnOrderItemsModal],
+  imports: [Modal, TranslatePipe ,DatePipe, UpperCasePipe, CurrencyPipe, Spinner, LucideAngularModule, ReturnOrderItemsModal],
   templateUrl: './request-info-modal.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
