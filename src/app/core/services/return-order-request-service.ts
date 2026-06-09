@@ -11,10 +11,10 @@ export interface ReturnOrderRequestReturnOrder {
   userId: number;
   status: string;
   notes: string | null;
-  chargeTypeId: number
-  customRate?: number;
+  chargeTypeId: number | null;
+  customRate?: number | null;
   currency?: string;
-  chargeType: ChargeType;
+  chargeType: ChargeType | null;
   createdAt: string;
   updatedAt: string;
 }
