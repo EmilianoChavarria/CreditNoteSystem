@@ -7,7 +7,7 @@ import { BaseRequestForm } from '../../shared/base-request-form';
 import { ConstraintContext, WorkflowFieldConstraint, WORKFLOW_FIELD_CONSTRAINTS, shouldHideMaterialRow } from '../../shared/request-form-workflow-constraints';
 import { TabsContainer } from '../../../../../shared/components/ui/tab/tab-container/tab-container';
 import { Tab } from '../../../../../shared/components/ui/tab/tab';
-import { FormArray, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormArray, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Autocomplete } from '../../../../../shared/components/ui/autocomplete/autocomplete';
 import { DecimalPipe, TitleCasePipe } from '@angular/common';
@@ -81,6 +81,18 @@ export class MaterialReturnForm extends BaseRequestForm {
     return !Array.from(acceptedMap.values()).some(v => v > 0);
   });
 
+  protected readonly allWarehouseAcceptedZero = computed(() => {
+    const list = this.materialList();
+    if (list.length === 0) return false;
+    const acceptedMap = this.warehouseAcceptedByMaterialId();
+    if (acceptedMap.size === 0) return false;
+    return !Array.from(acceptedMap.values()).some(v => v > 0);
+  });
+
+  protected readonly shouldBlockSave = computed(() =>
+    this.allReplenishmentZero() || this.allWarehouseAcceptedZero()
+  );
+
   protected readonly hasReplenishmentIva = signal<boolean>(false);
   protected readonly hasWarehouseIva = signal<boolean>(false);
 
@@ -147,12 +159,12 @@ export class MaterialReturnForm extends BaseRequestForm {
   }
 
   override saveRequest(): void {
-    if (this.allReplenishmentZero()) { return; }
+    if (this.shouldBlockSave()) { return; }
     super.saveRequest();
   }
 
   override saveAndCancel(): void {
-    if (this.allReplenishmentZero()) {
+    if (this.shouldBlockSave()) {
       this.cancelActionTriggered.emit();
       return;
     }
@@ -205,10 +217,48 @@ export class MaterialReturnForm extends BaseRequestForm {
     }
   }
 
+  protected override getExtraPayloadKeysToExclude(): string[] {
+    return ['materialItems'];
+  }
+
   protected override onRequestCreated(requestId: number, _response: unknown): Observable<unknown> {
     const returnOrderId = this.orderId();
     if (!returnOrderId) { return of(null); }
-    return this._requestService.linkReturnOrderToRequest({ returnOrderId, requestId }).pipe(take(1));
+    return this._requestService.linkReturnOrderToRequest({ returnOrderId, requestId }).pipe(
+      take(1),
+      switchMap(() => this.returnOrderRequestService.getByRequestId(requestId).pipe(take(1), catchError(() => of(null)))),
+      switchMap((returnOrderRequest: ReturnOrderRequestByRequestData | null) => {
+        const resolvedId = Number(returnOrderRequest?.id);
+        if (!Number.isFinite(resolvedId) || resolvedId <= 0) { return of(null); }
+        this.returnOrderRequestId.set(resolvedId);
+
+        const serverItems = returnOrderRequest?.items;
+        if (!Array.isArray(serverItems) || serverItems.length === 0) { return of(null); }
+
+        return this.returnOrderRequestService.updateItems(resolvedId, {
+          items: this.buildReturnOrderItemsPayloadWithServerIds(serverItems),
+        }).pipe(take(1), catchError(() => of(null)));
+      }),
+      catchError(() => of(null))
+    );
+  }
+
+  private buildReturnOrderItemsPayloadWithServerIds(serverItems: ReturnOrderRequestItem[]): ReturnOrderRequestItemUpdate[] {
+    const materials = this.materialList();
+    return serverItems.map((serverItem) => {
+      const idx = materials.findIndex(m => m.id === Number(serverItem.returnOrderItemId));
+      const group = idx >= 0 ? this.materialItemsForm.at(idx) as FormGroup : null;
+      const v = group?.getRawValue() ?? {};
+      return {
+        id: Number(serverItem.id),
+        replenishmentAccepted: v.replenishmentAccepted ?? null,
+        replenishmentReasonForRejection: v.replenishmentReason || null,
+        warehouseReceived: v.warehouseReceived ?? null,
+        warehouseAccepted: v.warehouseAccepted ?? null,
+        warehouseReasonForRejection: v.warehouseReason || null,
+        sapId: v.sapId || null,
+      };
+    });
   }
 
   protected override onRequestUpdated(requestId: number, _response: unknown): Observable<unknown> {
@@ -460,6 +510,7 @@ export class MaterialReturnForm extends BaseRequestForm {
       this._toastService.error(`Replanishment accepted no puede ser mayor a ${maxAllowed} (Cant. devuelta)`);
       control?.setValue(null);
     }
+    this.updateReasonValidators(idx);
   }
 
   protected validateWarehouseReceivedInput(materialId: number, idx: number): void {
@@ -472,6 +523,7 @@ export class MaterialReturnForm extends BaseRequestForm {
       this._toastService.error(`Warehouse received no puede ser mayor a ${maxAllowed} (Cant. devuelta)`);
       control?.setValue(null);
     }
+    this.updateReasonValidators(idx);
   }
 
   protected validateWarehouseAcceptedInput(materialId: number, idx: number): void {
@@ -483,6 +535,33 @@ export class MaterialReturnForm extends BaseRequestForm {
       this._toastService.error(`Warehouse accepted no puede ser mayor a ${warehouseReceivedQty} (Warehouse received)`);
       control?.setValue(null);
     }
+    this.updateReasonValidators(idx);
+  }
+
+  private updateReasonValidators(idx: number): void {
+    const group = this.materialItemsForm.at(idx) as FormGroup | undefined;
+    const material = this.materialList()[idx];
+    if (!group || !material) return;
+
+    const raw = group.getRawValue();
+
+    const repAccepted = raw.replenishmentAccepted;
+    const requestedQty = Number(material.requestedQuantity) || 0;
+    const repReasonCtrl = group.get('replenishmentReason');
+    const repNeedsReason = repAccepted !== null && repAccepted !== '' &&
+      Number.isFinite(Number(repAccepted)) && Number(repAccepted) < requestedQty;
+    repReasonCtrl?.setValidators(repNeedsReason ? [Validators.required] : null);
+    repReasonCtrl?.updateValueAndValidity({ emitEvent: false });
+
+    const whAccepted = raw.warehouseAccepted;
+    const whReceived = raw.warehouseReceived;
+    const whReasonCtrl = group.get('warehouseReason');
+    const whNeedsReason = whAccepted !== null && whAccepted !== '' &&
+      whReceived !== null && whReceived !== '' &&
+      Number.isFinite(Number(whAccepted)) && Number.isFinite(Number(whReceived)) &&
+      Number(whAccepted) < Number(whReceived);
+    whReasonCtrl?.setValidators(whNeedsReason ? [Validators.required] : null);
+    whReasonCtrl?.updateValueAndValidity({ emitEvent: false });
   }
 
   private rebuildMaterialFormArray(): void {
@@ -496,7 +575,7 @@ export class MaterialReturnForm extends BaseRequestForm {
         warehouseReceived: new FormControl<number | null>(this.warehouseReceivedByMaterialId().get(id) ?? null),
         warehouseAccepted: new FormControl<number | null>(this.warehouseAcceptedByMaterialId().get(id) ?? null),
         warehouseReason: new FormControl<string>(this.warehouseReasonByMaterialId().get(id) ?? ''),
-        sapId: new FormControl<string>(this.sapIdByMaterialId().get(id) ?? ''),
+        sapId: new FormControl<string>(this.sapIdByMaterialId().get(id) ?? '', [Validators.required]),
       }), { emitEvent: false });
     }
 
@@ -505,6 +584,8 @@ export class MaterialReturnForm extends BaseRequestForm {
       assignedRoleName: this.initialRequestData?.workflowCurrentStep?.assigned_role?.roleName,
     };
     this.applyConstraintsToArrayFields(WORKFLOW_FIELD_CONSTRAINTS, ctx);
+
+    this.materialItemsForm.controls.forEach((_, idx) => this.updateReasonValidators(idx));
   }
 
   private syncFormArrayToSignals(): void {
@@ -534,6 +615,8 @@ export class MaterialReturnForm extends BaseRequestForm {
     this.replenishmentReasonByMaterialId.set(repReasonMap);
     this.warehouseReasonByMaterialId.set(whReasonMap);
     this.sapIdByMaterialId.set(sapIdMap);
+
+    this.materialItemsForm.controls.forEach((_, idx) => this.updateReasonValidators(idx));
   }
 
   private syncMaterialAmountsToForm(): void {
