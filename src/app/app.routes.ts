@@ -51,6 +51,7 @@ export const routes: Routes = [
       { path: 'settings/security-management', loadComponent: () => import('./features/settings/pages/security-manage/security-manage').then(m => m.SecurityManage) },
       { path: 'settings/workflows', loadComponent: () => import('./features/settings/pages/workflows/workflows').then(m => m.Workflows) },
       { path: 'settings/assign-user', loadComponent: () => import('./features/settings/pages/assign-user/assign-user').then(m => m.AssignUser) },
+      { path: 'forecast-sales-objective', loadComponent: () => import('./features/forecast/pages/sales-manage/sales-manage').then(m => m.SalesManage) },
       { path: '404', loadComponent: () => import('./features/not-found/not-found').then(m => m.NotFound) },
       { path: '**', loadComponent: () => import('./features/not-found/not-found').then(m => m.NotFound) },
     ]

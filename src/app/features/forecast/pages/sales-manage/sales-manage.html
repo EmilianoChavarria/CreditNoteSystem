@@ -1,0 +1,201 @@
+<div class="min-h-screen bg-gray-50 p-6">
+
+  <!-- Period + year selector -->
+  <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center gap-2 text-sm text-gray-500">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+      </svg>
+      <span class="font-medium">Período activo:</span>
+    </div>
+    <div class="flex items-center gap-0.5 bg-white border border-gray-200 rounded-full px-1 py-1 shadow-sm">
+      @for (year of years; track year) {
+        <button
+          type="button"
+          (click)="selectYear(year)"
+          [class]="activeYear() === year
+            ? 'bg-indigo-600 text-white px-5 py-1.5 rounded-full text-sm font-semibold transition'
+            : 'text-gray-500 px-5 py-1.5 rounded-full text-sm hover:text-gray-800 transition'">
+          {{ year }}
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Title + actions -->
+  <div class="flex items-start justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-800">Carga de Forecast {{ activeYear() }}</h1>
+      <p class="text-sm text-gray-400 mt-1">Ingresa o edita las proyecciones financieras mensuales.</p>
+    </div>
+    <div class="flex items-center gap-3 mt-1">
+      @if (savedTime()) {
+        <span class="flex items-center gap-1.5 text-sm text-green-600">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          Guardado {{ savedTime() }}
+        </span>
+      }
+      <button type="button"
+        class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition shadow-sm">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+        </svg>
+        Importar Excel
+      </button>
+      <button type="button"
+        (click)="saveChanges()"
+        class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition shadow-sm">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
+        </svg>
+        Guardar cambios
+      </button>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-x-auto mb-6">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-gray-100">
+          <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-gray-400 min-w-35">
+            Categoría
+          </th>
+          @for (month of months; track month) {
+            <th class="px-3 py-3 text-xs font-semibold uppercase tracking-wider text-gray-400 text-right min-w-25">
+              {{ month }}
+            </th>
+          }
+          <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-gray-400 text-right min-w-27.5">
+            Total
+          </th>
+          <th class="w-8"></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of rows(); track row.id) {
+          <tr class="border-b border-gray-50 hover:bg-gray-50/40 group">
+            <td class="px-4 py-2 font-semibold text-gray-700 whitespace-nowrap">{{ row.name }}</td>
+            @for (val of row.values; track $index; let i = $index) {
+              <td class="px-3 py-2 text-right">
+                @if (editingCell()?.rowId === row.id && editingCell()?.monthIdx === i) {
+                  <input
+                    type="text"
+                    inputmode="numeric"
+                    class="cell-edit-input w-24 border border-indigo-400 rounded px-2 py-0.5 text-right text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                    [value]="editingValue()"
+                    (input)="editingValue.set($any($event.target).value)"
+                    (blur)="commitEdit(row.id, i)"
+                    (keydown)="handleKeydown($event, row.id, i)">
+                } @else {
+                  <span
+                    class="cursor-pointer hover:text-indigo-600 transition-colors"
+                    (click)="startEdit(row.id, i, val)">
+                    $ {{ val | number: '1.0-0' }}
+                  </span>
+                }
+              </td>
+            }
+            <td class="px-4 py-2 text-right font-semibold text-gray-700 whitespace-nowrap">
+              $ {{ rowTotal(row) | number: '1.0-0' }}
+            </td>
+            <td class="pr-2 text-right">
+              <button type="button"
+                (click)="removeRow(row.id)"
+                class="hidden group-hover:inline-flex items-center justify-center w-5 h-5 rounded-full text-gray-300 hover:text-red-500 hover:bg-red-50 transition">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+              </button>
+            </td>
+          </tr>
+        }
+
+        <!-- Add category row -->
+        @if (addingCategory()) {
+          <tr class="border-b border-gray-50">
+            <td class="px-4 py-2" colspan="1">
+              <input
+                type="text"
+                class="new-cat-input border border-indigo-400 rounded px-2 py-1 text-sm w-full focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                placeholder="Nombre de categoría"
+                [ngModel]="newCategoryName()"
+                (ngModelChange)="newCategoryName.set($event)"
+                (keydown.enter)="confirmAddCategory()"
+                (keydown.escape)="cancelAddCategory()">
+            </td>
+            <td colspan="12" class="px-3 py-2 text-xs text-gray-400">
+              Ingresa valores en 0. Edítalos después en la tabla.
+            </td>
+            <td class="px-4 py-2"></td>
+            <td class="pr-2 py-2">
+              <div class="flex gap-1">
+                <button type="button" (click)="confirmAddCategory()"
+                  class="text-xs bg-indigo-600 text-white px-2 py-1 rounded hover:bg-indigo-700 transition">
+                  OK
+                </button>
+                <button type="button" (click)="cancelAddCategory()"
+                  class="text-xs border border-gray-300 text-gray-600 px-2 py-1 rounded hover:bg-gray-50 transition">
+                  ✕
+                </button>
+              </div>
+            </td>
+          </tr>
+        } @else {
+          <tr>
+            <td class="px-4 py-2" colspan="15">
+              <button type="button" (click)="startAddCategory()"
+                class="flex items-center gap-1 text-sm text-indigo-500 hover:text-indigo-700 transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Agregar categoría
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+      <tfoot>
+        <tr class="border-t-2 border-gray-200 bg-gray-50/60">
+          <td class="px-4 py-3 font-bold text-gray-800">Total General</td>
+          @for (total of monthTotals(); track $index; let i = $index) {
+            <td class="px-3 py-3 text-right font-semibold text-gray-700 whitespace-nowrap">
+              $ {{ total | number: '1.0-0' }}
+            </td>
+          }
+          <td class="px-4 py-3 text-right font-bold text-indigo-600 whitespace-nowrap">
+            $ {{ grandTotal() | number: '1.0-0' }}
+          </td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <!-- Summary cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+      <p class="text-xs text-gray-400 mb-2">Total Anual Proyectado</p>
+      <p class="text-2xl font-bold text-gray-800">$ {{ grandTotal() | number: '1.0-0' }}</p>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+      <p class="text-xs text-gray-400 mb-2">Promedio Mensual</p>
+      <p class="text-2xl font-bold text-gray-800">$ {{ avgMonthly() | number: '1.0-0' }}</p>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+      <p class="text-xs text-gray-400 mb-2">Mejor Mes</p>
+      <p class="text-2xl font-bold text-gray-800">{{ months[bestMonthIdx()] }}</p>
+      <p class="text-xs text-indigo-500 mt-1">$ {{ monthTotals()[bestMonthIdx()] | number: '1.0-0' }}</p>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+      <p class="text-xs text-gray-400 mb-2">Categorías Cargadas</p>
+      <p class="text-2xl font-bold text-gray-800">{{ rows().length }}</p>
+    </div>
+  </div>
+
+</div>
