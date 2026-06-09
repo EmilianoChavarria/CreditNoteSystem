@@ -251,6 +251,7 @@
     "PRIORITY_PLACEHOLDER": "1",
     "REMOVE": "Remover",
     "IS_FINAL_STEP": "Paso final",
+    "MARK_AS_APPROVED": "Marcar como aprobado",
     "VISUAL": {
       "CURRENT_STEP": "Paso actual",
       "CONDITIONAL_JUMP": "Salto condicional",
