@@ -10,7 +10,7 @@ import { ToastService } from '../../../core/services/toast-service';
 import moment from 'moment';
 import { Modal } from '../../../shared/components/ui/modal/modal';
 import { Badge } from '../../../shared/components/ui/badge/badge';
-import { SlicePipe, UpperCasePipe } from '@angular/common';
+import { CurrencyPipe, SlicePipe, UpperCasePipe } from '@angular/common';
 import { Spinner } from '../../../shared/components/ui/spinner/spinner';
 import { RoleService } from '../../../core/services/role-service';
 import { ActivatedRoute } from '@angular/router';
@@ -25,7 +25,7 @@ import { BulkSendBackModal } from './components/bulk-send-back-modal/bulk-send-b
 
 @Component({
     selector: 'app-my-approvals',
-    imports: [TranslatePipe, WorkflowHistoryDrawer, WorkflowHistoryModal, Modal, Table, Badge, UpperCasePipe, Spinner, ReactiveFormsModule, FullSpinnerComponent, RequestInfoModal, ApproveConfirmModal, SendBackModal, BulkSendBackModal, SlicePipe],
+    imports: [TranslatePipe, WorkflowHistoryDrawer, WorkflowHistoryModal, Modal, Table, Badge, UpperCasePipe, CurrencyPipe, Spinner, ReactiveFormsModule, FullSpinnerComponent, RequestInfoModal, ApproveConfirmModal, SendBackModal, BulkSendBackModal, SlicePipe],
     templateUrl: './my-approvals.html',
     styleUrl: './my-approvals.css',
 })
@@ -95,6 +95,7 @@ export class MyApprovals extends RequestListBase {
             key: 'createdAt', label: 'MY_APPROVALS.CREATED_AT', sortable: true,
             render: (value) => value ? moment(value).format('DD/MM/YYYY HH:mm:ss') : '-'
         },
+        { key: 'totalAmount', label: 'MY_APPROVALS.AMOUNT', sortable: false, customTemplate: true },
         { key: 'user.fullName', label: 'CREATED BY', sortable: true }
 
     ];
