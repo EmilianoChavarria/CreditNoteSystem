@@ -73,6 +73,10 @@
                 <span
                     [class]="`text-center font-semibold text-nowrap`">{{item.customerId}} - {{((item.razonSocial?.length ?? 0) > 20) ? ((item.razonSocial ?? '') | slice:0:25) + '...' : (item.razonSocial ?? '')}}</span>
             </div>
+            } @else if (column.key === 'totalAmount') {
+            <span class="font-semibold text-slate-800 text-nowrap">
+                {{ (item.requestTypeId === 6 ? ($any(item).returnOrderRequest?.globalSubTotal ?? item.totalAmount) : item.totalAmount) | currency: item.currency : 'symbol' : '1.2-2' }}
+            </span>
             }
         </ng-template>
     </app-tabla-dinamica>

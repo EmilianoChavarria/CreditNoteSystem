@@ -16,6 +16,9 @@
             {{ 'REQUEST_INFO.REQUEST_NUMBER' | translate }}
           </span>
           <h2 class="text-2xl font-bold text-slate-900">{{ req.requestNumber }}</h2>
+          <p class="mt-1 text-sm font-medium text-slate-500">
+            {{ req.customerId }} – {{ req.razonSocial }}
+          </p>
         </div>
         <div class="flex flex-col items-end gap-2">
           <span class="text-xs font-bold uppercase tracking-widest text-slate-400">
@@ -379,6 +382,7 @@
               </thead>
               <tbody class="divide-y divide-slate-100">
                 @for (step of sequenceSteps(); track step.stepOrder) {
+                  @if (step.statusKey) {
                   <tr [class]="step.isCurrent ? 'bg-blue-50/40' : 'bg-white hover:bg-slate-50/50'">
                     <td class="px-4 py-3 font-medium text-slate-700">{{ step.userName }}</td>
                     <td class="px-4 py-3">
@@ -414,6 +418,7 @@
                       }
                     </td>
                   </tr>
+                  }
                 }
               </tbody>
             </table>
