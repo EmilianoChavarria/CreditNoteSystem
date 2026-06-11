@@ -15,7 +15,7 @@
           type="button"
           (click)="selectYear(year)"
           [class]="activeYear() === year
-            ? 'bg-indigo-600 text-white px-5 py-1.5 rounded-full text-sm font-semibold transition'
+            ? 'bg-[#ff8200] text-white px-5 py-1.5 rounded-full text-sm font-semibold transition'
             : 'text-gray-500 px-5 py-1.5 rounded-full text-sm hover:text-gray-800 transition'">
           {{ year }}
         </button>
@@ -26,8 +26,8 @@
   <!-- Title + actions -->
   <div class="flex items-start justify-between mb-6">
     <div>
-      <h1 class="text-2xl font-bold text-gray-800">Carga de Forecast {{ activeYear() }}</h1>
-      <p class="text-sm text-gray-400 mt-1">Ingresa o edita las proyecciones financieras mensuales.</p>
+      <h1 class="text-2xl font-bold text-gray-800">Forecast de Ventas {{ activeYear() }}</h1>
+      <p class="text-sm text-gray-400 mt-1">Consulta y ajusta las proyecciones por distribuidor.</p>
     </div>
     <div class="flex items-center gap-3 mt-1">
       @if (savedTime()) {
@@ -48,7 +48,7 @@
       </button>
       <button type="button"
         (click)="saveChanges()"
-        class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition shadow-sm">
+        class="inline-flex items-center gap-2 rounded-lg bg-[#ff8200] px-4 py-2 text-sm font-semibold text-white hover:bg-[#e67500] transition shadow-sm">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
             d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
@@ -62,139 +62,122 @@
   <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-x-auto mb-6">
     <table class="w-full text-sm">
       <thead>
-        <tr class="border-b border-gray-100">
-          <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-gray-400 min-w-35">
-            Categoría
+        <tr class="border-b-2 border-gray-200 bg-gray-50">
+          <th class="sticky left-0 z-20 text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-gray-400 min-w-44 bg-gray-50 border-r border-gray-200">
+            Distribuidor
           </th>
+          <th class="px-3 py-3 min-w-28"></th>
           @for (month of months; track month) {
-            <th class="px-3 py-3 text-xs font-semibold uppercase tracking-wider text-gray-400 text-right min-w-25">
+            <th class="px-2 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-400 min-w-24">
               {{ month }}
             </th>
           }
-          <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-gray-400 text-right min-w-27.5">
+          <th class="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-400 min-w-28">
             Total
           </th>
-          <th class="w-8"></th>
         </tr>
       </thead>
       <tbody>
-        @for (row of rows(); track row.id) {
-          <tr class="border-b border-gray-50 hover:bg-gray-50/40 group">
-            <td class="px-4 py-2 font-semibold text-gray-700 whitespace-nowrap">{{ row.name }}</td>
-            @for (val of row.values; track $index; let i = $index) {
-              <td class="px-3 py-2 text-right">
-                @if (editingCell()?.rowId === row.id && editingCell()?.monthIdx === i) {
+        @for (dist of distributors(); track dist.id) {
+
+          <!-- Forecast row (editable on dblclick) -->
+          <tr class="border-t-2 border-gray-200 bg-gray-50/50">
+            <td rowspan="3"
+              class="sticky left-0 z-10 px-4 py-2 font-semibold text-gray-800 text-sm align-middle bg-white border-r border-gray-200 whitespace-nowrap">
+              {{ dist.name }}
+            </td>
+            <td class="px-3 py-1.5 whitespace-nowrap">
+              <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Forecast</span>
+            </td>
+            @for (m of dist.months; track $index; let i = $index) {
+              <td class="px-2 py-1.5 text-right text-xs text-gray-600 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
+                  title="Doble clic para editar"
+                  (dblclick)="startEdit(dist.id, i, 'forecast', m.forecast)">
+                @if (isEditing(dist.id, i, 'forecast')) {
                   <input
                     type="text"
                     inputmode="numeric"
-                    class="cell-edit-input w-24 border border-indigo-400 rounded px-2 py-0.5 text-right text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                    class="cell-edit-input w-20 border border-gray-400 rounded px-1.5 py-0.5 text-right text-xs focus:outline-none focus:ring-2 focus:ring-gray-300"
                     [value]="editingValue()"
                     (input)="editingValue.set($any($event.target).value)"
-                    (blur)="commitEdit(row.id, i)"
-                    (keydown)="handleKeydown($event, row.id, i)">
+                    (blur)="commitEdit(dist.id, i, 'forecast')"
+                    (keydown)="handleKeydown($event, dist.id, i, 'forecast')">
                 } @else {
-                  <span
-                    class="cursor-pointer hover:text-indigo-600 transition-colors"
-                    (click)="startEdit(row.id, i, val)">
-                    $ {{ val | number: '1.0-0' }}
-                  </span>
+                  $ {{ m.forecast | number:'1.0-0' }}
                 }
               </td>
             }
-            <td class="px-4 py-2 text-right font-semibold text-gray-700 whitespace-nowrap">
-              $ {{ rowTotal(row) | number: '1.0-0' }}
-            </td>
-            <td class="pr-2 text-right">
-              <button type="button"
-                (click)="removeRow(row.id)"
-                class="hidden group-hover:inline-flex items-center justify-center w-5 h-5 rounded-full text-gray-300 hover:text-red-500 hover:bg-red-50 transition">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-              </button>
+            <td class="px-3 py-1.5 text-right text-xs font-semibold text-gray-600 whitespace-nowrap border-l border-gray-100">
+              $ {{ rowTotal(dist, 'forecast') | number:'1.0-0' }}
             </td>
           </tr>
-        }
 
-        <!-- Add category row -->
-        @if (addingCategory()) {
-          <tr class="border-b border-gray-50">
-            <td class="px-4 py-2" colspan="1">
-              <input
-                type="text"
-                class="new-cat-input border border-indigo-400 rounded px-2 py-1 text-sm w-full focus:outline-none focus:ring-2 focus:ring-indigo-300"
-                placeholder="Nombre de categoría"
-                [ngModel]="newCategoryName()"
-                (ngModelChange)="newCategoryName.set($event)"
-                (keydown.enter)="confirmAddCategory()"
-                (keydown.escape)="cancelAddCategory()">
+          <!-- Modificación row (editable on dblclick) -->
+          <tr class="bg-white">
+            <td class="px-3 py-1.5 whitespace-nowrap">
+              <span class="text-[11px] font-semibold text-[#ff8200] uppercase tracking-wide">Modificación</span>
             </td>
-            <td colspan="12" class="px-3 py-2 text-xs text-gray-400">
-              Ingresa valores en 0. Edítalos después en la tabla.
-            </td>
-            <td class="px-4 py-2"></td>
-            <td class="pr-2 py-2">
-              <div class="flex gap-1">
-                <button type="button" (click)="confirmAddCategory()"
-                  class="text-xs bg-indigo-600 text-white px-2 py-1 rounded hover:bg-indigo-700 transition">
-                  OK
-                </button>
-                <button type="button" (click)="cancelAddCategory()"
-                  class="text-xs border border-gray-300 text-gray-600 px-2 py-1 rounded hover:bg-gray-50 transition">
-                  ✕
-                </button>
-              </div>
+            @for (m of dist.months; track $index; let i = $index) {
+              <td class="px-2 py-1.5 text-right text-xs text-gray-700 whitespace-nowrap cursor-pointer hover:bg-orange-50 transition-colors"
+                  title="Doble clic para editar"
+                  (dblclick)="startEdit(dist.id, i, 'modificacion', m.modificacion)">
+                @if (isEditing(dist.id, i, 'modificacion')) {
+                  <input
+                    type="text"
+                    inputmode="numeric"
+                    class="cell-edit-input w-20 border border-[#ff8200] rounded px-1.5 py-0.5 text-right text-xs focus:outline-none focus:ring-2 focus:ring-[#ff8200]/30"
+                    [value]="editingValue()"
+                    (input)="editingValue.set($any($event.target).value)"
+                    (blur)="commitEdit(dist.id, i, 'modificacion')"
+                    (keydown)="handleKeydown($event, dist.id, i, 'modificacion')">
+                } @else {
+                  $ {{ m.modificacion | number:'1.0-0' }}
+                }
+              </td>
+            }
+            <td class="px-3 py-1.5 text-right text-xs font-semibold text-[#ff8200] whitespace-nowrap border-l border-gray-100">
+              $ {{ rowTotal(dist, 'modificacion') | number:'1.0-0' }}
             </td>
           </tr>
-        } @else {
-          <tr>
-            <td class="px-4 py-2" colspan="15">
-              <button type="button" (click)="startAddCategory()"
-                class="flex items-center gap-1 text-sm text-indigo-500 hover:text-indigo-700 transition">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                </svg>
-                Agregar categoría
-              </button>
+
+          <!-- Ventas row (read-only) -->
+          <tr class="bg-white">
+            <td class="px-3 py-1.5 whitespace-nowrap">
+              <span class="text-[11px] font-semibold text-green-600 uppercase tracking-wide">Ventas</span>
+            </td>
+            @for (m of dist.months; track $index) {
+              <td class="px-2 py-1.5 text-right text-xs text-gray-500 whitespace-nowrap">
+                $ {{ m.ventas | number:'1.0-0' }}
+              </td>
+            }
+            <td class="px-3 py-1.5 text-right text-xs font-semibold text-green-700 whitespace-nowrap border-l border-gray-100">
+              $ {{ rowTotal(dist, 'ventas') | number:'1.0-0' }}
             </td>
           </tr>
+
         }
       </tbody>
-      <tfoot>
-        <tr class="border-t-2 border-gray-200 bg-gray-50/60">
-          <td class="px-4 py-3 font-bold text-gray-800">Total General</td>
-          @for (total of monthTotals(); track $index; let i = $index) {
-            <td class="px-3 py-3 text-right font-semibold text-gray-700 whitespace-nowrap">
-              $ {{ total | number: '1.0-0' }}
-            </td>
-          }
-          <td class="px-4 py-3 text-right font-bold text-indigo-600 whitespace-nowrap">
-            $ {{ grandTotal() | number: '1.0-0' }}
-          </td>
-          <td></td>
-        </tr>
-      </tfoot>
-    </table>
+    </table>  
   </div>
 
   <!-- Summary cards -->
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
     <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-      <p class="text-xs text-gray-400 mb-2">Total Anual Proyectado</p>
-      <p class="text-2xl font-bold text-gray-800">$ {{ grandTotal() | number: '1.0-0' }}</p>
+      <p class="text-xs text-gray-400 mb-2">Total Forecast Anual</p>
+      <p class="text-2xl font-bold text-gray-800">$ {{ grandTotals().forecast | number:'1.0-0' }}</p>
     </div>
     <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-      <p class="text-xs text-gray-400 mb-2">Promedio Mensual</p>
-      <p class="text-2xl font-bold text-gray-800">$ {{ avgMonthly() | number: '1.0-0' }}</p>
+      <p class="text-xs text-gray-400 mb-2">Total Ventas Anual</p>
+      <p class="text-2xl font-bold text-gray-800">$ {{ grandTotals().ventas | number:'1.0-0' }}</p>
     </div>
     <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-      <p class="text-xs text-gray-400 mb-2">Mejor Mes</p>
-      <p class="text-2xl font-bold text-gray-800">{{ months[bestMonthIdx()] }}</p>
-      <p class="text-xs text-indigo-500 mt-1">$ {{ monthTotals()[bestMonthIdx()] | number: '1.0-0' }}</p>
+      <p class="text-xs text-gray-400 mb-2">Cumplimiento</p>
+      <p class="text-2xl font-bold text-gray-800">{{ cumplimiento() | number:'1.1-1' }}%</p>
+      <p class="text-xs text-[#ff8200] mt-1">Ventas vs Forecast</p>
     </div>
     <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-      <p class="text-xs text-gray-400 mb-2">Categorías Cargadas</p>
-      <p class="text-2xl font-bold text-gray-800">{{ rows().length }}</p>
+      <p class="text-xs text-gray-400 mb-2">Distribuidores Activos</p>
+      <p class="text-2xl font-bold text-gray-800">{{ distributors().length }}</p>
     </div>
   </div>
 
