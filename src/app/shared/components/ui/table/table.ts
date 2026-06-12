@@ -76,15 +76,31 @@ export class Table<T extends Record<string, any>>
     value: any;
 }[]>();
   readonly filterDefault = input<any>('all');
+  readonly filterLabel = input<string>('');
 
   readonly secondFilterOptions = input<{ label: string; value: any }[]>();
   readonly secondFilterDefault = input<any>('all');
   readonly secondFilterChange = output<any>();
+  readonly secondFilterLabel = input<string>('');
 
   readonly thirdFilterOptions = input<{ label: string; value: any }[]>();
   readonly thirdFilterDefault = input<any>('all');
   readonly thirdFilterAllLabel = input<string>('TABLE.ALL');
   readonly thirdFilterChange = output<any>();
+  readonly thirdFilterLabel = input<string>('');
+
+  readonly fourthFilterOptions = input<{ label: string; value: any }[]>();
+  readonly fourthFilterDefault = input<any>('all');
+  readonly fourthFilterAllLabel = input<string>('TABLE.ALL');
+  readonly fourthFilterChange = output<any>();
+  readonly fourthFilterLabel = input<string>('');
+
+  readonly enableDateRangeFilter = input<boolean>(false);
+  readonly dateRangeFromDefault = input<string>('');
+  readonly dateRangeToDefault = input<string>('');
+  readonly dateRangeFromLabel = input<string>('FILTERS.DATE_FROM');
+  readonly dateRangeToLabel = input<string>('FILTERS.DATE_TO');
+  readonly dateRangeChange = output<{ dateFrom: string; dateTo: string }>();
 
   readonly sinAcciones = input<boolean>(false);
   readonly actionMode = input<'inline' | 'menu'>('inline');
@@ -128,6 +144,9 @@ export class Table<T extends Record<string, any>>
   filterValue = signal<any>('all');
   secondFilterValue = signal<any>('all');
   thirdFilterValue = signal<any>('all');
+  fourthFilterValue = signal<any>('all');
+  dateRangeFromValue = signal<string>('');
+  dateRangeToValue = signal<string>('');
   registrosPorPaginaInterno = signal(10);
   pageSizeOptions: number[] = [10, 25, 50, 100, 150, 200, 500];
   isExportingExcel = signal(false);
@@ -154,6 +173,15 @@ export class Table<T extends Record<string, any>>
     }
     if (changes['thirdFilterDefault']) {
       this.thirdFilterValue.set(this.thirdFilterDefault() ?? 'all');
+    }
+    if (changes['fourthFilterDefault']) {
+      this.fourthFilterValue.set(this.fourthFilterDefault() ?? 'all');
+    }
+    if (changes['dateRangeFromDefault']) {
+      this.dateRangeFromValue.set(this.dateRangeFromDefault() ?? '');
+    }
+    if (changes['dateRangeToDefault']) {
+      this.dateRangeToValue.set(this.dateRangeToDefault() ?? '');
     }
   }
 
@@ -320,6 +348,24 @@ export class Table<T extends Record<string, any>>
     this.thirdFilterValue.set(value);
     this.paginaActual.set(1);
     this.thirdFilterChange.emit(value);
+  }
+
+  onFourthFilterChange(value: any): void {
+    this.fourthFilterValue.set(value);
+    this.paginaActual.set(1);
+    this.fourthFilterChange.emit(value);
+  }
+
+  onDateFromChange(value: string): void {
+    this.dateRangeFromValue.set(value);
+    this.paginaActual.set(1);
+    this.dateRangeChange.emit({ dateFrom: value, dateTo: this.dateRangeToValue() });
+  }
+
+  onDateToChange(value: string): void {
+    this.dateRangeToValue.set(value);
+    this.paginaActual.set(1);
+    this.dateRangeChange.emit({ dateFrom: this.dateRangeFromValue(), dateTo: value });
   }
 
 

@@ -50,6 +50,8 @@ export abstract class RequestListBase {
     public requesterOptions = signal<{ label: string; value: string }[]>([]);
     public selectedClassificationType = signal<string>('all');
     public classificationTypeOptions = signal<{ label: string; value: string }[]>([]);
+    public selectedDateFrom = signal<string>('');
+    public selectedDateTo = signal<string>('');
     protected currentLanguage = signal<string>(this._translateService.currentLang || 'es');
     protected searchDebounceTimeout: ReturnType<typeof setTimeout> | null = null;
 
@@ -325,6 +327,24 @@ export abstract class RequestListBase {
         if (this.selectedRequestType !== 'DE' && this.selectedRequestType) {
             this.loadRequests();
         }
+    }
+
+    onDateRangeChange({ dateFrom, dateTo }: { dateFrom: string; dateTo: string }): void {
+        this.selectedDateFrom.set(dateFrom);
+        this.selectedDateTo.set(dateTo);
+        this.resetPagination();
+        if (this.selectedRequestType !== 'DE' && this.selectedRequestType) {
+            this.loadRequests();
+        }
+    }
+
+    protected getDateRangeParams(): { dateFrom?: string; dateTo?: string } {
+        const result: { dateFrom?: string; dateTo?: string } = {};
+        const from = this.selectedDateFrom();
+        const to = this.selectedDateTo();
+        if (from) result.dateFrom = from;
+        if (to) result.dateTo = to;
+        return result;
     }
 
     protected setRoleFilterOptions(roles: Role[]): void {
