@@ -19,10 +19,12 @@ import {
   SendBackMassResponse,
 } from '../../data/interfaces/RequestService';
 
+
 export type {
   ApproveMassResponse,
   CancelMassResponse,
   MassActionFailedRequest,
+  MassActionRequestFilters,
   MassActionRequestPayload,
   PagePagination,
   RejectMassResponse,
@@ -136,8 +138,8 @@ export class RequestService {
     );
   }
 
-  getMyPendingRequests(requestTypeId: number, perPage = 10, page = 1, search?: string, roleName = 'all', requesterId?: string, classificationType?: string): Observable<PagePagination<Request>> {
-    const params: { requestTypeId: number; per_page: number; page: number; search?: string; roleName?: string; requesterId?: string; classificationType?: string } = {
+  getMyPendingRequests(requestTypeId: number, perPage = 10, page = 1, search?: string, roleName = 'all', requesterId?: string, classificationType?: string, dateFrom?: string, dateTo?: string): Observable<PagePagination<Request>> {
+    const params: { requestTypeId: number; per_page: number; page: number; search?: string; roleName?: string; requesterId?: string; classificationType?: string; dateFrom?: string; dateTo?: string } = {
       requestTypeId,
       per_page: perPage,
       page,
@@ -156,6 +158,9 @@ export class RequestService {
     if (classificationType && classificationType !== 'all') {
       params.classificationType = classificationType;
     }
+
+    if (dateFrom) params.dateFrom = dateFrom;
+    if (dateTo) params.dateTo = dateTo;
 
     return this._httpService.get<PagePagination<Request>>('/requests/pending/me', {
       params
@@ -180,8 +185,8 @@ export class RequestService {
     )
   }
 
-  getAllMyPendingRequests(requestTypeId: number, search?: string, roleName = 'all', requesterId?: string, classificationType?: string): Observable<Request[]> {
-    const params: { requestTypeId: number; search?: string; roleName?: string; requesterId?: string; classificationType?: string } = {
+  getAllMyPendingRequests(requestTypeId: number, search?: string, roleName = 'all', requesterId?: string, classificationType?: string, dateFrom?: string, dateTo?: string): Observable<Request[]> {
+    const params: { requestTypeId: number; search?: string; roleName?: string; requesterId?: string; classificationType?: string; dateFrom?: string; dateTo?: string } = {
       requestTypeId,
     };
 
@@ -198,6 +203,9 @@ export class RequestService {
     if (classificationType && classificationType !== 'all') {
       params.classificationType = classificationType;
     }
+
+    if (dateFrom) params.dateFrom = dateFrom;
+    if (dateTo) params.dateTo = dateTo;
 
     return this._httpService.get<Request[]>('/requests/pending/me/all', { params }).pipe(
       map((response: ApiResponse<Request[]>) => response.data ?? []),
@@ -287,8 +295,8 @@ export class RequestService {
     );
   }
 
-  getRequestsByTypeWithPagePagination(id: number, perPage = 10, page = 1, search?: string, roleName = 'all', requesterId?: string): Observable<PagePagination<Request>> {
-    const params: { per_page: number; page: number; search?: string; roleName?: string; requesterId?: string } = { per_page: perPage, page };
+  getRequestsByTypeWithPagePagination(id: number, perPage = 10, page = 1, search?: string, roleName = 'all', requesterId?: string, dateFrom?: string, dateTo?: string): Observable<PagePagination<Request>> {
+    const params: { per_page: number; page: number; search?: string; roleName?: string; requesterId?: string; dateFrom?: string; dateTo?: string } = { per_page: perPage, page };
 
     if (search && search.trim().length > 0) {
       params.search = search.trim();
@@ -299,6 +307,9 @@ export class RequestService {
     if (requesterId && requesterId !== 'all') {
       params.requesterId = requesterId;
     }
+
+    if (dateFrom) params.dateFrom = dateFrom;
+    if (dateTo) params.dateTo = dateTo;
 
     return this._httpService.get<PagePagination<Request>>(`/requests/${id}`, { params }).pipe(
       map((response: ApiResponse<PagePagination<Request>>) => {
@@ -463,17 +474,12 @@ export class RequestService {
     );
   }
 
-  approveMassRequests(requestIds: number[], comments?: string): Observable<ApproveMassResponse> {
-    const payload: MassActionRequestPayload = {
-      requestIds,
-      comments,
-    };
-
-    return this._httpService.post<ApproveMassResponse>('/requests/approve-mass', payload).pipe(
+  approveMassRequests(payload: MassActionRequestPayload): Observable<ApproveMassResponse> {
+    return this._httpService.post<ApproveMassResponse>('/requests/approve-mass', payload, { timeoutMs: 120000 }).pipe(
       map((response: ApiResponse<ApproveMassResponse>) => response.data ?? {
-        totalReceived: requestIds.length,
+        totalReceived: 0,
         totalApproved: 0,
-        totalFailed: requestIds.length,
+        totalFailed: 0,
         approvedRequestIds: [],
         failedRequests: []
       }),
@@ -484,17 +490,12 @@ export class RequestService {
     );
   }
 
-  rejectMassRequests(requestIds: number[], comments: string): Observable<RejectMassResponse> {
-    const payload: MassActionRequestPayload = {
-      requestIds,
-      comments,
-    };
-
-    return this._httpService.post<RejectMassResponse>('/requests/reject-mass', payload).pipe(
+  rejectMassRequests(payload: MassActionRequestPayload): Observable<RejectMassResponse> {
+    return this._httpService.post<RejectMassResponse>('/requests/reject-mass', payload, { timeoutMs: 120000 }).pipe(
       map((response: ApiResponse<RejectMassResponse>) => response.data ?? {
-        totalReceived: requestIds.length,
+        totalReceived: 0,
         totalRejected: 0,
-        totalFailed: requestIds.length,
+        totalFailed: 0,
         rejectedRequestIds: [],
         failedRequests: [],
       }),
@@ -505,13 +506,12 @@ export class RequestService {
     );
   }
 
-  cancelMassRequests(requestIds: number[], comments?: string): Observable<CancelMassResponse> {
-    const payload: MassActionRequestPayload = { requestIds, comments };
-    return this._httpService.post<CancelMassResponse>('/requests/cancel-mass', payload).pipe(
+  cancelMassRequests(payload: MassActionRequestPayload): Observable<CancelMassResponse> {
+    return this._httpService.post<CancelMassResponse>('/requests/cancel-mass', payload, { timeoutMs: 120000 }).pipe(
       map((response: ApiResponse<CancelMassResponse>) => response.data ?? {
-        totalReceived: requestIds.length,
+        totalReceived: 0,
         totalCancelled: 0,
-        totalFailed: requestIds.length,
+        totalFailed: 0,
         cancelledRequestIds: [],
         failedRequests: [],
       }),
@@ -522,13 +522,12 @@ export class RequestService {
     );
   }
 
-  sendBackMassRequests(requestIds: number[], targetWorkflowStepId: number, comments?: string): Observable<SendBackMassResponse> {
-    const payload: SendBackMassPayload = { requestIds, targetWorkflowStepId, comments };
-    return this._httpService.post<SendBackMassResponse>('/requests/send-back-mass', payload).pipe(
+  sendBackMassRequests(payload: SendBackMassPayload): Observable<SendBackMassResponse> {
+    return this._httpService.post<SendBackMassResponse>('/requests/send-back-mass', payload, { timeoutMs: 120000 }).pipe(
       map((response: ApiResponse<SendBackMassResponse>) => response.data ?? {
-        totalReceived: requestIds.length,
+        totalReceived: 0,
         totalSentBack: 0,
-        totalFailed: requestIds.length,
+        totalFailed: 0,
         sentBackRequestIds: [],
         failedRequests: [],
       }),
