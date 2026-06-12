@@ -90,7 +90,7 @@
 
     <app-tabla-dinamica [datos]="requests()" [columnas]="columns" [accionesPersonalizadas]="acciones()" actionMode="menu"
         [enableFilter]="true" filterField="workflowCurrentStep.assigned_role.roleName" addLabel="MY_APPROVALS.REQUEST"
-        [filterOptions]="roleFilterOptions()" [filterDefault]="selectedRoleName()"
+        [filterOptions]="roleFilterOptions()" [filterDefault]="selectedRoleName()" [filterLabel]="'FILTERS.ROLE'"
         excelExportModule="my_approvals"
         [excelExportParams]="{ requestTypeId: selectedRequestType, search: searchTerm(), roleName: selectedRoleName() }"
         excelExportFileName="my_approvals.xls"
@@ -100,10 +100,13 @@
         [hasNextPage]="hasNextPage()" [hasPrevPage]="hasPrevPage()" (searchChange)="onSearch($event)"
         (filterChange)="onRoleFilterChange($event)"
         [secondFilterOptions]="requesterOptions()" [secondFilterDefault]="selectedRequesterId()"
-        (secondFilterChange)="onRequesterFilterChange($event)"
+        [secondFilterLabel]="'FILTERS.REQUESTER'" (secondFilterChange)="onRequesterFilterChange($event)"
         [thirdFilterOptions]="classificationTypeOptions()" [thirdFilterDefault]="selectedClassificationType()"
-        [thirdFilterAllLabel]="'FILTERS.ALL_CLASSIFICATIONS'"
+        [thirdFilterAllLabel]="'FILTERS.ALL_CLASSIFICATIONS'" [thirdFilterLabel]="'FILTERS.CLASSIFICATION'"
         (thirdFilterChange)="onClassificationTypeFilterChange($event)"
+        [enableDateRangeFilter]="true"
+        [dateRangeFromDefault]="selectedDateFrom()" [dateRangeToDefault]="selectedDateTo()"
+        (dateRangeChange)="onDateRangeChange($event)"
         (paginaSiguiente)="onNextPage()" (paginaAnterior)="onPrevPage()" (paginaPrimera)="onFirstPage()"
         (paginaUltima)="onLastPage()" (registrosPorPaginaChange)="onPageSizeChange($event)" (refreshClick)="refreshData()">
 
@@ -143,7 +146,7 @@
             </div>
             } @else if (column.key === 'totalAmount') {
             <span class="font-semibold text-slate-800 text-nowrap">
-                {{ (item.requestTypeId === 6 ? ($any(item).returnOrderRequest?.globalSubTotal ?? item.totalAmount) : item.totalAmount) | currency: item.currency : 'symbol' : '1.2-2' }}
+                {{ (item.requestTypeId === 6 ? ($any(item).returnOrderRequest?.globalSubTotal ?? item.totalAmount) : item.totalAmount) | currency: item.currency : 'code' : '1.2-2' }}
             </span>
             }
         </ng-template>
@@ -240,11 +243,37 @@
     <app-bulk-send-back-modal
         [open]="showBulkSendBackModal()"
         [requestIds]="selectedRequestIdsArray()"
+        [selectAll]="allPendingIsSelected()"
+        [filters]="currentMassFilters"
         [sampleRequestId]="firstSelectedRequest()?.id ?? null"
         [selectedCount]="selectedCount()"
         (openChange)="onBulkSendBackModalChange($event)"
         (sent)="onBulkSendBackSent()">
     </app-bulk-send-back-modal>
+
+    <app-modal size="lg" [titleM]="'MY_APPROVALS.MASS_ERROR_MODAL_TITLE' | translate" [open]="showMassErrorModal()"
+        [closeText]="'MY_APPROVALS.CLOSE' | translate" [showPrimaryButton]="false"
+        (openChange)="showMassErrorModal.set($event)">
+        <p class="mb-3 text-sm text-gray-600">{{ 'MY_APPROVALS.MASS_ERROR_MODAL_DESCRIPTION' | translate : { count: massErrorRequests().length } }}</p>
+        <div class="max-h-80 overflow-y-auto rounded-md border border-gray-200">
+            <table class="min-w-full divide-y divide-gray-200 text-sm">
+                <thead class="bg-gray-50 sticky top-0">
+                    <tr>
+                        <th class="px-4 py-2 text-left font-semibold text-gray-700">{{ 'MY_APPROVALS.MASS_ERROR_COL_REQUEST' | translate }}</th>
+                        <th class="px-4 py-2 text-left font-semibold text-gray-700">{{ 'MY_APPROVALS.MASS_ERROR_COL_REASON' | translate }}</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 bg-white">
+                    @for (item of massErrorRequests(); track item.requestId) {
+                    <tr>
+                        <td class="px-4 py-2 text-gray-800 font-medium text-nowrap">{{ item.requestNumber ?? item.requestId }}</td>
+                        <td class="px-4 py-2 text-gray-600">{{ item.reason }}</td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </app-modal>
 
     <app-modal size="md" [titleM]="'MY_APPROVALS.CANCEL_REQUEST_MODAL_TITLE' | translate" [open]="showCancelModal()"
         [closeText]="'MY_APPROVALS.CANCEL' | translate"

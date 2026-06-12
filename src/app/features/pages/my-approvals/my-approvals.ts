@@ -22,6 +22,7 @@ import { RequestInfoModal } from '../../pending/components/request-info-modal/re
 import { ApproveConfirmModal } from './components/approve-confirm-modal/approve-confirm-modal';
 import { SendBackModal } from './components/send-back-modal/send-back-modal';
 import { BulkSendBackModal } from './components/bulk-send-back-modal/bulk-send-back-modal';
+import { MassActionFailedRequest, MassActionRequestFilters, MassActionRequestPayload } from '../../../core/services/request-service';
 
 @Component({
     selector: 'app-my-approvals',
@@ -46,6 +47,8 @@ export class MyApprovals extends RequestListBase {
     public showBulkCancelModal = signal<boolean>(false);
     public showBulkSendBackModal = signal<boolean>(false);
     public isBulkProcessing = signal<boolean>(false);
+    public showMassErrorModal = signal<boolean>(false);
+    public massErrorRequests = signal<MassActionFailedRequest[]>([]);
     public canBulkApprove = signal<boolean>(false);
     public canBulkReject = signal<boolean>(false);
     public canBulkCancel = signal<boolean>(false);
@@ -265,6 +268,8 @@ export class MyApprovals extends RequestListBase {
         this.requesterOptions.set([]);
         this.selectedClassificationType.set('all');
         this.classificationTypeOptions.set([]);
+        this.selectedDateFrom.set('');
+        this.selectedDateTo.set('');
 
         if (value === 'DE') {
             this.requests.set([]);
@@ -336,7 +341,8 @@ export class MyApprovals extends RequestListBase {
 
         this.isLoadingTable.set(true);
 
-        this._requestsService.getMyPendingRequests(requestTypeId, this.pageSize(), this.currentPage(), this.searchTerm(), this.selectedRoleName(), this.selectedRequesterId(), this.selectedClassificationType()).subscribe({
+        const { dateFrom, dateTo } = this.getDateRangeParams();
+        this._requestsService.getMyPendingRequests(requestTypeId, this.pageSize(), this.currentPage(), this.searchTerm(), this.selectedRoleName(), this.selectedRequesterId(), this.selectedClassificationType(), dateFrom, dateTo).subscribe({
             next: (response) => {
                 this.requests.set(response.data ?? []);
                 this.currentPage.set(response.current_page ?? 1);
@@ -445,12 +451,15 @@ export class MyApprovals extends RequestListBase {
 
         this.isLoadingSelectAll.set(true);
 
+        const { dateFrom, dateTo } = this.getDateRangeParams();
         this._requestsService.getAllMyPendingRequests(
             requestTypeId,
             this.searchTerm(),
             this.selectedRoleName(),
             this.selectedRequesterId(),
-            this.selectedClassificationType()
+            this.selectedClassificationType(),
+            dateFrom,
+            dateTo
         ).subscribe({
             next: (requests) => {
                 this.selectedRequestIds.set(new Set(
@@ -478,6 +487,26 @@ export class MyApprovals extends RequestListBase {
         this.selectedRequestIds.set(new Set<number>());
         this.selectedRequestsMap.set(new Map<number, Request>());
         this.allPendingIsSelected.set(false);
+    }
+
+    get currentMassFilters(): MassActionRequestFilters {
+        const { dateFrom, dateTo } = this.getDateRangeParams();
+        return {
+            requestTypeId: Number(this.selectedRequestType) || undefined,
+            search: this.searchTerm() || undefined,
+            roleName: this.selectedRoleName() !== 'all' ? this.selectedRoleName() : undefined,
+            requesterId: this.selectedRequesterId() !== 'all' ? Number(this.selectedRequesterId()) : undefined,
+            classificationType: this.selectedClassificationType() !== 'all' ? this.selectedClassificationType() : undefined,
+            dateFrom,
+            dateTo,
+        };
+    }
+
+    private buildMassPayload(comments?: string): MassActionRequestPayload {
+        if (this.allPendingIsSelected()) {
+            return { selectAll: true, filters: this.currentMassFilters, comments };
+        }
+        return { requestIds: Array.from(this.selectedRequestIds()), comments };
     }
 
     openBulkApproveModal(): void {
@@ -514,12 +543,12 @@ export class MyApprovals extends RequestListBase {
     }
 
     cancelSelectedRequests(): void {
-        const requestIds = Array.from(this.selectedRequestIds());
-        if (!requestIds.length) return;
+        const payload = this.buildMassPayload();
+        if (!payload.selectAll && !payload.requestIds?.length) return;
 
         this.isBulkProcessing.set(true);
 
-        this._requestsService.cancelMassRequests(requestIds).subscribe({
+        this._requestsService.cancelMassRequests(payload).subscribe({
             next: (response) => {
                 if (response.totalCancelled > 0) {
                     this._toastService.success(
@@ -532,6 +561,8 @@ export class MyApprovals extends RequestListBase {
                         this._translateService.instant('MY_APPROVALS.TOAST.BULK_CANCEL_PARTIAL', { failed: response.totalFailed }),
                         this._translateService.instant('MY_APPROVALS.TOAST.ERROR')
                     );
+                    this.massErrorRequests.set(response.failedRequests);
+                    this.showMassErrorModal.set(true);
                 }
                 this.onBulkCancelModalChange(false);
                 this.clearSelectedRequests();
@@ -550,13 +581,13 @@ export class MyApprovals extends RequestListBase {
     }
 
     approveSelectedRequests(): void {
-        const requestIds = Array.from(this.selectedRequestIds());
-        if (!requestIds.length) return;
+        const defaultComment = this._translateService.instant('MY_APPROVALS.BULK_APPROVE_DEFAULT_COMMENT');
+        const payload = this.buildMassPayload(defaultComment);
+        if (!payload.selectAll && !payload.requestIds?.length) return;
 
         this.isBulkProcessing.set(true);
-        const defaultComment = this._translateService.instant('MY_APPROVALS.BULK_APPROVE_DEFAULT_COMMENT');
 
-        this._requestsService.approveMassRequests(requestIds, defaultComment).subscribe({
+        this._requestsService.approveMassRequests(payload).subscribe({
             next: (response) => {
                 if (response.totalApproved > 0) {
                     this._toastService.success(
@@ -569,6 +600,8 @@ export class MyApprovals extends RequestListBase {
                         this._translateService.instant('MY_APPROVALS.TOAST.BULK_APPROVE_PARTIAL', { failed: response.totalFailed }),
                         this._translateService.instant('MY_APPROVALS.TOAST.ERROR')
                     );
+                    this.massErrorRequests.set(response.failedRequests);
+                    this.showMassErrorModal.set(true);
                 }
                 this.onBulkApproveModalChange(false);
                 this.clearSelectedRequests();
@@ -593,13 +626,13 @@ export class MyApprovals extends RequestListBase {
             return;
         }
 
-        const requestIds = Array.from(this.selectedRequestIds());
-        if (!requestIds.length) return;
-
         const comments = this.form.get('comments')?.value ?? '';
+        const payload = this.buildMassPayload(comments);
+        if (!payload.selectAll && !payload.requestIds?.length) return;
+
         this.isBulkProcessing.set(true);
 
-        this._requestsService.rejectMassRequests(requestIds, comments).subscribe({
+        this._requestsService.rejectMassRequests(payload).subscribe({
             next: (response) => {
                 if (response.totalRejected > 0) {
                     this._toastService.success(
@@ -612,6 +645,8 @@ export class MyApprovals extends RequestListBase {
                         this._translateService.instant('MY_APPROVALS.TOAST.BULK_REJECT_PARTIAL', { failed: response.totalFailed }),
                         this._translateService.instant('MY_APPROVALS.TOAST.ERROR')
                     );
+                    this.massErrorRequests.set(response.failedRequests);
+                    this.showMassErrorModal.set(true);
                 }
                 this.onBulkDeclineModalChange(false);
                 this.clearSelectedRequests();
