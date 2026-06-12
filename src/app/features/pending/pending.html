@@ -27,7 +27,7 @@
     } @else if (selectedRequestType !== 'DE' && selectedRequestType) {
     <app-tabla-dinamica [datos]="requests()" [columnas]="columns" [accionesPersonalizadas]="acciones()"
         actionMode="menu" [enableFilter]="true" filterField="workflowCurrentStep.assigned_role.roleName"
-        [filterOptions]="roleFilterOptions()" [filterDefault]="selectedRoleName()" excelExportModule="requests"
+        [filterOptions]="roleFilterOptions()" [filterDefault]="selectedRoleName()" [filterLabel]="'FILTERS.ROLE'" excelExportModule="requests"
         [excelExportParams]="{ requestTypeId: selectedRequestType, search: searchTerm(), roleName: selectedRoleName() }"
         excelExportFileName="requests.xls" addLabel="PENDING_PAGE.REQUEST" addRoute="/app/settings/newUser"
         [canAdd]="false" [registrosPorPagina]="pageSize()" [serverPagination]="true"
@@ -36,8 +36,12 @@
         (paginaAnterior)="onPrevPage()" (paginaPrimera)="onFirstPage()" (paginaUltima)="onLastPage()"
         (registrosPorPaginaChange)="onPageSizeChange($event)" (searchChange)="onSearch($event)"
         (filterChange)="onRoleFilterChange($event)"
-        [secondFilterOptions]="requesterOptions()" [secondFilterDefault]="selectedRequesterId()"
-        (secondFilterChange)="onRequesterFilterChange($event)" (refreshClick)="refreshData()">
+        [secondFilterOptions]="requesterOptions()" [secondFilterDefault]="selectedRequesterId()" [secondFilterLabel]="'FILTERS.REQUESTER'"
+        (secondFilterChange)="onRequesterFilterChange($event)"
+        [enableDateRangeFilter]="true"
+        [dateRangeFromDefault]="selectedDateFrom()" [dateRangeToDefault]="selectedDateTo()"
+        (dateRangeChange)="onDateRangeChange($event)"
+        (refreshClick)="refreshData()">
 
         <ng-template #cellTemplate let-item let-column="column">
             @if (column.key === 'status') {
@@ -75,7 +79,7 @@
             </div>
             } @else if (column.key === 'totalAmount') {
             <span class="font-semibold text-slate-800 text-nowrap">
-                {{ (item.requestTypeId === 6 ? ($any(item).returnOrderRequest?.globalSubTotal ?? item.totalAmount) : item.totalAmount) | currency: item.currency : 'symbol' : '1.2-2' }}
+                {{ (item.requestTypeId === 6 ? ($any(item).returnOrderRequest?.globalSubTotal ?? item.totalAmount) : item.totalAmount) | currency: item.currency : 'code' : '1.2-2' }}
             </span>
             }
         </ng-template>

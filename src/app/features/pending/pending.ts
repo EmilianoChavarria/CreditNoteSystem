@@ -67,6 +67,7 @@ export class Pending extends RequestListBase {
     protected getI18nPrefix(): string {
         return 'PENDING_PAGE';
     }
+    
 
     protected loadRequests(): void {
         this.loadRequestsPaginated();
@@ -124,6 +125,8 @@ export class Pending extends RequestListBase {
         this.resetPagination();
         this.selectedRequesterId.set('all');
         this.requesterOptions.set([]);
+        this.selectedDateFrom.set('');
+        this.selectedDateTo.set('');
 
         if (value === 'DE') {
             this.requests.set([]);
@@ -147,13 +150,16 @@ export class Pending extends RequestListBase {
 
         this.isLoadingTable.set(true);
 
+        const { dateFrom, dateTo } = this.getDateRangeParams();
         this._requestsService.getRequestsByTypeWithPagePagination(
             requestTypeId,
             this.pageSize(),
             this.currentPage(),
             this.searchTerm(),
             this.selectedRoleName(),
-            this.selectedRequesterId()
+            this.selectedRequesterId(),
+            dateFrom,
+            dateTo
         ).pipe(
             finalize(() => {
                 this.isLoadingTable.set(false);
