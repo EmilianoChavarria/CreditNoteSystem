@@ -10,7 +10,7 @@ import { ToastService } from '../../../core/services/toast-service';
 import moment from 'moment';
 import { Modal } from '../../../shared/components/ui/modal/modal';
 import { Badge } from '../../../shared/components/ui/badge/badge';
-import { SlicePipe, UpperCasePipe } from '@angular/common';
+import { CurrencyPipe, SlicePipe, UpperCasePipe } from '@angular/common';
 import { Spinner } from '../../../shared/components/ui/spinner/spinner';
 import { RoleService } from '../../../core/services/role-service';
 import { ActivatedRoute } from '@angular/router';
@@ -22,10 +22,11 @@ import { RequestInfoModal } from '../../pending/components/request-info-modal/re
 import { ApproveConfirmModal } from './components/approve-confirm-modal/approve-confirm-modal';
 import { SendBackModal } from './components/send-back-modal/send-back-modal';
 import { BulkSendBackModal } from './components/bulk-send-back-modal/bulk-send-back-modal';
+import { MassActionFailedRequest, MassActionRequestFilters, MassActionRequestPayload } from '../../../core/services/request-service';
 
 @Component({
     selector: 'app-my-approvals',
-    imports: [TranslatePipe, WorkflowHistoryDrawer, WorkflowHistoryModal, Modal, Table, Badge, UpperCasePipe, Spinner, ReactiveFormsModule, FullSpinnerComponent, RequestInfoModal, ApproveConfirmModal, SendBackModal, BulkSendBackModal, SlicePipe],
+    imports: [TranslatePipe, WorkflowHistoryDrawer, WorkflowHistoryModal, Modal, Table, Badge, UpperCasePipe, CurrencyPipe, Spinner, ReactiveFormsModule, FullSpinnerComponent, RequestInfoModal, ApproveConfirmModal, SendBackModal, BulkSendBackModal, SlicePipe],
     templateUrl: './my-approvals.html',
     styleUrl: './my-approvals.css',
 })
@@ -38,15 +39,6 @@ export class MyApprovals extends RequestListBase {
     public selectedRequestIds = signal<Set<number>>(new Set<number>());
     private selectedRequestsMap = signal<Map<number, Request>>(new Map<number, Request>());
     public selectedCount = computed(() => this.selectedRequestIds().size);
-    public currentPageRequestIds = computed(() =>
-        this.requests().map((r) => Number(r.id)).filter((id) => Number.isFinite(id) && id > 0)
-    );
-    public allVisibleSelected = computed(() => {
-        const pageIds = this.currentPageRequestIds();
-        if (!pageIds.length) return false;
-        const selectedIds = this.selectedRequestIds();
-        return pageIds.every((id) => selectedIds.has(id));
-    });
 
     public showApproveModal = signal<boolean>(false);
     public requestToApprove = signal<Request | null>(null);
@@ -55,6 +47,8 @@ export class MyApprovals extends RequestListBase {
     public showBulkCancelModal = signal<boolean>(false);
     public showBulkSendBackModal = signal<boolean>(false);
     public isBulkProcessing = signal<boolean>(false);
+    public showMassErrorModal = signal<boolean>(false);
+    public massErrorRequests = signal<MassActionFailedRequest[]>([]);
     public canBulkApprove = signal<boolean>(false);
     public canBulkReject = signal<boolean>(false);
     public canBulkCancel = signal<boolean>(false);
@@ -77,6 +71,8 @@ export class MyApprovals extends RequestListBase {
     );
 
     public selectedRequestIdsArray = computed(() => Array.from(this.selectedRequestIds()));
+    public isLoadingSelectAll = signal<boolean>(false);
+    public allPendingIsSelected = signal<boolean>(false);
     public isApproving = signal<boolean>(false);
     public isDeclining = signal<boolean>(false);
     public isCancelling = signal<boolean>(false);
@@ -102,13 +98,14 @@ export class MyApprovals extends RequestListBase {
             key: 'createdAt', label: 'MY_APPROVALS.CREATED_AT', sortable: true,
             render: (value) => value ? moment(value).format('DD/MM/YYYY HH:mm:ss') : '-'
         },
+        { key: 'totalAmount', label: 'MY_APPROVALS.AMOUNT', sortable: false, customTemplate: true },
         { key: 'user.fullName', label: 'CREATED BY', sortable: true }
 
     ];
 
     private readonly baseAcciones: AccionPersonalizada<Request>[] = [
         { key: 'approve', icon: 'check', label: 'MY_APPROVALS.APPROVE', accion: (request) => this.openApproveModal(request) },
-        { key: 'decline', icon: 'x', label: 'MY_APPROVALS.DECLINE', accion: (request) => this.onDeclineModalChange(true, request) },
+        { key: 'decline', icon: 'x', label: 'MY_APPROVALS.DECLINE', disabled: (request) => request.workflowCurrentStep?.workflow_step?.stepOrder === 1, accion: (request) => this.onDeclineModalChange(true, request) },
         { key: 'cancel', icon: 'ban', label: 'MY_APPROVALS.CANCEL_REQUEST', accion: (request) => this.openCancelModal(request) },
         { key: 'return_order', icon: 'corner-up-left', label: 'MY_APPROVALS.RETURN_ORDER', accion: (request) => this.openSendBackModal(request) },
         { key: 'pdf', icon: 'file-text', label: 'MY_APPROVALS.PDF', accion: (request) => this.generatePdf(request) },
@@ -271,6 +268,8 @@ export class MyApprovals extends RequestListBase {
         this.requesterOptions.set([]);
         this.selectedClassificationType.set('all');
         this.classificationTypeOptions.set([]);
+        this.selectedDateFrom.set('');
+        this.selectedDateTo.set('');
 
         if (value === 'DE') {
             this.requests.set([]);
@@ -342,7 +341,8 @@ export class MyApprovals extends RequestListBase {
 
         this.isLoadingTable.set(true);
 
-        this._requestsService.getMyPendingRequests(requestTypeId, this.pageSize(), this.currentPage(), this.searchTerm(), this.selectedRoleName(), this.selectedRequesterId(), this.selectedClassificationType()).subscribe({
+        const { dateFrom, dateTo } = this.getDateRangeParams();
+        this._requestsService.getMyPendingRequests(requestTypeId, this.pageSize(), this.currentPage(), this.searchTerm(), this.selectedRoleName(), this.selectedRequesterId(), this.selectedClassificationType(), dateFrom, dateTo).subscribe({
             next: (response) => {
                 this.requests.set(response.data ?? []);
                 this.currentPage.set(response.current_page ?? 1);
@@ -375,9 +375,11 @@ export class MyApprovals extends RequestListBase {
             canCancel: getPermissionSlugsForCustomAction('cancel').some(s => permissionsBySlug[s]),
             canReturn: getPermissionSlugsForCustomAction('return_order').some(s => permissionsBySlug[s]),
         };
+        const navState = { editRequest: request, returnTo: '/app/my-approvals', approvalActions };
+        console.log('[my-approvals] editRequest navigate → queryParams:', { requestTypeId }, '| state:', navState);
         this._router.navigate(['/app/request/new-request'], {
             queryParams: { requestTypeId },
-            state: { editRequest: request, returnTo: '/app/my-approvals', approvalActions }
+            state: navState
         });
     }
 
@@ -425,6 +427,7 @@ export class MyApprovals extends RequestListBase {
     toggleRequestSelection(request: Request, checked: boolean): void {
         const requestId = Number(request.id);
         if (!Number.isFinite(requestId) || requestId <= 0) return;
+        this.allPendingIsSelected.set(false);
         this.selectedRequestIds.update((current) => {
             const next = new Set(current);
             checked ? next.add(requestId) : next.delete(requestId);
@@ -437,31 +440,73 @@ export class MyApprovals extends RequestListBase {
         });
     }
 
-    toggleSelectCurrentPage(checked: boolean): void {
-        const pageRequests = this.requests().filter((r) => {
-            const id = Number(r.id);
-            return Number.isFinite(id) && id > 0;
-        });
-        if (!pageRequests.length) return;
-        this.selectedRequestIds.update((current) => {
-            const next = new Set(current);
-            for (const r of pageRequests) {
-                checked ? next.add(Number(r.id)) : next.delete(Number(r.id));
+    selectAllPendingRequests(checked: boolean): void {
+        if (!checked) {
+            this.clearSelectedRequests();
+            return;
+        }
+
+        const requestTypeId = Number(this.selectedRequestType);
+        if (!Number.isFinite(requestTypeId) || requestTypeId <= 0) return;
+
+        this.isLoadingSelectAll.set(true);
+
+        const { dateFrom, dateTo } = this.getDateRangeParams();
+        this._requestsService.getAllMyPendingRequests(
+            requestTypeId,
+            this.searchTerm(),
+            this.selectedRoleName(),
+            this.selectedRequesterId(),
+            this.selectedClassificationType(),
+            dateFrom,
+            dateTo
+        ).subscribe({
+            next: (requests) => {
+                this.selectedRequestIds.set(new Set(
+                    requests.map(r => Number(r.id)).filter(id => Number.isFinite(id) && id > 0)
+                ));
+                this.selectedRequestsMap.set(new Map(
+                    requests
+                        .filter(r => Number.isFinite(Number(r.id)) && Number(r.id) > 0)
+                        .map(r => [Number(r.id), r])
+                ));
+                this.allPendingIsSelected.set(true);
+                this.isLoadingSelectAll.set(false);
+            },
+            error: () => {
+                this.isLoadingSelectAll.set(false);
+                this._toastService.error(
+                    this._translateService.instant('MY_APPROVALS.TOAST.LOAD_ALL_PENDING_ERROR'),
+                    this._translateService.instant('MY_APPROVALS.TOAST.ERROR')
+                );
             }
-            return next;
-        });
-        this.selectedRequestsMap.update((current) => {
-            const next = new Map(current);
-            for (const r of pageRequests) {
-                checked ? next.set(Number(r.id), r) : next.delete(Number(r.id));
-            }
-            return next;
         });
     }
 
     clearSelectedRequests(): void {
         this.selectedRequestIds.set(new Set<number>());
         this.selectedRequestsMap.set(new Map<number, Request>());
+        this.allPendingIsSelected.set(false);
+    }
+
+    get currentMassFilters(): MassActionRequestFilters {
+        const { dateFrom, dateTo } = this.getDateRangeParams();
+        return {
+            requestTypeId: Number(this.selectedRequestType) || undefined,
+            search: this.searchTerm() || undefined,
+            roleName: this.selectedRoleName() !== 'all' ? this.selectedRoleName() : undefined,
+            requesterId: this.selectedRequesterId() !== 'all' ? Number(this.selectedRequesterId()) : undefined,
+            classificationType: this.selectedClassificationType() !== 'all' ? this.selectedClassificationType() : undefined,
+            dateFrom,
+            dateTo,
+        };
+    }
+
+    private buildMassPayload(comments?: string): MassActionRequestPayload {
+        if (this.allPendingIsSelected()) {
+            return { selectAll: true, filters: this.currentMassFilters, comments };
+        }
+        return { requestIds: Array.from(this.selectedRequestIds()), comments };
     }
 
     openBulkApproveModal(): void {
@@ -498,12 +543,12 @@ export class MyApprovals extends RequestListBase {
     }
 
     cancelSelectedRequests(): void {
-        const requestIds = Array.from(this.selectedRequestIds());
-        if (!requestIds.length) return;
+        const payload = this.buildMassPayload();
+        if (!payload.selectAll && !payload.requestIds?.length) return;
 
         this.isBulkProcessing.set(true);
 
-        this._requestsService.cancelMassRequests(requestIds).subscribe({
+        this._requestsService.cancelMassRequests(payload).subscribe({
             next: (response) => {
                 if (response.totalCancelled > 0) {
                     this._toastService.success(
@@ -516,6 +561,8 @@ export class MyApprovals extends RequestListBase {
                         this._translateService.instant('MY_APPROVALS.TOAST.BULK_CANCEL_PARTIAL', { failed: response.totalFailed }),
                         this._translateService.instant('MY_APPROVALS.TOAST.ERROR')
                     );
+                    this.massErrorRequests.set(response.failedRequests);
+                    this.showMassErrorModal.set(true);
                 }
                 this.onBulkCancelModalChange(false);
                 this.clearSelectedRequests();
@@ -534,13 +581,13 @@ export class MyApprovals extends RequestListBase {
     }
 
     approveSelectedRequests(): void {
-        const requestIds = Array.from(this.selectedRequestIds());
-        if (!requestIds.length) return;
+        const defaultComment = this._translateService.instant('MY_APPROVALS.BULK_APPROVE_DEFAULT_COMMENT');
+        const payload = this.buildMassPayload(defaultComment);
+        if (!payload.selectAll && !payload.requestIds?.length) return;
 
         this.isBulkProcessing.set(true);
-        const defaultComment = this._translateService.instant('MY_APPROVALS.BULK_APPROVE_DEFAULT_COMMENT');
 
-        this._requestsService.approveMassRequests(requestIds, defaultComment).subscribe({
+        this._requestsService.approveMassRequests(payload).subscribe({
             next: (response) => {
                 if (response.totalApproved > 0) {
                     this._toastService.success(
@@ -553,6 +600,8 @@ export class MyApprovals extends RequestListBase {
                         this._translateService.instant('MY_APPROVALS.TOAST.BULK_APPROVE_PARTIAL', { failed: response.totalFailed }),
                         this._translateService.instant('MY_APPROVALS.TOAST.ERROR')
                     );
+                    this.massErrorRequests.set(response.failedRequests);
+                    this.showMassErrorModal.set(true);
                 }
                 this.onBulkApproveModalChange(false);
                 this.clearSelectedRequests();
@@ -577,13 +626,13 @@ export class MyApprovals extends RequestListBase {
             return;
         }
 
-        const requestIds = Array.from(this.selectedRequestIds());
-        if (!requestIds.length) return;
-
         const comments = this.form.get('comments')?.value ?? '';
+        const payload = this.buildMassPayload(comments);
+        if (!payload.selectAll && !payload.requestIds?.length) return;
+
         this.isBulkProcessing.set(true);
 
-        this._requestsService.rejectMassRequests(requestIds, comments).subscribe({
+        this._requestsService.rejectMassRequests(payload).subscribe({
             next: (response) => {
                 if (response.totalRejected > 0) {
                     this._toastService.success(
@@ -596,6 +645,8 @@ export class MyApprovals extends RequestListBase {
                         this._translateService.instant('MY_APPROVALS.TOAST.BULK_REJECT_PARTIAL', { failed: response.totalFailed }),
                         this._translateService.instant('MY_APPROVALS.TOAST.ERROR')
                     );
+                    this.massErrorRequests.set(response.failedRequests);
+                    this.showMassErrorModal.set(true);
                 }
                 this.onBulkDeclineModalChange(false);
                 this.clearSelectedRequests();

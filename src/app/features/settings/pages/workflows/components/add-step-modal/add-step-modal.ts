@@ -44,7 +44,8 @@ export class AddStepModal {
       conditionField: '',
       conditionOperator: '',
       conditionValue: '',
-      priority: this.transitions().length + 1
+      priority: this.transitions().length + 1,
+      markAsApproved: false
     };
     const updatedTransitions = [...this.transitions(), newTransition];
     this.transitionsChange.emit(updatedTransitions);

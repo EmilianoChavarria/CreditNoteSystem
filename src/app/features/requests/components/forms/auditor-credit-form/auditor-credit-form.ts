@@ -10,10 +10,11 @@ import { RequestService } from '../../../../../core/services/request-service';
 import { CustomerService } from '../../../../../core/services/customer-service';
 import { ToastService } from '../../../../../core/services/toast-service';
 import { Spinner } from '../../../../../shared/components/ui/spinner/spinner';
+import { InvalidInvoicesModal } from '../invalid-invoices-modal/invalid-invoices-modal';
 
 @Component({
   selector: 'app-auditor-credit-form',
-  imports: [TabsContainer, Tab, ReactiveFormsModule, TranslatePipe, Autocomplete, TitleCasePipe, Spinner],
+  imports: [TabsContainer, Tab, ReactiveFormsModule, TranslatePipe, Autocomplete, TitleCasePipe, Spinner, InvalidInvoicesModal],
   templateUrl: './auditor-credit-form.html',
   styleUrl: './auditor-credit-form.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

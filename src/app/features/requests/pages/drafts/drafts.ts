@@ -144,9 +144,11 @@ export class Drafts {
             return;
         }
 
+        const navState = { editRequest: request };
+        console.log('[drafts] editRequest navigate → queryParams:', { requestTypeId }, '| state:', navState);
         this.router.navigate(['/app/request/new-request'], {
             queryParams: { requestTypeId },
-            state: { editRequest: request }
+            state: navState
         });
     }
 

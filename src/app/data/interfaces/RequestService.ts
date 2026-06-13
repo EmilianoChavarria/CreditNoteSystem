@@ -169,13 +169,26 @@ export interface RequestAttachment {
   created_at?: string;
 }
 
+export interface MassActionRequestFilters {
+  requestTypeId?: number;
+  search?: string;
+  roleName?: string;
+  requesterId?: number;
+  classificationType?: string;
+  dateFrom?: string;
+  dateTo?: string;
+}
+
 export interface MassActionRequestPayload {
-  requestIds: number[];
+  requestIds?: number[];
+  selectAll?: boolean;
+  filters?: MassActionRequestFilters;
   comments?: string;
 }
 
 export interface MassActionFailedRequest {
   requestId: number;
+  requestNumber?: string;
   reason: string;
 }
 
@@ -205,7 +218,9 @@ export interface CancelMassResponse {
 }
 
 export interface SendBackMassPayload {
-  requestIds: number[];
+  requestIds?: number[];
+  selectAll?: boolean;
+  filters?: MassActionRequestFilters;
   targetWorkflowStepId: number;
   comments?: string;
 }

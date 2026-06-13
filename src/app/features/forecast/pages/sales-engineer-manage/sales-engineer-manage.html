@@ -1,0 +1,119 @@
+<section class="se-manage-page w-full">
+	<header class="se-manage-header">
+		<div>
+			<h1 class="se-manage-title">{{ 'SALES_ENGINEER_MANAGE.TITLE' | translate }}</h1>
+			<p class="se-manage-subtitle">{{ 'SALES_ENGINEER_MANAGE.SUBTITLE' | translate }}</p>
+		</div>
+	</header>
+
+	<div class="se-manage-toolbar">
+		<label for="managerSelect" class="se-manage-label">{{ 'SALES_ENGINEER_MANAGE.MANAGER' | translate }}</label>
+		<div class="se-manage-toolbar-row">
+			<select
+				id="managerSelect"
+				class="se-manage-select"
+				[value]="selectedManagerId() ?? ''"
+				(change)="onManagerChange($event)"
+			>
+				<option value="">{{ 'SALES_ENGINEER_MANAGE.SELECT_MANAGER' | translate }}</option>
+				@for (manager of managers(); track manager.id) {
+					<option [value]="manager.id">{{ manager.fullName }} ({{ manager.role?.roleName ?? ('SALES_ENGINEER_MANAGE.NO_ROLE' | translate) }})</option>
+				}
+			</select>
+
+			<button
+				type="button"
+				class="se-manage-save-button"
+				[disabled]="isSaving() || !selectedManagerId() || pendingEngineers().length < 1"
+				(click)="saveAssignments()"
+			>
+				@if (isSaving()) {
+					{{ 'SALES_ENGINEER_MANAGE.SAVING' | translate }}
+				} @else {
+					{{ 'SALES_ENGINEER_MANAGE.SAVE_ASSIGNMENTS' | translate }} ({{ pendingEngineers().length }})
+				}
+			</button>
+		</div>
+	</div>
+
+	@if (isLoadingCatalogs()) {
+		<p class="se-manage-message">{{ 'SALES_ENGINEER_MANAGE.LOADING_CATALOGS' | translate }}</p>
+	}
+
+	@if (!selectedManagerId() && !isLoadingCatalogs()) {
+		<p class="se-manage-message">{{ 'SALES_ENGINEER_MANAGE.SELECT_MANAGER_TO_VIEW' | translate }}</p>
+	}
+
+	@if (selectedManagerId()) {
+		<div class="se-manage-lists-grid">
+			<article class="se-manage-list-card">
+				<div class="se-manage-list-header">
+					<h2 class="se-manage-list-title">{{ 'SALES_ENGINEER_MANAGE.AVAILABLE_ENGINEERS' | translate }}</h2>
+					<span class="se-manage-list-count">{{ availableEngineers().length }}</span>
+				</div>
+
+				@if (availableEngineers().length < 1) {
+					<p class="se-manage-empty">{{ 'SALES_ENGINEER_MANAGE.NO_AVAILABLE' | translate }}</p>
+				} @else {
+					<ul class="se-manage-list">
+						@for (user of availableEngineers(); track user.id) {
+							<li class="se-manage-row">
+								<div class="se-manage-row-content">
+									<span class="se-manage-row-name">{{ user.fullName }}</span>
+									<span class="se-manage-row-role">{{ user.role?.roleName ?? ('SALES_ENGINEER_MANAGE.NO_ROLE' | translate) }}</span>
+								</div>
+								<button
+									type="button"
+									class="se-manage-row-button se-manage-row-button-add"
+									[disabled]="isSaving()"
+									(click)="addEngineerToPending(user)"
+									[attr.aria-label]="'SALES_ENGINEER_MANAGE.ADD_ENGINEER_ARIA' | translate"
+								>
+									+
+								</button>
+							</li>
+						}
+					</ul>
+				}
+			</article>
+
+			<article class="se-manage-list-card">
+				<div class="se-manage-list-header">
+					<h2 class="se-manage-list-title">{{ 'SALES_ENGINEER_MANAGE.ASSIGNED_TO_MANAGER' | translate }}</h2>
+					<span class="se-manage-list-count">{{ rightListEngineers().length }}</span>
+				</div>
+
+				@if (isLoadingAssigned()) {
+					<p class="se-manage-message">{{ 'SALES_ENGINEER_MANAGE.LOADING_ASSIGNED' | translate }}</p>
+				} @else if (rightListEngineers().length < 1) {
+					<p class="se-manage-empty">{{ 'SALES_ENGINEER_MANAGE.NO_ASSIGNED' | translate }}</p>
+				} @else {
+					<ul class="se-manage-list">
+						@for (entry of rightListEngineers(); track entry.user.id) {
+							<li class="se-manage-row">
+								<div class="se-manage-row-content">
+									<span class="se-manage-row-name">{{ entry.user.fullName }}</span>
+									<div class="se-manage-row-meta">
+										<span class="se-manage-row-role">{{ entry.user.role?.roleName ?? ('SALES_ENGINEER_MANAGE.NO_ROLE' | translate) }}</span>
+										@if (entry.pending) {
+											<span class="se-manage-chip">{{ 'SALES_ENGINEER_MANAGE.PENDING' | translate }}</span>
+										}
+									</div>
+								</div>
+								<button
+									type="button"
+									class="se-manage-row-button se-manage-row-button-remove"
+									[disabled]="isSaving() || unassigningUserId() === entry.user.id"
+									(click)="removeFromRight(entry.user, entry.pending)"
+									[attr.aria-label]="'SALES_ENGINEER_MANAGE.REMOVE_ENGINEER_ARIA' | translate"
+								>
+									-
+								</button>
+							</li>
+						}
+					</ul>
+				}
+			</article>
+		</div>
+	}
+</section>

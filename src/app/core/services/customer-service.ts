@@ -70,6 +70,7 @@ export interface CreateReturnOrderRequest {
   clientId: number;
   notes?: string;
   chargeTypeId: number;
+  currency: string;
   items: CreateReturnOrderItemRequest[];
 }
 
@@ -126,6 +127,7 @@ export interface ReturnOrderListEntry {
   updatedAt: string;
   chargeTypeId?: number | null;
   customRate?: number | null;
+  currency?: string | null;
   chargeType?: { percentage: number } | null;
   items: ReturnOrderListItem[];
 }

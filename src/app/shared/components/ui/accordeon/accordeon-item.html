@@ -15,7 +15,7 @@
     </span>
 
     <span class="flex items-center gap-2 text-xs font-medium text-gray-700">
-      {{ actionLabel() }}
+      {{ actionLabel() | translate }}
       <svg
         class="h-4 w-4 transition-transform duration-200"
         [class.rotate-180]="isOpen()"

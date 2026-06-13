@@ -1,0 +1,184 @@
+<div class="min-h-screen bg-gray-50 p-6">
+
+  <!-- Period + year selector -->
+  <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center gap-2 text-sm text-gray-500">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+      </svg>
+      <span class="font-medium">Período activo:</span>
+    </div>
+    <div class="flex items-center gap-0.5 bg-white border border-gray-200 rounded-full px-1 py-1 shadow-sm">
+      @for (year of years; track year) {
+        <button
+          type="button"
+          (click)="selectYear(year)"
+          [class]="activeYear() === year
+            ? 'bg-[#ff8200] text-white px-5 py-1.5 rounded-full text-sm font-semibold transition'
+            : 'text-gray-500 px-5 py-1.5 rounded-full text-sm hover:text-gray-800 transition'">
+          {{ year }}
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Title + actions -->
+  <div class="flex items-start justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-800">Forecast de Ventas {{ activeYear() }}</h1>
+      <p class="text-sm text-gray-400 mt-1">Consulta y ajusta las proyecciones por distribuidor.</p>
+    </div>
+    <div class="flex items-center gap-3 mt-1">
+      @if (savedTime()) {
+        <span class="flex items-center gap-1.5 text-sm text-green-600">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          Guardado {{ savedTime() }}
+        </span>
+      }
+      <button type="button"
+        class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition shadow-sm">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+        </svg>
+        Importar Excel
+      </button>
+      <button type="button"
+        (click)="saveChanges()"
+        class="inline-flex items-center gap-2 rounded-lg bg-[#ff8200] px-4 py-2 text-sm font-semibold text-white hover:bg-[#e67500] transition shadow-sm">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
+        </svg>
+        Guardar cambios
+      </button>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-x-auto mb-6">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b-2 border-gray-200 bg-gray-50">
+          <th class="sticky left-0 z-20 text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-gray-400 min-w-44 bg-gray-50 border-r border-gray-200">
+            Distribuidor
+          </th>
+          <th class="px-3 py-3 min-w-28"></th>
+          @for (month of months; track month) {
+            <th class="px-2 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-400 min-w-24">
+              {{ month }}
+            </th>
+          }
+          <th class="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-400 min-w-28">
+            Total
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (dist of distributors(); track dist.id) {
+
+          <!-- Forecast row (editable on dblclick) -->
+          <tr class="border-t-2 border-gray-200 bg-gray-50/50">
+            <td rowspan="3"
+              class="sticky left-0 z-10 px-4 py-2 font-semibold text-gray-800 text-sm align-middle bg-white border-r border-gray-200 whitespace-nowrap">
+              {{ dist.name }}
+            </td>
+            <td class="px-3 py-1.5 whitespace-nowrap">
+              <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Forecast</span>
+            </td>
+            @for (m of dist.months; track $index; let i = $index) {
+              <td class="px-2 py-1.5 text-right text-xs text-gray-600 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors"
+                  title="Doble clic para editar"
+                  (dblclick)="startEdit(dist.id, i, 'forecast', m.forecast)">
+                @if (isEditing(dist.id, i, 'forecast')) {
+                  <input
+                    type="text"
+                    inputmode="numeric"
+                    class="cell-edit-input w-20 border border-gray-400 rounded px-1.5 py-0.5 text-right text-xs focus:outline-none focus:ring-2 focus:ring-gray-300"
+                    [value]="editingValue()"
+                    (input)="editingValue.set($any($event.target).value)"
+                    (blur)="commitEdit(dist.id, i, 'forecast')"
+                    (keydown)="handleKeydown($event, dist.id, i, 'forecast')">
+                } @else {
+                  $ {{ m.forecast | number:'1.0-0' }}
+                }
+              </td>
+            }
+            <td class="px-3 py-1.5 text-right text-xs font-semibold text-gray-600 whitespace-nowrap border-l border-gray-100">
+              $ {{ rowTotal(dist, 'forecast') | number:'1.0-0' }}
+            </td>
+          </tr>
+
+          <!-- Modificación row (editable on dblclick) -->
+          <tr class="bg-white">
+            <td class="px-3 py-1.5 whitespace-nowrap">
+              <span class="text-[11px] font-semibold text-[#ff8200] uppercase tracking-wide">Modificación</span>
+            </td>
+            @for (m of dist.months; track $index; let i = $index) {
+              <td class="px-2 py-1.5 text-right text-xs text-gray-700 whitespace-nowrap cursor-pointer hover:bg-orange-50 transition-colors"
+                  title="Doble clic para editar"
+                  (dblclick)="startEdit(dist.id, i, 'modificacion', m.modificacion)">
+                @if (isEditing(dist.id, i, 'modificacion')) {
+                  <input
+                    type="text"
+                    inputmode="numeric"
+                    class="cell-edit-input w-20 border border-[#ff8200] rounded px-1.5 py-0.5 text-right text-xs focus:outline-none focus:ring-2 focus:ring-[#ff8200]/30"
+                    [value]="editingValue()"
+                    (input)="editingValue.set($any($event.target).value)"
+                    (blur)="commitEdit(dist.id, i, 'modificacion')"
+                    (keydown)="handleKeydown($event, dist.id, i, 'modificacion')">
+                } @else {
+                  $ {{ m.modificacion | number:'1.0-0' }}
+                }
+              </td>
+            }
+            <td class="px-3 py-1.5 text-right text-xs font-semibold text-[#ff8200] whitespace-nowrap border-l border-gray-100">
+              $ {{ rowTotal(dist, 'modificacion') | number:'1.0-0' }}
+            </td>
+          </tr>
+
+          <!-- Ventas row (read-only) -->
+          <tr class="bg-white">
+            <td class="px-3 py-1.5 whitespace-nowrap">
+              <span class="text-[11px] font-semibold text-green-600 uppercase tracking-wide">Ventas</span>
+            </td>
+            @for (m of dist.months; track $index) {
+              <td class="px-2 py-1.5 text-right text-xs text-gray-500 whitespace-nowrap">
+                $ {{ m.ventas | number:'1.0-0' }}
+              </td>
+            }
+            <td class="px-3 py-1.5 text-right text-xs font-semibold text-green-700 whitespace-nowrap border-l border-gray-100">
+              $ {{ rowTotal(dist, 'ventas') | number:'1.0-0' }}
+            </td>
+          </tr>
+
+        }
+      </tbody>
+    </table>  
+  </div>
+
+  <!-- Summary cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+      <p class="text-xs text-gray-400 mb-2">Total Forecast Anual</p>
+      <p class="text-2xl font-bold text-gray-800">$ {{ grandTotals().forecast | number:'1.0-0' }}</p>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+      <p class="text-xs text-gray-400 mb-2">Total Ventas Anual</p>
+      <p class="text-2xl font-bold text-gray-800">$ {{ grandTotals().ventas | number:'1.0-0' }}</p>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+      <p class="text-xs text-gray-400 mb-2">Cumplimiento</p>
+      <p class="text-2xl font-bold text-gray-800">{{ cumplimiento() | number:'1.1-1' }}%</p>
+      <p class="text-xs text-[#ff8200] mt-1">Ventas vs Forecast</p>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+      <p class="text-xs text-gray-400 mb-2">Distribuidores Activos</p>
+      <p class="text-2xl font-bold text-gray-800">{{ distributors().length }}</p>
+    </div>
+  </div>
+
+</div>

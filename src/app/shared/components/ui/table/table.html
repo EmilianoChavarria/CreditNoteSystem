@@ -1,96 +1,18 @@
 <div class="pt-3 md:mt-6 md:p-3 sm:p-4">
 
     <!-- BUSCADOR Y FILTRO -->
-    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
-        <div class="w-full flex flex-col sm:flex-row gap-3">
-            <!-- BUSCADOR -->
-            <div class="relative w-full" [class.sm:w-full]="searchFullWidth()" [class.sm:w-1/2]="!searchFullWidth()">
-                <div class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                    <lucide-icon name="search"></lucide-icon>
-                </div>
-                <input type="text" [placeholder]="'TABLE.SEARCH' | translate"
-                    [value]="busqueda()"
-                    class="w-full text-sm pl-10 pr-10 py-2 border border-gray-300 rounded-lg"
-                    (input)="onSearchInput($any($event.target).value)" />
-                @if (busqueda().length > 0) {
-                <button type="button"
-                    class="absolute right-2 top-1/2 -translate-y-1/2 text-red-500 hover:text-red-600 hover:cursor-pointer"
-                    (click)="clearSearch()"
-                    [attr.aria-label]="'Clear search'">
-                    <lucide-icon name="x" size="18"></lucide-icon>
-                </button>
-                }
-            </div>
+    <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-3 mb-4">
 
-            <!-- FILTRO -->
-            <div *ngIf="enableFilter() && filterField()" class="relative w-full sm:min-w-45 sm:w-auto">
-                <div class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                    <lucide-icon name="filter"></lucide-icon>
-                </div>
-
-                <select
-                    class="appearance-none w-full bg-white text-sm pl-10 pr-8 py-2 border border-gray-300 rounded-lg"
-                    [value]="filterValue()" (change)="onFilterChange($any($event.target).value)">
-                    <option value="all">{{ 'TABLE.ALL' | translate }}</option>
-                    <option *ngFor="let opt of computedFilterOptions()" [value]="opt.value">
-                        {{ opt.label }}
-                    </option>
-                </select>
-
-                <div class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
-                    <lucide-icon name="chevron-down"></lucide-icon>
-                </div>
-            </div>
-
-            <!-- SEGUNDO FILTRO (requester, etc.) -->
-            <div *ngIf="secondFilterOptions()?.length" class="relative w-full sm:min-w-45 sm:w-auto">
-                <div class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                    <lucide-icon name="user"></lucide-icon>
-                </div>
-
-                <select
-                    class="appearance-none w-full bg-white text-sm pl-10 pr-8 py-2 border border-gray-300 rounded-lg"
-                    [value]="secondFilterValue()" (change)="onSecondFilterChange($any($event.target).value)">
-                    <option value="all">{{ 'FILTERS.ALL_REQUESTERS' | translate }}</option>
-                    <option *ngFor="let opt of secondFilterOptions()" [value]="opt.value">
-                        {{ opt.label }}
-                    </option>
-                </select>
-
-                <div class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
-                    <lucide-icon name="chevron-down"></lucide-icon>
-                </div>
-            </div>
-
-            <!-- TERCER FILTRO (clasificación, etc.) -->
-            <div *ngIf="thirdFilterOptions()?.length" class="relative w-full sm:min-w-45 sm:w-auto">
-                <div class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                    <lucide-icon name="tag"></lucide-icon>
-                </div>
-
-                <select
-                    class="appearance-none w-full bg-white text-sm pl-10 pr-8 py-2 border border-gray-300 rounded-lg"
-                    [value]="thirdFilterValue()" (change)="onThirdFilterChange($any($event.target).value)">
-                    <option value="all">{{ thirdFilterAllLabel() | translate }}</option>
-                    <option *ngFor="let opt of thirdFilterOptions()" [value]="opt.value">
-                        {{ opt.label }}
-                    </option>
-                </select>
-
-                <div class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
-                    <lucide-icon name="chevron-down"></lucide-icon>
-                </div>
-            </div>
-        </div>
+        <!-- ACCIONES (izquierda) -->
         @if (!hideHeaderActions()) {
-        <div class="grid grid-cols-2 gap-2 sm:flex sm:flex-row sm:gap-x-4 w-full sm:w-auto justify-start sm:justify-end">
-            <app-popover #exportPopover position="bottom-right" width="200px"
+        <div class="flex flex-wrap gap-2 sm:gap-x-3 items-end shrink-0">
+            <app-popover #exportPopover position="bottom-left" width="200px"
                 [class.pointer-events-none]="!excelExportModule() || isExportingExcel()"
                 [class.opacity-50]="!excelExportModule() || isExportingExcel()">
                 <div trigger>
                     <button
                         type="button"
-                        class="w-full sm:w-auto rounded-md bg-[#21760e] px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center cursor-pointer">
+                        class="rounded-md bg-[#21760e] px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center cursor-pointer">
                         <lucide-icon name="sheet" size="18" [class.animate-spin]="isExportingExcel()"></lucide-icon>
                         {{'TABLE.EXCEL_BUTTON' | translate}}
                     </button>
@@ -139,23 +61,24 @@
                     </div>
                 </div>
             </app-modal>
+
             @if (showRefresh()) {
             <button type="button" (click)="refreshClick.emit()"
                 [disabled]="loading()"
-                class="w-full sm:w-auto rounded-md border border-gray-300 bg-white px-2 py-1 whitespace-nowrap text-gray-600 flex gap-x-2 items-center justify-center hover:bg-gray-50 hover:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition">
+                class="rounded-md border border-gray-300 bg-white px-2 py-1 whitespace-nowrap text-gray-600 flex gap-x-2 items-center justify-center hover:bg-gray-50 hover:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition">
                 <lucide-icon name="refresh-cw" size="16" [class.animate-spin]="loading()"></lucide-icon>
             </button>
             }
             @if (canAdd()) {
             @if (canBulk()) {
             <button type="button" (click)="bulkClick.emit()"
-                class="w-full sm:w-auto rounded-md bg-[#ff8200] px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center hover:bg-[#db7201] cursor-pointer">
+                class="rounded-md bg-[#ff8200] px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center hover:bg-[#db7201] cursor-pointer">
                 <lucide-icon name="file-up" size="18"></lucide-icon>
                 {{'TABLE.BULK_BUTTON' | translate}}
             </button>
             }
             <button type="button" (click)="onAddClick()"
-                class="w-full sm:w-auto rounded-md bg-[#3c6194] hover:bg-[#2c5999] hover:cursor-pointer px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center">
+                class="rounded-md bg-[#3c6194] hover:bg-[#2c5999] hover:cursor-pointer px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center">
                 <lucide-icon name="plus" size="18"></lucide-icon>
                 {{'TABLE.ADD_BUTTON' | translate}} {{ addLabel() | translate }}
             </button>
@@ -169,7 +92,7 @@
                 </ng-container>
                 }@else{
                 <button type="button" (click)="ejecutarAccionCabecera(boton)" [disabled]="boton.disabled"
-                    class="w-full sm:w-auto rounded-md px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                    class="rounded-md px-2 py-1 whitespace-nowrap text-white flex gap-x-2 items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                     [ngClass]="boton.className ?? 'bg-[#3c6194]'">
                     @if (boton.icon) {
                     <lucide-icon [name]="boton.icon" size="18"></lucide-icon>
@@ -181,6 +104,150 @@
         </div>
         }
 
+        <!-- FILTROS (derecha) -->
+        <div class="flex flex-col sm:flex-row sm:items-end gap-3 flex-wrap sm:justify-end">
+            <!-- BUSCADOR -->
+            <div class="flex flex-col gap-1 w-full" [class.sm:w-full]="searchFullWidth()" [class.sm:w-48]="!searchFullWidth()">
+                <span class="text-xs font-medium text-gray-500 pl-1">{{ 'TABLE.SEARCH' | translate }}</span>
+                <div class="relative">
+                    <div class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                        <lucide-icon name="search"></lucide-icon>
+                    </div>
+                    <input type="text" [placeholder]="'TABLE.SEARCH' | translate"
+                        [value]="busqueda()"
+                        class="w-full text-sm pl-10 pr-10 py-2 border border-gray-300 rounded-lg"
+                        (input)="onSearchInput($any($event.target).value)" />
+                    @if (busqueda().length > 0) {
+                    <button type="button"
+                        class="absolute right-2 top-1/2 -translate-y-1/2 text-red-500 hover:text-red-600 hover:cursor-pointer"
+                        (click)="clearSearch()"
+                        [attr.aria-label]="'Clear search'">
+                        <lucide-icon name="x" size="18"></lucide-icon>
+                    </button>
+                    }
+                </div>
+            </div>
+
+            <!-- FILTRO -->
+            <div *ngIf="enableFilter() && filterField()" class="flex flex-col gap-1 w-full sm:w-40">
+                @if (filterLabel()) {
+                <span class="text-xs font-medium text-gray-500 pl-1">{{ filterLabel() | translate }}</span>
+                }
+                <div class="relative">
+                    <div class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                        <lucide-icon name="filter"></lucide-icon>
+                    </div>
+                    <select
+                        class="appearance-none w-full bg-white text-sm pl-10 pr-8 py-2 border border-gray-300 rounded-lg"
+                        [value]="filterValue()" (change)="onFilterChange($any($event.target).value)">
+                        <option value="all">{{ 'TABLE.ALL' | translate }}</option>
+                        <option *ngFor="let opt of computedFilterOptions()" [value]="opt.value">
+                            {{ opt.label }}
+                        </option>
+                    </select>
+                    <div class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                        <lucide-icon name="chevron-down"></lucide-icon>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEGUNDO FILTRO (requester, etc.) -->
+            <div *ngIf="secondFilterOptions()?.length" class="flex flex-col gap-1 w-full sm:min-w-40 sm:w-auto">
+                @if (secondFilterLabel()) {
+                <span class="text-xs font-medium text-gray-500 pl-1">{{ secondFilterLabel() | translate }}</span>
+                }
+                <div class="relative">
+                    <div class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                        <lucide-icon name="user"></lucide-icon>
+                    </div>
+                    <select
+                        class="appearance-none w-full bg-white text-sm pl-10 pr-8 py-2 border border-gray-300 rounded-lg"
+                        [value]="secondFilterValue()" (change)="onSecondFilterChange($any($event.target).value)">
+                        <option value="all">{{ 'FILTERS.ALL_REQUESTERS' | translate }}</option>
+                        <option *ngFor="let opt of secondFilterOptions()" [value]="opt.value">
+                            {{ opt.label }}
+                        </option>
+                    </select>
+                    <div class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                        <lucide-icon name="chevron-down"></lucide-icon>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TERCER FILTRO (clasificación, etc.) -->
+            <div *ngIf="thirdFilterOptions()?.length" class="flex flex-col gap-1 w-full sm:min-w-40 sm:w-auto">
+                @if (thirdFilterLabel()) {
+                <span class="text-xs font-medium text-gray-500 pl-1">{{ thirdFilterLabel() | translate }}</span>
+                }
+                <div class="relative">
+                    <div class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                        <lucide-icon name="tag"></lucide-icon>
+                    </div>
+                    <select
+                        class="appearance-none w-full bg-white text-sm pl-10 pr-8 py-2 border border-gray-300 rounded-lg"
+                        [value]="thirdFilterValue()" (change)="onThirdFilterChange($any($event.target).value)">
+                        <option value="all">{{ thirdFilterAllLabel() | translate }}</option>
+                        <option *ngFor="let opt of thirdFilterOptions()" [value]="opt.value">
+                            {{ opt.label }}
+                        </option>
+                    </select>
+                    <div class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                        <lucide-icon name="chevron-down"></lucide-icon>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CUARTO FILTRO (genérico) -->
+            <div *ngIf="fourthFilterOptions()?.length" class="flex flex-col gap-1 w-full sm:min-w-40 sm:w-auto">
+                @if (fourthFilterLabel()) {
+                <span class="text-xs font-medium text-gray-500 pl-1">{{ fourthFilterLabel() | translate }}</span>
+                }
+                <div class="relative">
+                    <div class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                        <lucide-icon name="sliders-horizontal"></lucide-icon>
+                    </div>
+                    <select
+                        class="appearance-none w-full bg-white text-sm pl-10 pr-8 py-2 border border-gray-300 rounded-lg"
+                        [value]="fourthFilterValue()" (change)="onFourthFilterChange($any($event.target).value)">
+                        <option value="all">{{ fourthFilterAllLabel() | translate }}</option>
+                        <option *ngFor="let opt of fourthFilterOptions()" [value]="opt.value">
+                            {{ opt.label | translate }}
+                        </option>
+                    </select>
+                    <div class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                        <lucide-icon name="chevron-down"></lucide-icon>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FILTRO RANGO DE FECHAS -->
+            @if (enableDateRangeFilter()) {
+            <div class="flex flex-col gap-1 w-full sm:min-w-36 sm:w-auto">
+                <span class="text-xs font-medium text-gray-500 pl-1">{{ dateRangeFromLabel() | translate }}</span>
+                <div class="relative">
+                    <div class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                        <lucide-icon name="calendar" size="16"></lucide-icon>
+                    </div>
+                    <input type="date"
+                        class="w-full bg-white text-sm pl-9 pr-3 py-2 border border-gray-300 rounded-lg"
+                        [value]="dateRangeFromValue()"
+                        (change)="onDateFromChange($any($event.target).value)" />
+                </div>
+            </div>
+            <div class="flex flex-col gap-1 w-full sm:min-w-36 sm:w-auto">
+                <span class="text-xs font-medium text-gray-500 pl-1">{{ dateRangeToLabel() | translate }}</span>
+                <div class="relative">
+                    <div class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                        <lucide-icon name="calendar-check" size="16"></lucide-icon>
+                    </div>
+                    <input type="date"
+                        class="w-full bg-white text-sm pl-9 pr-3 py-2 border border-gray-300 rounded-lg"
+                        [value]="dateRangeToValue()"
+                        (change)="onDateToChange($any($event.target).value)" />
+                </div>
+            </div>
+            }
+        </div>
 
     </div>
 
@@ -259,7 +326,8 @@
                                 <!-- ACCIONES PERSONALIZADAS -->
                                 <button *ngFor="let accion of accionesPersonalizadas()"
                                     (click)="ejecutarAccion(accion, item); popoverMenu.close()"
-                                    class="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-gray-100 transition"
+                                    [disabled]="isAccionDisabled(accion, item)"
+                                    class="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-gray-100 transition disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
                                     [ngClass]="accion.className">
                                     <lucide-icon *ngIf="accion.icon" [name]="accion.icon" size="18"></lucide-icon>
                                     <span>{{ accion.label | translate}}</span>

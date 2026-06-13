@@ -27,7 +27,7 @@
     } @else if (selectedRequestType !== 'DE' && selectedRequestType) {
     <app-tabla-dinamica [datos]="requests()" [columnas]="columns" [accionesPersonalizadas]="acciones()"
         actionMode="menu" [enableFilter]="true" filterField="workflowCurrentStep.assigned_role.roleName"
-        [filterOptions]="roleFilterOptions()" [filterDefault]="selectedRoleName()" excelExportModule="requests"
+        [filterOptions]="roleFilterOptions()" [filterDefault]="selectedRoleName()" [filterLabel]="'FILTERS.ROLE'" excelExportModule="requests"
         [excelExportParams]="{ requestTypeId: selectedRequestType, search: searchTerm(), roleName: selectedRoleName() }"
         excelExportFileName="requests.xls" addLabel="PENDING_PAGE.REQUEST" addRoute="/app/settings/newUser"
         [canAdd]="false" [registrosPorPagina]="pageSize()" [serverPagination]="true"
@@ -36,19 +36,25 @@
         (paginaAnterior)="onPrevPage()" (paginaPrimera)="onFirstPage()" (paginaUltima)="onLastPage()"
         (registrosPorPaginaChange)="onPageSizeChange($event)" (searchChange)="onSearch($event)"
         (filterChange)="onRoleFilterChange($event)"
-        [secondFilterOptions]="requesterOptions()" [secondFilterDefault]="selectedRequesterId()"
-        (secondFilterChange)="onRequesterFilterChange($event)" (refreshClick)="refreshData()">
+        [secondFilterOptions]="requesterOptions()" [secondFilterDefault]="selectedRequesterId()" [secondFilterLabel]="'FILTERS.REQUESTER'"
+        (secondFilterChange)="onRequesterFilterChange($event)"
+        [enableDateRangeFilter]="true"
+        [dateRangeFromDefault]="selectedDateFrom()" [dateRangeToDefault]="selectedDateTo()"
+        (dateRangeChange)="onDateRangeChange($event)"
+        (refreshClick)="refreshData()">
 
         <ng-template #cellTemplate let-item let-column="column">
             @if (column.key === 'status') {
-            @if (item.status?.toLowerCase() === 'approved') {
+            @if (item.status?.toLowerCase() === 'released') {
             <app-badge color="green" text="RELEASED" />
-            }@else if (item.workflowCurrentStep?.assigned_role?.roleName && item.status?.toLowerCase() !== 'cancelled')
+            }@else if (item.status?.toLowerCase() === 'approved') {
+            <app-badge color="green" text="APPROVED" />
+            }@else if (item.workflowCurrentStep?.workflow_step?.stepName && item.status?.toLowerCase() !== 'cancelled')
             {
             <div class="w-fit rounded-lg px-2"
                 [style]="`background-color: ${item.workflowCurrentStep.assigned_role.color +'1A'}; color:${item.workflowCurrentStep.assigned_role.color}` ">
                 <span
-                    [class]="`text-center font-semibold text-nowrap`">{{item.workflowCurrentStep.assigned_role.roleName}}</span>
+                    [class]="`text-center font-semibold text-nowrap`">{{item.workflowCurrentStep.workflow_step.stepName | uppercase}}</span>
             </div>
             } @else {
             <app-badge
@@ -71,6 +77,10 @@
                 <span
                     [class]="`text-center font-semibold text-nowrap`">{{item.customerId}} - {{((item.razonSocial?.length ?? 0) > 20) ? ((item.razonSocial ?? '') | slice:0:25) + '...' : (item.razonSocial ?? '')}}</span>
             </div>
+            } @else if (column.key === 'totalAmount') {
+            <span class="font-semibold text-slate-800 text-nowrap">
+                {{ (item.requestTypeId === 6 ? ($any(item).returnOrderRequest?.globalSubTotal ?? item.totalAmount) : item.totalAmount) | currency: item.currency : 'code' : '1.2-2' }}
+            </span>
             }
         </ng-template>
     </app-tabla-dinamica>

@@ -17,10 +17,22 @@
                 </div>
             </div>
             <accordeon-container>
+                @if (isReInvoicingSelected()) {
+                <app-bulk-re-invoicing-upload
+                    [selectedRequestTypeId]="selectedRequestTypeId()"
+                    (batchCreated)="onUploadBatchCreated()"
+                    (openInfo)="openInfoModal()"></app-bulk-re-invoicing-upload>
+                } @else if (isMaterialReturnSelected()) {
+                <app-bulk-material-return-upload
+                    [selectedRequestTypeId]="selectedRequestTypeId()"
+                    (batchCreated)="onUploadBatchCreated()"
+                    (openInfo)="openInfoModal()"></app-bulk-material-return-upload>
+                } @else {
                 <app-bulk-new-requests-upload
                     [selectedRequestTypeId]="selectedRequestTypeId()"
                     (batchCreated)="onUploadBatchCreated()"
                     (openInfo)="openInfoModal()"></app-bulk-new-requests-upload>
+                }
 
                 <app-bulk-upload-support-upload
                     [selectedRequestTypeId]="selectedRequestTypeId()"
