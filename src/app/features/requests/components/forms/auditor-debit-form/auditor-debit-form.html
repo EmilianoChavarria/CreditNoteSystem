@@ -334,4 +334,10 @@
         </app-tab>
     </app-tabs-container>
 </form>
+
+<app-invalid-invoices-modal
+  [open]="showInvalidInvoicesModal()"
+  [invoices]="invalidInvoices()"
+  (openChange)="showInvalidInvoicesModal.set($event)"
+/>
 }

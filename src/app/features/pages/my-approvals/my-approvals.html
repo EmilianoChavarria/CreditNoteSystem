@@ -32,11 +32,19 @@
     <section class="mb-4 rounded-lg border border-[#3c619433] bg-[#3c61940d] px-4 py-3">
         <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div class="flex flex-col gap-2">
-                <label class="inline-flex items-center gap-2 text-sm text-[#3c6194] font-medium">
-                    <input type="checkbox" [checked]="allVisibleSelected()"
-                        (change)="toggleSelectCurrentPage($any($event.target).checked)"
-                        class="h-4 w-4 rounded border-gray-300 text-[#3c6194] focus:ring-[#3c6194]">
-                    <span>{{'MY_APPROVALS.SELECT_CURRENT_PAGE' | translate}}</span>
+                <label class="inline-flex items-center gap-2 text-sm text-[#3c6194] font-medium"
+                    [class.opacity-60]="isLoadingSelectAll()">
+                    <input type="checkbox" [checked]="allPendingIsSelected()"
+                        [disabled]="isLoadingSelectAll()"
+                        (change)="selectAllPendingRequests($any($event.target).checked)"
+                        class="h-4 w-4 rounded border-gray-300 text-[#3c6194] focus:ring-[#3c6194] disabled:cursor-not-allowed">
+                    <span>
+                        @if (isLoadingSelectAll()) {
+                            {{'MY_APPROVALS.SELECTING_ALL_PENDING' | translate}}
+                        } @else {
+                            {{'MY_APPROVALS.SELECT_ALL_PENDING' | translate}}
+                        }
+                    </span>
                 </label>
                 <span class="text-xs text-gray-600">{{ 'MY_APPROVALS.SELECTED_COUNT' | translate : { count:
                     selectedCount() } }}</span>
@@ -82,7 +90,7 @@
 
     <app-tabla-dinamica [datos]="requests()" [columnas]="columns" [accionesPersonalizadas]="acciones()" actionMode="menu"
         [enableFilter]="true" filterField="workflowCurrentStep.assigned_role.roleName" addLabel="MY_APPROVALS.REQUEST"
-        [filterOptions]="roleFilterOptions()" [filterDefault]="selectedRoleName()"
+        [filterOptions]="roleFilterOptions()" [filterDefault]="selectedRoleName()" [filterLabel]="'FILTERS.ROLE'"
         excelExportModule="my_approvals"
         [excelExportParams]="{ requestTypeId: selectedRequestType, search: searchTerm(), roleName: selectedRoleName() }"
         excelExportFileName="my_approvals.xls"
@@ -92,10 +100,13 @@
         [hasNextPage]="hasNextPage()" [hasPrevPage]="hasPrevPage()" (searchChange)="onSearch($event)"
         (filterChange)="onRoleFilterChange($event)"
         [secondFilterOptions]="requesterOptions()" [secondFilterDefault]="selectedRequesterId()"
-        (secondFilterChange)="onRequesterFilterChange($event)"
+        [secondFilterLabel]="'FILTERS.REQUESTER'" (secondFilterChange)="onRequesterFilterChange($event)"
         [thirdFilterOptions]="classificationTypeOptions()" [thirdFilterDefault]="selectedClassificationType()"
-        [thirdFilterAllLabel]="'FILTERS.ALL_CLASSIFICATIONS'"
+        [thirdFilterAllLabel]="'FILTERS.ALL_CLASSIFICATIONS'" [thirdFilterLabel]="'FILTERS.CLASSIFICATION'"
         (thirdFilterChange)="onClassificationTypeFilterChange($event)"
+        [enableDateRangeFilter]="true"
+        [dateRangeFromDefault]="selectedDateFrom()" [dateRangeToDefault]="selectedDateTo()"
+        (dateRangeChange)="onDateRangeChange($event)"
         (paginaSiguiente)="onNextPage()" (paginaAnterior)="onPrevPage()" (paginaPrimera)="onFirstPage()"
         (paginaUltima)="onLastPage()" (registrosPorPaginaChange)="onPageSizeChange($event)" (refreshClick)="refreshData()">
 
@@ -106,12 +117,12 @@
                 class="h-4 w-4 rounded border-gray-300 text-[#3c6194] focus:ring-[#3c6194]"
                 [attr.aria-label]="'Select request ' + item.requestNumber">
             } @else if (column.key === 'status') {
-            @if (item.workflowCurrentStep?.assigned_role?.roleName && item.status?.toLowerCase() !== 'cancelled') {
+            @if (item.workflowCurrentStep?.workflow_step?.stepName && item.status?.toLowerCase() !== 'cancelled') {
             <div class="inline-flex max-w-55 rounded-lg px-2 py-1"
                 [style]="`background-color: ${item.workflowCurrentStep.assigned_role.color +'1A'}; color:${item.workflowCurrentStep.assigned_role.color}` ">
                 <span class="block w-full truncate text-center font-semibold"
-                    [title]="item.workflowCurrentStep.assigned_role.roleName">
-                    {{item.workflowCurrentStep.assigned_role.roleName}}
+                    [title]="item.workflowCurrentStep.workflow_step.stepName">
+                    {{item.workflowCurrentStep.workflow_step.stepName | uppercase}}
                 </span>
             </div>
             } @else {
@@ -131,8 +142,12 @@
             }@else if (column.key === 'razonSocial') {
             <div class="w-fit">
                 <span
-                    [class]="`text-center font-semibold text-nowrap`">{{item.customerId}} - {{(item.razonSocial .length > 20) ? (item.razonSocial| slice:0:25) + '...' : item.razonSocial}}</span>
+                    [class]="`text-center font-semibold text-nowrap`">{{item.customerId}} - {{(item.razonSocial.length > 20) ? (item.razonSocial| slice:0:25) + '...' : item.razonSocial}}</span>
             </div>
+            } @else if (column.key === 'totalAmount') {
+            <span class="font-semibold text-slate-800 text-nowrap">
+                {{ (item.requestTypeId === 6 ? ($any(item).returnOrderRequest?.globalSubTotal ?? item.totalAmount) : item.totalAmount) | currency: item.currency : 'code' : '1.2-2' }}
+            </span>
             }
         </ng-template>
     </app-tabla-dinamica>
@@ -228,11 +243,37 @@
     <app-bulk-send-back-modal
         [open]="showBulkSendBackModal()"
         [requestIds]="selectedRequestIdsArray()"
+        [selectAll]="allPendingIsSelected()"
+        [filters]="currentMassFilters"
         [sampleRequestId]="firstSelectedRequest()?.id ?? null"
         [selectedCount]="selectedCount()"
         (openChange)="onBulkSendBackModalChange($event)"
         (sent)="onBulkSendBackSent()">
     </app-bulk-send-back-modal>
+
+    <app-modal size="lg" [titleM]="'MY_APPROVALS.MASS_ERROR_MODAL_TITLE' | translate" [open]="showMassErrorModal()"
+        [closeText]="'MY_APPROVALS.CLOSE' | translate" [showPrimaryButton]="false"
+        (openChange)="showMassErrorModal.set($event)">
+        <p class="mb-3 text-sm text-gray-600">{{ 'MY_APPROVALS.MASS_ERROR_MODAL_DESCRIPTION' | translate : { count: massErrorRequests().length } }}</p>
+        <div class="max-h-80 overflow-y-auto rounded-md border border-gray-200">
+            <table class="min-w-full divide-y divide-gray-200 text-sm">
+                <thead class="bg-gray-50 sticky top-0">
+                    <tr>
+                        <th class="px-4 py-2 text-left font-semibold text-gray-700">{{ 'MY_APPROVALS.MASS_ERROR_COL_REQUEST' | translate }}</th>
+                        <th class="px-4 py-2 text-left font-semibold text-gray-700">{{ 'MY_APPROVALS.MASS_ERROR_COL_REASON' | translate }}</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 bg-white">
+                    @for (item of massErrorRequests(); track item.requestId) {
+                    <tr>
+                        <td class="px-4 py-2 text-gray-800 font-medium text-nowrap">{{ item.requestNumber ?? item.requestId }}</td>
+                        <td class="px-4 py-2 text-gray-600">{{ item.reason }}</td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </app-modal>
 
     <app-modal size="md" [titleM]="'MY_APPROVALS.CANCEL_REQUEST_MODAL_TITLE' | translate" [open]="showCancelModal()"
         [closeText]="'MY_APPROVALS.CANCEL' | translate"

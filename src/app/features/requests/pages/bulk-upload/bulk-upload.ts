@@ -11,6 +11,8 @@ import { RequestService } from '../../../../core/services/request-service';
 import { RequestType } from '../../../../data/interfaces/Request';
 import { ActivatedRoute } from '@angular/router';
 import { BulkNewRequestsUpload } from '../../components/batchs/bulk-new-requests-upload/bulk-new-requests-upload';
+import { BulkReInvoicingUpload } from '../../components/batchs/bulk-re-invoicing-upload/bulk-re-invoicing-upload';
+import { BulkMaterialReturnUpload } from '../../components/batchs/bulk-material-return-upload/bulk-material-return-upload';
 import { BulkUploadSupportUpload } from '../../components/batchs/bulk-upload-support-upload/bulk-upload-support-upload';
 import { BulkCreditsDataUpload } from '../../components/batchs/bulk-credits-data-upload/bulk-credits-data-upload';
 import { BulkOrderNumbersUpload } from '../../components/batchs/bulk-order-numbers-upload/bulk-order-numbers-upload';
@@ -53,6 +55,8 @@ interface RequestHistoryRow {
         Tab,
         AccordeonContainer,
         BulkNewRequestsUpload,
+        BulkReInvoicingUpload,
+        BulkMaterialReturnUpload,
         BulkUploadSupportUpload,
         BulkCreditsDataUpload,
         BulkOrderNumbersUpload,
@@ -66,6 +70,7 @@ interface RequestHistoryRow {
 })
 export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
     private readonly reInvoicingRequestTypeId = 5;
+    private readonly materialReturnRequestTypeId = 6;
 
     @ViewChild(TabsContainer) private tabsContainer?: TabsContainer;
 
@@ -87,6 +92,7 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
     public availableRequestTypes = signal<RequestType[]>([]);
     public selectedRequestTypeId = signal<number | null>(null);
     public isReInvoicingSelected = computed(() => this.selectedRequestTypeId() === this.reInvoicingRequestTypeId);
+    public isMaterialReturnSelected = computed(() => this.selectedRequestTypeId() === this.materialReturnRequestTypeId);
     public isBatchDetailModalOpen = signal(false);
     public isLoadingHistory = signal(false);
     public isLoadingBatchDetail = signal(false);

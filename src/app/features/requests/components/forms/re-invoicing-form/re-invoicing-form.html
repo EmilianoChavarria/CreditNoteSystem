@@ -2,12 +2,12 @@
 <app-spinner></app-spinner>
 }@else {
 <form action="" [formGroup]="form">
-    <app-tabs-container (onSave)="saveRequest()" (onSaveDraft)="saveDraft()" [isEditing]="isEditing" [isSaving]="isSaving()"
-        [approvalMode]="!!approvalContext" [canApprove]="approvalContext?.canApprove ?? false"
+    <app-tabs-container (onSave)="saveRequest()" (onSaveDraft)="saveDraft()" [isEditing]="isEditing"
+        [isSaving]="isSaving()" [approvalMode]="!!approvalContext" [canApprove]="approvalContext?.canApprove ?? false"
         [canDecline]="approvalContext?.canDecline ?? false" [canCancel]="approvalContext?.canCancel ?? false"
-        [canReturn]="approvalContext?.canReturn ?? false"
-        (onSaveAndApprove)="saveAndApprove()" (onSaveOnly)="saveRequest()" (onDeclineAction)="saveAndDecline()"
-        (onCancelAction)="saveAndCancel()" (onReturnAction)="saveAndReturn()">
+        [canReturn]="approvalContext?.canReturn ?? false" (onSaveAndApprove)="saveAndApprove()"
+        (onSaveOnly)="saveRequest()" (onDeclineAction)="saveAndDecline()" (onCancelAction)="saveAndCancel()"
+        (onReturnAction)="saveAndReturn()">
         <app-tab [titleT]="'NEW_REQUEST_FORM.TAB_REQUEST_CUSTOMER' | translate">
             <div class="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-4 md:gap-8">
                 <div>
@@ -20,26 +20,7 @@
                     <span class="text-sm text-red-500">{{ getErrorMessage('requestNumber') }}</span>
                     }
                 </div>
-                <div>
-                    <label for="orderNumber"
-                        class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.ORDER_NUMBER' |
-                        translate}}</label>
-                    <input id="orderNumber" type="text" formControlName="orderNumber"
-                        [class]="campoVacio('orderNumber') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
-                    @if (campoVacio('orderNumber')) {
-                    <span class="text-sm text-red-500">{{ getErrorMessage('orderNumber') }}</span>
-                    }
-                </div>
-                <div>
-                    <label for="creditNumber"
-                        class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.CREDIT_DEBIT_NUMBER' |
-                        translate}}</label>
-                    <input id="creditNumber" type="text" formControlName="creditNumber"
-                        [class]="campoVacio('creditNumber') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
-                    @if (campoVacio('creditNumber')) {
-                    <span class="text-sm text-red-500">{{ getErrorMessage('creditNumber') }}</span>
-                    }
-                </div>
+
                 <div>
                     <label for="requestDate"
                         class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.REQUEST_DATE' |
@@ -133,6 +114,26 @@
                     }
                 </div> -->
                 <div>
+                    <label for="orderNumber"
+                        class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.ORDER_NUMBER' |
+                        translate}}</label>
+                    <input id="orderNumber" type="text" formControlName="orderNumber"
+                        [class]="campoVacio('orderNumber') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
+                    @if (campoVacio('orderNumber')) {
+                    <span class="text-sm text-red-500">{{ getErrorMessage('orderNumber') }}</span>
+                    }
+                </div>
+                <div>
+                    <label for="creditNumber"
+                        class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.CREDIT_DEBIT_NUMBER' |
+                        translate}}</label>
+                    <input id="creditNumber" type="text" formControlName="creditNumber"
+                        [class]="campoVacio('creditNumber') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
+                    @if (campoVacio('creditNumber')) {
+                    <span class="text-sm text-red-500">{{ getErrorMessage('creditNumber') }}</span>
+                    }
+                </div>
+                <div>
                     <label for="invoiceNumber"
                         class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.INVOICE_NUMBER' |
                         translate}}</label>
@@ -162,7 +163,7 @@
                     <span class="text-sm text-red-500">{{ getErrorMessage('newInvoice') }}</span>
                     }
                 </div>
-                
+
             </div>
         </app-tab>
 
@@ -240,14 +241,18 @@
                     @if (existingUploadSupportFiles().length > 0) {
                     <div class="mt-2 grid grid-cols-2 md:grid-cols-4 gap-2">
                         @for (file of existingUploadSupportFiles(); track file.id) {
-                        <div class="group relative rounded-md border border-gray-200 bg-gray-50 px-3 py-3 flex flex-col items-center text-center gap-2 cursor-pointer hover:bg-gray-100 transition-colors" (click)="openExistingFile(file)" [class.opacity-60]="openingFileId() === file.id">
-                            <div class="w-8 h-8 rounded-md bg-green-100 text-green-700 flex items-center justify-center">
-                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <div class="group relative rounded-md border border-gray-200 bg-gray-50 px-3 py-3 flex flex-col items-center text-center gap-2 cursor-pointer hover:bg-gray-100 transition-colors"
+                            (click)="openExistingFile(file)" [class.opacity-60]="openingFileId() === file.id">
+                            <div
+                                class="w-8 h-8 rounded-md bg-green-100 text-green-700 flex items-center justify-center">
+                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" aria-hidden="true">
                                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                                     <polyline points="14 2 14 8 20 8"></polyline>
                                 </svg>
                             </div>
-                            <p class="text-xs font-medium text-gray-800 max-w-30 truncate" [title]="file.fileName">{{ file.fileName }}</p>
+                            <p class="text-xs font-medium text-gray-800 max-w-30 truncate" [title]="file.fileName">{{
+                                file.fileName }}</p>
                             <p class="text-[11px] text-gray-500">{{ formatFileSize(file.fileSize) }}</p>
                         </div>
                         }
@@ -257,7 +262,8 @@
                     @if (selectedSupportFiles().length > 0) {
                     <div class="mt-3 grid grid-cols-2 md:grid-cols-4 gap-2">
                         @for (file of selectedSupportFiles(); track file.name + file.size + $index) {
-                        <div class="group relative rounded-md border border-gray-200 bg-gray-50 px-3 py-3 flex flex-col items-center text-center gap-2 cursor-pointer hover:bg-gray-100 transition-colors" (click)="openLocalFile(file)">
+                        <div class="group relative rounded-md border border-gray-200 bg-gray-50 px-3 py-3 flex flex-col items-center text-center gap-2 cursor-pointer hover:bg-gray-100 transition-colors"
+                            (click)="openLocalFile(file)">
                             <button type="button" (click)="$event.stopPropagation(); removeSupportFile($index)"
                                 class="hidden group-hover:flex absolute top-1 right-1 h-5 w-5 items-center justify-center rounded-md bg-red-100 border border-red-300 text-red-600 hover:text-red-600 hover:border-red-300 hover:cursor-pointer"
                                 aria-label="Eliminar archivo">
@@ -292,4 +298,7 @@
         </app-tab>
     </app-tabs-container>
 </form>
+
+<app-invalid-invoices-modal [open]="showInvalidInvoicesModal()" [invoices]="invalidInvoices()"
+    (openChange)="showInvalidInvoicesModal.set($event)" />
 }

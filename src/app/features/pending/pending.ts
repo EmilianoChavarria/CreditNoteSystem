@@ -4,7 +4,7 @@ import { AccionPersonalizada, Column, Table } from '../../shared/components/ui/t
 import { Spinner } from '../../shared/components/ui/spinner/spinner';
 import moment from 'moment';
 import { Badge } from '../../shared/components/ui/badge/badge';
-import { SlicePipe, UpperCasePipe } from '@angular/common';
+import { CurrencyPipe, SlicePipe, UpperCasePipe } from '@angular/common';
 import { Modal } from '../../shared/components/ui/modal/modal';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { WorkflowHistoryDrawer } from '../history/components/workflow-history-drawer/workflow-history-drawer';
@@ -21,7 +21,7 @@ import { RequestListBase } from '../../shared/base/request-list.base';
     selector: 'app-pending',
     templateUrl: './pending.html',
     styleUrl: './pending.css',
-    imports: [TranslatePipe, Table, Spinner, Badge, UpperCasePipe, Modal, WorkflowHistoryDrawer, WorkflowHistoryModal, PendingAttachmentsModal, RequestInfoModal, ReactiveFormsModule, SlicePipe]
+    imports: [TranslatePipe, Table, Spinner, Badge, UpperCasePipe, CurrencyPipe, Modal, WorkflowHistoryDrawer, WorkflowHistoryModal, PendingAttachmentsModal, RequestInfoModal, ReactiveFormsModule, SlicePipe]
 })
 export class Pending extends RequestListBase {
     private readonly _roleService = inject(RoleService);
@@ -44,6 +44,7 @@ export class Pending extends RequestListBase {
             key: 'createdAt', label: 'PENDING_PAGE.CREATED_AT', sortable: true,
             render: (value) => value ? moment(value).format('DD/MM/YYYY HH:mm:ss') : '-'
         },
+        { key: 'totalAmount', label: 'PENDING_PAGE.AMOUNT', sortable: false, customTemplate: true },
         { key: 'user.fullName', label: 'CREATED BY', sortable: true}
     ];
 
@@ -66,6 +67,7 @@ export class Pending extends RequestListBase {
     protected getI18nPrefix(): string {
         return 'PENDING_PAGE';
     }
+    
 
     protected loadRequests(): void {
         this.loadRequestsPaginated();
@@ -123,6 +125,8 @@ export class Pending extends RequestListBase {
         this.resetPagination();
         this.selectedRequesterId.set('all');
         this.requesterOptions.set([]);
+        this.selectedDateFrom.set('');
+        this.selectedDateTo.set('');
 
         if (value === 'DE') {
             this.requests.set([]);
@@ -146,13 +150,16 @@ export class Pending extends RequestListBase {
 
         this.isLoadingTable.set(true);
 
+        const { dateFrom, dateTo } = this.getDateRangeParams();
         this._requestsService.getRequestsByTypeWithPagePagination(
             requestTypeId,
             this.pageSize(),
             this.currentPage(),
             this.searchTerm(),
             this.selectedRoleName(),
-            this.selectedRequesterId()
+            this.selectedRequesterId(),
+            dateFrom,
+            dateTo
         ).pipe(
             finalize(() => {
                 this.isLoadingTable.set(false);

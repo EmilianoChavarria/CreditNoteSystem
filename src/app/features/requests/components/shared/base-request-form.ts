@@ -3,6 +3,7 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { finalize, forkJoin, map, Observable, of, Subscription, switchMap, take } from 'rxjs';
 import { Classification, Customer, Reason, Request, RequestAttachment } from '../../../../data/interfaces/Request';
+import { ConstraintContext, WorkflowFieldConstraint, WORKFLOW_FIELD_CONSTRAINTS } from './request-form-workflow-constraints';
 import { ApiResponse } from '../../../../data/interfaces/ApiResponse-interface';
 import { RequestService } from '../../../../core/services/request-service';
 import { CustomerService } from '../../../../core/services/customer-service';
@@ -59,6 +60,8 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
   }
   public submitted = signal<boolean>(false);
   public isSaving = signal<boolean>(false);
+  public invalidInvoices = signal<string[]>([]);
+  public showInvalidInvoicesModal = signal<boolean>(false);
   private pendingPostSaveAction: 'approve' | 'decline' | 'cancel' | 'return' | null = null;
   public reasons = signal<Reason[]>([]);
   public classifications = signal<Classification[]>([]);
@@ -111,13 +114,19 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
 
     this.isLoadingInitialData.set(true);
 
+    const requestNumber$ = this.isEditing
+      ? of(null)
+      : this._requestService.getNextRequestNumber(this.requestTypeId);
+
     forkJoin({
-      requestNumber: this._requestService.getNextRequestNumber(this.requestTypeId),
+      requestNumber: requestNumber$,
       reasons: this._requestService.getReasons(this.requestTypeId),
       classifications: this._requestService.getClassificationsByType(this.requestTypeId),
     }).subscribe({
       next: ({ requestNumber, reasons, classifications }) => {
-        this.form.controls['requestNumber'].setValue(requestNumber.requestNumber);
+        if (requestNumber) {
+          this.form.controls['requestNumber'].setValue(requestNumber.requestNumber);
+        }
         this.reasons.set(reasons);
         this.classifications.set(classifications);
         this.applyInitialRequestData();
@@ -136,6 +145,7 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
 
   private applyInitialRequestData(): void {
     if (!this.initialRequestData) {
+      this.applyWorkflowStepConstraints();
       return;
     }
 
@@ -215,6 +225,35 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
     }
 
     this.form.patchValue(patchValue, { emitEvent: false });
+    this.applyWorkflowStepConstraints();
+  }
+
+  private applyWorkflowStepConstraints(): void {
+    const ctx: ConstraintContext = {
+      step: this.initialRequestData?.workflowCurrentStep?.workflow_step,
+      assignedRoleName: this.initialRequestData?.workflowCurrentStep?.assigned_role?.roleName,
+    };
+
+    for (const constraint of WORKFLOW_FIELD_CONSTRAINTS) {
+      const shouldDisable = constraint.disableWhen(ctx);
+      for (const field of constraint.fields) {
+        const control = this.form.get(field);
+        if (!control) {
+          continue;
+        }
+        if (shouldDisable) {
+          control.disable({ emitEvent: false });
+        } else {
+          control.enable({ emitEvent: false });
+        }
+      }
+    }
+
+    this.applyConstraintsToArrayFields(WORKFLOW_FIELD_CONSTRAINTS, ctx);
+  }
+
+  protected applyConstraintsToArrayFields(_constraints: WorkflowFieldConstraint[], _ctx: ConstraintContext): void {
+    // Hook para que subclases apliquen restricciones a campos dentro de un FormArray.
   }
 
   private resolveCustomerName(requestData: Partial<Request>): string {
@@ -784,6 +823,7 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
     delete payload.sapScreen;
     delete payload.attachSupports;
     delete payload.reviewComments;
+    this.getExtraPayloadKeysToExclude().forEach(key => delete payload[key]);
 
     const formData = this.buildFormData(payload);
     this.selectedSapScreenFiles().forEach(file => formData.append('sapScreen[]', file));
@@ -852,12 +892,26 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
         this._router.navigate([returnTo ?? '/app/pending']);
       },
       error: (error: unknown) => {
-        const message = (error as { error?: { message?: string }; message?: string })?.error?.message
+        const errorBody = (error as { error?: { message?: string; errors?: { comments?: string[] } } })?.error;
+        const invalidInvoices = errorBody?.errors?.comments;
+
+        if (Array.isArray(invalidInvoices) && invalidInvoices.length > 0) {
+          this.invalidInvoices.set(invalidInvoices);
+          this.showInvalidInvoicesModal.set(true);
+          this.form.get('comments')?.setErrors({ serverError: true });
+          return;
+        }
+
+        const message = errorBody?.message
           ?? (error as { message?: string })?.message
           ?? 'No se pudo guardar la solicitud';
         this._toastService.error(message, 'Error');
       }
     });
+  }
+
+  protected getExtraPayloadKeysToExclude(): string[] {
+    return [];
   }
 
   protected onRequestCreated(_requestId: number, _response: SaveRequestResponse): Observable<unknown> {
@@ -1004,6 +1058,11 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
     console.log(option);
     if (option) {
       this.form.controls['customerNumber'].setValue(this.resolveCustomerNumberFromSelection(option));
+
+      const customerArea = option?.data?.clienteExt?.area;
+      if (customerArea && 'area' in this.form.controls) {
+        this.form.controls['area'].setValue(String(customerArea).toUpperCase());
+      }
     }
   }
 

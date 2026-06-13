@@ -79,7 +79,7 @@ export class BulkNewRequestsUpload {
         next: (batch) => {
           this.isCreatingBatch.set(false);
           this.toastService.success(
-            this.translateService.instant('BULK.TOAST.BATCH_CREATED_NEW_REQUEST', { id: batch?.id ?? '' }),
+            this.translateService.instant('BULK.TOAST.BATCH_CREATED_NEW_REQUEST'),
             this.translateService.instant('BULK.TABS.UPLOAD')
           );
           this.uploadedFiles.set([]);

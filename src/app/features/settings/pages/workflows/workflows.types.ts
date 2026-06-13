@@ -34,6 +34,7 @@ export interface WorkflowTransition {
   conditionOperator: string;
   conditionValue: string;
   priority: number;
+  markAsApproved: boolean;
 }
 
 export interface Color {

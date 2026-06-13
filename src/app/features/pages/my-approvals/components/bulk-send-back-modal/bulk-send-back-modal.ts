@@ -3,7 +3,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Modal } from '../../../../../shared/components/ui/modal/modal';
 import { Spinner } from '../../../../../shared/components/ui/spinner/spinner';
-import { RequestHistoryStep } from '../../../../../data/interfaces/RequestService';
+import { MassActionRequestFilters, RequestHistoryStep } from '../../../../../data/interfaces/RequestService';
 import { RequestService } from '../../../../../core/services/request-service';
 import { ToastService } from '../../../../../core/services/toast-service';
 
@@ -19,6 +19,8 @@ export class BulkSendBackModal {
 
   readonly open = input<boolean>(false);
   readonly requestIds = input<number[]>([]);
+  readonly selectAll = input<boolean>(false);
+  readonly filters = input<MassActionRequestFilters | undefined>(undefined);
   /** ID de cualquier request seleccionado para cargar los pasos disponibles */
   readonly sampleRequestId = input<number | null>(null);
   readonly selectedCount = input<number>(0);
@@ -83,14 +85,19 @@ export class BulkSendBackModal {
   confirm(): void {
     if (this.form.invalid || this.isSubmitting()) return;
 
-    const ids = this.requestIds();
     const targetId = this.form.value.targetWorkflowStepId;
-    if (!ids.length || !targetId) return;
+    const isSelectAll = this.selectAll();
+    const ids = this.requestIds();
+    if (!targetId || (!isSelectAll && !ids.length)) return;
 
     this.isSubmitting.set(true);
 
+    const payload = isSelectAll
+      ? { selectAll: true as const, filters: this.filters(), targetWorkflowStepId: targetId, comments: this.form.value.comments ?? '' }
+      : { requestIds: ids, targetWorkflowStepId: targetId, comments: this.form.value.comments ?? '' };
+
     this._requestsService
-      .sendBackMassRequests(ids, targetId, this.form.value.comments ?? '')
+      .sendBackMassRequests(payload)
       .subscribe({
         next: (response) => {
           if (response.totalSentBack > 0) {

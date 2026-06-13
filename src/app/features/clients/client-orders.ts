@@ -87,6 +87,18 @@ export class ClientOrders {
       return 'border-red-200 bg-red-50 text-red-700';
     }
 
+    if (normalized === 'in_process' || normalized === 'in process') {
+      return 'border-blue-200 bg-blue-50 text-blue-700';
+    }
+
+    if (normalized === 'cancelled') {
+      return 'border-red-200 bg-red-50 text-red-700';
+    }
+
+    if (normalized === 'released') {
+      return 'border-green-200 bg-green-50 text-green-700';
+    }
+
     return 'border-gray-200 bg-gray-50 text-gray-700';
   }
 
@@ -103,6 +115,18 @@ export class ClientOrders {
 
     if (normalized === 'rejected') {
       return 'Rechazada';
+    }
+
+    if (normalized === 'in_process' || normalized === 'in process') {
+      return 'En proceso';
+    }
+
+    if (normalized === 'cancelled') {
+      return 'Cancelada';
+    }
+
+    if (normalized === 'released') {
+      return 'Liberada';
     }
 
     return status || 'Sin estado';

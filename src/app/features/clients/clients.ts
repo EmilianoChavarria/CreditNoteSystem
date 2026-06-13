@@ -146,6 +146,11 @@ export class Clients {
     { initialValue: this.invoiceChargeType.getRawValue() },
   );
 
+  protected readonly selectedCurrency = toSignal(
+    this.invoiceCurrency.valueChanges.pipe(startWith(this.invoiceCurrency.getRawValue())),
+    { initialValue: this.invoiceCurrency.getRawValue() || 'MXN' },
+  );
+
   private readonly invoicePage$ = toObservable(this.invoicePage).pipe(distinctUntilChanged());
 
   protected readonly invoicePageNumbers = computed(() => {
@@ -450,6 +455,7 @@ export class Clients {
     const payload: CreateReturnOrderRequest = {
       clientId,
       chargeTypeId,
+      currency: this.invoiceCurrency.value || 'MXN',
       items,
     };
 
