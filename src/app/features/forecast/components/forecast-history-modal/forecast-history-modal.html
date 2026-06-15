@@ -1,0 +1,65 @@
+<app-modal
+  [open]="open()"
+  [titleM]="monthLabel() + ' — Historial de modificaciones'"
+  [showPrimaryButton]="false"
+  closeText="Cerrar"
+  size="lg"
+  (closed)="closed.emit()">
+
+  <p modal-title class="text-xs text-gray-400 mt-0.5">{{ clientName() }}</p>
+
+  @if (loading()) {
+    <div class="flex items-center justify-center py-10 text-sm text-gray-400">
+      Cargando historial...
+    </div>
+  } @else if (requests().length === 0) {
+    <div class="flex items-center justify-center py-10 text-sm text-gray-400">
+      Sin historial de modificaciones para este mes.
+    </div>
+  } @else {
+    <div class="space-y-4">
+      @for (req of requests(); track req.id) {
+        <div class="border border-gray-100 rounded-lg overflow-hidden">
+
+          <!-- Request header -->
+          <div class="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-100">
+            <div class="flex items-center gap-2.5">
+              <span class="text-sm font-semibold text-gray-700">
+                ${{ req.previousAmount | number:'1.0-0' }}
+                <span class="text-gray-400 mx-1">→</span>
+                ${{ req.proposedAmount | number:'1.0-0' }}
+              </span>
+              <span [class]="'inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ' + statusBadgeClass(req.status)">
+                {{ statusLabel(req.status) }}
+              </span>
+            </div>
+            <span class="text-xs text-gray-400">{{ req.submittedBy.fullName }}</span>
+          </div>
+
+          <!-- Timeline -->
+          <div class="px-4 py-3 space-y-3">
+            @for (step of req.history; track $index; let last = $last) {
+              <div class="flex items-start gap-3">
+                <div class="flex flex-col items-center">
+                  <div [class]="'h-2.5 w-2.5 rounded-full flex-shrink-0 mt-0.5 ' + timelineDotClass(step.action)"></div>
+                  @if (!last) {
+                    <div class="w-px bg-gray-200 mt-1" style="min-height: 16px"></div>
+                  }
+                </div>
+                <div class="flex-1 pb-1">
+                  <div class="flex items-center justify-between gap-2">
+                    <span class="text-xs font-medium text-gray-700">{{ actionLabel(step.action, step.step) }}</span>
+                    <span class="text-[11px] text-gray-400 whitespace-nowrap">{{ step.at | date:'dd/MM/yyyy HH:mm' }}</span>
+                  </div>
+                  <p class="text-[11px] text-gray-500 mt-0.5">{{ step.actor.fullName }}</p>
+                </div>
+              </div>
+            }
+          </div>
+
+        </div>
+      }
+    </div>
+  }
+
+</app-modal>
