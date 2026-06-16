@@ -6,8 +6,10 @@ import {
   ChangeRequest,
   Distributor,
   ForecastService,
+  Invoice,
 } from '../../../../core/services/forecast.service';
 import { ForecastHistoryModal } from '../forecast-history-modal/forecast-history-modal';
+import { ForecastInvoicesModal } from '../forecast-invoices-modal/forecast-invoices-modal';
 
 interface EditingCell {
   clientId: number;
@@ -21,9 +23,17 @@ interface HistoryState {
   loading: boolean;
 }
 
+interface InvoicesState {
+  clientId: number;
+  clientName: string;
+  monthIdx: number;
+  invoices: Invoice[];
+  loading: boolean;
+}
+
 @Component({
   selector: 'app-forecast-table',
-  imports: [DecimalPipe, FormsModule, ForecastHistoryModal],
+  imports: [DecimalPipe, FormsModule, ForecastHistoryModal, ForecastInvoicesModal],
   templateUrl: './forecast-table.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -41,8 +51,10 @@ export class ForecastTable {
 
   readonly editingCell = signal<EditingCell | null>(null);
   readonly editingValue = signal('');
+  private originalValue = 0;
   readonly submittingCell = signal<EditingCell | null>(null);
   readonly historyState = signal<HistoryState | null>(null);
+  readonly invoicesState = signal<InvoicesState | null>(null);
 
   private clickTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -67,6 +79,10 @@ export class ForecastTable {
     return dist.months.reduce((s, m) => s + m.forecast, 0);
   }
 
+  rowSalesTotal(dist: Distributor): number {
+    return dist.months.reduce((s, m) => s + m.sales, 0);
+  }
+
   isEditing(clientId: number, monthIdx: number): boolean {
     const c = this.editingCell();
     return c?.clientId === clientId && c?.monthIdx === monthIdx;
@@ -75,6 +91,13 @@ export class ForecastTable {
   isSubmitting(clientId: number, monthIdx: number): boolean {
     const c = this.submittingCell();
     return c?.clientId === clientId && c?.monthIdx === monthIdx;
+  }
+
+  isEditableMonth(monthIdx: number): boolean {
+    const now = new Date();
+    if (this.year() < now.getFullYear()) return true;
+    if (this.year() > now.getFullYear()) return false;
+    return monthIdx <= now.getMonth();
   }
 
   onCellClick(dist: Distributor, monthIdx: number): void {
@@ -90,7 +113,7 @@ export class ForecastTable {
       this.clickTimer = null;
     }
     const m = dist.months[monthIdx];
-    if (m.pendingRequest?.status !== 'pending' && !this.isSubmitting(dist.id, monthIdx)) {
+    if (this.isEditableMonth(monthIdx) && m.pendingRequest?.status !== 'pending' && !this.isSubmitting(dist.id, monthIdx)) {
       this.startEdit(dist.id, monthIdx, m.forecast);
     }
   }
@@ -107,9 +130,22 @@ export class ForecastTable {
     this.historyState.set(null);
   }
 
+  openInvoices(dist: Distributor, monthIdx: number): void {
+    this.invoicesState.set({ clientId: dist.id, clientName: dist.name, monthIdx, invoices: [], loading: true });
+    this.forecastService.getInvoices(dist.id, this.year(), monthIdx + 1).subscribe({
+      next: (invoices) => this.invoicesState.update(s => s ? { ...s, invoices, loading: false } : null),
+      error: () => this.invoicesState.update(s => s ? { ...s, loading: false } : null),
+    });
+  }
+
+  closeInvoices(): void {
+    this.invoicesState.set(null);
+  }
+
   startEdit(clientId: number, monthIdx: number, current: number): void {
     this.editingCell.set({ clientId, monthIdx });
     this.editingValue.set(String(current));
+    this.originalValue = current;
     setTimeout(() => {
       document.querySelector<HTMLInputElement>('input.fc-edit-input')?.select();
     });
@@ -123,6 +159,7 @@ export class ForecastTable {
     const raw = parseFloat(this.editingValue().replace(/[^0-9.]/g, ''));
     this.editingCell.set(null);
     if (isNaN(raw) || raw < 0) return;
+    if (Math.round(raw) === this.originalValue) return;
 
     this.submittingCell.set({ clientId, monthIdx });
     this.forecastService.submitChangeRequest({

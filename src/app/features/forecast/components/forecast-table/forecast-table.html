@@ -34,7 +34,7 @@
 
             <!-- Forecast row -->
             <tr class="border-t-2 border-gray-200 bg-gray-50/40">
-              <td rowspan="2"
+              <td rowspan="3"
                 class="sticky left-0 z-10 px-4 py-2 font-semibold text-gray-800 text-sm align-middle bg-white border-r border-gray-200 whitespace-nowrap">
                 {{ dist.name }}
               </td>
@@ -44,10 +44,10 @@
               @for (m of dist.months; track $index; let i = $index) {
                 <td
                   class="px-2 py-1.5 text-right text-xs text-gray-600 whitespace-nowrap transition-colors select-none"
-                  [class.cursor-pointer]="m.pendingRequest?.status !== 'pending'"
-                  [class.hover:bg-gray-100]="m.pendingRequest?.status !== 'pending'"
-                  [class.opacity-60]="m.pendingRequest?.status === 'pending'"
-                  [title]="m.pendingRequest?.status === 'pending' ? 'Cambio pendiente de aprobación' : 'Doble clic para editar'"
+                  [class.cursor-pointer]="isEditableMonth(i) && m.pendingRequest?.status !== 'pending'"
+                  [class.hover:bg-gray-100]="isEditableMonth(i) && m.pendingRequest?.status !== 'pending'"
+                  [class.opacity-60]="m.pendingRequest?.status === 'pending' || !isEditableMonth(i)"
+                  [title]="!isEditableMonth(i) ? 'Mes no editable' : (m.pendingRequest?.status === 'pending' ? 'Cambio pendiente de aprobación' : 'Doble clic para editar')"
                   (dblclick)="onCellDblClick(dist, i)">
                   @if (isEditing(dist.id, i)) {
                     <input
@@ -76,7 +76,7 @@
                 <span [class]="hasAnyPending(dist)
                   ? 'text-[11px] font-semibold text-amber-600 uppercase tracking-wide'
                   : 'text-[11px] font-semibold text-gray-300 uppercase tracking-wide'">
-                  Modificación
+                  Modificación de objetivo de ventas
                 </span>
               </td>
               @for (m of dist.months; track $index) {
@@ -99,10 +99,28 @@
               <td class="px-3 py-1.5 border-l border-gray-100"></td>
             </tr>
 
+            <!-- Ventas row -->
+            <tr class="bg-white">
+              <td class="px-3 py-1.5 whitespace-nowrap">
+                <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Ventas</span>
+              </td>
+              @for (m of dist.months; track $index) {
+                <td
+                  class="px-2 py-1.5 text-right text-xs text-gray-600 whitespace-nowrap cursor-pointer hover:bg-blue-50 hover:text-blue-700 transition-colors"
+                  title="Ver desglose de facturas"
+                  (click)="openInvoices(dist, $index)">
+                  $ {{ m.sales | number:'1.0-0' }}
+                </td>
+              }
+              <td class="px-3 py-1.5 text-right text-xs font-semibold text-gray-600 whitespace-nowrap border-l border-gray-100">
+                $ {{ rowSalesTotal(dist) | number:'1.0-0' }}
+              </td>
+            </tr>
+
           }
         </tbody>
 
-        <tfoot>
+        <!-- <tfoot>
           <tr class="border-t-2 border-gray-300 bg-gray-50">
             <td class="sticky left-0 z-10 px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wide bg-gray-50 border-r border-gray-200 whitespace-nowrap">
               Total
@@ -114,10 +132,10 @@
               </td>
             }
             <td class="px-3 py-2.5 text-right text-xs font-bold text-gray-700 whitespace-nowrap border-l border-gray-200">
-              $ {{ grandTotal() | number:'1.0-0' }}
+              $ {{ grandTotal() }}
             </td>
           </tr>
-        </tfoot>
+        </tfoot> -->
       </table>
     </div>
   }
@@ -130,3 +148,11 @@
   [requests]="historyState()?.requests ?? []"
   [loading]="historyState()?.loading ?? false"
   (closed)="closeHistory()" />
+
+<app-forecast-invoices-modal
+  [open]="invoicesState() !== null"
+  [clientName]="invoicesState()?.clientName ?? ''"
+  [monthLabel]="invoicesState() !== null ? monthLabel(invoicesState()!.monthIdx) : ''"
+  [invoices]="invoicesState()?.invoices ?? []"
+  [loading]="invoicesState()?.loading ?? false"
+  (closed)="closeInvoices()" />
