@@ -15,6 +15,7 @@ export interface ForecastMonthApi {
   month: number;
   amount: string | null;
   modification: PendingRequest | null;
+  sales: string | number;
 }
 
 export interface ForecastClientApi {
@@ -24,9 +25,19 @@ export interface ForecastClientApi {
   months: ForecastMonthApi[];
 }
 
+export interface Invoice {
+  folio: string;
+  subTotal: string;
+  iva: string;
+  total: string;
+  fechaEmision: string;
+  moneda: 'MXN' | 'USD'
+}
+
 export interface MonthEntry {
   forecast: number;
   pendingRequest: PendingRequest | null;
+  sales: number;
 }
 
 export interface Distributor {
@@ -81,6 +92,7 @@ export function mapApiToDistributors(clients: ForecastClientApi[]): Distributor[
         return {
           forecast: apiMonth ? parseFloat(apiMonth.amount ?? '0') || 0 : 0,
           pendingRequest: apiMonth?.modification ?? null,
+          sales: apiMonth ? parseFloat(String(apiMonth.sales)) || 0 : 0,
         };
       }),
     };
@@ -160,6 +172,16 @@ export class ForecastService {
       this.withBearer()
     ).pipe(
       map(() => void 0),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
+  getInvoices(idClient: number, year: number, month: number): Observable<Invoice[]> {
+    return this.httpService.get<Invoice[]>(
+      `/forecast/${idClient}/${year}/${month}/invoices`,
+      this.withBearer()
+    ).pipe(
+      map((response: ApiResponse<Invoice[]>) => response.data ?? []),
       catchError((error) => throwError(() => error))
     );
   }
