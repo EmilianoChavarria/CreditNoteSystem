@@ -802,7 +802,9 @@
     "READ": "Read",
     "NEW": "New",
     "RECENT": "Recent",
-    "MARK_AS_READ": "Mark as read"
+    "MARK_AS_READ": "Mark as read",
+    "MARK_ALL_READ": "Mark all as read",
+    "MARK_ALL_UNREAD": "Mark all as unread"
   },
   "USERS_PAGE": {
     "USER": "User",
@@ -838,6 +840,7 @@
     "PREFERRED_LANGUAGE_LABEL": "Preferred language",
     "ROLE_LABEL": "Role",
     "NO_ROLE": "No role",
+    "SUPERVISOR": "Supervisor",
     "STATUS": "Status",
     "CREATED_AT": "Creation date",
     "RESET_PASSWORD": "Reset password",
@@ -896,6 +899,7 @@
     "CUSTOMER_ID": "Customer ID",
     "CUSTOMER_NAME": "Customer Name",
     "AREA": "Area",
+    "PROCESSOR": "Processor",
     "SALES_ENGINEER": "Sales Engineer",
     "SALES_MANAGER": "Sales Manager",
     "FINANCE_MANAGER": "Finance Manager",
