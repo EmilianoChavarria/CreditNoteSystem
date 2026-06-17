@@ -35,8 +35,13 @@
             <!-- Forecast row -->
             <tr class="border-t-2 border-gray-200 bg-gray-50/40">
               <td rowspan="3"
-                class="sticky left-0 z-10 px-4 py-2 font-semibold text-gray-800 text-sm align-middle bg-white border-r border-gray-200 whitespace-nowrap">
-                {{ dist.name }}
+                class="sticky left-0 z-10 px-4 py-2 font-semibold text-sm align-middle bg-white border-r border-gray-200 whitespace-nowrap">
+                <button
+                  type="button"
+                  class="text-left text-blue-700 hover:text-blue-900 hover:underline cursor-pointer transition-colors"
+                  (click)="openClientModal(dist)">
+                  {{ dist.name }}
+                </button>
               </td>
               <td class="px-3 py-1.5 whitespace-nowrap">
                 <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Forecast</span>
@@ -140,6 +145,13 @@
     </div>
   }
 }
+
+<app-forecast-client-modal
+  [open]="clientModalState() !== null"
+  [clientId]="clientModalState()?.clientId ?? 0"
+  [clientName]="clientModalState()?.clientName ?? ''"
+  [year]="year()"
+  (closed)="closeClientModal()" />
 
 <app-forecast-history-modal
   [open]="historyState() !== null"

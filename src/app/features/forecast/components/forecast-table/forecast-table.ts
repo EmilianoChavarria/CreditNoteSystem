@@ -10,6 +10,7 @@ import {
 } from '../../../../core/services/forecast.service';
 import { ForecastHistoryModal } from '../forecast-history-modal/forecast-history-modal';
 import { ForecastInvoicesModal } from '../forecast-invoices-modal/forecast-invoices-modal';
+import { ForecastClientModal } from '../forecast-client-modal/forecast-client-modal';
 
 interface EditingCell {
   clientId: number;
@@ -31,9 +32,14 @@ interface InvoicesState {
   loading: boolean;
 }
 
+interface ClientModalState {
+  clientId: number;
+  clientName: string;
+}
+
 @Component({
   selector: 'app-forecast-table',
-  imports: [DecimalPipe, FormsModule, ForecastHistoryModal, ForecastInvoicesModal],
+  imports: [DecimalPipe, FormsModule, ForecastHistoryModal, ForecastInvoicesModal, ForecastClientModal],
   templateUrl: './forecast-table.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -55,6 +61,7 @@ export class ForecastTable {
   readonly submittingCell = signal<EditingCell | null>(null);
   readonly historyState = signal<HistoryState | null>(null);
   readonly invoicesState = signal<InvoicesState | null>(null);
+  readonly clientModalState = signal<ClientModalState | null>(null);
 
   private clickTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -140,6 +147,14 @@ export class ForecastTable {
 
   closeInvoices(): void {
     this.invoicesState.set(null);
+  }
+
+  openClientModal(dist: Distributor): void {
+    this.clientModalState.set({ clientId: dist.id, clientName: dist.name });
+  }
+
+  closeClientModal(): void {
+    this.clientModalState.set(null);
   }
 
   startEdit(clientId: number, monthIdx: number, current: number): void {
