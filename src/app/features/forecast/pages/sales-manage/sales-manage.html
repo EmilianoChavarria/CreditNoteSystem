@@ -29,7 +29,15 @@
       <h1 class="text-2xl font-bold text-gray-800">Forecast de Ventas {{ activeYear() }}</h1>
       <p class="text-sm text-gray-400 mt-1">Consulta y solicita cambios en las proyecciones de tus clientes.</p>
     </div>
-    <div class="mt-1">
+    <div class="mt-1 flex gap-x-2">
+      <a
+        href="assets/templates/Layout Forecast.csv"
+        download="Layout Forecast.csv"
+        class="w-full sm:w-auto bg-[#ff8200] text-white rounded-md text-sm px-3 py-2 hover:cursor-pointer hover:bg-[#fc9629] text-center flex flex-row items-center gap-x-2 justify-center">
+        <lucide-icon name="download" class="my-auto" size="14"></lucide-icon>
+        Descargar Plantilla
+      </a>
+
       <input
         #fileInput
         type="file"
@@ -40,7 +48,7 @@
         type="button"
         [disabled]="uploading()"
         (click)="fileInput.click()"
-        class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-sm">
+        class="inline-flex items-center gap-2 rounded-lg bg-[#395f93] white px-3 py-2 text-sm font-medium text-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-sm">
         @if (uploading()) {
           <svg class="animate-spin w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
@@ -48,11 +56,8 @@
           </svg>
           Importando...
         } @else {
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
-          </svg>
-          Importar Forecast
+          <lucide-icon name="upload" class="my-auto" size="14"></lucide-icon>
+          Carga masiva de Forecast
         }
       </button>
     </div>

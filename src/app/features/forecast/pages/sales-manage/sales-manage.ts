@@ -7,10 +7,11 @@ import { BatchService } from '../../../../core/services/batch-service';
 import { ForecastTable } from '../../components/forecast-table/forecast-table';
 import { MyRequests } from '../../components/my-requests/my-requests';
 import { PendingApprovals } from '../../components/pending-approvals/pending-approvals';
+import { LucideAngularModule } from "lucide-angular";
 
 @Component({
   selector: 'app-sales-manage',
-  imports: [DecimalPipe, ForecastTable, MyRequests, PendingApprovals],
+  imports: [DecimalPipe, ForecastTable, MyRequests, PendingApprovals, LucideAngularModule],
   templateUrl: './sales-manage.html',
   styleUrl: './sales-manage.css',
 })
