@@ -186,6 +186,16 @@ export class ForecastService {
     );
   }
 
+  getClientForecast(idClient: number, year: number): Observable<ForecastMonthApi[]> {
+    return this.httpService.get<ForecastMonthApi[]>(
+      `/forecast/${idClient}/${year}`,
+      this.withBearer()
+    ).pipe(
+      map((response: ApiResponse<ForecastMonthApi[]>) => response.data ?? []),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
   private withBearer(): RequestOptions {
     const token = this.resolveBearerToken();
     return {
