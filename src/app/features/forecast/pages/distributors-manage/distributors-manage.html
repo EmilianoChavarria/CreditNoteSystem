@@ -1,0 +1,66 @@
+<section class="flex w-full flex-col px-2 py-3 sm:px-4 md:px-0 md:py-0">
+    <header class="w-full flex flex-col items-start justify-end gap-1 sm:items-end sm:gap-0 mb-2">
+        <div class="flex flex-col">
+            <span class="text-2xl 2xl:text-4xl tracking-wider text-[#ff8200] font-semibold">Clientes Forecast</span>
+            <span class="text-sm sm:text-base text-orange-400">Gestión de clientes del forecast</span>
+        </div>
+    </header>
+
+    <app-tabla-dinamica
+        [datos]="clients()"
+        [columnas]="columns"
+        [sinAcciones]="true"
+        [canAdd]="false"
+        [serverPagination]="true"
+        [registrosPorPagina]="pageSize()"
+        [paginaActualExterna]="currentPage()"
+        [totalPaginasExterno]="totalPages()"
+        [hasNextPage]="hasNextPage()"
+        [hasPrevPage]="hasPrevPage()"
+        [loading]="loading()"
+        (paginaSiguiente)="onNextPage()"
+        (paginaAnterior)="onPrevPage()"
+        (paginaPrimera)="onFirstPage()"
+        (paginaUltima)="onLastPage()"
+        (registrosPorPaginaChange)="onPageSizeChange($event)"
+        (searchChange)="onSearch($event)"
+        (refreshClick)="loadData()">
+
+        <ng-template #cellTemplate let-item let-col="column">
+            <div class="py-3 px-2">
+                @switch (col.key) {
+                    @case ('idCliente') {
+                        <span class="font-medium text-gray-600">{{ item.idCliente }}</span>
+                    }
+                    @case ('razonSocial') {
+                        <span class="font-medium text-gray-800">{{ item.razonSocial }}</span>
+                    }
+                    @case ('rfc') {
+                        <span class="font-medium tracking-wide text-gray-700">{{ item.rfc }}</span>
+                    }
+                    @case ('direccion') {
+                        <span class="font-medium text-gray-500">{{ item.direccion }}</span>
+                    }
+                    @case ('correosForecast') {
+                        @let emails = splitEmails(item.correosForecast);
+                        @if (emails.length > 0) {
+                            <div class="flex flex-wrap gap-1">
+                                @for (email of emails; track email) {
+                                    <span class="inline-flex items-center gap-1 rounded-full bg-blue-50 border border-blue-200 px-2 py-0.5 text-xs text-blue-700 leading-none">
+                                        <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                        </svg>
+                                        {{ email }}
+                                    </span>
+                                }
+                            </div>
+                        } @else {
+                            <span class="text-gray-400">—</span>
+                        }
+                    }
+                }
+            </div>
+        </ng-template>
+
+    </app-tabla-dinamica>
+</section>
