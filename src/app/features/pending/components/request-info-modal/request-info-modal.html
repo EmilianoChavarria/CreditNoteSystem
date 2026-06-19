@@ -60,11 +60,8 @@
           <div class="space-y-1">
             <label class="text-xs font-medium text-slate-500">{{ 'REQUEST_INFO.REQUEST_DATE' | translate }}</label>
             <p class="text-sm font-semibold text-slate-800">{{ req.requestDate | date: 'dd/MM/yyyy' }}</p>
-          </div>
-          <div class="space-y-1">
-            <label class="text-xs font-medium text-slate-500">{{ 'REQUEST_INFO.ORDER_NUMBER' | translate }}</label>
-            <p class="text-sm font-semibold text-slate-800">{{ req.orderNumber || '---' }}</p>
-          </div>
+          </div>  
+          
         </div>
       </section>
 
@@ -125,7 +122,7 @@
           </div>
           <div class="space-y-1">
             <label class="text-xs font-medium text-slate-500">{{ 'REQUEST_INFO.SAP_RETURN_ORDER' | translate }}</label>
-            <p class="text-sm font-semibold text-slate-800">{{ req.sapReturnOrder || '---' }}</p>
+            <p class="text-sm font-semibold text-slate-800">{{ req.orderNumber || '---' }}</p>
           </div>
           <div class="space-y-1">
             <label class="text-xs font-medium text-slate-500">{{ 'REQUEST_INFO.CREDIT_NUMBER' | translate }}</label>
