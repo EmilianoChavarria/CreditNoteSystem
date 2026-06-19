@@ -3,6 +3,24 @@ import { HttpService, RequestOptions } from './http-service';
 import { ApiResponse } from '../../data/interfaces/ApiResponse-interface';
 import { catchError, map, Observable, throwError } from 'rxjs';
 
+export interface ForecastClient {
+  idCliente: string;
+  razonSocial: string;
+  direccion: string;
+  rfc: string;
+  correosForecast: string | null;
+}
+
+export interface ForecastClientPage {
+  data: ForecastClient[];
+  current_page: number;
+  last_page: number;
+  per_page?: number;
+  total?: number;
+  next_page_url?: string | null;
+  prev_page_url?: string | null;
+}
+
 export interface PendingRequest {
   id: number;
   proposedAmount: string;
@@ -192,6 +210,29 @@ export class ForecastService {
       this.withBearer()
     ).pipe(
       map((response: ApiResponse<ForecastMonthApi[]>) => response.data ?? []),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
+  getClientsPaginated(perPage = 15, page = 1, search?: string): Observable<ForecastClientPage> {
+    const params: { per_page: number; page: number; search?: string } = { per_page: perPage, page };
+    if (search?.trim()) {
+      params.search = search.trim();
+    }
+
+    return this.httpService.get<ForecastClientPage>('/forecast/clients', { ...this.withBearer(), params }).pipe(
+      map((response: ApiResponse<ForecastClientPage>) => {
+        const payload = response.data;
+        return {
+          data: payload?.data ?? [],
+          current_page: payload?.current_page ?? 1,
+          last_page: payload?.last_page ?? 1,
+          per_page: payload?.per_page,
+          total: payload?.total,
+          next_page_url: payload?.next_page_url,
+          prev_page_url: payload?.prev_page_url,
+        };
+      }),
       catchError((error) => throwError(() => error))
     );
   }
