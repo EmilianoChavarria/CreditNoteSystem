@@ -11,6 +11,14 @@ export interface ForecastClient {
   correosForecast: string | null;
 }
 
+export interface UpdateDistributorPayload {
+  businessName?: string;
+  taxId?: string;
+  address?: string;
+  emails?: string;
+  clientNumber?: string;
+}
+
 export interface ForecastClientPage {
   data: ForecastClient[];
   current_page: number;
@@ -210,6 +218,17 @@ export class ForecastService {
       this.withBearer()
     ).pipe(
       map((response: ApiResponse<ForecastMonthApi[]>) => response.data ?? []),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
+  updateDistributor(id: string, payload: UpdateDistributorPayload): Observable<void> {
+    return this.httpService.put<unknown>(
+      `/distributors/${id}`,
+      payload,
+      this.withBearer()
+    ).pipe(
+      map(() => void 0),
       catchError((error) => throwError(() => error))
     );
   }
