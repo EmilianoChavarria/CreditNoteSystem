@@ -1,11 +1,12 @@
 import { Component, signal } from '@angular/core';
 import { finalize } from 'rxjs';
-import { Table, type Column } from '../../../../shared/components/ui/table/table';
+import { Table, type AccionPersonalizada, type Column } from '../../../../shared/components/ui/table/table';
 import { ForecastClient, ForecastService } from '../../../../core/services/forecast.service';
+import { EditDistributorModal } from './edit-distributor-modal';
 
 @Component({
   selector: 'app-distributors-manage',
-  imports: [Table],
+  imports: [Table, EditDistributorModal],
   templateUrl: './distributors-manage.html',
   styleUrl: './distributors-manage.css',
 })
@@ -19,6 +20,9 @@ export class DistributorsManage {
   readonly pageSize = signal(15);
   readonly searchTerm = signal('');
 
+  readonly editModalOpen = signal(false);
+  readonly selectedClient = signal<ForecastClient | null>(null);
+
   private searchDebounce: ReturnType<typeof setTimeout> | null = null;
 
   readonly columns: Column<ForecastClient>[] = [
@@ -29,8 +33,22 @@ export class DistributorsManage {
     { key: 'correosForecast', label: 'Correos Forecast', sortable: false, customTemplate: true },
   ];
 
+  readonly acciones: AccionPersonalizada<ForecastClient>[] = [
+    {
+      label: 'Editar',
+      icon: 'pencil',
+      className: 'text-left text-gray-700',
+      accion: (item) => this.openEditModal(item),
+    },
+  ];
+
   constructor(private readonly forecastService: ForecastService) {
     this.loadData();
+  }
+
+  openEditModal(client: ForecastClient): void {
+    this.selectedClient.set(client);
+    this.editModalOpen.set(true);
   }
 
   loadData(page = 1): void {

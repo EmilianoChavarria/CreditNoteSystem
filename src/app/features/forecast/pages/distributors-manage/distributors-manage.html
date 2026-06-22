@@ -9,8 +9,9 @@
     <app-tabla-dinamica
         [datos]="clients()"
         [columnas]="columns"
-        [sinAcciones]="true"
         [canAdd]="false"
+        [actionMode]="'menu'"
+        [accionesPersonalizadas]="acciones"
         [serverPagination]="true"
         [registrosPorPagina]="pageSize()"
         [paginaActualExterna]="currentPage()"
@@ -63,4 +64,12 @@
         </ng-template>
 
     </app-tabla-dinamica>
+
+    <app-edit-distributor-modal
+        [client]="selectedClient()"
+        [open]="editModalOpen()"
+        (openChange)="editModalOpen.set($event)"
+        (saved)="loadData(currentPage())">
+    </app-edit-distributor-modal>
+
 </section>
