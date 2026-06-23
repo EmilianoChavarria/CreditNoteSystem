@@ -53,6 +53,7 @@ export const routes: Routes = [
       { path: 'settings/assign-user', loadComponent: () => import('./features/settings/pages/assign-user/assign-user').then(m => m.AssignUser) },
       { path: 'forecast-sales-objective', loadComponent: () => import('./features/forecast/pages/sales-manage/sales-manage').then(m => m.SalesManage) },
       { path: 'forecast-sales-engineer', loadComponent: () => import('./features/forecast/pages/sales-engineer-manage/sales-engineer-manage').then(m => m.SalesEngineerManage) },
+      { path: 'forecast-distributors', loadComponent: () => import('./features/forecast/pages/distributors-manage/distributors-manage').then(m => m.DistributorsManage) },
       { path: '404', loadComponent: () => import('./features/not-found/not-found').then(m => m.NotFound) },
       { path: '**', loadComponent: () => import('./features/not-found/not-found').then(m => m.NotFound) },
     ]

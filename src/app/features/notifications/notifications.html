@@ -12,6 +12,18 @@
 				<span class="count-value">{{ unreadCount() }}</span>
 				<span class="count-label">{{ 'NOTIFICATIONS.UNREAD' | translate }}</span>
 			</div>
+			<button type="button" (click)="markAllAsRead()" [disabled]="unreadCount() === 0 || isLoadingReadAll()">
+				@if (isLoadingReadAll()) {
+					<lucide-icon name="loader-2" size="14" class="animate-spin"></lucide-icon>
+				}
+				{{ 'NOTIFICATIONS.MARK_ALL_READ' | translate }}
+			</button>
+			<button type="button" (click)="markAllAsUnread()" [disabled]="unreadCount() === notifications().length || isLoadingUnreadAll()">
+				@if (isLoadingUnreadAll()) {
+					<lucide-icon name="loader-2" size="14" class="animate-spin"></lucide-icon>
+				}
+				{{ 'NOTIFICATIONS.MARK_ALL_UNREAD' | translate }}
+			</button>
 			<button type="button" (click)="refresh()">{{ 'NOTIFICATIONS.REFRESH' | translate }}</button>
 		</div>
 	</header>
@@ -49,10 +61,14 @@
 						<button
 							type="button"
 							class="mark-read-button"
-							[disabled]="notification.isRead"
+							[disabled]="notification.isRead || isMarkingAsRead(notification)"
 							[attr.title]="'NOTIFICATIONS.MARK_AS_READ' | translate"
 							(click)="markAsRead(notification, $event)">
-							<lucide-icon name="check" size="16"></lucide-icon>
+							@if (isMarkingAsRead(notification)) {
+								<lucide-icon name="loader-2" size="16" class="animate-spin"></lucide-icon>
+							} @else {
+								<lucide-icon name="check" size="16"></lucide-icon>
+							}
 						</button>
 					</div>
 				</article>

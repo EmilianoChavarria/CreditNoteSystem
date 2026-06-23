@@ -802,7 +802,9 @@
     "READ": "Leída",
     "NEW": "Nueva",
     "RECENT": "Reciente",
-    "MARK_AS_READ": "Marcar como leído"
+    "MARK_AS_READ": "Marcar como leído",
+    "MARK_ALL_READ": "Marcar todas como leídas",
+    "MARK_ALL_UNREAD": "Marcar todas como no leídas"
   },
   "USERS_PAGE": {
     "USER": "Usuario",
@@ -838,6 +840,7 @@
     "PREFERRED_LANGUAGE_LABEL": "Idioma preferido",
     "ROLE_LABEL": "Rol",
     "NO_ROLE": "Sin rol",
+    "SUPERVISOR": "Supervisor",
     "STATUS": "Estado",
     "CREATED_AT": "Fecha de Creación",
     "RESET_PASSWORD": "Restablecer contraseña",
@@ -896,6 +899,7 @@
     "CUSTOMER_ID": "ID Cliente",
     "CUSTOMER_NAME": "Nombre del Cliente",
     "AREA": "Área",
+    "PROCESSOR": "Procesador",
     "SALES_ENGINEER": "Ingeniero Ventas",
     "SALES_MANAGER": "Gerente Ventas",
     "FINANCE_MANAGER": "Gerente Finanzas",

@@ -101,6 +101,12 @@ export class Users implements OnInit {
             render: (value, item) => item.role?.roleName ?? this._translateService.instant('USERS_PAGE.NO_ROLE')
         },
         {
+            key: 'supervisor',
+            label: 'USERS_PAGE.SUPERVISOR',
+            sortable: false,
+            render: (value, item) => item.supervisor?.fullName ?? '-'
+        },
+        {
             key: 'isActive',
             label: 'USERS_PAGE.STATUS',
             sortable: true,
@@ -311,7 +317,7 @@ export class Users implements OnInit {
             },
             (error) => {
                 this.toastr.error(
-                    error.message ?? this._translateService.instant('USERS_PAGE.ERROR_DELETING_USER'),
+                    error?.error?.message ?? error?.message ?? this._translateService.instant('USERS_PAGE.ERROR_DELETING_USER'),
                     this._translateService.instant('USERS_PAGE.ERROR')
                 );
             }

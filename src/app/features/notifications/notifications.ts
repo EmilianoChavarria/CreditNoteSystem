@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { NotificationService } from '../../core/services/notification-service';
+import { ToastService } from '../../core/services/toast-service';
 import { AppNotification } from '../../data/interfaces/Notification';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LucideAngularModule } from 'lucide-angular';
@@ -21,6 +22,7 @@ import { FullSpinnerComponent } from '../../shared/components/ui/full-spinner/fu
 export class Notifications implements OnInit {
     private readonly router = inject(Router);
     private readonly notificationService = inject(NotificationService);
+    private readonly toastService = inject(ToastService);
     private readonly translateService = inject(TranslateService);
 
     readonly notifications = this.notificationService.notifications;
@@ -28,6 +30,9 @@ export class Notifications implements OnInit {
     readonly unreadCount = this.notificationService.unreadCount;
     readonly lastError = this.notificationService.lastError;
     readonly isNavigatingToApprovals = signal(false);
+    readonly isLoadingReadAll = signal(false);
+    readonly isLoadingUnreadAll = signal(false);
+    readonly loadingNotificationIds = signal<Set<string>>(new Set());
 
     ngOnInit(): void {
         this.refresh();
@@ -39,15 +44,65 @@ export class Notifications implements OnInit {
         });
     }
 
+    markAllAsRead(): void {
+        if (this.isLoadingReadAll()) return;
+        this.isLoadingReadAll.set(true);
+        this.notificationService.markAllAsRead().subscribe({
+            next: (message) => {
+                this.isLoadingReadAll.set(false);
+                this.toastService.success(message ?? this.translateService.instant('NOTIFICATIONS.MARK_ALL_READ'));
+            },
+            error: (error) => {
+                this.isLoadingReadAll.set(false);
+                this.toastService.error(this.extractErrorMessage(error));
+                console.error('[Notifications Component] Failed to mark all as read:', error);
+            }
+        });
+    }
+
+    markAllAsUnread(): void {
+        if (this.isLoadingUnreadAll()) return;
+        this.isLoadingUnreadAll.set(true);
+        this.notificationService.markAllAsUnread().subscribe({
+            next: (message) => {
+                this.isLoadingUnreadAll.set(false);
+                this.toastService.success(message ?? this.translateService.instant('NOTIFICATIONS.MARK_ALL_UNREAD'));
+            },
+            error: (error) => {
+                this.isLoadingUnreadAll.set(false);
+                this.toastService.error(this.extractErrorMessage(error));
+                console.error('[Notifications Component] Failed to mark all as unread:', error);
+            }
+        });
+    }
+
+    private extractErrorMessage(error: unknown): string {
+        if (error instanceof Error) return error.message;
+        if (typeof error === 'string') return error;
+        const obj = error as Record<string, unknown>;
+        return String(obj?.['message'] ?? obj?.['error'] ?? 'Error');
+    }
+
+    isMarkingAsRead(notification: AppNotification): boolean {
+        return this.loadingNotificationIds().has(String(notification.id));
+    }
+
     markAsRead(notification: AppNotification, event?: Event): void {
         event?.stopPropagation();
 
-        if (this.notificationService.isRead(notification)) {
+        if (this.notificationService.isRead(notification) || this.isMarkingAsRead(notification)) {
             return;
         }
 
+        const id = String(notification.id);
+        this.loadingNotificationIds.update((s) => new Set(s).add(id));
+
         this.notificationService.markAsRead(notification.id).subscribe({
-            error: (error) => console.error('[Notifications Component] Failed to mark notification as read:', error)
+            next: () => this.loadingNotificationIds.update((s) => { const n = new Set(s); n.delete(id); return n; }),
+            error: (error) => {
+                this.loadingNotificationIds.update((s) => { const n = new Set(s); n.delete(id); return n; });
+                console.error('[Notifications Component] Failed to mark notification as read:', error);
+            }
         });
     }
 
