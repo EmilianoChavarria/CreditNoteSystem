@@ -26,16 +26,23 @@ export function shouldHideMaterialRow(ctx: ConstraintContext, replenishmentAccep
 
 export const WORKFLOW_FIELD_CONSTRAINTS: WorkflowFieldConstraint[] = [
   {
-    // Habilitado solo en el paso final del flujo (ej. cuando se asigna el número de crédito).
-    // Al crear (!step) queda deshabilitado porque aún no hay paso asignado.
-    disableWhen: ({ step }) => !step || !(step?.isFinalStep ?? true),
-    fields: ['creditNumber'],
+    // Habilitado en el paso final del flujo O cuando el rol es IT.
+    // Al crear (!step) queda deshabilitado salvo que sea IT.
+    disableWhen: ({ step, assignedRoleName }) =>
+      assignedRoleName !== 'IT' || (!step || !(step?.isFinalStep ?? true)),
+    fields: ['creditNumber', 'newInvoice'],
   },
   {
     // Habilitado solo cuando el rol asignado es REQUESTER.
     // Al crear (!step) queda deshabilitado; en otros roles también.
     disableWhen: ({ step, assignedRoleName }) => !step || (!!assignedRoleName && assignedRoleName !== 'REQUESTER'),
-    fields: ['orderNumber'],
+    fields: ['orderNumber', 'deliveryNote'],
+  },
+  {
+    // Habilitado solo cuando el rol asignado es REQUESTER.
+    // Al crear (!step) queda deshabilitado; en otros roles también.
+    disableWhen: ({ assignedRoleName }) => (!!assignedRoleName && assignedRoleName !== 'REQUESTER'),
+    fields: ['invoiceNumber'],
   },
   {
     // Habilitado solo cuando el rol asignado es WAREHOUSE.
