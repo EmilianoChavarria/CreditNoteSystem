@@ -54,6 +54,12 @@ export class Customers {
             sortable: true
         },
         {
+            key: 'processorId',
+            label: 'CUSTOMERS_PAGE.PROCESSOR',
+            sortable: true,
+            render: (value, item) => item.clienteExt?.processorId?.fullName ?? '-'
+        },
+        {
             key: 'salesEngineerId',
             label: 'CUSTOMERS_PAGE.SALES_ENGINEER',
             sortable: true,

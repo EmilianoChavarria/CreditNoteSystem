@@ -88,6 +88,39 @@ export class NotificationService {
     );
   }
 
+  markAllAsRead(): Observable<string | null> {
+    return this.httpService.patch<null>('/notifications/read-all', {}).pipe(
+      tap(() => {
+        const now = new Date().toISOString();
+        this.notifications.update((current) =>
+          current.map((n) => ({ ...n, isRead: true, readAt: n.readAt ?? now }))
+        );
+        this.lastError.set(null);
+      }),
+      map((response) => response.message ?? null),
+      catchError((error) => {
+        this.lastError.set(this.toErrorMessage(error));
+        return throwError(() => error);
+      })
+    );
+  }
+
+  markAllAsUnread(): Observable<string | null> {
+    return this.httpService.patch<null>('/notifications/unread-all', {}).pipe(
+      tap(() => {
+        this.notifications.update((current) =>
+          current.map((n) => ({ ...n, isRead: false, readAt: null }))
+        );
+        this.lastError.set(null);
+      }),
+      map((response) => response.message ?? null),
+      catchError((error) => {
+        this.lastError.set(this.toErrorMessage(error));
+        return throwError(() => error);
+      })
+    );
+  }
+
   isRead(notification: AppNotification): boolean {
     if (typeof notification.isRead === 'boolean') {
       return notification.isRead;
