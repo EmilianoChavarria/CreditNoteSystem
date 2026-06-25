@@ -1,0 +1,9 @@
+<app-modal
+  [titleM]="'FORECAST.MY_REQUESTS.MODAL_TITLE' | translate"
+  size="xl"
+  [open]="open()"
+  [showPrimaryButton]="false"
+  [closeText]="'FORECAST.MY_REQUESTS.MODAL_CLOSE' | translate"
+  (closed)="closed.emit()">
+  <app-my-requests [refreshTrigger]="refreshTrigger()" />
+</app-modal>
