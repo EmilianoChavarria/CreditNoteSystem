@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, input, output, signal, effect, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
+import { TranslatePipe } from '@ngx-translate/core';
 import { Modal } from '../../../../shared/components/ui/modal/modal';
 import { ForecastClient, ForecastService, UpdateDistributorPayload } from '../../../../core/services/forecast.service';
 
@@ -21,7 +22,7 @@ export interface AddressParts {
   selector: 'app-edit-distributor-modal',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Modal, FormsModule],
+  imports: [TranslatePipe, Modal, FormsModule],
   templateUrl: './edit-distributor-modal.html',
 })
 export class EditDistributorModal {
