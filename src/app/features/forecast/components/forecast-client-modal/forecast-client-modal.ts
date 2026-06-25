@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ForecastMonthApi, ForecastService, PendingRequest } from '../../../../core/services/forecast.service';
 import { Modal } from '../../../../shared/components/ui/modal/modal';
 
@@ -7,12 +8,13 @@ const MONTHS = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV
 
 @Component({
   selector: 'app-forecast-client-modal',
-  imports: [Modal, DecimalPipe],
+  imports: [TranslatePipe, Modal, DecimalPipe],
   templateUrl: './forecast-client-modal.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ForecastClientModal {
   private readonly forecastService = inject(ForecastService);
+  private readonly translate = inject(TranslateService);
 
   readonly open = input<boolean>(false);
   readonly clientId = input<number>(0);
@@ -80,7 +82,7 @@ export class ForecastClientModal {
 
   stepTooltip(step: 'sales_manager' | 'general_manager'): string {
     return step === 'sales_manager'
-      ? 'Esperando aprobación de Sales Manager'
-      : 'Esperando aprobación de General Manager';
+      ? this.translate.instant('FORECAST.CLIENT_MODAL.AWAIT_SALES_MANAGER')
+      : this.translate.instant('FORECAST.CLIENT_MODAL.AWAIT_GENERAL_MANAGER');
   }
 }
