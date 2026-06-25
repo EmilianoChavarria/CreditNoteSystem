@@ -909,7 +909,8 @@
     "ACTIVE": "Active",
     "INACTIVE": "Inactive",
     "ASSIGN_MANAGER": "Assign Manager",
-    "SEE_INFO": "See info"
+    "SEE_INFO": "See info",
+    "EDIT_EXT": "Edit assignments"
   },
   "CUSTOMER_INFO_MODAL": {
     "TITLE": "Customer Information",

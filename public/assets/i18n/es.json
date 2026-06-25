@@ -909,7 +909,8 @@
     "ACTIVE": "Activo",
     "INACTIVE": "Inactivo",
     "ASSIGN_MANAGER": "Asignar Manager",
-    "SEE_INFO": "Ver información"
+    "SEE_INFO": "Ver información",
+    "EDIT_EXT": "Editar asignaciones"
   },
   "CUSTOMER_INFO_MODAL": {
     "TITLE": "Información del Cliente",
