@@ -1,0 +1,110 @@
+<app-modal
+  size="lg"
+  titleM="Editar datos del cliente"
+  [open]="open()"
+  [closeText]="'USERS_PAGE.CANCEL' | translate"
+  [primaryText]="'USERS_PAGE.SAVE' | translate"
+  [primaryLoading]="saving()"
+  [primaryDisabled]="saving()"
+  [closeOnBackdrop]="true"
+  (openChange)="openChange.emit($event)"
+  (primaryAction)="onSave()">
+
+  <div class="flex flex-col gap-y-2 max-h-[60vh] overflow-y-auto px-3">
+
+    <!-- Area -->
+    <app-select
+      id="ext-area"
+      label="Área"
+      placeholder="Selecciona área"
+      [options]="areaOptions"
+      [value]="form.controls.area.value"
+      (valueChange)="form.controls.area.setValue($event)" />
+
+    <!-- Divider -->
+    <div class="border-t border-gray-200 my-4 flex items-center justify-between w-full">
+      <span class="-mt-3 bg-white px-4 text-center mx-auto text-sm text-gray-500 uppercase tracking-wide">
+        Managers
+      </span>
+    </div>
+
+    <!-- Sales Engineer + Sales Manager -->
+    <div class="w-full gap-x-4 flex flex-row">
+      <div class="w-1/2">
+        <app-select
+          id="ext-sales-engineer"
+          label="Sales Engineer"
+          placeholder="Selecciona"
+          [options]="managerOptions()"
+          [value]="form.controls.salesEngineerId.value"
+          (valueChange)="form.controls.salesEngineerId.setValue($event)" />
+      </div>
+      <div class="w-1/2">
+        <app-select
+          id="ext-sales-manager"
+          label="Sales Manager"
+          placeholder="Selecciona"
+          [options]="managerOptions()"
+          [value]="form.controls.salesManagerId.value"
+          (valueChange)="form.controls.salesManagerId.setValue($event)" />
+      </div>
+    </div>
+
+    <!-- Finance Manager + Marketing Manager -->
+    <div class="w-full gap-x-4 flex flex-row">
+      <div class="w-1/2">
+        <app-select
+          id="ext-finance-manager"
+          label="Finance Manager"
+          placeholder="Selecciona"
+          [options]="managerOptions()"
+          [value]="form.controls.financeManagerId.value"
+          (valueChange)="form.controls.financeManagerId.setValue($event)" />
+      </div>
+      <div class="w-1/2">
+        <app-select
+          id="ext-marketing-manager"
+          label="Marketing Manager"
+          placeholder="Selecciona"
+          [options]="managerOptions()"
+          [value]="form.controls.marketingManagerId.value"
+          (valueChange)="form.controls.marketingManagerId.setValue($event)" />
+      </div>
+    </div>
+
+    <!-- CS Manager -->
+    <div class="w-full gap-x-4 flex flex-row pb-1">
+      <div class="w-1/2">
+        <app-select
+          id="ext-cs-manager"
+          label="CS Manager"
+          placeholder="Selecciona"
+          [options]="managerOptions()"
+          [value]="form.controls.csManagerId.value"
+          (valueChange)="form.controls.csManagerId.setValue($event)" />
+      </div>
+    </div>
+
+    <!-- Divider -->
+    <div class="border-t border-gray-200 my-4 flex items-center justify-between w-full">
+      <span class="-mt-3 bg-white px-4 text-center mx-auto text-sm text-gray-500 uppercase tracking-wide">
+        Procesador
+      </span>
+    </div>
+
+    <!-- Processor -->
+    <div class="w-full gap-x-4 flex flex-row pb-1">
+      <div class="w-1/2">
+        <app-select
+          id="ext-processor"
+          label="Procesador"
+          placeholder="Selecciona"
+          [options]="requesterOptions()"
+          [value]="form.controls.processorId.value"
+          (valueChange)="form.controls.processorId.setValue($event)" />
+      </div>
+    </div>
+
+  </div>
+
+</app-modal>
