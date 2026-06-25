@@ -7,12 +7,13 @@ import { finalize } from 'rxjs';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AssignManagersPayload, AssignModal } from "./components/assign-modal/assign-modal";
 import { CustomerInfoModal } from "./components/customer-info-modal/customer-info-modal";
+import { EditCustomerExtModal } from "./components/edit-customer-ext-modal/edit-customer-ext-modal";
 
 @Component({
     selector: 'app-customers',
     templateUrl: './customers.html',
     styleUrl: './customers.css',
-    imports: [Table, LucideAngularModule, TranslatePipe, AssignModal, CustomerInfoModal],
+    imports: [Table, LucideAngularModule, TranslatePipe, AssignModal, CustomerInfoModal, EditCustomerExtModal],
 })
 export class Customers {
     private readonly _translateService = inject(TranslateService);
@@ -30,6 +31,7 @@ export class Customers {
 
     public isOpenModal = signal<boolean>(false);
     public isOpenInfoModal = signal<boolean>(false);
+    public isOpenExtModal = signal<boolean>(false);
 
     public columns: Column<Customer>[] = [
         {
@@ -99,6 +101,15 @@ export class Customers {
             accion: (customer) => {
                 this.customer = customer;
                 this.isOpenInfoModal.set(true);
+            }
+        },
+        {
+            key: 'edit-ext',
+            icon: 'pencil',
+            label: 'CUSTOMERS_PAGE.EDIT_EXT',
+            accion: (customer) => {
+                this.customer = customer;
+                this.isOpenExtModal.set(true);
             }
         }
     ];
