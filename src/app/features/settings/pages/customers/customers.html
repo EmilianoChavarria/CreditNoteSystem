@@ -24,4 +24,10 @@
 
     <app-customer-info-modal [open]="isOpenInfoModal()" [customer]="customer"
         (openChange)="isOpenInfoModal.set($event)" />
+
+    <app-edit-customer-ext-modal
+        [open]="isOpenExtModal()"
+        [customer]="customer ?? null"
+        (openChange)="isOpenExtModal.set($event)"
+        (saved)="getUsers(currentPage())" />
 </section>

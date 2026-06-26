@@ -2,22 +2,22 @@
   [open]="open()"
   [titleM]="clientName()"
   [showPrimaryButton]="false"
-  closeText="Cerrar"
+  [closeText]="'FORECAST.CLIENT_MODAL.CLOSE' | translate"
   size="2xl"
   (closed)="closed.emit()">
 
-  <p modal-title class="text-xs text-gray-400 mt-0.5">Forecast {{ year() }}</p>
+  <p modal-title class="text-xs text-gray-400 mt-0.5">{{ 'FORECAST.CLIENT_MODAL.LABEL_FORECAST' | translate }} {{ year() }}</p>
 
   @if (!loading() && months().length > 0) {
     <div class="grid grid-cols-4 gap-3 mb-5">
 
       <div class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
-        <p class="text-[10px] font-semibold uppercase tracking-wider text-gray-400">Forecast anual</p>
+        <p class="text-[10px] font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.CLIENT_MODAL.ANNUAL_FORECAST' | translate }}</p>
         <p class="mt-1 text-lg font-bold text-gray-800">$ {{ forecastTotal() | number:'1.0-0' }}</p>
       </div>
 
       <div class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
-        <p class="text-[10px] font-semibold uppercase tracking-wider text-gray-400">Total Ventas Anuales</p>
+        <p class="text-[10px] font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.CLIENT_MODAL.ANNUAL_SALES' | translate }}</p>
         <p class="mt-1 text-lg font-bold text-gray-800">$ {{ salesTotal() | number:'1.0-0' }}</p>
       </div>
 
@@ -25,18 +25,18 @@
         [class.bg-green-50]="fulfillmentPct() >= 80"
         [class.bg-amber-50]="fulfillmentPct() > 0 && fulfillmentPct() < 80"
         [class.bg-gray-50]="fulfillmentPct() === 0">
-        <p class="text-[10px] font-semibold uppercase tracking-wider text-gray-400">Cumplimiento</p>
+        <p class="text-[10px] font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.CLIENT_MODAL.FULFILLMENT' | translate }}</p>
         <p class="mt-1 text-lg font-bold"
           [class.text-green-700]="fulfillmentPct() >= 80"
           [class.text-amber-700]="fulfillmentPct() > 0 && fulfillmentPct() < 80"
           [class.text-gray-400]="fulfillmentPct() === 0">
           {{ fulfillmentPct() | number:'1.1-1' }}%
         </p>
-        <p class="text-xs text-amber-700"> Ventas vs Forecast</p>
+        <p class="text-xs text-amber-700">{{ 'FORECAST.CLIENT_MODAL.SALES_VS_FORECAST' | translate }}</p>
       </div>
 
       <div class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
-        <p class="text-[10px] font-semibold uppercase tracking-wider text-gray-400">Mejor mes (ventas)</p>
+        <p class="text-[10px] font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.CLIENT_MODAL.BEST_MONTH' | translate }}</p>
         @if (bestMonth(); as best) {
           <p class="mt-1 text-lg font-bold text-gray-800">{{ best.label }}</p>
           <p class="text-xs text-gray-500">$ {{ best.value | number:'1.0-0' }}</p>
@@ -50,11 +50,11 @@
 
   @if (loading()) {
     <div class="flex items-center justify-center py-16 text-sm text-gray-400">
-      Cargando forecast...
+      {{ 'FORECAST.CLIENT_MODAL.LOADING' | translate }}
     </div>
   } @else if (months().length === 0) {
     <div class="flex items-center justify-center py-16 text-sm text-gray-400">
-      Sin datos de forecast para este período.
+      {{ 'FORECAST.CLIENT_MODAL.EMPTY' | translate }}
     </div>
   } @else {
     <div class="overflow-x-auto">
@@ -62,7 +62,7 @@
         <thead>
           <tr class="border-b-2 border-gray-200 bg-gray-50">
             <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400 min-w-44 sticky left-0 z-10 align-middle border-r border-gray-200 bg-gray-50">
-              Concepto
+              {{ 'FORECAST.CLIENT_MODAL.COL_CONCEPT' | translate }}
             </th>
             @for (month of MONTHS; track month) {
               <th class="px-2 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-400 min-w-28">
@@ -70,7 +70,7 @@
               </th>
             }
             <th class="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-400 min-w-32">
-              Total
+              {{ 'FORECAST.CLIENT_MODAL.COL_TOTAL' | translate }}
             </th>
           </tr>
         </thead>
@@ -80,7 +80,7 @@
           <!-- Forecast row -->
           <tr class="border-t-2 border-gray-200 bg-gray-50/40">
             <td class="px-4 py-1.5 whitespace-nowrap sticky left-0 z-10 font-semibold text-sm align-middle bg-white border-r border-gray-200">
-              <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Forecast</span>
+              <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">{{ 'FORECAST.CLIENT_MODAL.LABEL_FORECAST' | translate }}</span>
             </td>
             @for (i of MONTH_INDICES; track i) {
               <td class="px-2 py-1.5 text-right text-xs text-gray-600 whitespace-nowrap">
@@ -95,7 +95,7 @@
           <!-- Modificación row -->
           <tr class="bg-white">
             <td class="px-4 py-1.5 whitespace-nowrap sticky left-0 z-10 font-semibold text-sm align-middle bg-white border-r border-gray-200">
-              <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Modificación</span>
+              <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">{{ 'FORECAST.CLIENT_MODAL.LABEL_MODIFICATION' | translate }}</span>
             </td>
             @for (i of MONTH_INDICES; track i) {
               <td class="px-2 py-1.5 text-right text-xs whitespace-nowrap">
@@ -120,7 +120,7 @@
           <!-- Ventas row -->
           <tr class="bg-white border-b border-gray-100">
             <td class="px-4 py-1.5 whitespace-nowrap sticky left-0 z-10 font-semibold text-sm align-middle bg-white border-r border-gray-200">
-              <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Ventas</span>
+              <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">{{ 'FORECAST.CLIENT_MODAL.LABEL_SALES' | translate }}</span>
             </td>
             @for (i of MONTH_INDICES; track i) {
               <td class="px-2 py-1.5 text-right text-xs text-gray-600 whitespace-nowrap">

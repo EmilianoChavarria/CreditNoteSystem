@@ -103,16 +103,6 @@
 
         <app-tab [titleT]="'NEW_REQUEST_FORM.TAB_REFERENCE_LOGISTICS' | translate">
             <div class="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-4 md:gap-8">
-                <!-- <div>
-                    <label for="deliveryNote"
-                        class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.DELIVERY_NOTE' |
-                        translate}}</label>
-                    <input id="deliveryNote" type="text" formControlName="deliveryNote"
-                        [class]="campoVacio('deliveryNote') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
-                    @if (campoVacio('deliveryNote')) {
-                    <span class="text-sm text-red-500">{{ getErrorMessage('deliveryNote') }}</span>
-                    }
-                </div> -->
                 <div>
                     <label for="orderNumber"
                         class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.ORDER_NUMBER' |
@@ -124,13 +114,13 @@
                     }
                 </div>
                 <div>
-                    <label for="creditNumber"
-                        class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.CREDIT_DEBIT_NUMBER' |
+                    <label for="deliveryNote"
+                        class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.DELIVERY_NOTE' |
                         translate}}</label>
-                    <input id="creditNumber" type="text" formControlName="creditNumber"
-                        [class]="campoVacio('creditNumber') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
-                    @if (campoVacio('creditNumber')) {
-                    <span class="text-sm text-red-500">{{ getErrorMessage('creditNumber') }}</span>
+                    <input id="deliveryNote" type="text" formControlName="deliveryNote"
+                        [class]="campoVacio('deliveryNote') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
+                    @if (campoVacio('deliveryNote')) {
+                    <span class="text-sm text-red-500">{{ getErrorMessage('deliveryNote') }}</span>
                     }
                 </div>
                 <div>
@@ -144,6 +134,17 @@
                     }
                 </div>
                 <div>
+                    <label for="creditNumber"
+                        class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.CREDIT_DEBIT_NUMBER' |
+                        translate}}</label>
+                    <input id="creditNumber" type="text" formControlName="creditNumber"
+                        [class]="campoVacio('creditNumber') ? 'border-red-500 focus:ring-red-500 mt-1 block w-full border rounded-md p-2 shadow-sm focus:border-red-500 disabled:bg-gray-100' : 'mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100'" />
+                    @if (campoVacio('creditNumber')) {
+                    <span class="text-sm text-red-500">{{ getErrorMessage('creditNumber') }}</span>
+                    }
+                </div>
+                
+                <!-- <div>
                     <label for="invoiceDate"
                         class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.INVOICE_DATE' |
                         translate}}</label>
@@ -152,7 +153,7 @@
                     @if (campoVacio('invoiceDate')) {
                     <span class="text-sm text-red-500">{{ getErrorMessage('invoiceDate') }}</span>
                     }
-                </div>
+                </div> -->
                 <div>
                     <label for="newInvoice"
                         class="block font-medium text-[#395f93] text-sm">{{'NEW_REQUEST_FORM.NEW_INVOICE' |

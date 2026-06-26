@@ -1,13 +1,13 @@
 @if (loading()) {
   <div class="flex items-center justify-center py-16 text-sm text-gray-400">
-    Cargando forecast...
+    {{ 'FORECAST.TABLE.LOADING' | translate }}
   </div>
 }
 
 @if (!loading()) {
   @if (distributors().length === 0) {
     <div class="flex items-center justify-center py-16 text-sm text-gray-400">
-      Sin clientes con forecast para este período.
+      {{ 'FORECAST.TABLE.EMPTY' | translate }}
     </div>
   } @else {
     <div class="overflow-x-auto">
@@ -15,7 +15,7 @@
         <thead>
           <tr class="border-b-2 border-gray-200 bg-gray-50">
             <th class="sticky left-0 z-20 text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-gray-400 min-w-52 bg-gray-50 border-r border-gray-200">
-              Cliente
+              {{ 'FORECAST.TABLE.COL_CLIENT' | translate }}
             </th>
             <th class="px-3 py-3 min-w-32"></th>
             @for (month of MONTHS; track month) {
@@ -24,7 +24,7 @@
               </th>
             }
             <th class="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-400 min-w-32">
-              Total
+              {{ 'FORECAST.TABLE.COL_TOTAL' | translate }}
             </th>
           </tr>
         </thead>
@@ -44,7 +44,7 @@
                 </button>
               </td>
               <td class="px-3 py-1.5 whitespace-nowrap">
-                <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Forecast</span>
+                <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">{{ 'FORECAST.TABLE.LABEL_FORECAST' | translate }}</span>
               </td>
               @for (m of dist.months; track $index; let i = $index) {
                 <td
@@ -52,7 +52,7 @@
                   [class.cursor-pointer]="isEditableMonth(i) && m.pendingRequest?.status !== 'pending'"
                   [class.hover:bg-gray-100]="isEditableMonth(i) && m.pendingRequest?.status !== 'pending'"
                   [class.opacity-60]="m.pendingRequest?.status === 'pending' || !isEditableMonth(i)"
-                  [title]="!isEditableMonth(i) ? 'Mes no editable' : (m.pendingRequest?.status === 'pending' ? 'Cambio pendiente de aprobación' : 'Doble clic para editar')"
+                  [title]="!isEditableMonth(i) ? ('FORECAST.TABLE.MONTH_NOT_EDITABLE' | translate) : (m.pendingRequest?.status === 'pending' ? ('FORECAST.TABLE.PENDING_CHANGE' | translate) : ('FORECAST.TABLE.DBL_CLICK_EDIT' | translate))"
                   (dblclick)="onCellDblClick(dist, i)">
                   @if (isEditing(dist.id, i)) {
                     <input
@@ -64,7 +64,7 @@
                       (blur)="submitChangeRequest(dist.id, i)"
                       (keydown)="handleKeydown($event, dist.id, i)">
                   } @else if (isSubmitting(dist.id, i)) {
-                    <span class="italic text-gray-400">Enviando...</span>
+                    <span class="italic text-gray-400">{{ 'FORECAST.TABLE.SENDING' | translate }}</span>
                   } @else {
                     $ {{ m.forecast | number:'1.0-0' }}
                   }
@@ -81,7 +81,7 @@
                 <span [class]="hasAnyPending(dist)
                   ? 'text-[11px] font-semibold text-amber-600 uppercase tracking-wide'
                   : 'text-[11px] font-semibold text-gray-300 uppercase tracking-wide'">
-                  Modificación de objetivo de ventas
+                  {{ 'FORECAST.TABLE.LABEL_MODIFICATION' | translate }}
                 </span>
               </td>
               @for (m of dist.months; track $index) {
@@ -107,12 +107,12 @@
             <!-- Ventas row -->
             <tr class="bg-white">
               <td class="px-3 py-1.5 whitespace-nowrap">
-                <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Ventas</span>
+                <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">{{ 'FORECAST.TABLE.LABEL_SALES' | translate }}</span>
               </td>
               @for (m of dist.months; track $index) {
                 <td
                   class="px-2 py-1.5 text-right text-xs text-gray-600 whitespace-nowrap cursor-pointer hover:bg-blue-50 hover:text-blue-700 transition-colors"
-                  title="Ver desglose de facturas"
+                  [title]="'FORECAST.TABLE.VIEW_INVOICES' | translate"
                   (click)="openInvoices(dist, $index)">
                   $ {{ m.sales | number:'1.0-0' }}
                 </td>
@@ -124,23 +124,6 @@
 
           }
         </tbody>
-
-        <!-- <tfoot>
-          <tr class="border-t-2 border-gray-300 bg-gray-50">
-            <td class="sticky left-0 z-10 px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wide bg-gray-50 border-r border-gray-200 whitespace-nowrap">
-              Total
-            </td>
-            <td class="px-3 py-2.5"></td>
-            @for (total of colTotals(); track $index) {
-              <td class="px-2 py-2.5 text-right text-xs font-bold text-gray-700 whitespace-nowrap">
-                $ {{ total | number:'1.0-0' }}
-              </td>
-            }
-            <td class="px-3 py-2.5 text-right text-xs font-bold text-gray-700 whitespace-nowrap border-l border-gray-200">
-              $ {{ grandTotal() }}
-            </td>
-          </tr>
-        </tfoot> -->
       </table>
     </div>
   }

@@ -1,29 +1,29 @@
 <div class="bg-white rounded-xl border border-gray-200 shadow-sm">
   <div class="px-5 py-4 border-b border-gray-100">
-    <h2 class="text-base font-semibold text-gray-800">Mis solicitudes</h2>
-    <p class="text-xs text-gray-400 mt-0.5">Historial de cambios de monto enviados.</p>
+    <h2 class="text-base font-semibold text-gray-800">{{ 'FORECAST.MY_REQUESTS.TITLE' | translate }}</h2>
+    <p class="text-xs text-gray-400 mt-0.5">{{ 'FORECAST.MY_REQUESTS.DESCRIPTION' | translate }}</p>
   </div>
 
   @if (loading()) {
     <div class="flex items-center justify-center py-12 text-sm text-gray-400">
-      Cargando...
+      {{ 'FORECAST.MY_REQUESTS.LOADING' | translate }}
     </div>
   } @else if (requests().length === 0) {
     <div class="flex items-center justify-center py-12 text-sm text-gray-400">
-      Sin solicitudes registradas.
+      {{ 'FORECAST.MY_REQUESTS.EMPTY' | translate }}
     </div>
   } @else {
     <div class="overflow-x-auto">
       <table class="w-full text-sm">
         <thead>
           <tr class="border-b border-gray-100 bg-gray-50">
-            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">Cliente</th>
-            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">Período</th>
-            <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-400">Anterior</th>
-            <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-400">Propuesto</th>
-            <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-400">Estado</th>
-            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">Paso actual</th>
-            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">Enviado</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.MY_REQUESTS.COL_CLIENT' | translate }}</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.MY_REQUESTS.COL_PERIOD' | translate }}</th>
+            <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.MY_REQUESTS.COL_PREVIOUS' | translate }}</th>
+            <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.MY_REQUESTS.COL_PROPOSED' | translate }}</th>
+            <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.MY_REQUESTS.COL_STATUS' | translate }}</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.MY_REQUESTS.COL_CURRENT_STEP' | translate }}</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.MY_REQUESTS.COL_SUBMITTED' | translate }}</th>
           </tr>
         </thead>
         <tbody>

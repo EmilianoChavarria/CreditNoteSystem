@@ -1,95 +1,164 @@
 <div class="min-h-screen bg-gray-50 p-6">
 
-  <!-- Period + year selector -->
-  <div class="flex items-center justify-between mb-6">
-    <div class="flex items-center gap-2 text-sm text-gray-500">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-      </svg>
-      <span class="font-medium">Período activo:</span>
-    </div>
-    <div class="flex items-center gap-0.5 bg-white border border-gray-200 rounded-full px-1 py-1 shadow-sm">
-      @for (year of years; track year) {
-        <button
-          type="button"
-          (click)="selectYear(year)"
-          [class]="activeYear() === year
-            ? 'bg-[#ff8200] text-white px-5 py-1.5 rounded-full text-sm font-semibold transition'
-            : 'text-gray-500 px-5 py-1.5 rounded-full text-sm hover:text-gray-800 transition'">
-          {{ year }}
-        </button>
-      }
-    </div>
-  </div>
-
   <!-- Title + actions -->
   <div class="flex items-start justify-between mb-6">
     <div>
-      <h1 class="text-2xl font-bold text-gray-800">Forecast de Ventas {{ activeYear() }}</h1>
-      <p class="text-sm text-gray-400 mt-1">Consulta y solicita cambios en las proyecciones de tus clientes.</p>
+      <h1 class="text-2xl font-bold text-gray-800">{{ 'FORECAST.SALES_MANAGE.TITLE' | translate }} {{ activeYear() }}</h1>
+      <p class="text-sm text-gray-400 mt-1">{{ 'FORECAST.SALES_MANAGE.DESCRIPTION' | translate }}</p>
     </div>
-    <div class="mt-1 flex gap-x-2">
-      <a
-        href="assets/templates/Layout Forecast.csv"
-        download="Layout Forecast.csv"
-        class="w-full sm:w-auto bg-[#ff8200] text-white rounded-md text-sm px-3 py-2 hover:cursor-pointer hover:bg-[#fc9629] text-center flex flex-row items-center gap-x-2 justify-center">
-        <lucide-icon name="download" class="my-auto" size="14"></lucide-icon>
-        Descargar Plantilla
-      </a>
-
-      <input
-        #fileInput
-        type="file"
-        accept=".csv,.xlsx"
-        class="hidden"
-        (change)="onFileSelected($event)">
+    <div class="flex gap-2 mt-1">
       <button
         type="button"
-        [disabled]="uploading()"
-        (click)="fileInput.click()"
-        class="inline-flex items-center gap-2 rounded-lg bg-[#395f93] white px-3 py-2 text-sm font-medium text-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-sm">
-        @if (uploading()) {
-          <svg class="animate-spin w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-          </svg>
-          Importando...
-        } @else {
-          <lucide-icon name="upload" class="my-auto" size="14"></lucide-icon>
-          Carga masiva de Forecast
+        (click)="showMyRequestsModal.set(true)"
+        class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm transition">
+        <lucide-icon name="file-text" size="14"></lucide-icon>
+        {{ 'FORECAST.SALES_MANAGE.MY_REQUESTS_BTN' | translate }}
+      </button>
+      <button
+        type="button"
+        (click)="showPendingApprovalsModal.set(true)"
+        class="relative inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm transition">
+        <lucide-icon name="clock" size="14"></lucide-icon>
+        {{ 'FORECAST.SALES_MANAGE.PENDING_APPROVALS_BTN' | translate }}
+        @if (pendingCount() > 0) {
+          <span class="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow">
+            {{ pendingCount() > 9 ? '9+' : pendingCount() }}
+          </span>
         }
       </button>
     </div>
   </div>
 
-  <!-- Forecast table -->
+  <!-- Engineers panel (SALES MANAGER + FORECAST ADMIN) -->
+  @if (isSalesManager() || isForecastAdmin()) {
+  <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 mb-6">
+    <div class="flex items-center gap-2 mb-4">
+      <lucide-icon name="users" size="18" class="text-[#395f93]"></lucide-icon>
+      <h2 class="text-base font-semibold text-gray-800">
+        {{ isForecastAdmin() ? ('FORECAST.SALES_MANAGE.ALL_ENGINEERS' | translate) : ('FORECAST.SALES_MANAGE.MY_ENGINEERS' | translate) }}
+      </h2>
+    </div>
+
+    @if (loadingEngineers()) {
+    <div class="flex items-center gap-2 text-sm text-gray-400">
+      <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+      </svg>
+      {{ 'FORECAST.SALES_MANAGE.LOADING_ENGINEERS' | translate }}
+    </div>
+    } @else if (engineers().length === 0) {
+    <p class="text-sm text-gray-400">
+      {{ isForecastAdmin() ? ('FORECAST.SALES_MANAGE.NO_ENGINEERS_ADMIN' | translate) : ('FORECAST.SALES_MANAGE.NO_ENGINEERS_MANAGER' | translate) }}
+    </p>
+    } @else {
+    <!-- Dropdown for SALES MANAGER and FORECAST ADMIN -->
+    <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+      <label class="text-sm font-medium text-gray-600 shrink-0">{{ 'FORECAST.SALES_MANAGE.SELECT_ENGINEER_LABEL' | translate }}</label>
+      <select (change)="onEngineerSelected($event)"
+        class="flex-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#395f93] focus:border-transparent transition">
+        <option value="">{{ 'FORECAST.SALES_MANAGE.SELECT_PLACEHOLDER' | translate }}</option>
+        @for (eng of engineers(); track eng.id) {
+        <option [value]="eng.id">{{ eng.fullName }} ({{ eng.email }})</option>
+        }
+      </select>
+    </div>
+
+    @if (selectedEngineer()) {
+    <div class="mt-3 flex items-center gap-2 text-sm text-gray-500">
+      <lucide-icon name="user" size="14" class="text-[#ff8200]"></lucide-icon>
+      {{ 'FORECAST.SALES_MANAGE.VIEWING_FORECAST' | translate }} <span class="font-semibold text-gray-700 ml-1">{{ selectedEngineer()!.fullName }}</span>
+    </div>
+    }
+    }
+  </div>
+  }
+
+
+
+
+  <!-- Title + actions -->
+  <div class="flex items-start justify-between mb-6 ">
+
+    <!-- Period + year selector -->
+    <div class="flex items-center justify-between gap-x-6">
+      <div class="flex items-center gap-2 text-sm text-gray-500">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        <span class="font-medium">{{ 'FORECAST.SALES_MANAGE.ACTIVE_PERIOD' | translate }}</span>
+      </div>
+      <div class="flex items-center gap-0.5 bg-white border border-gray-200 rounded-full px-1 py-1 shadow-sm">
+        @for (year of years; track year) {
+        <button type="button" (click)="selectYear(year)" [class]="activeYear() === year
+            ? 'bg-[#ff8200] text-white px-5 py-1.5 rounded-full text-sm font-semibold transition'
+            : 'text-gray-500 px-5 py-1.5 rounded-full text-sm hover:text-gray-800 transition'">
+          {{ year }}
+        </button>
+        }
+      </div>
+    </div>
+
+    <!-- Template buttons -->
+    <div class="mt-1 flex gap-x-2">
+      <a href="assets/templates/Layout Forecast.csv" download="Layout Forecast.csv"
+        class="w-full sm:w-auto bg-[#ff8200] text-white rounded-md text-sm px-3 py-2 hover:cursor-pointer hover:bg-[#fc9629] text-center flex flex-row items-center gap-x-2 justify-center">
+        <lucide-icon name="download" class="my-auto" size="14"></lucide-icon>
+        {{ 'FORECAST.SALES_MANAGE.DOWNLOAD_TEMPLATE' | translate }}
+      </a>
+
+      <input #fileInput type="file" accept=".csv,.xlsx" class="hidden" (change)="onFileSelected($event)">
+      <button type="button" [disabled]="uploading()" (click)="fileInput.click()"
+        class="inline-flex items-center gap-2 rounded-lg bg-[#395f93] white px-3 py-2 text-sm font-medium text-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-sm">
+        @if (uploading()) {
+        <svg class="animate-spin w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+        </svg>
+        {{ 'FORECAST.SALES_MANAGE.UPLOADING' | translate }}
+        } @else {
+        <lucide-icon name="upload" class="my-auto" size="14"></lucide-icon>
+        {{ 'FORECAST.SALES_MANAGE.BULK_UPLOAD' | translate }}
+        }
+      </button>
+    </div>
+  </div>
+
+  <!-- Forecast table (show always for SE; for SM/FA only after selecting engineer) -->
+  @if ((!isSalesManager() && !isForecastAdmin()) || selectedEngineer()) {
   <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden mb-6">
-    <app-forecast-table
-      [distributors]="distributors()"
-      [year]="activeYear()"
-      [loading]="loading()"
+    <app-forecast-table [distributors]="distributors()" [year]="activeYear()" [loading]="loading()"
       (refreshNeeded)="onRefreshNeeded()" />
   </div>
 
   <!-- Summary cards -->
   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
     <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-      <p class="text-xs text-gray-400 mb-2">Total Forecast Anual</p>
+      <p class="text-xs text-gray-400 mb-2">{{ 'FORECAST.SALES_MANAGE.TOTAL_ANNUAL' | translate }}</p>
       <p class="text-2xl font-bold text-gray-800">$ {{ grandTotal() | number:'1.0-0' }}</p>
     </div>
     <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-      <p class="text-xs text-gray-400 mb-2">Clientes activos</p>
+      <p class="text-xs text-gray-400 mb-2">{{ 'FORECAST.SALES_MANAGE.ACTIVE_CLIENTS' | translate }}</p>
       <p class="text-2xl font-bold text-gray-800">{{ distributors().length }}</p>
     </div>
   </div>
-
-  <!-- My requests -->
-  <app-my-requests [refreshTrigger]="refreshTrigger()" />
-
-  <!-- Pending approvals -->
-  <div class="mt-6">
-    <app-pending-approvals />
+  } @else {
+  <div
+    class="bg-white rounded-xl border border-gray-200 shadow-sm p-10 mb-6 flex flex-col items-center gap-3 text-gray-400">
+    <lucide-icon name="bar-chart-2" size="40" class="opacity-30"></lucide-icon>
+    <p class="text-sm">{{ 'FORECAST.SALES_MANAGE.SELECT_ENGINEER_HINT' | translate }}</p>
   </div>
+  }
+
+  <app-my-requests-modal
+    [open]="showMyRequestsModal()"
+    [refreshTrigger]="refreshTrigger()"
+    (closed)="showMyRequestsModal.set(false)" />
+
+  <app-pending-approvals-modal
+    [open]="showPendingApprovalsModal()"
+    (closed)="showPendingApprovalsModal.set(false)"
+    (resolved)="onPendingResolved()" />
 
 </div>

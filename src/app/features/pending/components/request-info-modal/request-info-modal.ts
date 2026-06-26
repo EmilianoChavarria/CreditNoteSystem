@@ -208,10 +208,10 @@ export class RequestInfoModal {
       .sort((a, b) => a.stepOrder - b.stepOrder)
       .map((step) => {
         const log = latestLogByStepId.get(step.id);
-        let userName = log?.action_user?.fullName ?? '---';
-        if (step.isCurrent && req.workflowCurrentStep?.assigned_user?.fullName) {
-          userName = req.workflowCurrentStep.assigned_user.fullName;
-        }
+        let userName =
+          log?.request_step?.assigned_user?.fullName
+          ?? (step.isCurrent ? req.workflowCurrentStep?.assigned_user?.fullName : null)
+          ?? '---';
 
         return {
           stepOrder: step.stepOrder,

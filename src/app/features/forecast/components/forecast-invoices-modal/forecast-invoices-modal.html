@@ -1,8 +1,8 @@
 <app-modal
   [open]="open()"
-  [titleM]="monthLabel() + ' — Desglose de ventas'"
+  [titleM]="monthLabel() + ' — ' + ('FORECAST.INVOICES_MODAL.TITLE_SUFFIX' | translate)"
   [showPrimaryButton]="false"
-  closeText="Cerrar"
+  [closeText]="'FORECAST.INVOICES_MODAL.CLOSE' | translate"
   size="xl"
   (closed)="closed.emit()">
 
@@ -10,11 +10,11 @@
 
   @if (loading()) {
     <div class="flex items-center justify-center py-10 text-sm text-gray-400">
-      Cargando facturas...
+      {{ 'FORECAST.INVOICES_MODAL.LOADING' | translate }}
     </div>
   } @else if (invoices().length === 0) {
     <div class="flex items-center justify-center py-10 text-sm text-gray-400">
-      Sin facturas registradas para este período.
+      {{ 'FORECAST.INVOICES_MODAL.EMPTY' | translate }}
     </div>
   } @else {
     <div class="overflow-x-auto">
@@ -22,19 +22,19 @@
         <thead>
           <tr class="border-b-2 border-gray-200 bg-gray-50">
             <th class="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">
-              Folio
+              {{ 'FORECAST.INVOICES_MODAL.COL_FOLIO' | translate }}
             </th>
             <th class="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">
-              Fecha emisión
+              {{ 'FORECAST.INVOICES_MODAL.COL_DATE' | translate }}
             </th>
             <th class="px-4 py-2.5 text-right text-xs font-semibold uppercase tracking-wider text-gray-400">
-              Subtotal
+              {{ 'FORECAST.INVOICES_MODAL.COL_SUBTOTAL' | translate }}
             </th>
             <th class="px-4 py-2.5 text-right text-xs font-semibold uppercase tracking-wider text-gray-400">
-              IVA
+              {{ 'FORECAST.INVOICES_MODAL.COL_IVA' | translate }}
             </th>
             <th class="px-4 py-2.5 text-right text-xs font-semibold uppercase tracking-wider text-gray-400">
-              Total
+              {{ 'FORECAST.INVOICES_MODAL.COL_TOTAL' | translate }}
             </th>
           </tr>
         </thead>
@@ -64,7 +64,7 @@
         <tfoot>
           <tr class="border-t-2 border-gray-300 bg-gray-50">
             <td colspan="2" class="px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wide">
-              Total ({{ invoices().length }} facturas)
+              {{ 'FORECAST.INVOICES_MODAL.TOTAL_LABEL' | translate:{ count: invoices().length } }}
             </td>
             <td class="px-4 py-2.5 text-right text-xs font-bold text-gray-700 whitespace-nowrap">
               ${{ grandSubTotal() | number:'1.2-2' }}

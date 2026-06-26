@@ -19,6 +19,8 @@ import { InvalidInvoicesModal } from '../invalid-invoices-modal/invalid-invoices
   styleUrl: './re-invoicing-form.css',
 })
 export class ReInvoicingForm extends BaseRequestForm {
+  protected override readonly isReinvoicingForm = true;
+
   constructor(
     requestService: RequestService,
     customerService: CustomerService,
