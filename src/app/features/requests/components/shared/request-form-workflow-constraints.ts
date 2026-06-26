@@ -5,6 +5,8 @@ export interface ConstraintContext {
   step: WorkflowStep | undefined;
   /** Nombre del rol asignado al paso actual (ej. "WAREHOUSE", "FINANCE") */
   assignedRoleName: string | undefined;
+  /** true cuando el formulario activo es el de re-facturación */
+  isReinvoicing?: boolean;
 }
 
 export interface WorkflowFieldConstraint {
@@ -29,19 +31,25 @@ export const WORKFLOW_FIELD_CONSTRAINTS: WorkflowFieldConstraint[] = [
     // Habilitado en el paso final del flujo O cuando el rol es IT.
     // Al crear (!step) queda deshabilitado salvo que sea IT.
     disableWhen: ({ step, assignedRoleName }) =>
-      assignedRoleName !== 'IT' || (!step || !(step?.isFinalStep ?? true)),
+      !step || (assignedRoleName !== 'IT' && !(step?.isFinalStep ?? false)),
     fields: ['creditNumber', 'newInvoice'],
   },
   {
-    // Habilitado solo cuando el rol asignado es REQUESTER.
-    // Al crear (!step) queda deshabilitado; en otros roles también.
-    disableWhen: ({ step, assignedRoleName }) => !step || (!!assignedRoleName && assignedRoleName !== 'REQUESTER'),
+    // En re-invoicing sin paso (creación) siempre habilitado.
+    // En otros formularios: deshabilitado si no hay paso; con paso, solo REQUESTER.
+    disableWhen: ({ step, assignedRoleName, isReinvoicing }) =>
+      isReinvoicing && !step
+        ? false
+        : !step || (assignedRoleName !== 'REQUESTER' && assignedRoleName !== 'REQUESTER / PROCESSOR'),
     fields: ['orderNumber', 'deliveryNote'],
   },
   {
     // Habilitado solo cuando el rol asignado es REQUESTER.
     // Al crear (!step) queda deshabilitado; en otros roles también.
-    disableWhen: ({ assignedRoleName }) => (!!assignedRoleName && assignedRoleName !== 'REQUESTER'),
+    disableWhen: ({ step, assignedRoleName, isReinvoicing }) =>
+      isReinvoicing && !step
+        ? false
+        : !step || (assignedRoleName !== 'REQUESTER' && assignedRoleName !== 'REQUESTER / PROCESSOR'),
     fields: ['invoiceNumber'],
   },
   {
