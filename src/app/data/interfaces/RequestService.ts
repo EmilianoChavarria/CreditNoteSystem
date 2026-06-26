@@ -64,9 +64,16 @@ export interface RequestHistoryLog {
     requestId: number;
     workflowStepId: number;
     assignedRoleId: number;
+    assignedUserId: number | null;
     status: string;
     startedAt: string | null;
     completedAt: string | null;
+    assigned_user?: {
+      id: number;
+      fullName: string;
+      email: string;
+      roleId: number;
+    };
   };
 }
 
