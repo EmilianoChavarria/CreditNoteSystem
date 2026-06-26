@@ -45,6 +45,7 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
   ) { }
 
   protected readonly maxSupportFiles = 10;
+  protected readonly isReinvoicingForm: boolean = false;
   @Input() requestTypeId: number | null = null;
   @Input() initialRequestData: Partial<Request> | null = null;
   @Input() approvalContext: ApprovalContext | null = null;
@@ -232,6 +233,7 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
     const ctx: ConstraintContext = {
       step: this.initialRequestData?.workflowCurrentStep?.workflow_step,
       assignedRoleName: this.initialRequestData?.workflowCurrentStep?.assigned_role?.roleName,
+      isReinvoicing: this.isReinvoicingForm,
     };
 
     for (const constraint of WORKFLOW_FIELD_CONSTRAINTS) {

@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, input, output, si
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
   ChangeRequest,
   Distributor,
@@ -39,13 +40,14 @@ interface ClientModalState {
 
 @Component({
   selector: 'app-forecast-table',
-  imports: [DecimalPipe, FormsModule, ForecastHistoryModal, ForecastInvoicesModal, ForecastClientModal],
+  imports: [TranslatePipe, DecimalPipe, FormsModule, ForecastHistoryModal, ForecastInvoicesModal, ForecastClientModal],
   templateUrl: './forecast-table.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ForecastTable {
   private readonly forecastService = inject(ForecastService);
   private readonly toastr = inject(ToastrService);
+  private readonly translate = inject(TranslateService);
 
   readonly distributors = input.required<Distributor[]>();
   readonly year = input.required<number>();
@@ -189,7 +191,7 @@ export class ForecastTable {
       },
       error: (err) => {
         this.submittingCell.set(null);
-        this.toastr.error(err?.error?.message ?? 'No se pudo enviar la solicitud.', 'Error');
+        this.toastr.error(err?.error?.message ?? this.translate.instant('FORECAST.TABLE.SUBMIT_ERROR'), this.translate.instant('FORECAST.SALES_MANAGE.TOAST_ERROR'));
       },
     });
   }
@@ -200,7 +202,9 @@ export class ForecastTable {
   }
 
   stepTooltip(step: 'sales_manager' | 'general_manager'): string {
-    return step === 'sales_manager' ? 'Esperando aprobación de Sales Manager' : 'Esperando aprobación de General Manager';
+    return step === 'sales_manager'
+      ? this.translate.instant('FORECAST.TABLE.AWAIT_SALES_MANAGER')
+      : this.translate.instant('FORECAST.TABLE.AWAIT_GENERAL_MANAGER');
   }
 
   monthLabel(idx: number): string {

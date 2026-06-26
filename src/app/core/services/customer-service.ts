@@ -4,6 +4,16 @@ import { catchError, map, Observable, of, tap, throwError } from 'rxjs';
 import { Customer, CustomerLocal, CustomerLocalPayload } from '../../data/interfaces/Customer';
 import { ApiResponse } from '../../data/interfaces/ApiResponse-interface';
 
+export interface UpdateClientExtPayload {
+  area?: string | null;
+  salesEngineerId?: number | null;
+  salesManagerId?: number | null;
+  processorId?: number | null;
+  financeManagerId?: number | null;
+  marketingManagerId?: number | null;
+  customerServiceManagerId?: number | null;
+}
+
 export interface PagePagination<T> {
   data: T[];
   current_page: number;
@@ -238,6 +248,16 @@ export class CustomerService {
         return throwError(() => error);
       })
     )
+  }
+
+  updateClientExt(idCliente: string, payload: UpdateClientExtPayload): Observable<void> {
+    return this._httpService.put<void>(`/forecast/clients/${encodeURIComponent(idCliente)}/ext`, payload).pipe(
+      map(() => undefined),
+      catchError((error) => {
+        console.log(error);
+        return throwError(() => error);
+      })
+    );
   }
 
   saveExtraData(customer: CustomerLocalPayload) {

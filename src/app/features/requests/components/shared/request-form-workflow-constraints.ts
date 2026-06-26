@@ -5,6 +5,8 @@ export interface ConstraintContext {
   step: WorkflowStep | undefined;
   /** Nombre del rol asignado al paso actual (ej. "WAREHOUSE", "FINANCE") */
   assignedRoleName: string | undefined;
+  /** true cuando el formulario activo es el de re-facturación */
+  isReinvoicing?: boolean;
 }
 
 export interface WorkflowFieldConstraint {
@@ -26,16 +28,29 @@ export function shouldHideMaterialRow(ctx: ConstraintContext, replenishmentAccep
 
 export const WORKFLOW_FIELD_CONSTRAINTS: WorkflowFieldConstraint[] = [
   {
-    // Habilitado solo en el paso final del flujo (ej. cuando se asigna el número de crédito).
-    // Al crear (!step) queda deshabilitado porque aún no hay paso asignado.
-    disableWhen: ({ step }) => !step || !(step?.isFinalStep ?? true),
-    fields: ['creditNumber'],
+    // Habilitado en el paso final del flujo O cuando el rol es IT.
+    // Al crear (!step) queda deshabilitado salvo que sea IT.
+    disableWhen: ({ step, assignedRoleName }) =>
+      !step || (assignedRoleName !== 'IT' && !(step?.isFinalStep ?? false)),
+    fields: ['creditNumber', 'newInvoice'],
+  },
+  {
+    // En re-invoicing sin paso (creación) siempre habilitado.
+    // En otros formularios: deshabilitado si no hay paso; con paso, solo REQUESTER.
+    disableWhen: ({ step, assignedRoleName, isReinvoicing }) =>
+      isReinvoicing && !step
+        ? false
+        : !step || (assignedRoleName !== 'REQUESTER' && assignedRoleName !== 'REQUESTER / PROCESSOR'),
+    fields: ['orderNumber', 'deliveryNote'],
   },
   {
     // Habilitado solo cuando el rol asignado es REQUESTER.
     // Al crear (!step) queda deshabilitado; en otros roles también.
-    disableWhen: ({ step, assignedRoleName }) => !step || (!!assignedRoleName && assignedRoleName !== 'REQUESTER'),
-    fields: ['orderNumber'],
+    disableWhen: ({ step, assignedRoleName, isReinvoicing }) =>
+      isReinvoicing && !step
+        ? false
+        : !step || (assignedRoleName !== 'REQUESTER' && assignedRoleName !== 'REQUESTER / PROCESSOR'),
+    fields: ['invoiceNumber'],
   },
   {
     // Habilitado solo cuando el rol asignado es WAREHOUSE.

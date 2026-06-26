@@ -1,11 +1,12 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
+import { TranslatePipe } from '@ngx-translate/core';
 import { Modal } from '../../../../shared/components/ui/modal/modal';
 import { Invoice } from '../../../../core/services/forecast.service';
 
 @Component({
   selector: 'app-forecast-invoices-modal',
-  imports: [Modal, DecimalPipe, DatePipe],
+  imports: [TranslatePipe, Modal, DecimalPipe, DatePipe],
   templateUrl: './forecast-invoices-modal.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

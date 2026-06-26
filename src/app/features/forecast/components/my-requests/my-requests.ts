@@ -1,15 +1,17 @@
 import { ChangeDetectionStrategy, Component, effect, inject, input, signal, untracked } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ChangeRequest, ForecastService } from '../../../../core/services/forecast.service';
 
 @Component({
   selector: 'app-my-requests',
-  imports: [DecimalPipe, DatePipe],
+  imports: [TranslatePipe, DecimalPipe, DatePipe],
   templateUrl: './my-requests.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MyRequests {
   private readonly forecastService = inject(ForecastService);
+  private readonly translate = inject(TranslateService);
 
   readonly refreshTrigger = input<number>(0);
 
@@ -30,9 +32,9 @@ export class MyRequests {
   }
 
   statusLabel(status: string): string {
-    if (status === 'approved') return 'Aprobado';
-    if (status === 'rejected') return 'Rechazado';
-    return 'Pendiente';
+    if (status === 'approved') return this.translate.instant('FORECAST.MY_REQUESTS.STATUS_APPROVED');
+    if (status === 'rejected') return this.translate.instant('FORECAST.MY_REQUESTS.STATUS_REJECTED');
+    return this.translate.instant('FORECAST.MY_REQUESTS.STATUS_PENDING');
   }
 
   statusClass(status: string): string {
@@ -42,7 +44,9 @@ export class MyRequests {
   }
 
   stepLabel(step: string): string {
-    return step === 'sales_manager' ? 'Sales Manager' : 'General Manager';
+    return step === 'sales_manager'
+      ? this.translate.instant('FORECAST.MY_REQUESTS.STEP_SM')
+      : this.translate.instant('FORECAST.MY_REQUESTS.STEP_GM');
   }
 
   private loadRequests(): void {

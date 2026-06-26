@@ -1,0 +1,9 @@
+<app-modal
+  [titleM]="'FORECAST.PENDING_APPROVALS.MODAL_TITLE' | translate"
+  size="xl"
+  [open]="open()"
+  [showPrimaryButton]="false"
+  [closeText]="'FORECAST.PENDING_APPROVALS.MODAL_CLOSE' | translate"
+  (closed)="closed.emit()">
+  <app-pending-approvals (resolved)="resolved.emit()" />
+</app-modal>

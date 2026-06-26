@@ -47,6 +47,16 @@ export class UserService {
     )
   }
 
+  getRequesters(): Observable<User[]> {
+    return this._httpService.get<User[]>('users/by-role/requesters').pipe(
+      map((response: ApiResponse<User[]>) => response.data ?? []),
+      catchError((error) => {
+        console.log(error);
+        throw error;
+      })
+    );
+  }
+
   getUsersPaginated(per_page = 10, page = 1, search?: string, roleName = 'all'): Observable<CursorPagination<User>> {
     const params: { per_page: number; page: number; search?: string; roleName?: string } = { per_page, page };
 

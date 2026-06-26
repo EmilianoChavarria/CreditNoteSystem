@@ -1,12 +1,13 @@
 import { Component, signal } from '@angular/core';
 import { finalize } from 'rxjs';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Table, type AccionPersonalizada, type Column } from '../../../../shared/components/ui/table/table';
 import { ForecastClient, ForecastService } from '../../../../core/services/forecast.service';
 import { EditDistributorModal } from './edit-distributor-modal';
 
 @Component({
   selector: 'app-distributors-manage',
-  imports: [Table, EditDistributorModal],
+  imports: [TranslatePipe, Table, EditDistributorModal],
   templateUrl: './distributors-manage.html',
   styleUrl: './distributors-manage.css',
 })
@@ -25,24 +26,28 @@ export class DistributorsManage {
 
   private searchDebounce: ReturnType<typeof setTimeout> | null = null;
 
-  readonly columns: Column<ForecastClient>[] = [
-    { key: 'idCliente', label: 'ID Cliente', sortable: true, customTemplate: true },
-    { key: 'razonSocial', label: 'Razón Social', sortable: true, customTemplate: true },
-    { key: 'rfc', label: 'RFC', sortable: true, customTemplate: true },
-    { key: 'direccion', label: 'Dirección', sortable: true, customTemplate: true },
-    { key: 'correosForecast', label: 'Correos Forecast', sortable: false, customTemplate: true },
-  ];
+  readonly columns: Column<ForecastClient>[];
+  readonly acciones: AccionPersonalizada<ForecastClient>[];
 
-  readonly acciones: AccionPersonalizada<ForecastClient>[] = [
-    {
-      label: 'Editar',
-      icon: 'pencil',
-      className: 'text-left text-gray-700',
-      accion: (item) => this.openEditModal(item),
-    },
-  ];
-
-  constructor(private readonly forecastService: ForecastService) {
+  constructor(
+    private readonly forecastService: ForecastService,
+    private readonly translate: TranslateService,
+  ) {
+    this.columns = [
+      { key: 'idCliente', label: this.translate.instant('FORECAST.DISTRIBUTORS.COL_ID'), sortable: true, customTemplate: true },
+      { key: 'razonSocial', label: this.translate.instant('FORECAST.DISTRIBUTORS.COL_RAZON_SOCIAL'), sortable: true, customTemplate: true },
+      { key: 'rfc', label: this.translate.instant('FORECAST.DISTRIBUTORS.COL_RFC'), sortable: true, customTemplate: true },
+      { key: 'direccion', label: this.translate.instant('FORECAST.DISTRIBUTORS.COL_ADDRESS'), sortable: true, customTemplate: true },
+      { key: 'correosForecast', label: this.translate.instant('FORECAST.DISTRIBUTORS.COL_EMAILS'), sortable: false, customTemplate: true },
+    ];
+    this.acciones = [
+      {
+        label: this.translate.instant('FORECAST.DISTRIBUTORS.ACTION_EDIT'),
+        icon: 'pencil',
+        className: 'text-left text-gray-700',
+        accion: (item) => this.openEditModal(item),
+      },
+    ];
     this.loadData();
   }
 

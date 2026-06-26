@@ -56,6 +56,20 @@ export class SalesEngineerAssignmentService {
     );
   }
 
+  getMyEngineers(): Observable<AssignmentUser[]> {
+    return this.httpService.get<AssignmentUser[]>('/sales-engineer-assignment/my-engineers', this.withBearer()).pipe(
+      map((response: ApiResponse<AssignmentUser[]>) => response.data ?? []),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
+  getAllEngineers(): Observable<AssignmentUser[]> {
+    return this.httpService.get<AssignmentUser[]>('/sales-engineer-assignment/all-engineers', this.withBearer()).pipe(
+      map((response: ApiResponse<AssignmentUser[]>) => response.data ?? []),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
   assignEngineersBatch(payload: SalesEngineerAssignBatchPayload): Observable<ApiResponse<SalesEngineerBatchSummary>> {
     return this.httpService.put<SalesEngineerBatchSummary>('/sales-engineer-assignment/assignments', payload, this.withBearer()).pipe(
       catchError((error) => throwError(() => error))
