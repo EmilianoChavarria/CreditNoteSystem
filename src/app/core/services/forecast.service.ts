@@ -53,11 +53,16 @@ export interface ForecastClientApi {
 
 export interface Invoice {
   folio: string;
-  subTotal: string;
-  iva: string;
-  total: string;
+  subTotal: number;
+  iva: number;
+  total: number;
+  moneda: 'MXN' | 'USD';
   fechaEmision: string;
-  moneda: 'MXN' | 'USD'
+  originalSubTotal?: number;
+  originalIva?: number;
+  originalTotal?: number;
+  originalMoneda?: string;
+  tipoCambio?: number;
 }
 
 export interface MonthEntry {
