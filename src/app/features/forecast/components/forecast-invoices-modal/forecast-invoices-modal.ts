@@ -20,14 +20,14 @@ export class ForecastInvoicesModal {
   readonly closed = output<void>();
 
   grandTotal(): number {
-    return this.invoices().reduce((s, inv) => s + parseFloat(inv.total), 0);
+    return this.invoices().reduce((s, inv) => s + Number(inv.total), 0);
   }
 
   grandSubTotal(): number {
-    return this.invoices().reduce((s, inv) => s + parseFloat(inv.subTotal), 0);
+    return this.invoices().reduce((s, inv) => s + Number(inv.subTotal), 0);
   }
 
   grandIva(): number {
-    return this.invoices().reduce((s, inv) => s + parseFloat(inv.iva), 0);
+    return this.invoices().reduce((s, inv) => s + Number(inv.iva), 0);
   }
 }
