@@ -3,12 +3,14 @@ import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { finalize } from 'rxjs';
 import {
   ChangeRequest,
   Distributor,
   ForecastService,
   Invoice,
 } from '../../../../core/services/forecast.service';
+import { ExportService } from '../../../../core/services/export-service';
 import { ForecastHistoryModal } from '../forecast-history-modal/forecast-history-modal';
 import { ForecastInvoicesModal } from '../forecast-invoices-modal/forecast-invoices-modal';
 import { ForecastClientModal } from '../forecast-client-modal/forecast-client-modal';
@@ -46,6 +48,7 @@ interface ClientModalState {
 })
 export class ForecastTable {
   private readonly forecastService = inject(ForecastService);
+  private readonly exportService = inject(ExportService);
   private readonly toastr = inject(ToastrService);
   private readonly translate = inject(TranslateService);
 
@@ -63,6 +66,7 @@ export class ForecastTable {
   readonly submittingCell = signal<EditingCell | null>(null);
   readonly historyState = signal<HistoryState | null>(null);
   readonly invoicesState = signal<InvoicesState | null>(null);
+  readonly exportingInvoices = signal(false);
   readonly clientModalState = signal<ClientModalState | null>(null);
 
   private clickTimer: ReturnType<typeof setTimeout> | null = null;
@@ -149,6 +153,26 @@ export class ForecastTable {
 
   closeInvoices(): void {
     this.invoicesState.set(null);
+  }
+
+  exportInvoices(): void {
+    const state = this.invoicesState();
+    if (!state || this.exportingInvoices()) {
+      return;
+    }
+
+    const year = this.year();
+    const month = state.monthIdx + 1;
+    this.exportingInvoices.set(true);
+    this.forecastService.exportInvoicesExcel(state.clientId, year, month).pipe(
+      finalize(() => this.exportingInvoices.set(false))
+    ).subscribe({
+      next: (blob) => {
+        const fileName = `facturas_${state.clientName.trim().replace(/\s+/g, '_')}_${year}_${month}.xlsx`;
+        this.exportService.downloadBlob(blob, fileName);
+      },
+      error: () => this.toastr.error(this.translate.instant('FORECAST.TABLE.EXPORT_ERROR')),
+    });
   }
 
   openClientModal(dist: Distributor): void {

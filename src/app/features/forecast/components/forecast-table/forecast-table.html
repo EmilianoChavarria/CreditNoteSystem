@@ -150,4 +150,6 @@
   [monthLabel]="invoicesState() !== null ? monthLabel(invoicesState()!.monthIdx) : ''"
   [invoices]="invoicesState()?.invoices ?? []"
   [loading]="invoicesState()?.loading ?? false"
-  (closed)="closeInvoices()" />
+  [exporting]="exportingInvoices()"
+  (closed)="closeInvoices()"
+  (exportRequested)="exportInvoices()" />
