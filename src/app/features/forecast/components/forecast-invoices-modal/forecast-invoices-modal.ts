@@ -16,8 +16,10 @@ export class ForecastInvoicesModal {
   readonly monthLabel = input<string>('');
   readonly invoices = input<Invoice[]>([]);
   readonly loading = input<boolean>(false);
+  readonly exporting = input<boolean>(false);
 
   readonly closed = output<void>();
+  readonly exportRequested = output<void>();
 
   grandTotal(): number {
     return this.invoices().reduce((s, inv) => s + Number(inv.total), 0);
