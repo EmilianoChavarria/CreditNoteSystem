@@ -1360,7 +1360,8 @@
       "VIEW_INVOICES": "Ver desglose de facturas",
       "AWAIT_SALES_MANAGER": "Esperando aprobación de Sales Manager",
       "AWAIT_GENERAL_MANAGER": "Esperando aprobación de General Manager",
-      "SUBMIT_ERROR": "No se pudo enviar la solicitud."
+      "SUBMIT_ERROR": "No se pudo enviar la solicitud.",
+      "EXPORT_ERROR": "No se pudo exportar el archivo de Excel."
     },
     "CLIENT_MODAL": {
       "LOADING": "Cargando forecast...",
@@ -1389,6 +1390,7 @@
       "COL_IVA": "IVA",
       "COL_TOTAL": "Total",
       "TOTAL_LABEL": "Total ({{count}} facturas)",
+      "EXPORT_EXCEL": "Exportar a Excel",
       "CLOSE": "Cerrar"
     },
     "HISTORY_MODAL": {

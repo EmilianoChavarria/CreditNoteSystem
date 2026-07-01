@@ -1360,7 +1360,8 @@
       "VIEW_INVOICES": "View invoice breakdown",
       "AWAIT_SALES_MANAGER": "Awaiting Sales Manager approval",
       "AWAIT_GENERAL_MANAGER": "Awaiting General Manager approval",
-      "SUBMIT_ERROR": "Could not submit the request."
+      "SUBMIT_ERROR": "Could not submit the request.",
+      "EXPORT_ERROR": "Could not export the Excel file."
     },
     "CLIENT_MODAL": {
       "LOADING": "Loading forecast...",
@@ -1389,6 +1390,7 @@
       "COL_IVA": "VAT",
       "COL_TOTAL": "Total",
       "TOTAL_LABEL": "Total ({{count}} invoices)",
+      "EXPORT_EXCEL": "Export to Excel",
       "CLOSE": "Close"
     },
     "HISTORY_MODAL": {
