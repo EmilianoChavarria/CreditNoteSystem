@@ -238,6 +238,10 @@ export class ForecastService {
     );
   }
 
+  exportInvoicesExcel(idClient: number, year: number, month: number): Observable<Blob> {
+    return this.httpService.getBlob(`/forecast/${idClient}/${year}/${month}/invoices/export`);
+  }
+
   getClientsPaginated(perPage = 15, page = 1, search?: string): Observable<ForecastClientPage> {
     const params: { per_page: number; page: number; search?: string } = { per_page: perPage, page };
     if (search?.trim()) {
