@@ -19,6 +19,44 @@ export interface UpdateDistributorPayload {
   clientNumber?: string;
 }
 
+export interface ClientGroup {
+  id: number;
+  name: string;
+  memberCount: number;
+  createdAt: string;
+}
+
+export interface ClientGroupForecastClient {
+  clientId: number;
+  name: string;
+  total: number;
+}
+
+export interface ClientGroupForecastMonth {
+  total: number;
+  clients: ClientGroupForecastClient[];
+}
+
+export interface ClientGroupForecastSummary {
+  group: { id: number; name: string; description: string | null };
+  year: number;
+  months: Record<string, ClientGroupForecastMonth>;
+}
+
+export interface CreateClientGroupPayload {
+  name: string;
+}
+
+export interface ClientGroupMember {
+  clientId: string;
+  razonSocial: string;
+}
+
+export interface ClientGroupMembers {
+  group: { id: number; name: string };
+  members: ClientGroupMember[];
+}
+
 export interface ForecastClientPage {
   data: ForecastClient[];
   current_page: number;
@@ -45,11 +83,35 @@ export interface ForecastMonthApi {
 }
 
 export interface ForecastClientApi {
+  isGroup?: false;
   idCliente: string;
   razonSocial: string;
   year: number;
   months: ForecastMonthApi[];
 }
+
+export interface ForecastGroupMemberMonthApi {
+  month: number;
+  sales: string | number;
+}
+
+export interface ForecastGroupMemberApi {
+  idCliente: number;
+  razonSocial: string;
+  year: number;
+  months: ForecastGroupMemberMonthApi[];
+}
+
+export interface ForecastGroupApi {
+  isGroup: true;
+  id: number;
+  razonSocial: string;
+  year: number;
+  months: ForecastMonthApi[];
+  clients: ForecastGroupMemberApi[];
+}
+
+export type ForecastRowApi = ForecastClientApi | ForecastGroupApi;
 
 export interface Invoice {
   folio: string;
@@ -65,16 +127,39 @@ export interface Invoice {
   tipoCambio?: number;
 }
 
+export interface InvoiceSection {
+  clientId: number;
+  razonSocial: string;
+  invoices: Invoice[];
+}
+
+export interface GroupInvoicesApi {
+  isGroup: true;
+  id: number;
+  name: string;
+  month: number;
+  year: number;
+  sections: InvoiceSection[];
+}
+
 export interface MonthEntry {
   forecast: number;
   pendingRequest: PendingRequest | null;
   sales: number;
 }
 
+export interface GroupMemberSales {
+  id: number;
+  name: string;
+  monthlySales: number[];
+}
+
 export interface Distributor {
   id: number;
   name: string;
   months: MonthEntry[];
+  isGroup?: boolean;
+  members?: GroupMemberSales[];
 }
 
 export interface ChangeRequestUser {
@@ -112,34 +197,62 @@ export interface ChangeRequestPayload {
   amount: number;
 }
 
-export function mapApiToDistributors(clients: ForecastClientApi[]): Distributor[] {
-  return clients.map(client => {
-    const monthMap = new Map(client.months.map(m => [m.month, m]));
+function buildMonthEntries(months: ForecastMonthApi[]): MonthEntry[] {
+  const monthMap = new Map(months.map(m => [m.month, m]));
+  return Array.from({ length: 12 }, (_, i) => {
+    const apiMonth = monthMap.get(i + 1);
     return {
-      id: parseInt(client.idCliente),
-      name: client.razonSocial,
-      months: Array.from({ length: 12 }, (_, i) => {
-        const apiMonth = monthMap.get(i + 1);
-        return {
-          forecast: apiMonth ? parseFloat(apiMonth.amount ?? '0') || 0 : 0,
-          pendingRequest: apiMonth?.modification ?? null,
-          sales: apiMonth ? parseFloat(String(apiMonth.sales)) || 0 : 0,
-        };
-      }),
+      forecast: apiMonth ? parseFloat(apiMonth.amount ?? '0') || 0 : 0,
+      pendingRequest: apiMonth?.modification ?? null,
+      sales: apiMonth ? parseFloat(String(apiMonth.sales)) || 0 : 0,
     };
   });
+}
+
+function mapClientToDistributor(client: ForecastClientApi): Distributor {
+  return {
+    id: parseInt(client.idCliente),
+    name: client.razonSocial,
+    months: buildMonthEntries(client.months),
+  };
+}
+
+function mapGroupMemberSales(member: ForecastGroupMemberApi): GroupMemberSales {
+  const monthMap = new Map(member.months.map(m => [m.month, m]));
+  return {
+    id: member.idCliente,
+    name: member.razonSocial,
+    monthlySales: Array.from({ length: 12 }, (_, i) => {
+      const apiMonth = monthMap.get(i + 1);
+      return apiMonth ? parseFloat(String(apiMonth.sales)) || 0 : 0;
+    }),
+  };
+}
+
+function mapGroupToDistributor(group: ForecastGroupApi): Distributor {
+  return {
+    id: group.id,
+    name: group.razonSocial,
+    isGroup: true,
+    months: buildMonthEntries(group.months),
+    members: group.clients.map(mapGroupMemberSales),
+  };
+}
+
+export function mapApiToDistributors(rows: ForecastRowApi[]): Distributor[] {
+  return rows.map(row => row.isGroup ? mapGroupToDistributor(row) : mapClientToDistributor(row));
 }
 
 @Injectable({ providedIn: 'root' })
 export class ForecastService {
   constructor(private readonly httpService: HttpService) {}
 
-  getByEngineer(engineerId: number, year: number): Observable<ForecastClientApi[]> {
-    return this.httpService.get<ForecastClientApi[]>(
+  getByEngineer(engineerId: number, year: number): Observable<ForecastRowApi[]> {
+    return this.httpService.get<ForecastRowApi[]>(
       `/forecast/sales-engineer/${engineerId}/${year}`,
       this.withBearer()
     ).pipe(
-      map((response: ApiResponse<ForecastClientApi[]>) => response.data ?? []),
+      map((response: ApiResponse<ForecastRowApi[]>) => response.data ?? []),
       catchError((error) => throwError(() => error))
     );
   }
@@ -207,12 +320,19 @@ export class ForecastService {
     );
   }
 
-  getInvoices(idClient: number, year: number, month: number): Observable<Invoice[]> {
-    return this.httpService.get<Invoice[]>(
+  getInvoices(idClient: number, year: number, month: number): Observable<InvoiceSection[]> {
+    return this.httpService.get<Invoice[] | GroupInvoicesApi>(
       `/forecast/${idClient}/${year}/${month}/invoices`,
       this.withBearer()
     ).pipe(
-      map((response: ApiResponse<Invoice[]>) => response.data ?? []),
+      map((response: ApiResponse<Invoice[] | GroupInvoicesApi>) => {
+        const data = response.data;
+        if (!data) return [];
+        if (Array.isArray(data)) {
+          return [{ clientId: idClient, razonSocial: '', invoices: data }];
+        }
+        return data.sections ?? [];
+      }),
       catchError((error) => throwError(() => error))
     );
   }
@@ -240,6 +360,72 @@ export class ForecastService {
 
   exportInvoicesExcel(idClient: number, year: number, month: number): Observable<Blob> {
     return this.httpService.getBlob(`/forecast/${idClient}/${year}/${month}/invoices/export`);
+  }
+
+  getClientGroups(): Observable<ClientGroup[]> {
+    return this.httpService.get<ClientGroup[]>('/client-groups', this.withBearer()).pipe(
+      map((response: ApiResponse<ClientGroup[]>) => response.data ?? []),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
+  getGroupForecast(groupId: number, year: number): Observable<ClientGroupForecastSummary | null> {
+    return this.httpService.get<ClientGroupForecastSummary>(
+      `/client-groups/${groupId}/${year}/forecast`,
+      this.withBearer()
+    ).pipe(
+      map((response: ApiResponse<ClientGroupForecastSummary>) => response.data ?? null),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
+  createClientGroup(payload: CreateClientGroupPayload): Observable<ClientGroup> {
+    return this.httpService.post<ClientGroup>('/client-groups', payload, this.withBearer()).pipe(
+      map((response: ApiResponse<ClientGroup>) => response.data!),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
+  updateClientGroup(groupId: number, payload: CreateClientGroupPayload): Observable<ClientGroup> {
+    return this.httpService.put<ClientGroup>(`/client-groups/${groupId}`, payload, this.withBearer()).pipe(
+      map((response: ApiResponse<ClientGroup>) => response.data!),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
+  deleteClientGroup(groupId: number): Observable<void> {
+    return this.httpService.delete<unknown>(`/client-groups/${groupId}`, this.withBearer()).pipe(
+      map(() => void 0),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
+  getGroupMembers(groupId: number): Observable<ClientGroupMembers> {
+    return this.httpService.get<ClientGroupMembers>(`/client-groups/${groupId}/members`, this.withBearer()).pipe(
+      map((response: ApiResponse<ClientGroupMembers>) => response.data ?? { group: { id: groupId, name: '' }, members: [] }),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
+  addGroupMember(groupId: number, clientId: string): Observable<void> {
+    return this.httpService.post<unknown>(`/client-groups/${groupId}/members`, { clientId }, this.withBearer()).pipe(
+      map(() => void 0),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
+  addGroupMembersBulk(groupId: number, clientIds: string[]): Observable<void> {
+    return this.httpService.post<unknown>(`/client-groups/${groupId}/members/bulk`, { clientIds }, this.withBearer()).pipe(
+      map(() => void 0),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
+  removeGroupMember(groupId: number, clientId: string): Observable<void> {
+    return this.httpService.delete<unknown>(`/client-groups/${groupId}/members/${encodeURIComponent(clientId)}`, this.withBearer()).pipe(
+      map(() => void 0),
+      catchError((error) => throwError(() => error))
+    );
   }
 
   getClientsPaginated(perPage = 15, page = 1, search?: string): Observable<ForecastClientPage> {
