@@ -614,7 +614,7 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
             return value;
         }
 
-        return parsedDate.toLocaleString('es-MX');
+        return parsedDate.toLocaleString('es-MX', { timeZone: 'UTC' });
     }
 
     public onUploadBatchCreated(): void {
