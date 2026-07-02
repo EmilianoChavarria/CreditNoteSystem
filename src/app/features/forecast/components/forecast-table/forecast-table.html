@@ -30,97 +30,15 @@
         </thead>
 
         <tbody>
-          @for (dist of distributors(); track dist.id) {
+          @for (dist of distributors(); track (dist.isGroup ? 'g-' : 'c-') + dist.id) {
 
-            <!-- Forecast row -->
-            <tr class="border-t-2 border-gray-200 bg-gray-50/40">
-              <td rowspan="3"
-                class="sticky left-0 z-10 px-4 py-2 font-semibold text-sm align-middle bg-white border-r border-gray-200 whitespace-nowrap">
-                <button
-                  type="button"
-                  class="text-left text-blue-700 hover:text-blue-900 hover:underline cursor-pointer transition-colors"
-                  (click)="openClientModal(dist)">
-                  {{ dist.name }}
-                </button>
-              </td>
-              <td class="px-3 py-1.5 whitespace-nowrap">
-                <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">{{ 'FORECAST.TABLE.LABEL_FORECAST' | translate }}</span>
-              </td>
-              @for (m of dist.months; track $index; let i = $index) {
-                <td
-                  class="px-2 py-1.5 text-right text-xs text-gray-600 whitespace-nowrap transition-colors select-none"
-                  [class.cursor-pointer]="isEditableMonth(i) && m.pendingRequest?.status !== 'pending'"
-                  [class.hover:bg-gray-100]="isEditableMonth(i) && m.pendingRequest?.status !== 'pending'"
-                  [class.opacity-60]="m.pendingRequest?.status === 'pending' || !isEditableMonth(i)"
-                  [title]="!isEditableMonth(i) ? ('FORECAST.TABLE.MONTH_NOT_EDITABLE' | translate) : (m.pendingRequest?.status === 'pending' ? ('FORECAST.TABLE.PENDING_CHANGE' | translate) : ('FORECAST.TABLE.DBL_CLICK_EDIT' | translate))"
-                  (dblclick)="onCellDblClick(dist, i)">
-                  @if (isEditing(dist.id, i)) {
-                    <input
-                      type="text"
-                      inputmode="numeric"
-                      class="fc-edit-input w-24 border border-gray-400 rounded px-1.5 py-0.5 text-right text-xs focus:outline-none focus:ring-2 focus:ring-gray-300"
-                      [value]="editingValue()"
-                      (input)="editingValue.set($any($event.target).value)"
-                      (blur)="submitChangeRequest(dist.id, i)"
-                      (keydown)="handleKeydown($event, dist.id, i)">
-                  } @else if (isSubmitting(dist.id, i)) {
-                    <span class="italic text-gray-400">{{ 'FORECAST.TABLE.SENDING' | translate }}</span>
-                  } @else {
-                    $ {{ m.forecast | number:'1.0-0' }}
-                  }
-                </td>
-              }
-              <td class="px-3 py-1.5 text-right text-xs font-semibold text-gray-600 whitespace-nowrap border-l border-gray-100">
-                $ {{ rowTotal(dist) | number:'1.0-0' }}
-              </td>
-            </tr>
+            <ng-container [ngTemplateOutlet]="clientRows" [ngTemplateOutletContext]="{ $implicit: dist }"></ng-container>
 
-            <!-- Modificación row -->
-            <tr [class]="hasAnyPending(dist) ? 'bg-amber-50' : 'bg-white'">
-              <td class="px-3 py-1.5 whitespace-nowrap">
-                <span [class]="hasAnyPending(dist)
-                  ? 'text-[11px] font-semibold text-amber-600 uppercase tracking-wide'
-                  : 'text-[11px] font-semibold text-gray-300 uppercase tracking-wide'">
-                  {{ 'FORECAST.TABLE.LABEL_MODIFICATION' | translate }}
-                </span>
-              </td>
-              @for (m of dist.months; track $index) {
-                <td [class]="`px-2 py-1.5 text-right text-xs whitespace-nowrap ${m.pendingRequest !== null ? 'hover:cursor-pointer hover:bg-gray-100': ''}`" (click)="onCellClick(dist, $index)">
-                  @if (m.pendingRequest !== null) {
-                    @if (m.pendingRequest.status === 'approved') {
-                      <span class="font-semibold text-green-700" [title]="stepTooltip(m.pendingRequest.currentStep)">
-                        $ {{ m.pendingRequest.proposedAmount | number:'1.0-0' }}
-                      </span>
-                    } @else {
-                      <span class="font-semibold text-amber-700" [title]="stepTooltip(m.pendingRequest.currentStep)">
-                        $ {{ m.pendingRequest.proposedAmount | number:'1.0-0' }}
-                      </span>
-                    }
-                  } @else {
-                    <span class="text-gray-300">---</span>
-                  }
-                </td>
+            @if (dist.isGroup && isGroupExpanded(dist.id)) {
+              @for (member of dist.members ?? []; track member.id; let isLast = $last) {
+                <ng-container [ngTemplateOutlet]="memberRow" [ngTemplateOutletContext]="{ $implicit: member, isLast: isLast, closing: isGroupClosing(dist.id) }"></ng-container>
               }
-              <td class="px-3 py-1.5 border-l border-gray-100"></td>
-            </tr>
-
-            <!-- Ventas row -->
-            <tr class="bg-white">
-              <td class="px-3 py-1.5 whitespace-nowrap">
-                <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">{{ 'FORECAST.TABLE.LABEL_SALES' | translate }}</span>
-              </td>
-              @for (m of dist.months; track $index) {
-                <td
-                  class="px-2 py-1.5 text-right text-xs text-gray-600 whitespace-nowrap cursor-pointer hover:bg-blue-50 hover:text-blue-700 transition-colors"
-                  [title]="'FORECAST.TABLE.VIEW_INVOICES' | translate"
-                  (click)="openInvoices(dist, $index)">
-                  $ {{ m.sales | number:'1.0-0' }}
-                </td>
-              }
-              <td class="px-3 py-1.5 text-right text-xs font-semibold text-gray-600 whitespace-nowrap border-l border-gray-100">
-                $ {{ rowSalesTotal(dist) | number:'1.0-0' }}
-              </td>
-            </tr>
+            }
 
           }
         </tbody>
@@ -128,6 +46,141 @@
     </div>
   }
 }
+
+<ng-template #clientRows let-dist>
+
+  <!-- Forecast row -->
+  <tr class="border-t-2 border-gray-200 bg-gray-50/40">
+    <td rowspan="3"
+      class="sticky left-0 z-10 py-2 pr-4 pl-4 font-semibold text-sm align-middle bg-white border-r border-gray-200 whitespace-nowrap">
+      <div class="flex items-center gap-2">
+        @if (dist.isGroup) {
+          <button
+            type="button"
+            (click)="toggleGroup(dist.id)"
+            class="shrink-0 p-0.5 rounded hover:bg-gray-100 transition-colors">
+            <lucide-icon name="chevron-right" size="14" class="text-gray-400 transition-transform duration-200" [class.rotate-90]="isGroupExpanded(dist.id)"></lucide-icon>
+          </button>
+          <span class="shrink-0 flex h-5 w-5 items-center justify-center rounded-full bg-[#ff8200]/15 text-[#ff8200]">
+            <lucide-icon name="users" size="11"></lucide-icon>
+          </span>
+        }
+        <button
+          type="button"
+          class="text-left text-blue-700 hover:text-blue-900 hover:underline cursor-pointer transition-colors truncate"
+          (click)="openClientModal(dist)">
+          {{ dist.name }}
+        </button>
+        @if (dist.isGroup) {
+          <span class="shrink-0 inline-flex items-center rounded-full bg-orange-100 px-1.5 py-0.5 text-[9px] font-bold text-orange-700 uppercase">
+            {{ 'FORECAST.TABLE.GROUP_BADGE' | translate }} · {{ dist.members?.length ?? 0 }}
+          </span>
+        }
+      </div>
+    </td>
+    <td class="px-3 py-1.5 whitespace-nowrap">
+      <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">{{ 'FORECAST.TABLE.LABEL_FORECAST' | translate }}</span>
+    </td>
+    @for (m of dist.months; track $index; let i = $index) {
+      <td
+        class="px-2 py-1.5 text-right text-xs text-gray-600 whitespace-nowrap transition-colors select-none"
+        [class.cursor-pointer]="isEditableMonth(i) && m.pendingRequest?.status !== 'pending'"
+        [class.hover:bg-gray-100]="isEditableMonth(i) && m.pendingRequest?.status !== 'pending'"
+        [class.opacity-60]="m.pendingRequest?.status === 'pending' || !isEditableMonth(i)"
+        [title]="!isEditableMonth(i) ? ('FORECAST.TABLE.MONTH_NOT_EDITABLE' | translate) : (m.pendingRequest?.status === 'pending' ? ('FORECAST.TABLE.PENDING_CHANGE' | translate) : ('FORECAST.TABLE.DBL_CLICK_EDIT' | translate))"
+        (dblclick)="onCellDblClick(dist, i)">
+        @if (isEditing(dist.id, i)) {
+          <input
+            type="text"
+            inputmode="numeric"
+            class="fc-edit-input w-24 border border-gray-400 rounded px-1.5 py-0.5 text-right text-xs focus:outline-none focus:ring-2 focus:ring-gray-300"
+            [value]="editingValue()"
+            (input)="editingValue.set($any($event.target).value)"
+            (blur)="submitChangeRequest(dist.id, i)"
+            (keydown)="handleKeydown($event, dist.id, i)">
+        } @else if (isSubmitting(dist.id, i)) {
+          <span class="italic text-gray-400">{{ 'FORECAST.TABLE.SENDING' | translate }}</span>
+        } @else {
+          $ {{ m.forecast | number:'1.0-0' }}
+        }
+      </td>
+    }
+    <td class="px-3 py-1.5 text-right text-xs font-semibold text-gray-600 whitespace-nowrap border-l border-gray-100">
+      $ {{ rowTotal(dist) | number:'1.0-0' }}
+    </td>
+  </tr>
+
+  <!-- Modificación row -->
+  <tr [class]="hasAnyPending(dist) ? 'bg-amber-50' : 'bg-white'">
+    <td class="px-3 py-1.5 whitespace-nowrap">
+      <span [class]="hasAnyPending(dist)
+        ? 'text-[11px] font-semibold text-amber-600 uppercase tracking-wide'
+        : 'text-[11px] font-semibold text-gray-300 uppercase tracking-wide'">
+        {{ 'FORECAST.TABLE.LABEL_MODIFICATION' | translate }}
+      </span>
+    </td>
+    @for (m of dist.months; track $index) {
+      <td [class]="`px-2 py-1.5 text-right text-xs whitespace-nowrap ${m.pendingRequest !== null ? 'hover:cursor-pointer hover:bg-gray-100': ''}`" (click)="onCellClick(dist, $index)">
+        @if (m.pendingRequest !== null) {
+          @if (m.pendingRequest.status === 'approved') {
+            <span class="font-semibold text-green-700" [title]="stepTooltip(m.pendingRequest.currentStep)">
+              $ {{ m.pendingRequest.proposedAmount | number:'1.0-0' }}
+            </span>
+          } @else {
+            <span class="font-semibold text-amber-700" [title]="stepTooltip(m.pendingRequest.currentStep)">
+              $ {{ m.pendingRequest.proposedAmount | number:'1.0-0' }}
+            </span>
+          }
+        } @else {
+          <span class="text-gray-300">---</span>
+        }
+      </td>
+    }
+    <td class="px-3 py-1.5 border-l border-gray-100"></td>
+  </tr>
+
+  <!-- Ventas row -->
+  <tr class="bg-white">
+    <td class="px-3 py-1.5 whitespace-nowrap">
+      <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">{{ 'FORECAST.TABLE.LABEL_SALES' | translate }}</span>
+    </td>
+    @for (m of dist.months; track $index) {
+      <td
+        class="px-2 py-1.5 text-right text-xs text-gray-600 whitespace-nowrap cursor-pointer hover:bg-blue-50 hover:text-blue-700 transition-colors"
+        [title]="'FORECAST.TABLE.VIEW_INVOICES' | translate"
+        (click)="openInvoices(dist, $index)">
+        $ {{ m.sales | number:'1.0-0' }}
+      </td>
+    }
+    <td class="px-3 py-1.5 text-right text-xs font-semibold text-gray-600 whitespace-nowrap border-l border-gray-100">
+      $ {{ rowSalesTotal(dist) | number:'1.0-0' }}
+    </td>
+  </tr>
+
+</ng-template>
+
+<ng-template #memberRow let-member let-isLast="isLast" let-closing="closing">
+  <tr class="border-t border-gray-100 bg-white hover:bg-gray-50/70 transition-colors" [class.fc-row-enter]="!closing" [class.fc-row-closing]="closing">
+    <td class="sticky left-0 z-10 py-2 pl-12 pr-4 text-xs text-gray-600 whitespace-nowrap bg-white border-r border-gray-200"
+      [style.box-shadow]="groupRail(true, isLast)">
+      {{ member.name }}
+    </td>
+    <td class="px-3 py-1.5 whitespace-nowrap">
+      <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">{{ 'FORECAST.TABLE.LABEL_SALES' | translate }}</span>
+    </td>
+    @for (sales of member.monthlySales; track $index) {
+      <td
+        class="px-2 py-1.5 text-right text-xs text-gray-600 whitespace-nowrap cursor-pointer hover:bg-blue-50 hover:text-blue-700 transition-colors"
+        [title]="'FORECAST.TABLE.VIEW_INVOICES' | translate"
+        (click)="openInvoices(member, $index)">
+        $ {{ sales | number:'1.0-0' }}
+      </td>
+    }
+    <td class="px-3 py-1.5 text-right text-xs font-semibold text-gray-600 whitespace-nowrap border-l border-gray-100">
+      $ {{ memberSalesTotal(member) | number:'1.0-0' }}
+    </td>
+  </tr>
+</ng-template>
 
 <app-forecast-client-modal
   [open]="clientModalState() !== null"
@@ -148,7 +201,7 @@
   [open]="invoicesState() !== null"
   [clientName]="invoicesState()?.clientName ?? ''"
   [monthLabel]="invoicesState() !== null ? monthLabel(invoicesState()!.monthIdx) : ''"
-  [invoices]="invoicesState()?.invoices ?? []"
+  [sections]="invoicesState()?.sections ?? []"
   [loading]="invoicesState()?.loading ?? false"
   [exporting]="exportingInvoices()"
   (closed)="closeInvoices()"
