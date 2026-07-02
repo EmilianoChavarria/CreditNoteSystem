@@ -530,7 +530,7 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
       hasRga: new FormControl<boolean>(false),
       totalAmount: new FormControl<string>({ value: '', disabled: true }, []),
       attachSupports: new FormControl<File[] | null>(null),
-      comments: new FormControl<string>(''),
+      comments: new FormControl<string>('', [Validators.required]),
       replenishmentAmount: new FormControl<string>(''),
       hasReplenishmentIva: new FormControl<boolean>(false),
       warehouseAmount: new FormControl<string>(''),
