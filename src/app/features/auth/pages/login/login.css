@@ -1,0 +1,13 @@
+.bg-login {
+    background-image: url('/assets/png/FondoLap.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: #FFFF;
+}
+
+@media (min-width: 1536px) {
+    .bg-login {
+        background-image: url('/assets/png/Creditos-2.jpg');
+    }
+}
