@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, input, output, signal } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Modal } from '../../../../shared/components/ui/modal/modal';
-import { Invoice } from '../../../../core/services/forecast.service';
+import { InvoiceSection } from '../../../../core/services/forecast.service';
 
 @Component({
   selector: 'app-forecast-invoices-modal',
@@ -14,22 +14,50 @@ export class ForecastInvoicesModal {
   readonly open = input<boolean>(false);
   readonly clientName = input<string>('');
   readonly monthLabel = input<string>('');
-  readonly invoices = input<Invoice[]>([]);
+  readonly sections = input<InvoiceSection[]>([]);
   readonly loading = input<boolean>(false);
   readonly exporting = input<boolean>(false);
 
   readonly closed = output<void>();
   readonly exportRequested = output<void>();
 
+  readonly selectedClientId = signal<number | null>(null);
+
+  private readonly selectDefaultEffect = effect(() => {
+    const sections = this.sections();
+    if (sections.length === 0) {
+      this.selectedClientId.set(null);
+      return;
+    }
+    if (sections.some(s => s.clientId === this.selectedClientId())) return;
+    this.selectedClientId.set((sections.find(s => s.invoices.length > 0) ?? sections[0]).clientId);
+  });
+
+  readonly isMultiClient = computed(() => this.sections().length > 1);
+
+  readonly selectedSection = computed<InvoiceSection | null>(() => {
+    const sections = this.sections();
+    if (sections.length === 0) return null;
+    return sections.find(s => s.clientId === this.selectedClientId()) ?? sections[0];
+  });
+
+  readonly selectedInvoices = computed(() => this.selectedSection()?.invoices ?? []);
+
+  readonly totalInvoiceCount = computed(() => this.sections().reduce((s, sec) => s + sec.invoices.length, 0));
+
+  selectClient(clientId: number): void {
+    this.selectedClientId.set(clientId);
+  }
+
   grandTotal(): number {
-    return this.invoices().reduce((s, inv) => s + Number(inv.total), 0);
+    return this.selectedInvoices().reduce((s, inv) => s + Number(inv.total), 0);
   }
 
   grandSubTotal(): number {
-    return this.invoices().reduce((s, inv) => s + Number(inv.subTotal), 0);
+    return this.selectedInvoices().reduce((s, inv) => s + Number(inv.subTotal), 0);
   }
 
   grandIva(): number {
-    return this.invoices().reduce((s, inv) => s + Number(inv.iva), 0);
+    return this.selectedInvoices().reduce((s, inv) => s + Number(inv.iva), 0);
   }
 }
