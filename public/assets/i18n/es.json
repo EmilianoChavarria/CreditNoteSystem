@@ -1349,7 +1349,7 @@
     "TABLE": {
       "LOADING": "Cargando forecast...",
       "EMPTY": "Sin clientes con forecast para este período.",
-      "COL_CLIENT": "Cliente",
+      "COL_CLIENT": "Distribuidor",
       "COL_TOTAL": "Total",
       "LABEL_FORECAST": "Forecast",
       "LABEL_MODIFICATION": "Modificación de objetivo de ventas",
