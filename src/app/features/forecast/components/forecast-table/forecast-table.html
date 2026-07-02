@@ -58,8 +58,8 @@
           <button
             type="button"
             (click)="toggleGroup(dist.id)"
-            class="shrink-0 p-0.5 rounded hover:bg-gray-100 transition-colors">
-            <lucide-icon name="chevron-right" size="14" class="text-gray-400 transition-transform duration-200" [class.rotate-90]="isGroupExpanded(dist.id)"></lucide-icon>
+            class="shrink-0 p-0.5 rounded hover:bg-gray-100 transition-colors hover:cursor-pointer">
+            <lucide-icon name="chevron-right" size="14" class="inline-block text-gray-400 transition-transform duration-200" [class.rotate-90]="isGroupExpanded(dist.id)"></lucide-icon>
           </button>
           <span class="shrink-0 flex h-5 w-5 items-center justify-center rounded-full bg-[#ff8200]/15 text-[#ff8200]">
             <lucide-icon name="users" size="11"></lucide-icon>
@@ -73,7 +73,7 @@
         </button>
         @if (dist.isGroup) {
           <span class="shrink-0 inline-flex items-center rounded-full bg-orange-100 px-1.5 py-0.5 text-[9px] font-bold text-orange-700 uppercase">
-            {{ 'FORECAST.TABLE.GROUP_BADGE' | translate }} · {{ dist.members?.length ?? 0 }}
+            {{ 'FORECAST.TABLE.GROUP_BADGE' | translate }} · {{ dist.members?.length ?? 0 }} 
           </span>
         }
       </div>
