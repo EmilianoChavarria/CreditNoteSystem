@@ -112,7 +112,7 @@ export class GroupMembersModal {
   }
 
   isMember(idCliente: string): boolean {
-    return this.members().some(m => m.clientId === idCliente);
+    return this.members().some(m => String(m.clientId) === String(idCliente));
   }
 
   isSelected(idCliente: string): boolean {
