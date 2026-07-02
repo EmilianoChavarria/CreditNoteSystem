@@ -757,6 +757,7 @@
     "STATUS_APPROVED": "Approved",
     "STATUS_REJECTED": "Rejected",
     "STATUS_RETURNED": "Returned",
+    "STATUS_SENT_BACK": "Returned",
     "STATUS_CANCELLED": "Cancelled",
     "RETURN_ORDER": "Material return order",
     "RETURN_ORDER_ID": "Order number",
@@ -1361,7 +1362,8 @@
       "AWAIT_SALES_MANAGER": "Awaiting Sales Manager approval",
       "AWAIT_GENERAL_MANAGER": "Awaiting General Manager approval",
       "SUBMIT_ERROR": "Could not submit the request.",
-      "EXPORT_ERROR": "Could not export the Excel file."
+      "EXPORT_ERROR": "Could not export the Excel file.",
+      "GROUP_BADGE": "Group"
     },
     "CLIENT_MODAL": {
       "LOADING": "Loading forecast...",
@@ -1391,6 +1393,18 @@
       "COL_TOTAL": "Total",
       "TOTAL_LABEL": "Total ({{count}} invoices)",
       "EXPORT_EXCEL": "Export to Excel",
+      "CLOSE": "Close",
+      "CLIENTS_LABEL": "Clients",
+      "CLIENT_EMPTY": "No invoices recorded for this client."
+    },
+    "GROUP_FORECAST_MODAL": {
+      "TITLE_SUFFIX": "Group forecast",
+      "LOADING": "Loading forecast...",
+      "EMPTY": "No forecast data for this group.",
+      "COL_MONTH": "Month",
+      "COL_TOTAL": "Total",
+      "TOTAL_LABEL": "Annual total",
+      "NO_CLIENTS": "No clients with forecast this month.",
       "CLOSE": "Close"
     },
     "HISTORY_MODAL": {
@@ -1460,12 +1474,63 @@
     "DISTRIBUTORS": {
       "TITLE": "Forecast Clients",
       "DESCRIPTION": "Manage forecast clients",
+      "TAB_CLIENTS": "Clients",
+      "TAB_GROUPS": "Groups",
       "COL_ID": "Client ID",
       "COL_RAZON_SOCIAL": "Business Name",
       "COL_RFC": "Tax ID",
       "COL_ADDRESS": "Address",
       "COL_EMAILS": "Forecast Emails",
-      "ACTION_EDIT": "Edit"
+      "ACTION_EDIT": "Edit",
+      "ACTION_VIEW_FORECAST": "View forecast",
+      "ACTION_MANAGE_MEMBERS": "Manage members",
+      "ACTION_EDIT_GROUP": "Edit group",
+      "ACTION_DELETE_GROUP": "Delete group",
+      "GROUPS_EMPTY": "No client groups registered.",
+      "MEMBERS_LABEL": "members",
+      "REFRESH": "Refresh",
+      "CREATE_GROUP": "Create group",
+      "DELETE_GROUP_TITLE": "Delete group",
+      "DELETE_GROUP_MESSAGE": "Are you sure you want to delete the group",
+      "DELETE_GROUP_CONFIRM": "Delete",
+      "DELETE_GROUP_CANCEL": "Cancel",
+      "DELETE_GROUP_ERROR": "Could not delete the group.",
+      "DELETE_GROUP_SUCCESS": "Group deleted successfully."
+    },
+    "CREATE_GROUP_MODAL": {
+      "TITLE": "Create group",
+      "CREATE": "Create group",
+      "CANCEL": "Cancel",
+      "LABEL_NAME": "Name",
+      "LABEL_DESCRIPTION": "Description",
+      "HINT_NEXT_STEP": "After creating the group you'll be able to add clients to it."
+    },
+    "EDIT_GROUP_MODAL": {
+      "TITLE": "Edit group",
+      "SAVE": "Save",
+      "CANCEL": "Cancel",
+      "LABEL_NAME": "Name"
+    },
+    "GROUP_MEMBERS_MODAL": {
+      "TITLE_SUFFIX": "Group members",
+      "CLOSE": "Close",
+      "SEARCH_LABEL": "Add client",
+      "SEARCH_PLACEHOLDER": "Search by business name or ID...",
+      "SEARCHING": "Searching...",
+      "NO_RESULTS": "No results.",
+      "ALREADY_MEMBER": "Already a member",
+      "SELECT_ALL": "Select all",
+      "ADD": "Add",
+      "ADD_SELECTED": "Add selected",
+      "SELECTED_COUNT": "{{count}} selected",
+      "PAGE_SIZE": "Show",
+      "PREV_PAGE": "Prev",
+      "NEXT_PAGE": "Next",
+      "PAGE_OF": "Page {{page}} of {{total}}",
+      "REMOVE": "Remove",
+      "CURRENT_MEMBERS": "Current members",
+      "LOADING": "Loading members...",
+      "EMPTY": "This group has no members yet."
     },
     "EDIT_DISTRIBUTOR": {
       "TITLE": "Edit distributor",
