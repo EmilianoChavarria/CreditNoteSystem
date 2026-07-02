@@ -1,0 +1,98 @@
+<app-modal
+  [open]="open()"
+  [titleM]="(group()?.name ?? '') + ' — ' + ('FORECAST.GROUP_FORECAST_MODAL.TITLE_SUFFIX' | translate)"
+  [showPrimaryButton]="false"
+  [closeText]="'FORECAST.GROUP_FORECAST_MODAL.CLOSE' | translate"
+  size="lg"
+  (closed)="closed.emit()">
+
+  @if (summary()?.group?.description) {
+    <p modal-title class="text-xs text-gray-400 mt-0.5">{{ summary()?.group?.description }}</p>
+  }
+
+  <div class="flex items-center gap-0.5 bg-gray-50 border border-gray-200 rounded-full px-1 py-1 mb-4 w-fit">
+    @for (y of years; track y) {
+      <button
+        type="button"
+        (click)="selectYear(y)"
+        [class]="year() === y
+          ? 'bg-[#ff8200] text-white px-4 py-1 rounded-full text-xs font-semibold transition'
+          : 'text-gray-500 px-4 py-1 rounded-full text-xs hover:text-gray-800 transition'">
+        {{ y }}
+      </button>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="flex items-center justify-center py-10 text-sm text-gray-400">
+      {{ 'FORECAST.GROUP_FORECAST_MODAL.LOADING' | translate }}
+    </div>
+  } @else if (!summary()) {
+    <div class="flex items-center justify-center py-10 text-sm text-gray-400">
+      {{ 'FORECAST.GROUP_FORECAST_MODAL.EMPTY' | translate }}
+    </div>
+  } @else {
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b-2 border-gray-200 bg-gray-50">
+            <th class="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">
+              {{ 'FORECAST.GROUP_FORECAST_MODAL.COL_MONTH' | translate }}
+            </th>
+            <th class="px-4 py-2.5 text-right text-xs font-semibold uppercase tracking-wider text-gray-400">
+              {{ 'FORECAST.GROUP_FORECAST_MODAL.COL_TOTAL' | translate }}
+            </th>
+            <th class="px-4 py-2.5"></th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (monthName of MONTHS; track monthName; let monthIdx = $index) {
+            <tr class="border-t border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer" (click)="toggleMonth(monthIdx)">
+              <td class="px-4 py-2.5 text-xs font-medium text-gray-700 whitespace-nowrap">{{ monthName }}</td>
+              <td class="px-4 py-2.5 text-right text-xs text-gray-600 whitespace-nowrap">
+                ${{ monthTotal(monthIdx) | number:'1.2-2' }}
+              </td>
+              <td class="px-4 py-2.5 text-right text-gray-400">
+                <span class="inline-block transition-transform" [class.rotate-90]="expandedMonth() === monthIdx">›</span>
+              </td>
+            </tr>
+            @if (expandedMonth() === monthIdx) {
+              <tr class="bg-gray-50/60">
+                <td colspan="3" class="px-4 py-2">
+                  @if (monthClients(monthIdx).length === 0) {
+                    <p class="text-xs text-gray-400 py-1">{{ 'FORECAST.GROUP_FORECAST_MODAL.NO_CLIENTS' | translate }}</p>
+                  } @else {
+                    <table class="w-full text-xs">
+                      <tbody>
+                        @for (c of monthClients(monthIdx); track c.clientId) {
+                          <tr class="border-t border-gray-100 first:border-t-0">
+                            <td class="py-1.5 pl-4 text-gray-600">{{ c.name }}</td>
+                            <td class="py-1.5 pr-4 text-right text-gray-500">${{ c.total | number:'1.2-2' }}</td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  }
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+
+        <tfoot>
+          <tr class="border-t-2 border-gray-300 bg-gray-50">
+            <td class="px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wide">
+              {{ 'FORECAST.GROUP_FORECAST_MODAL.TOTAL_LABEL' | translate }}
+            </td>
+            <td class="px-4 py-2.5 text-right text-xs font-bold text-gray-700 whitespace-nowrap">
+              ${{ grandTotal() | number:'1.2-2' }}
+            </td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  }
+
+</app-modal>
