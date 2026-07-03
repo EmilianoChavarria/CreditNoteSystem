@@ -44,6 +44,10 @@ export class SalesManage {
     )
   );
 
+  readonly activeClientsCount = computed(() =>
+    this.distributors().reduce((s, d) => s + (d.isGroup ? d.members?.length ?? 0 : 1), 0)
+  );
+
   constructor(
     private readonly forecastService: ForecastService,
     private readonly batchService: BatchService,

@@ -1,0 +1,31 @@
+<app-modal
+    [open]="open()"
+    [titleM]="'FORECAST.EDIT_GROUP_MODAL.TITLE' | translate"
+    size="md"
+    [primaryText]="'FORECAST.EDIT_GROUP_MODAL.SAVE' | translate"
+    [closeText]="'FORECAST.EDIT_GROUP_MODAL.CANCEL' | translate"
+    [primaryLoading]="saving()"
+    [primaryDisabled]="saving() || !name().trim()"
+    [closeOnBackdrop]="true"
+    (openChange)="openChange.emit($event)"
+    (primaryAction)="onSave()">
+
+    <div class="flex flex-col gap-4">
+
+        <div class="flex flex-col gap-1">
+            <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">{{ 'FORECAST.EDIT_GROUP_MODAL.LABEL_NAME' | translate }}</label>
+            <input
+                type="text"
+                [value]="name()"
+                (input)="name.set($any($event.target).value)"
+                placeholder="Baleromex"
+                class="w-full text-sm px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 transition" />
+        </div>
+
+        @if (error()) {
+            <p class="text-xs text-red-500">{{ error() }}</p>
+        }
+
+    </div>
+
+</app-modal>

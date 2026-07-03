@@ -8,76 +8,142 @@
 
   <p modal-title class="text-xs text-gray-400 mt-0.5">{{ clientName() }}</p>
 
+  @if (!loading() && totalInvoiceCount() > 0) {
+    <button
+      modal-actions
+      type="button"
+      [disabled]="exporting()"
+      class="rounded-md border border-emerald-300 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60 flex items-center gap-2"
+      (click)="exportRequested.emit()">
+      @if (exporting()) {
+        <svg class="animate-spin h-4 w-4 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+      }
+      {{ 'FORECAST.INVOICES_MODAL.EXPORT_EXCEL' | translate }}
+    </button>
+  }
+
   @if (loading()) {
     <div class="flex items-center justify-center py-10 text-sm text-gray-400">
       {{ 'FORECAST.INVOICES_MODAL.LOADING' | translate }}
     </div>
-  } @else if (invoices().length === 0) {
+  } @else if (totalInvoiceCount() === 0) {
     <div class="flex items-center justify-center py-10 text-sm text-gray-400">
       {{ 'FORECAST.INVOICES_MODAL.EMPTY' | translate }}
     </div>
   } @else {
-    <div class="overflow-x-auto">
-      <table class="w-full text-sm">
-        <thead>
-          <tr class="border-b-2 border-gray-200 bg-gray-50">
-            <th class="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">
-              {{ 'FORECAST.INVOICES_MODAL.COL_FOLIO' | translate }}
-            </th>
-            <th class="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">
-              {{ 'FORECAST.INVOICES_MODAL.COL_DATE' | translate }}
-            </th>
-            <th class="px-4 py-2.5 text-right text-xs font-semibold uppercase tracking-wider text-gray-400">
-              {{ 'FORECAST.INVOICES_MODAL.COL_SUBTOTAL' | translate }}
-            </th>
-            <th class="px-4 py-2.5 text-right text-xs font-semibold uppercase tracking-wider text-gray-400">
-              {{ 'FORECAST.INVOICES_MODAL.COL_IVA' | translate }}
-            </th>
-            <th class="px-4 py-2.5 text-right text-xs font-semibold uppercase tracking-wider text-gray-400">
-              {{ 'FORECAST.INVOICES_MODAL.COL_TOTAL' | translate }}
-            </th>
-          </tr>
-        </thead>
+    <div [class]="isMultiClient() ? 'flex flex-col md:flex-row gap-4' : ''">
 
-        <tbody>
-          @for (inv of invoices(); track inv.folio) {
-            <tr class="border-t border-gray-100 hover:bg-gray-50 transition-colors">
-              <td class="px-4 py-2.5 text-xs font-medium text-gray-700 whitespace-nowrap">
-                {{ inv.folio }}
-              </td>
-              <td class="px-4 py-2.5 text-xs text-gray-500 whitespace-nowrap">
-                {{ inv.fechaEmision | date:'dd/MM/yyyy HH:mm' }}
-              </td>
-              <td class="px-4 py-2.5 text-right text-xs text-gray-600 whitespace-nowrap">
-                ${{ inv.subTotal | number:'1.2-2' }}
-              </td>
-              <td class="px-4 py-2.5 text-right text-xs text-gray-600 whitespace-nowrap">
-                ${{ inv.iva | number:'1.2-2' }}
-              </td>
-              <td class="px-4 py-2.5 text-right text-xs font-semibold text-gray-700 whitespace-nowrap">
-                {{inv.moneda}} ${{ inv.total | number:'1.2-2' }}
-              </td>
-            </tr>
-          }
-        </tbody>
+      @if (isMultiClient()) {
+        <div class="md:w-56 shrink-0">
+          <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-1.5">
+            {{ 'FORECAST.INVOICES_MODAL.CLIENTS_LABEL' | translate }} ({{ sections().length }})
+          </p>
+          <div class="border border-gray-100 rounded-lg divide-y divide-gray-100 max-h-72 overflow-y-auto">
+            @for (section of sections(); track section.clientId) {
+              <button
+                type="button"
+                (click)="selectClient(section.clientId)"
+                [class]="'w-full flex items-center justify-between gap-2 px-3 py-2 text-left transition-colors ' + (selectedSection()?.clientId === section.clientId ? 'bg-orange-50' : 'hover:bg-gray-50')">
+                <span
+                  [class]="'text-xs truncate ' + (selectedSection()?.clientId === section.clientId ? 'font-semibold text-orange-700' : 'font-medium text-gray-700')">
+                  {{ section.razonSocial }}
+                </span>
+                <span
+                  [class]="'shrink-0 inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-bold ' + (section.invoices.length > 0 ? 'bg-blue-50 text-blue-700' : 'bg-gray-100 text-gray-400')">
+                  {{ section.invoices.length }}
+                </span>
+              </button>
+            }
+          </div>
+        </div>
+      }
 
-        <tfoot>
-          <tr class="border-t-2 border-gray-300 bg-gray-50">
-            <td colspan="2" class="px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wide">
-              {{ 'FORECAST.INVOICES_MODAL.TOTAL_LABEL' | translate:{ count: invoices().length } }}
-            </td>
-            <td class="px-4 py-2.5 text-right text-xs font-bold text-gray-700 whitespace-nowrap">
-              ${{ grandSubTotal() | number:'1.2-2' }}
-            </td>
-            <td class="px-4 py-2.5 text-right text-xs font-bold text-gray-700 whitespace-nowrap">
-              ${{ grandIva() | number:'1.2-2' }}
-            </td>
-            <td class="px-4 py-2.5 text-right text-xs font-bold text-gray-700 whitespace-nowrap">
-              ${{ grandTotal() | number:'1.2-2' }}
-            </td>
-          </tr>
-        </tfoot>
-      </table>
+      <div class="flex-1 min-w-0 overflow-x-auto">
+        @if (selectedInvoices().length === 0) {
+          <div class="flex items-center justify-center py-10 text-sm text-gray-400">
+            {{ 'FORECAST.INVOICES_MODAL.CLIENT_EMPTY' | translate }}
+          </div>
+        } @else {
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b-2 border-gray-200 bg-gray-50">
+                <th class="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">
+                  {{ 'FORECAST.INVOICES_MODAL.COL_FOLIO' | translate }}
+                </th>
+                <th class="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">
+                  {{ 'FORECAST.INVOICES_MODAL.COL_DATE' | translate }}
+                </th>
+                <th class="px-4 py-2.5 text-right text-xs font-semibold uppercase tracking-wider text-gray-400">
+                  {{ 'FORECAST.INVOICES_MODAL.COL_SUBTOTAL' | translate }}
+                </th>
+                <th class="px-4 py-2.5 text-right text-xs font-semibold uppercase tracking-wider text-gray-400">
+                  {{ 'FORECAST.INVOICES_MODAL.COL_IVA' | translate }}
+                </th>
+                <th class="px-4 py-2.5 text-right text-xs font-semibold uppercase tracking-wider text-gray-400">
+                  {{ 'FORECAST.INVOICES_MODAL.COL_TOTAL' | translate }}
+                </th>
+              </tr>
+            </thead>
+
+            <tbody>
+              @for (inv of selectedInvoices(); track inv.folio) {
+                <tr class="border-t border-gray-100 hover:bg-gray-50 transition-colors">
+                  <td class="px-4 py-2.5 text-xs font-medium text-gray-700 whitespace-nowrap">
+                    {{ inv.folio }}
+                    @if (inv.originalMoneda) {
+                      <span class="ml-1.5 rounded bg-amber-100 px-1 py-0.5 text-[10px] font-semibold text-amber-700">
+                        {{ inv.originalMoneda }} → {{ inv.moneda }}
+                      </span>
+                    }
+                  </td>
+                  <td class="px-4 py-2.5 text-xs text-gray-500 whitespace-nowrap">
+                    {{ inv.fechaEmision | date:'dd/MM/yyyy HH:mm:ss':'UTC' }}
+                  </td>
+                  <td class="px-4 py-2.5 text-right text-xs text-gray-600 whitespace-nowrap">
+                    ${{ +inv.subTotal | number:'1.2-2' }} {{ inv.moneda }}
+                    @if (inv.originalSubTotal !== undefined) {
+                      <div class="text-[11px] text-gray-400">${{ +inv.originalSubTotal | number:'1.2-2' }} {{ inv.originalMoneda }} </div>
+                    }
+                  </td>
+                  <td class="px-4 py-2.5 text-right text-xs text-gray-600 whitespace-nowrap">
+                    ${{ +inv.iva | number:'1.2-2' }} {{ inv.moneda }}
+                    @if (inv.originalIva !== undefined) {
+                      <div class="text-[11px] text-gray-400"> ${{ +inv.originalIva | number:'1.2-2' }} {{ inv.originalMoneda }}</div>
+                    }
+                  </td>
+                  <td class="px-4 py-2.5 text-right text-xs font-semibold text-gray-700 whitespace-nowrap">
+                     ${{ +inv.total | number:'1.2-2' }} {{ inv.moneda }}
+                    @if (inv.originalTotal !== undefined) {
+                      <div class="text-[11px] font-normal text-gray-400"> ${{ +inv.originalTotal | number:'1.2-2' }} {{ inv.originalMoneda }} · TC {{ +(inv.tipoCambio ?? 0) | number:'1.2-4' }}</div>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+
+            <tfoot>
+              <tr class="border-t-2 border-gray-300 bg-gray-50">
+                <td colspan="2" class="px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wide">
+                  {{ 'FORECAST.INVOICES_MODAL.TOTAL_LABEL' | translate:{ count: selectedInvoices().length } }}
+                </td>
+                <td class="px-4 py-2.5 text-right text-xs font-bold text-gray-700 whitespace-nowrap">
+                  ${{ grandSubTotal() | number:'1.2-2' }}
+                </td>
+                <td class="px-4 py-2.5 text-right text-xs font-bold text-gray-700 whitespace-nowrap">
+                  ${{ grandIva() | number:'1.2-2' }}
+                </td>
+                <td class="px-4 py-2.5 text-right text-xs font-bold text-gray-700 whitespace-nowrap">
+                  ${{ grandTotal() | number:'1.2-2' }}
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        }
+      </div>
+
     </div>
   }
 

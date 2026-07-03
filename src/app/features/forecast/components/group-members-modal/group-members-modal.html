@@ -1,0 +1,190 @@
+<app-modal
+  [open]="open()"
+  [titleM]="(group()?.name ?? '') + ' — ' + ('FORECAST.GROUP_MEMBERS_MODAL.TITLE_SUFFIX' | translate)"
+  [showPrimaryButton]="false"
+  [closeText]="'FORECAST.GROUP_MEMBERS_MODAL.CLOSE' | translate"
+  size="2xl"
+  (closed)="closed.emit()">
+
+  <div [class]="searchTerm() ? 'flex flex-col md:flex-row gap-4' : 'flex flex-col gap-4'">
+
+    <!-- SEARCH / ADD -->
+    <div class="flex flex-col gap-1 flex-1 min-w-0">
+      <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">{{ 'FORECAST.GROUP_MEMBERS_MODAL.SEARCH_LABEL' | translate }}</label>
+      <div class="relative">
+        <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path stroke-linecap="round" d="M21 21l-4.35-4.35"></path>
+        </svg>
+        <input
+          type="text"
+          (input)="onSearch($any($event.target).value)"
+          [placeholder]="'FORECAST.GROUP_MEMBERS_MODAL.SEARCH_PLACEHOLDER' | translate"
+          class="w-full text-sm pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 transition" />
+      </div>
+
+      @if (searchTerm()) {
+        @if (!searching() && searchResults().length > 0) {
+          <label class="flex items-center gap-2 px-1 py-1 cursor-pointer">
+            <input
+              type="checkbox"
+              [checked]="isAllSelected()"
+              (change)="toggleSelectAll()"
+              class="shrink-0 h-4 w-4 rounded border-gray-300 text-orange-500 focus:ring-orange-400" />
+            <span class="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">{{ 'FORECAST.GROUP_MEMBERS_MODAL.SELECT_ALL' | translate }}</span>
+          </label>
+        }
+        <div class="border border-gray-100 rounded-lg divide-y divide-gray-100">
+          @if (searching()) {
+            <div class="flex items-center justify-center py-4 text-xs text-gray-400">
+              {{ 'FORECAST.GROUP_MEMBERS_MODAL.SEARCHING' | translate }}
+            </div>
+          } @else if (searchResults().length === 0) {
+            <div class="flex items-center justify-center py-4 text-xs text-gray-400">
+              {{ 'FORECAST.GROUP_MEMBERS_MODAL.NO_RESULTS' | translate }}
+            </div>
+          } @else {
+            @for (client of searchResults(); track client.idCliente) {
+              <div class="flex items-center justify-between gap-2 px-3 py-2" [class.opacity-60]="isMember(client.idCliente)">
+                <div class="flex items-center gap-2.5 min-w-0">
+                  <input
+                    type="checkbox"
+                    [checked]="isSelected(client.idCliente)"
+                    [disabled]="isMember(client.idCliente) || addingSelected() || pendingAddId() !== null"
+                    (change)="toggleSelect(client.idCliente)"
+                    class="shrink-0 h-4 w-4 rounded border-gray-300 text-orange-500 focus:ring-orange-400" />
+                  <div class="min-w-0">
+                    <p class="text-xs font-medium text-gray-700 truncate">{{ client.razonSocial }}</p>
+                    <p class="text-[11px] text-gray-400">{{ client.idCliente }}</p>
+                  </div>
+                </div>
+                @if (isMember(client.idCliente)) {
+                  <span class="shrink-0 text-[11px] font-semibold text-emerald-600">{{ 'FORECAST.GROUP_MEMBERS_MODAL.ALREADY_MEMBER' | translate }}</span>
+                } @else {
+                  <button
+                    type="button"
+                    [disabled]="pendingAddId() !== null || addingSelected()"
+                    (click)="addMember(client)"
+                    class="shrink-0 inline-flex items-center gap-1 rounded-md border border-emerald-300 bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60">
+                    @if (pendingAddId() === client.idCliente) {
+                      <svg class="animate-spin h-3 w-3 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    } @else {
+                      {{ 'FORECAST.GROUP_MEMBERS_MODAL.ADD' | translate }}
+                    }
+                  </button>
+                }
+              </div>
+            }
+          }
+        </div>
+
+        @if (!searching() && searchResults().length > 0) {
+          <div class="mt-1.5 flex items-center justify-between gap-2">
+            <label class="flex items-center gap-1.5 text-[11px] text-gray-500">
+              {{ 'FORECAST.GROUP_MEMBERS_MODAL.PAGE_SIZE' | translate }}
+              <select
+                [value]="searchPageSize()"
+                (change)="onSearchPageSizeChange(+$any($event.target).value)"
+                class="rounded-md border border-gray-200 bg-white px-1.5 py-1 text-[11px] text-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-400">
+                <option [value]="10">10</option>
+                <option [value]="20">20</option>
+                <option [value]="50">50</option>
+              </select>
+            </label>
+
+            @if (searchTotalPages() > 1) {
+              <div class="flex items-center gap-2">
+                <button
+                  type="button"
+                  [disabled]="!searchHasPrev()"
+                  (click)="searchPrevPage()"
+                  class="rounded-md border border-gray-200 px-2.5 py-1 text-[11px] font-medium text-gray-600 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40">
+                  ‹ {{ 'FORECAST.GROUP_MEMBERS_MODAL.PREV_PAGE' | translate }}
+                </button>
+                <span class="text-[11px] text-gray-400">
+                  {{ 'FORECAST.GROUP_MEMBERS_MODAL.PAGE_OF' | translate:{ page: searchPage(), total: searchTotalPages() } }}
+                </span>
+                <button
+                  type="button"
+                  [disabled]="!searchHasNext()"
+                  (click)="searchNextPage()"
+                  class="rounded-md border border-gray-200 px-2.5 py-1 text-[11px] font-medium text-gray-600 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40">
+                  {{ 'FORECAST.GROUP_MEMBERS_MODAL.NEXT_PAGE' | translate }} ›
+                </button>
+              </div>
+            }
+          </div>
+        }
+
+        @if (selectedIds().size > 0) {
+          <div class="mt-2 flex items-center justify-between gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2">
+            <span class="text-xs font-medium text-emerald-700">
+              {{ 'FORECAST.GROUP_MEMBERS_MODAL.SELECTED_COUNT' | translate:{ count: selectedIds().size } }}
+            </span>
+            <button
+              type="button"
+              [disabled]="addingSelected()"
+              (click)="addSelectedMembers()"
+              class="shrink-0 inline-flex items-center gap-1 rounded-md bg-emerald-600 px-3 py-1.5 text-[11px] font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60">
+              @if (addingSelected()) {
+                <svg class="animate-spin h-3 w-3 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              } @else {
+                {{ 'FORECAST.GROUP_MEMBERS_MODAL.ADD_SELECTED' | translate }}
+              }
+            </button>
+          </div>
+        }
+      }
+    </div>
+
+    <!-- CURRENT MEMBERS -->
+    <div class="flex flex-col gap-1 flex-1 min-w-0">
+      <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+        {{ 'FORECAST.GROUP_MEMBERS_MODAL.CURRENT_MEMBERS' | translate }} ({{ members().length }})
+      </label>
+
+      @if (membersLoading()) {
+        <div class="flex items-center justify-center py-8 text-sm text-gray-400">
+          {{ 'FORECAST.GROUP_MEMBERS_MODAL.LOADING' | translate }}
+        </div>
+      } @else if (members().length === 0) {
+        <div class="flex items-center justify-center py-8 text-sm text-gray-400">
+          {{ 'FORECAST.GROUP_MEMBERS_MODAL.EMPTY' | translate }}
+        </div>
+      } @else {
+        <div class="border border-gray-100 rounded-lg divide-y divide-gray-100">
+          @for (member of members(); track member.clientId) {
+            <div class="flex items-center justify-between gap-2 px-3 py-2">
+              <div class="min-w-0">
+                <p class="text-xs font-medium text-gray-700 truncate">{{ member.razonSocial }}</p>
+                <p class="text-[11px] text-gray-400">{{ member.clientId }}</p>
+              </div>
+              <button
+                type="button"
+                [disabled]="pendingRemoveId() !== null"
+                (click)="removeMember(member)"
+                class="shrink-0 inline-flex items-center gap-1 rounded-md border border-red-300 bg-red-50 px-2.5 py-1 text-[11px] font-semibold text-red-600 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60">
+                @if (pendingRemoveId() === member.clientId) {
+                  <svg class="animate-spin h-3 w-3 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                } @else {
+                  {{ 'FORECAST.GROUP_MEMBERS_MODAL.REMOVE' | translate }}
+                }
+              </button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+  </div>
+
+</app-modal>
