@@ -1,14 +1,18 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
-import { DecimalPipe } from '@angular/common';
+import { DecimalPipe, NgTemplateOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { LucideAngularModule } from 'lucide-angular';
 import { ToastrService } from 'ngx-toastr';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { finalize } from 'rxjs';
 import {
   ChangeRequest,
   Distributor,
   ForecastService,
-  Invoice,
+  GroupMemberSales,
+  InvoiceSection,
 } from '../../../../core/services/forecast.service';
+import { ExportService } from '../../../../core/services/export-service';
 import { ForecastHistoryModal } from '../forecast-history-modal/forecast-history-modal';
 import { ForecastInvoicesModal } from '../forecast-invoices-modal/forecast-invoices-modal';
 import { ForecastClientModal } from '../forecast-client-modal/forecast-client-modal';
@@ -29,7 +33,7 @@ interface InvoicesState {
   clientId: number;
   clientName: string;
   monthIdx: number;
-  invoices: Invoice[];
+  sections: InvoiceSection[];
   loading: boolean;
 }
 
@@ -40,12 +44,14 @@ interface ClientModalState {
 
 @Component({
   selector: 'app-forecast-table',
-  imports: [TranslatePipe, DecimalPipe, FormsModule, ForecastHistoryModal, ForecastInvoicesModal, ForecastClientModal],
+  imports: [TranslatePipe, DecimalPipe, FormsModule, NgTemplateOutlet, LucideAngularModule, ForecastHistoryModal, ForecastInvoicesModal, ForecastClientModal],
   templateUrl: './forecast-table.html',
+  styleUrl: './forecast-table.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ForecastTable {
   private readonly forecastService = inject(ForecastService);
+  private readonly exportService = inject(ExportService);
   private readonly toastr = inject(ToastrService);
   private readonly translate = inject(TranslateService);
 
@@ -63,7 +69,10 @@ export class ForecastTable {
   readonly submittingCell = signal<EditingCell | null>(null);
   readonly historyState = signal<HistoryState | null>(null);
   readonly invoicesState = signal<InvoicesState | null>(null);
+  readonly exportingInvoices = signal(false);
   readonly clientModalState = signal<ClientModalState | null>(null);
+  readonly expandedGroups = signal<Set<number>>(new Set());
+  readonly closingGroups = signal<Set<number>>(new Set());
 
   private clickTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -79,6 +88,40 @@ export class ForecastTable {
       0
     )
   );
+
+  toggleGroup(id: number): void {
+    if (this.expandedGroups().has(id)) {
+      this.closingGroups.update(current => new Set(current).add(id));
+      setTimeout(() => {
+        this.expandedGroups.update(current => {
+          const next = new Set(current);
+          next.delete(id);
+          return next;
+        });
+        this.closingGroups.update(current => {
+          const next = new Set(current);
+          next.delete(id);
+          return next;
+        });
+      }, 180);
+    } else {
+      this.expandedGroups.update(current => new Set(current).add(id));
+    }
+  }
+
+  isGroupExpanded(id: number): boolean {
+    return this.expandedGroups().has(id);
+  }
+
+  isGroupClosing(id: number): boolean {
+    return this.closingGroups().has(id);
+  }
+
+  groupRail(inGroup: boolean | undefined, isLast?: boolean): string | null {
+    if (!inGroup) return null;
+    const rail = 'inset 4px 0 0 0 #fb923c';
+    return isLast ? `${rail}, inset 0 -3px 0 0 #fb923c` : rail;
+  }
 
   hasAnyPending(dist: Distributor): boolean {
     return dist.months.some(m => m.pendingRequest?.status === 'pending');
@@ -139,16 +182,40 @@ export class ForecastTable {
     this.historyState.set(null);
   }
 
-  openInvoices(dist: Distributor, monthIdx: number): void {
-    this.invoicesState.set({ clientId: dist.id, clientName: dist.name, monthIdx, invoices: [], loading: true });
+  openInvoices(dist: { id: number; name: string }, monthIdx: number): void {
+    this.invoicesState.set({ clientId: dist.id, clientName: dist.name, monthIdx, sections: [], loading: true });
     this.forecastService.getInvoices(dist.id, this.year(), monthIdx + 1).subscribe({
-      next: (invoices) => this.invoicesState.update(s => s ? { ...s, invoices, loading: false } : null),
+      next: (sections) => this.invoicesState.update(s => s ? { ...s, sections, loading: false } : null),
       error: () => this.invoicesState.update(s => s ? { ...s, loading: false } : null),
     });
   }
 
+  memberSalesTotal(member: GroupMemberSales): number {
+    return member.monthlySales.reduce((s, v) => s + v, 0);
+  }
+
   closeInvoices(): void {
     this.invoicesState.set(null);
+  }
+
+  exportInvoices(): void {
+    const state = this.invoicesState();
+    if (!state || this.exportingInvoices()) {
+      return;
+    }
+
+    const year = this.year();
+    const month = state.monthIdx + 1;
+    this.exportingInvoices.set(true);
+    this.forecastService.exportInvoicesExcel(state.clientId, year, month).pipe(
+      finalize(() => this.exportingInvoices.set(false))
+    ).subscribe({
+      next: (blob) => {
+        const fileName = `facturas_${state.clientName.trim().replace(/\s+/g, '_')}_${year}_${month}.xlsx`;
+        this.exportService.downloadBlob(blob, fileName);
+      },
+      error: () => this.toastr.error(this.translate.instant('FORECAST.TABLE.EXPORT_ERROR')),
+    });
   }
 
   openClientModal(dist: Distributor): void {

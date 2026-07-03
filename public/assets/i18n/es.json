@@ -757,6 +757,7 @@
     "STATUS_APPROVED": "Aprobado",
     "STATUS_REJECTED": "Rechazado",
     "STATUS_RETURNED": "Regresado",
+    "STATUS_SENT_BACK": "Regresado",
     "STATUS_CANCELLED": "Cancelado",
     "RETURN_ORDER": "Orden de devolución de material",
     "RETURN_ORDER_ID": "Número de orden",
@@ -1348,7 +1349,7 @@
     "TABLE": {
       "LOADING": "Cargando forecast...",
       "EMPTY": "Sin clientes con forecast para este período.",
-      "COL_CLIENT": "Cliente",
+      "COL_CLIENT": "Distribuidor",
       "COL_TOTAL": "Total",
       "LABEL_FORECAST": "Forecast",
       "LABEL_MODIFICATION": "Modificación de objetivo de ventas",
@@ -1360,7 +1361,9 @@
       "VIEW_INVOICES": "Ver desglose de facturas",
       "AWAIT_SALES_MANAGER": "Esperando aprobación de Sales Manager",
       "AWAIT_GENERAL_MANAGER": "Esperando aprobación de General Manager",
-      "SUBMIT_ERROR": "No se pudo enviar la solicitud."
+      "SUBMIT_ERROR": "No se pudo enviar la solicitud.",
+      "EXPORT_ERROR": "No se pudo exportar el archivo de Excel.",
+      "GROUP_BADGE": "Grupo"
     },
     "CLIENT_MODAL": {
       "LOADING": "Cargando forecast...",
@@ -1389,6 +1392,19 @@
       "COL_IVA": "IVA",
       "COL_TOTAL": "Total",
       "TOTAL_LABEL": "Total ({{count}} facturas)",
+      "EXPORT_EXCEL": "Exportar a Excel",
+      "CLOSE": "Cerrar",
+      "CLIENTS_LABEL": "Clientes",
+      "CLIENT_EMPTY": "Sin facturas registradas para este cliente."
+    },
+    "GROUP_FORECAST_MODAL": {
+      "TITLE_SUFFIX": "Forecast del grupo",
+      "LOADING": "Cargando forecast...",
+      "EMPTY": "Sin datos de forecast para este grupo.",
+      "COL_MONTH": "Mes",
+      "COL_TOTAL": "Total",
+      "TOTAL_LABEL": "Total anual",
+      "NO_CLIENTS": "Sin clientes con forecast este mes.",
       "CLOSE": "Cerrar"
     },
     "HISTORY_MODAL": {
@@ -1458,12 +1474,63 @@
     "DISTRIBUTORS": {
       "TITLE": "Clientes Forecast",
       "DESCRIPTION": "Gestión de clientes del forecast",
+      "TAB_CLIENTS": "Clientes",
+      "TAB_GROUPS": "Grupos",
       "COL_ID": "ID Cliente",
       "COL_RAZON_SOCIAL": "Razón Social",
       "COL_RFC": "RFC",
       "COL_ADDRESS": "Dirección",
       "COL_EMAILS": "Correos Forecast",
-      "ACTION_EDIT": "Editar"
+      "ACTION_EDIT": "Editar",
+      "ACTION_VIEW_FORECAST": "Ver forecast",
+      "ACTION_MANAGE_MEMBERS": "Gestionar miembros",
+      "ACTION_EDIT_GROUP": "Editar grupo",
+      "ACTION_DELETE_GROUP": "Eliminar grupo",
+      "GROUPS_EMPTY": "Sin grupos de clientes registrados.",
+      "MEMBERS_LABEL": "miembros",
+      "REFRESH": "Actualizar",
+      "CREATE_GROUP": "Crear grupo",
+      "DELETE_GROUP_TITLE": "Eliminar grupo",
+      "DELETE_GROUP_MESSAGE": "¿Seguro que quieres eliminar el grupo",
+      "DELETE_GROUP_CONFIRM": "Eliminar",
+      "DELETE_GROUP_CANCEL": "Cancelar",
+      "DELETE_GROUP_ERROR": "No se pudo eliminar el grupo.",
+      "DELETE_GROUP_SUCCESS": "Grupo eliminado correctamente."
+    },
+    "CREATE_GROUP_MODAL": {
+      "TITLE": "Crear grupo",
+      "CREATE": "Crear grupo",
+      "CANCEL": "Cancelar",
+      "LABEL_NAME": "Nombre",
+      "LABEL_DESCRIPTION": "Descripción",
+      "HINT_NEXT_STEP": "Después de crear el grupo podrás agregarle clientes."
+    },
+    "EDIT_GROUP_MODAL": {
+      "TITLE": "Editar grupo",
+      "SAVE": "Guardar",
+      "CANCEL": "Cancelar",
+      "LABEL_NAME": "Nombre"
+    },
+    "GROUP_MEMBERS_MODAL": {
+      "TITLE_SUFFIX": "Miembros del grupo",
+      "CLOSE": "Cerrar",
+      "SEARCH_LABEL": "Agregar cliente",
+      "SEARCH_PLACEHOLDER": "Buscar por razón social o ID...",
+      "SEARCHING": "Buscando...",
+      "NO_RESULTS": "Sin resultados.",
+      "ALREADY_MEMBER": "Ya es miembro",
+      "SELECT_ALL": "Seleccionar todos",
+      "ADD": "Agregar",
+      "ADD_SELECTED": "Agregar seleccionados",
+      "SELECTED_COUNT": "{{count}} seleccionado(s)",
+      "PAGE_SIZE": "Mostrar",
+      "PREV_PAGE": "Anterior",
+      "NEXT_PAGE": "Siguiente",
+      "PAGE_OF": "Página {{page}} de {{total}}",
+      "REMOVE": "Quitar",
+      "CURRENT_MEMBERS": "Miembros actuales",
+      "LOADING": "Cargando miembros...",
+      "EMPTY": "Este grupo aún no tiene miembros."
     },
     "EDIT_DISTRIBUTOR": {
       "TITLE": "Editar distribuidor",
