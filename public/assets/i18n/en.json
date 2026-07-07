@@ -1153,6 +1153,13 @@
       "LOADING_PRODUCTS": "Loading invoice products...",
       "NO_PRODUCTS": "This invoice has no products available for return.",
       "ADD": "Add",
+      "ADDED": "Added",
+      "ADD_ALL": "Add all",
+      "ADD_SUCCESS_TITLE": "Product added",
+      "ADD_SUCCESS": "{{quantity}} x {{part}} added to the return order",
+      "UPDATE_SUCCESS": "Quantity updated in the return order",
+      "ADD_ALL_ADDED_COUNT": "{{count}} products added.",
+      "ADD_ALL_UPDATED_COUNT": "{{count}} quantities updated.",
       "DELIVERY_NOTE": "Delivery note"
     },
     "PAGINATION": {

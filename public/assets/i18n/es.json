@@ -1153,6 +1153,13 @@
       "LOADING_PRODUCTS": "Cargando productos de la factura...",
       "NO_PRODUCTS": "Esta factura no tiene productos disponibles para devolución.",
       "ADD": "Agregar",
+      "ADDED": "Agregado",
+      "ADD_ALL": "Agregar todo",
+      "ADD_SUCCESS_TITLE": "Producto agregado",
+      "ADD_SUCCESS": "{{quantity}} x {{part}} agregado a la orden de devolución",
+      "UPDATE_SUCCESS": "Cantidad actualizada en la orden de devolución",
+      "ADD_ALL_ADDED_COUNT": "{{count}} productos agregados.",
+      "ADD_ALL_UPDATED_COUNT": "{{count}} cantidades actualizadas.",
       "DELIVERY_NOTE": "Remisión"
     },
     "PAGINATION": {
