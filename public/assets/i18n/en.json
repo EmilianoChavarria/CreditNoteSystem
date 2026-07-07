@@ -69,8 +69,8 @@
     "AUDITOR_DEBIT": "Auditor Debit",
     "RE_INVOICING": "Re Invoincing",
     "MATERIAL_RETURN": "Material Return",
-    "ALL_TYPES": "All types",
-    "DEFAULT_TEXT": "Please, select a request type to start"
+    "ALL_TYPES": "All types"
+    
   },
   "DASHBOARD": {
     "TITLE": "Activity Summary",

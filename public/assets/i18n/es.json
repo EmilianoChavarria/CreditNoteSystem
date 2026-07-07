@@ -69,8 +69,8 @@
     "AUDITOR_DEBIT": "Auditor Debit",
     "RE_INVOICING": "Re Facturación",
     "MATERIAL_RETURN": "Devolución de Material",
-    "ALL_TYPES": "Todas las opciones",
-    "DEFAULT_TEXT": "Por favor, seleccione un tipo de solicitud para comenzar"
+    "ALL_TYPES": "Todas las opciones"
+    
   },
   "TABLE": {
     "REG_PER_PAGE": "Registros por página",
