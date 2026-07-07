@@ -1,3 +1,4 @@
+import { ChargeType } from '../../core/services/return-order-request-service';
 import { Role, User } from './User';
 
 export interface Request {
@@ -11,6 +12,7 @@ export interface Request {
     currency: string;
     customerId: number;
     razonSocial: string;
+    returnOrderTotal?: number;
     area: string;
     reasonId: number;
     classificationId: number;
@@ -44,6 +46,7 @@ export interface Request {
     classification: Classification;
     workflowCurrentStep: WorkflowCurrentStep
     attachments?: RequestAttachments;
+    chargeType?: ChargeType;
 }
 
 export interface WorkflowStep {
