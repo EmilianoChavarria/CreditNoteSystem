@@ -12,7 +12,7 @@
             [currency]="invoiceCurrency" [chargeTypeOptions]="invoiceChargeTypeOptions()"
             (clearSearch)="clearInvoiceSearch()"></app-client-invoice-filters>
 
-        <section class="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_420px]">
+        <section class="grid grid-cols-2 gap-4 xl:grid-cols-[minmax(0,1fr)_420px]">
             <div class="flex flex-col gap-4">
                 @if (isLoadingInvoices()) {
                 <article class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
@@ -38,6 +38,7 @@
                     [error]="invoiceProductsErrorMessage(invoiceAccordionKey)" [draftQuantities]="draftQuantities()"
                     (toggle)="toggleInvoice(invoice, invoiceAccordionKey)"
                     (addProduct)="addToReturnOrder($event.invoice, $event.product)"
+                    (addAllProducts)="addAllToReturnOrder($event.invoice)"
                     (openHistory)="openProductHistory($event.invoice, $event.product)"
                     (adjustQuantity)="onDraftQuantityAdjust($event)"
                     (quantityChange)="onDraftQuantityChange($event)"></app-client-invoice-card>
