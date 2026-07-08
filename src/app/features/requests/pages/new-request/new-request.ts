@@ -104,8 +104,8 @@ export class NewRequest implements OnInit {
         const returnTo = navigationState?.returnTo ?? browserState?.returnTo;
 
         console.log('[new-request] resolved editRequest:', editRequest);
-        console.log('[new-request] resolved approvalActions:', approvalActions);
-        console.log('[new-request] resolved returnTo:', returnTo);
+        // console.log('[new-request] resolved approvalActions:', approvalActions);
+        // console.log('[new-request] resolved returnTo:', returnTo);
 
         if (returnTo) {
             this.returnTo = returnTo;

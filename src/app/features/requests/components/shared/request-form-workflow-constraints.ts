@@ -7,13 +7,15 @@ export interface ConstraintContext {
   assignedRoleName: string | undefined;
   /** true cuando el formulario activo es el de re-facturación */
   isReinvoicing?: boolean;
+  /** id del tipo de solicitud activo (ej. 3 = auditor credits, 4 = auditor debits) */
+  requestTypeId?: number | null;
 }
 
 export interface WorkflowFieldConstraint {
   /** Devuelve true cuando los campos deben estar deshabilitados */
   disableWhen: (ctx: ConstraintContext) => boolean;
   /** Campos del FormGroup principal que aplican la restricción */
-  fields: string[];
+  fields?: string[];
   /** Campos dentro de cada FormGroup del FormArray materialItems */
   arrayFields?: string[];
 }
@@ -44,12 +46,19 @@ export const WORKFLOW_FIELD_CONSTRAINTS: WorkflowFieldConstraint[] = [
     fields: ['orderNumber', 'deliveryNote'],
   },
   {
-    // Habilitado solo cuando el rol asignado es REQUESTER.
-    // Al crear (!step) queda deshabilitado; en otros roles también.
-    disableWhen: ({ step, assignedRoleName, isReinvoicing }) =>
-      isReinvoicing && !step
+    // Auditor credit/debit (requestTypeId 3/4): habilitado al crear (!step) y para
+    // cualquier rol asignado distinto de REQUESTER / REQUESTER-PROCESSOR.
+    // Resto de formularios: habilitado solo cuando el rol asignado es REQUESTER
+    // (al crear queda deshabilitado, salvo re-invoicing).
+    disableWhen: ({ step, assignedRoleName, isReinvoicing, requestTypeId }) => {
+      if (requestTypeId === 3 || requestTypeId === 4) {
+        return !!step && (assignedRoleName === 'REQUESTER' || assignedRoleName === 'REQUESTER / PROCESSOR');
+      }
+
+      return isReinvoicing && !step
         ? false
-        : !step || (assignedRoleName !== 'REQUESTER' && assignedRoleName !== 'REQUESTER / PROCESSOR'),
+        : !step || (assignedRoleName !== 'REQUESTER' && assignedRoleName !== 'REQUESTER / PROCESSOR');
+    },
     fields: ['invoiceNumber'],
   },
   {
@@ -72,6 +81,11 @@ export const WORKFLOW_FIELD_CONSTRAINTS: WorkflowFieldConstraint[] = [
     // A partir del paso 2 en adelante queda deshabilitado.
     disableWhen: ({ step }) => !!step && step.stepOrder !== 1,
     fields: ['area', 'reasonId', 'classificationId'],
-    arrayFields: ['sapId'],
+  },
+  {
+    // Habilitado al crear (sin paso) y en los pasos 1 y 2 del flujo.
+    // A partir del paso 3 en adelante queda deshabilitado.
+    disableWhen: ({ step }) => !!step && step.stepOrder !== 1 && step.stepOrder !== 2,
+    arrayFields: ['sapId']
   },
 ];

@@ -1,6 +1,6 @@
-<main class=" bg-login w-full h-full flex flex-col items-center justify-center gap-y-6 px-4 py-8 sm:px-6 2xl:gap-y-10 md:px-8">
+<main class=" bg-login w-full h-full flex flex-col items-center justify-center gap-y-1 px-4 sm:px-6 2xl:gap-y-10">
     <img src="assets/png/title2.png" alt="Logo Timken" class="h-36 w-auto sm:h-36" style="fill: white !important;">
-    <form class=" bg-white shadow-2xl w-full max-w-sm sm:max-w-md lg:max-w-lg flex flex-col rounded-lg p-5 gap-y-5 sm:p-7 sm:gap-y-6 md:p-8" [formGroup]="form" (ngSubmit)="onSubmit()">
+    <form class=" bg-white shadow-2xl w-full max-w-sm sm:max-w-md 2xl:max-w-lg flex flex-col rounded-lg p-5 2xl:gap-y-5 sm:p-7 sm:gap-y-2 md:p-8" [formGroup]="form" (ngSubmit)="onSubmit()">
         <span class="text-center w-full text-[#ff8200] font-semibold text-2xl">
             Inicio de sesión
         </span>
@@ -43,7 +43,7 @@
             <p class="mt-1 text-sm text-red-600">La contraseña es obligatoria.</p>
             }
         </div>
-        <button class="bg-[#ff8200] text-white py-2.5 rounded-md hover:bg-[#e67300] transition-colors hover:cursor-pointer"
+        <button class="bg-[#ff8200] text-white py-1 mt-2 2xl:mt-0 2xl:py-2.5 rounded-md hover:bg-[#e67300] transition-colors hover:cursor-pointer"
             [disabled]="isLoading">
             @if (isLoading) {
             <app-spinner size="small" class="text-white"></app-spinner>

@@ -26,7 +26,7 @@
                 </div>
                 }
             </div>
-            <span class="text-orange-400">{{ (isEditingRequest() ? 'NEW_REQ.EDIT_DESCRIPTION' : 'NEW_REQ.DESCRIPTION') | translate }}</span>
+            <span class="text-xl font-semibold text-orange-400">{{ (isEditingRequest() ? 'NEW_REQ.EDIT_DESCRIPTION' : 'NEW_REQ.DESCRIPTION') | translate }}</span>
         </div>
     </div>
 
@@ -90,7 +90,7 @@
     <div *ngIf="this.selectedRequestType ===''" class="text-center pt-10 md:py-20 text-gray-500">
         <img src="assets/png/Imagen-1.jpg" alt=""
             class="mx-auto h-auto w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl object-contain">
-        <p class="text-2xl text-[#3c6194] font-semibold">{{'REQUEST_TYPES.DEFAULT_TEXT'| translate}}</p>
+        
     </div>
 
     <app-approve-confirm-modal

@@ -69,8 +69,8 @@
     "AUDITOR_DEBIT": "Auditor Debit",
     "RE_INVOICING": "Re Facturación",
     "MATERIAL_RETURN": "Devolución de Material",
-    "ALL_TYPES": "Todas las opciones",
-    "DEFAULT_TEXT": "Por favor, seleccione un tipo de solicitud para comenzar"
+    "ALL_TYPES": "Todas las opciones"
+    
   },
   "TABLE": {
     "REG_PER_PAGE": "Registros por página",
@@ -698,7 +698,31 @@
     "STATUS_APPROVED": "Aprobado",
     "STATUS_PENDING": "Pendiente",
     "STATUS_CANCELLED": "Cancelado",
-    "NO_STATUS": "Sin estado"
+    "NO_STATUS": "Sin estado",
+    "VIEW_DRAFTS": "Ver borradores"
+  },
+  "DRAFTS_ADMIN_MODAL": {
+    "TITLE": "Borradores y solicitudes faltantes",
+    "CLOSE": "Cerrar",
+    "SEARCH_LABEL": "Buscar",
+    "SEARCH_PLACEHOLDER": "Folio, estado, cliente, usuario, razón o clasificación",
+    "REQUEST_TYPE_LABEL": "Tipo de solicitud",
+    "ALL_TYPES": "Todos los tipos",
+    "EMPTY": "No se encontraron borradores.",
+    "COL_FOLIO": "Folio",
+    "COL_STATUS": "Estado",
+    "COL_CUSTOMER": "Cliente",
+    "COL_USER": "Usuario",
+    "COL_REASON": "Razón",
+    "COL_CLASSIFICATION": "Clasificación",
+    "COL_CREATED": "Creado",
+    "COL_DELETED": "Eliminado",
+    "DELETED_BY": "Por",
+    "PAGE": "Página",
+    "OF": "de",
+    "RESULTS": "resultados",
+    "PREVIOUS": "Anterior",
+    "NEXT": "Siguiente"
   },
   "REQUEST_INFO": {
     "TITLE": "Información de la solicitud",
@@ -1153,6 +1177,13 @@
       "LOADING_PRODUCTS": "Cargando productos de la factura...",
       "NO_PRODUCTS": "Esta factura no tiene productos disponibles para devolución.",
       "ADD": "Agregar",
+      "ADDED": "Agregado",
+      "ADD_ALL": "Agregar todo",
+      "ADD_SUCCESS_TITLE": "Producto agregado",
+      "ADD_SUCCESS": "{{quantity}} x {{part}} agregado a la orden de devolución",
+      "UPDATE_SUCCESS": "Cantidad actualizada en la orden de devolución",
+      "ADD_ALL_ADDED_COUNT": "{{count}} productos agregados.",
+      "ADD_ALL_UPDATED_COUNT": "{{count}} cantidades actualizadas.",
       "DELIVERY_NOTE": "Remisión"
     },
     "PAGINATION": {
@@ -1309,7 +1340,25 @@
     "CLIENT_SEARCH_PLACEHOLDER": "Razón social o número de cliente",
     "CLIENT_SEARCH_HINT": "Escribe para buscar y selecciona el cliente para el que quieres generar la orden.",
     "SEARCHING_CLIENTS": "Buscando clientes...",
-    "CHANGE_CLIENT": "Cambiar cliente"
+    "CHANGE_CLIENT": "Cambiar cliente",
+    "COL_ACTIONS": "Acciones",
+    "LOADING_DETAIL": "Cargando detalle de la orden...",
+    "DETAIL_LOAD_ERROR": "No fue posible cargar el detalle de la orden.",
+    "ORDER_FINALIZED_NOTICE": "Esta orden está vinculada a una solicitud finalizada. No se puede editar.",
+    "EDIT_QTY": "Editar cantidad",
+    "SAVE": "Guardar",
+    "CANCEL": "Cancelar",
+    "DELETE": "Eliminar",
+    "DELETE_CONFIRM": "¿Eliminar este material de la orden? Su cantidad completa volverá a estar disponible.",
+    "ITEM_LOCKED_TITLE": "Ya tiene información de replenishment/almacén capturada, no se puede modificar.",
+    "ADD_MATERIAL": "Agregar material",
+    "CLOSE": "Cerrar",
+    "INVOICE_FOLIO_LABEL": "Folio de factura",
+    "INVOICE_FOLIO_PLACEHOLDER": "Ej. 536662",
+    "SEARCH_INVOICE": "Buscar factura",
+    "LOADING_PRODUCTS": "Buscando productos de la factura...",
+    "NO_PRODUCTS_AVAILABLE": "No hay productos disponibles para esta factura.",
+    "AVAILABLE_LABEL": "Disponible"
   },
   "TAB_CONTAINER": {
     "BACK": "Atrás",

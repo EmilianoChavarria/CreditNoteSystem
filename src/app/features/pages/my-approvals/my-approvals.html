@@ -3,8 +3,7 @@
 
     <header class="w-full flex flex-col-reverse md:flex-row items-center justify-between mb-4">
 
-        <div
-            class="flex flex-col md:flex-row items-start md:items-center justify-start gap-x-4 w-full md:w-fit">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-start gap-x-4 w-full md:w-fit">
             <label for="days" class="font-semibold text-[#3c6194] text-xl md:text-2xl">{{'DASHBOARD.REQ_FILTER'|
                 translate}}</label>
             <div class="flex flex-row items-center w-full md:w-fit">
@@ -21,7 +20,7 @@
         <div class="flex flex-col">
             <span class="text-2xl 2xl:text-4xl tracking-wider text-[#ff8200] font-semibold">{{'MY_APPROVALS.TITLE' |
                 translate}}</span>
-            <span class="text-orange-400">{{'MY_APPROVALS.DESCRIPTION' | translate}}</span>
+            <span class="text-xl font-semibold text-orange-400">{{'MY_APPROVALS.DESCRIPTION' | translate}}</span>
         </div>
     </header>
     @if (isLoading()) {
@@ -34,15 +33,14 @@
             <div class="flex flex-col gap-2">
                 <label class="inline-flex items-center gap-2 text-sm text-[#3c6194] font-medium"
                     [class.opacity-60]="isLoadingSelectAll()">
-                    <input type="checkbox" [checked]="allPendingIsSelected()"
-                        [disabled]="isLoadingSelectAll()"
+                    <input type="checkbox" [checked]="allPendingIsSelected()" [disabled]="isLoadingSelectAll()"
                         (change)="selectAllPendingRequests($any($event.target).checked)"
                         class="h-4 w-4 rounded border-gray-300 text-[#3c6194] focus:ring-[#3c6194] disabled:cursor-not-allowed">
                     <span>
                         @if (isLoadingSelectAll()) {
-                            {{'MY_APPROVALS.SELECTING_ALL_PENDING' | translate}}
+                        {{'MY_APPROVALS.SELECTING_ALL_PENDING' | translate}}
                         } @else {
-                            {{'MY_APPROVALS.SELECT_ALL_PENDING' | translate}}
+                        {{'MY_APPROVALS.SELECT_ALL_PENDING' | translate}}
                         }
                     </span>
                 </label>
@@ -88,27 +86,25 @@
         </div>
     </section>
 
-    <app-tabla-dinamica [datos]="requests()" [columnas]="columns" [accionesPersonalizadas]="acciones()" actionMode="menu"
-        [enableFilter]="true" filterField="workflowCurrentStep.assigned_role.roleName" addLabel="MY_APPROVALS.REQUEST"
-        [filterOptions]="roleFilterOptions()" [filterDefault]="selectedRoleName()" [filterLabel]="'FILTERS.ROLE'"
-        excelExportModule="my_approvals"
+    <app-tabla-dinamica [datos]="requests()" [columnas]="columns" [accionesPersonalizadas]="acciones()"
+        actionMode="menu" [enableFilter]="true" filterField="workflowCurrentStep.assigned_role.roleName"
+        addLabel="MY_APPROVALS.REQUEST" [filterOptions]="roleFilterOptions()" [filterDefault]="selectedRoleName()"
+        [filterLabel]="'FILTERS.ROLE'" excelExportModule="my_approvals"
         [excelExportParams]="{ requestTypeId: selectedRequestType, search: searchTerm(), roleName: selectedRoleName() }"
-        excelExportFileName="my_approvals.xls"
-        addRoute="/app/settings/newUser" [canAdd]="false" [emptyMessageKey]="'MY_APPROVALS.NO_PENDING_APPROVALS'"
-        [searchValue]="searchTerm()" [registrosPorPagina]="pageSize()" [loading]="isLoadingTable()"
-        [serverPagination]="true" [paginaActualExterna]="currentPage()" [totalPaginasExterno]="totalPages()"
-        [hasNextPage]="hasNextPage()" [hasPrevPage]="hasPrevPage()" (searchChange)="onSearch($event)"
-        (filterChange)="onRoleFilterChange($event)"
+        excelExportFileName="my_approvals.xls" addRoute="/app/settings/newUser" [canAdd]="false"
+        [emptyMessageKey]="'MY_APPROVALS.NO_PENDING_APPROVALS'" [searchValue]="searchTerm()"
+        [registrosPorPagina]="pageSize()" [loading]="isLoadingTable()" [serverPagination]="true"
+        [paginaActualExterna]="currentPage()" [totalPaginasExterno]="totalPages()" [hasNextPage]="hasNextPage()"
+        [hasPrevPage]="hasPrevPage()" (searchChange)="onSearch($event)" (filterChange)="onRoleFilterChange($event)"
         [secondFilterOptions]="requesterOptions()" [secondFilterDefault]="selectedRequesterId()"
         [secondFilterLabel]="'FILTERS.REQUESTER'" (secondFilterChange)="onRequesterFilterChange($event)"
         [thirdFilterOptions]="classificationTypeOptions()" [thirdFilterDefault]="selectedClassificationType()"
         [thirdFilterAllLabel]="'FILTERS.ALL_CLASSIFICATIONS'" [thirdFilterLabel]="'FILTERS.CLASSIFICATION'"
-        (thirdFilterChange)="onClassificationTypeFilterChange($event)"
-        [enableDateRangeFilter]="true"
+        (thirdFilterChange)="onClassificationTypeFilterChange($event)" [enableDateRangeFilter]="true"
         [dateRangeFromDefault]="selectedDateFrom()" [dateRangeToDefault]="selectedDateTo()"
-        (dateRangeChange)="onDateRangeChange($event)"
-        (paginaSiguiente)="onNextPage()" (paginaAnterior)="onPrevPage()" (paginaPrimera)="onFirstPage()"
-        (paginaUltima)="onLastPage()" (registrosPorPaginaChange)="onPageSizeChange($event)" (refreshClick)="refreshData()">
+        (dateRangeChange)="onDateRangeChange($event)" (paginaSiguiente)="onNextPage()" (paginaAnterior)="onPrevPage()"
+        (paginaPrimera)="onFirstPage()" (paginaUltima)="onLastPage()"
+        (registrosPorPaginaChange)="onPageSizeChange($event)" (refreshClick)="refreshData()">
 
         <ng-template #cellTemplate let-item let-column="column">
             @if (column.key === 'bulkSelect') {
@@ -126,7 +122,9 @@
                 </span>
             </div>
             } @else {
-            <app-badge [color]="(item.status?.toLowerCase() === 'rejected' || item.status?.toLowerCase() === 'cancelled') ? 'red' : 'green'" [text]="item.status | uppercase" />
+            <app-badge
+                [color]="(item.status?.toLowerCase() === 'rejected' || item.status?.toLowerCase() === 'cancelled') ? 'red' : 'green'"
+                [text]="item.status | uppercase" />
             }
             }
             @else if (column.key === 'username') {
@@ -134,19 +132,20 @@
             <div class="w-fit rounded-lg px-2"
                 [style]="`background-color: ${item.workflowCurrentStep.assigned_role.color +'1A'}; color:${item.workflowCurrentStep.assigned_role.color}` ">
                 <span
-                    [class]="`text-center font-semibold text-nowrap`">{{item.workflowCurrentStep?.assigned_user?.fullName | uppercase}}</span>
+                    [class]="`text-center font-semibold text-nowrap`">{{item.workflowCurrentStep?.assigned_user?.fullName
+                    | uppercase}}</span>
             </div>
             } @else {
             <app-badge color="green" [text]="item.status | uppercase" />
             }
             }@else if (column.key === 'razonSocial') {
             <div class="w-fit">
-                <span
-                    [class]="`text-center font-semibold text-nowrap`">{{item.customerId}} - {{(item.razonSocial.length > 20) ? (item.razonSocial| slice:0:25) + '...' : item.razonSocial}}</span>
+                <span [class]="`text-center font-semibold text-nowrap`">{{item.customerId}} - {{(item.razonSocial.length
+                    > 20) ? (item.razonSocial| slice:0:25) + '...' : item.razonSocial}}</span>
             </div>
             } @else if (column.key === 'totalAmount') {
             <span class="font-semibold text-slate-800 text-nowrap">
-                {{ (item.requestTypeId === 6 ? ($any(item).returnOrderRequest?.globalSubTotal ?? item.totalAmount) : item.totalAmount) | currency: item.currency : 'code' : '1.2-2' }}
+                {{ (item.requestTypeId === 6 ? item.returnOrderTotal : item.totalAmount) }} {{item.currency}}
             </span>
             }
         </ng-template>
@@ -157,15 +156,15 @@
     <div class="text-center pt-10 md:py-20 text-gray-500">
         <img src="assets/png/Imagen-1.jpg" alt=""
             class="mx-auto h-auto w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl object-contain">
-        <p class="text-2xl text-[#3c6194] font-semibold">{{'REQUEST_TYPES.DEFAULT_TEXT'| translate}}</p>
+        
     </div>
     }
 
     <app-modal size="md" [titleM]="'MY_APPROVALS.REJECTION_MODAL_TITLE' | translate" [open]="showDeclineModal()"
         [closeText]="'MY_APPROVALS.CANCEL' | translate"
         [primaryText]="isDeclining() ? ('MY_APPROVALS.REJECTING' | translate) : ('MY_APPROVALS.REJECT' | translate)"
-        [primaryLoading]="isDeclining()" [primaryDisabled]="isDeclining()"
-        (openChange)="onDeclineModalChange($event)" (primaryAction)="declineRequest(selectedRequest()!)">
+        [primaryLoading]="isDeclining()" [primaryDisabled]="isDeclining()" (openChange)="onDeclineModalChange($event)"
+        (primaryAction)="declineRequest(selectedRequest()!)">
         <div [formGroup]="form">
             <label class="block font-medium text-[#395f93] text-lg">{{'REJECTION.REASON' | translate}}
                 <span class="text-red-500 text-lg">*</span>
@@ -213,60 +212,52 @@
         [primaryText]="isBulkProcessing() ? ('MY_APPROVALS.BULK_CANCELLING' | translate) : ('MY_APPROVALS.BULK_CANCEL' | translate)"
         [primaryLoading]="isBulkProcessing()" [primaryDisabled]="isBulkProcessing()"
         (openChange)="onBulkCancelModalChange($event)" (primaryAction)="cancelSelectedRequests()">
-        <p class="text-sm text-gray-700">{{ 'MY_APPROVALS.BULK_CANCEL_CONFIRM' | translate : { count: selectedCount() } }}</p>
+        <p class="text-sm text-gray-700">{{ 'MY_APPROVALS.BULK_CANCEL_CONFIRM' | translate : { count: selectedCount() }
+            }}</p>
     </app-modal>
 
     <app-request-info-modal [open]="showInfoModal()" [request]="selectedRequestForInfo()"
-        [canDelete]="canDeleteInfoAttachments()"
-        (openChange)="onInfoModalChange($event)" (viewHistory)="onInfoModalViewHistory()">
+        [canDelete]="canDeleteInfoAttachments()" (openChange)="onInfoModalChange($event)"
+        (viewHistory)="onInfoModalViewHistory()">
     </app-request-info-modal>
 
-    <app-workflow-history-modal [open]="showHistoryModal()" [detail]="workflowDetail"
-        (closed)="closeHistoryModal()">
+    <app-workflow-history-modal [open]="showHistoryModal()" [detail]="workflowDetail" (closed)="closeHistoryModal()">
     </app-workflow-history-modal>
 
-    <app-approve-confirm-modal
-        [open]="showApproveModal()"
-        [request]="requestToApprove()"
-        [isLoading]="isApproving()"
-        (openChange)="showApproveModal.set($event)"
-        (confirmed)="onApproveConfirmed($event)">
+    <app-approve-confirm-modal [open]="showApproveModal()" [request]="requestToApprove()" [isLoading]="isApproving()"
+        (openChange)="showApproveModal.set($event)" (confirmed)="onApproveConfirmed($event)">
     </app-approve-confirm-modal>
 
-    <app-send-back-modal
-        [open]="showSendBackModal()"
-        [request]="selectedRequest()"
-        (openChange)="onSendBackModalChange($event)"
-        (sent)="onSendBackSent()">
+    <app-send-back-modal [open]="showSendBackModal()" [request]="selectedRequest()"
+        (openChange)="onSendBackModalChange($event)" (sent)="onSendBackSent()">
     </app-send-back-modal>
 
-    <app-bulk-send-back-modal
-        [open]="showBulkSendBackModal()"
-        [requestIds]="selectedRequestIdsArray()"
-        [selectAll]="allPendingIsSelected()"
-        [filters]="currentMassFilters"
-        [sampleRequestId]="firstSelectedRequest()?.id ?? null"
-        [selectedCount]="selectedCount()"
-        (openChange)="onBulkSendBackModalChange($event)"
-        (sent)="onBulkSendBackSent()">
+    <app-bulk-send-back-modal [open]="showBulkSendBackModal()" [requestIds]="selectedRequestIdsArray()"
+        [selectAll]="allPendingIsSelected()" [filters]="currentMassFilters"
+        [sampleRequestId]="firstSelectedRequest()?.id ?? null" [selectedCount]="selectedCount()"
+        (openChange)="onBulkSendBackModalChange($event)" (sent)="onBulkSendBackSent()">
     </app-bulk-send-back-modal>
 
     <app-modal size="lg" [titleM]="'MY_APPROVALS.MASS_ERROR_MODAL_TITLE' | translate" [open]="showMassErrorModal()"
         [closeText]="'MY_APPROVALS.CLOSE' | translate" [showPrimaryButton]="false"
         (openChange)="showMassErrorModal.set($event)">
-        <p class="mb-3 text-sm text-gray-600">{{ 'MY_APPROVALS.MASS_ERROR_MODAL_DESCRIPTION' | translate : { count: massErrorRequests().length } }}</p>
+        <p class="mb-3 text-sm text-gray-600">{{ 'MY_APPROVALS.MASS_ERROR_MODAL_DESCRIPTION' | translate : { count:
+            massErrorRequests().length } }}</p>
         <div class="max-h-80 overflow-y-auto rounded-md border border-gray-200">
             <table class="min-w-full divide-y divide-gray-200 text-sm">
                 <thead class="bg-gray-50 sticky top-0">
                     <tr>
-                        <th class="px-4 py-2 text-left font-semibold text-gray-700">{{ 'MY_APPROVALS.MASS_ERROR_COL_REQUEST' | translate }}</th>
-                        <th class="px-4 py-2 text-left font-semibold text-gray-700">{{ 'MY_APPROVALS.MASS_ERROR_COL_REASON' | translate }}</th>
+                        <th class="px-4 py-2 text-left font-semibold text-gray-700">{{
+                            'MY_APPROVALS.MASS_ERROR_COL_REQUEST' | translate }}</th>
+                        <th class="px-4 py-2 text-left font-semibold text-gray-700">{{
+                            'MY_APPROVALS.MASS_ERROR_COL_REASON' | translate }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100 bg-white">
                     @for (item of massErrorRequests(); track item.requestId) {
                     <tr>
-                        <td class="px-4 py-2 text-gray-800 font-medium text-nowrap">{{ item.requestNumber ?? item.requestId }}</td>
+                        <td class="px-4 py-2 text-gray-800 font-medium text-nowrap">{{ item.requestNumber ??
+                            item.requestId }}</td>
                         <td class="px-4 py-2 text-gray-600">{{ item.reason }}</td>
                     </tr>
                     }
@@ -278,8 +269,8 @@
     <app-modal size="md" [titleM]="'MY_APPROVALS.CANCEL_REQUEST_MODAL_TITLE' | translate" [open]="showCancelModal()"
         [closeText]="'MY_APPROVALS.CANCEL' | translate"
         [primaryText]="isCancelling() ? ('MY_APPROVALS.CANCELLING' | translate) : ('MY_APPROVALS.CANCEL_REQUEST_CONFIRM_BTN' | translate)"
-        [primaryLoading]="isCancelling()" [primaryDisabled]="isCancelling()"
-        (openChange)="onCancelModalChange($event)" (primaryAction)="cancelRequest()">
+        [primaryLoading]="isCancelling()" [primaryDisabled]="isCancelling()" (openChange)="onCancelModalChange($event)"
+        (primaryAction)="cancelRequest()">
         <textarea [formControl]="cancelComments"
             [placeholder]="'MY_APPROVALS.CANCEL_REQUEST_COMMENTS_PLACEHOLDER' | translate"
             class="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500"></textarea>

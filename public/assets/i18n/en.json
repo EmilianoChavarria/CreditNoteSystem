@@ -69,8 +69,8 @@
     "AUDITOR_DEBIT": "Auditor Debit",
     "RE_INVOICING": "Re Invoincing",
     "MATERIAL_RETURN": "Material Return",
-    "ALL_TYPES": "All types",
-    "DEFAULT_TEXT": "Please, select a request type to start"
+    "ALL_TYPES": "All types"
+    
   },
   "DASHBOARD": {
     "TITLE": "Activity Summary",
@@ -698,7 +698,31 @@
     "STATUS_APPROVED": "Approved",
     "STATUS_PENDING": "Pending",
     "STATUS_CANCELLED": "Cancelled",
-    "NO_STATUS": "No status"
+    "NO_STATUS": "No status",
+    "VIEW_DRAFTS": "View drafts"
+  },
+  "DRAFTS_ADMIN_MODAL": {
+    "TITLE": "Drafts and missing requests",
+    "CLOSE": "Close",
+    "SEARCH_LABEL": "Search",
+    "SEARCH_PLACEHOLDER": "Folio, status, customer, user, reason or classification",
+    "REQUEST_TYPE_LABEL": "Request type",
+    "ALL_TYPES": "All types",
+    "EMPTY": "No drafts found.",
+    "COL_FOLIO": "Folio",
+    "COL_STATUS": "Status",
+    "COL_CUSTOMER": "Customer",
+    "COL_USER": "User",
+    "COL_REASON": "Reason",
+    "COL_CLASSIFICATION": "Classification",
+    "COL_CREATED": "Created",
+    "COL_DELETED": "Deleted",
+    "DELETED_BY": "By",
+    "PAGE": "Page",
+    "OF": "of",
+    "RESULTS": "results",
+    "PREVIOUS": "Previous",
+    "NEXT": "Next"
   },
   "REQUEST_INFO": {
     "TITLE": "Request information",
@@ -1153,6 +1177,13 @@
       "LOADING_PRODUCTS": "Loading invoice products...",
       "NO_PRODUCTS": "This invoice has no products available for return.",
       "ADD": "Add",
+      "ADDED": "Added",
+      "ADD_ALL": "Add all",
+      "ADD_SUCCESS_TITLE": "Product added",
+      "ADD_SUCCESS": "{{quantity}} x {{part}} added to the return order",
+      "UPDATE_SUCCESS": "Quantity updated in the return order",
+      "ADD_ALL_ADDED_COUNT": "{{count}} products added.",
+      "ADD_ALL_UPDATED_COUNT": "{{count}} quantities updated.",
       "DELIVERY_NOTE": "Delivery note"
     },
     "PAGINATION": {
@@ -1309,7 +1340,25 @@
     "CLIENT_SEARCH_PLACEHOLDER": "Business name or client number",
     "CLIENT_SEARCH_HINT": "Type to search and select the client to generate the order for.",
     "SEARCHING_CLIENTS": "Searching clients...",
-    "CHANGE_CLIENT": "Change client"
+    "CHANGE_CLIENT": "Change client",
+    "COL_ACTIONS": "Actions",
+    "LOADING_DETAIL": "Loading order detail...",
+    "DETAIL_LOAD_ERROR": "Could not load the order detail.",
+    "ORDER_FINALIZED_NOTICE": "This order is linked to a finalized request. Editing is disabled.",
+    "EDIT_QTY": "Edit quantity",
+    "SAVE": "Save",
+    "CANCEL": "Cancel",
+    "DELETE": "Delete",
+    "DELETE_CONFIRM": "Delete this material from the order? Its full quantity will become available again.",
+    "ITEM_LOCKED_TITLE": "Already has replenishment/warehouse data captured, it cannot be modified.",
+    "ADD_MATERIAL": "Add material",
+    "CLOSE": "Close",
+    "INVOICE_FOLIO_LABEL": "Invoice folio",
+    "INVOICE_FOLIO_PLACEHOLDER": "E.g. 536662",
+    "SEARCH_INVOICE": "Search invoice",
+    "LOADING_PRODUCTS": "Searching invoice products...",
+    "NO_PRODUCTS_AVAILABLE": "No products available for this invoice.",
+    "AVAILABLE_LABEL": "Available"
   },
   "TAB_CONTAINER": {
     "BACK": "Back",
