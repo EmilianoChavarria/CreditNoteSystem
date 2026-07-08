@@ -305,7 +305,7 @@ export class MaterialReturnForm extends BaseRequestForm {
         const returnOrderId = Number(materialReturn?.returnOrderId);
         const chargeTypeId = materialReturn?.returnOrder?.chargeTypeId ?? null;
         const customRate = materialReturn?.returnOrder?.customRate ?? null;
-        const hasCharge = chargeTypeId != null;
+        const hasCharge = chargeTypeId != null || (customRate != null && Number(customRate) > 0);
 
         let chargePercent = 0;
         let effectiveChargeTypeId: number | null = null;

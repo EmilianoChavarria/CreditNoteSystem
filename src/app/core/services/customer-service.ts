@@ -146,6 +146,27 @@ export interface ReturnOrderSearchEntry extends ReturnOrderListEntry {
   razonSocial: string;
 }
 
+export interface LinkedReturnOrderRequest {
+  returnOrderRequestId: number;
+  requestId: number;
+  requestStatus: string;
+  isFinalized: boolean;
+}
+
+export interface ReturnOrderDetailItem extends ReturnOrderListItem {
+  isEditable: boolean;
+}
+
+export interface ReturnOrderDetail extends Omit<ReturnOrderListEntry, 'items'> {
+  orderStatus: boolean;
+  linkedRequest: LinkedReturnOrderRequest | null;
+  items: ReturnOrderDetailItem[];
+}
+
+export interface UpdateReturnOrderItemQuantityPayload {
+  requestedQuantity: number;
+}
+
 export interface ProductReturnHistoryProduct {
   invoiceFolio: string;
   conceptoIndex: number;
@@ -444,13 +465,49 @@ export class CustomerService {
       );
   }
 
-  getReturnOrderById(orderId: number): Observable<ReturnOrderListEntry | null> {
+  getReturnOrderById(orderId: number): Observable<ReturnOrderDetail | null> {
     if (!Number.isFinite(orderId) || orderId <= 0) {
       return of(null);
     }
 
-    return this._httpService.get<ReturnOrderListEntry>(`/return-orders/${orderId}`).pipe(
-      map((response: ApiResponse<ReturnOrderListEntry>) => response.data ?? null),
+    return this._httpService.get<ReturnOrderDetail>(`/return-orders/${orderId}`).pipe(
+      map((response: ApiResponse<ReturnOrderDetail>) => response.data ?? null),
+      catchError((error) => {
+        console.log(error);
+        return throwError(() => error);
+      }),
+    );
+  }
+
+  addReturnOrderItems(orderId: number, items: CreateReturnOrderItemRequest[]): Observable<ReturnOrderDetail> {
+    return this._httpService.post<ReturnOrderDetail>(`/return-orders/${orderId}/items`, { items }).pipe(
+      map((response: ApiResponse<ReturnOrderDetail>) => response.data as ReturnOrderDetail),
+      catchError((error) => {
+        console.log(error);
+        return throwError(() => error);
+      }),
+    );
+  }
+
+  updateReturnOrderItemQuantity(
+    orderId: number,
+    itemId: number,
+    requestedQuantity: number,
+  ): Observable<ReturnOrderDetail> {
+    const payload: UpdateReturnOrderItemQuantityPayload = { requestedQuantity };
+
+    return this._httpService.patch<ReturnOrderDetail>(`/return-orders/${orderId}/items/${itemId}`, payload).pipe(
+      map((response: ApiResponse<ReturnOrderDetail>) => response.data as ReturnOrderDetail),
+      catchError((error) => {
+        console.log(error);
+        return throwError(() => error);
+      }),
+    );
+  }
+
+  deleteReturnOrderItem(orderId: number, itemId: number): Observable<ReturnOrderDetail> {
+    return this._httpService.delete<ReturnOrderDetail>(`/return-orders/${orderId}/items/${itemId}`).pipe(
+      map((response: ApiResponse<ReturnOrderDetail>) => response.data as ReturnOrderDetail),
       catchError((error) => {
         console.log(error);
         return throwError(() => error);

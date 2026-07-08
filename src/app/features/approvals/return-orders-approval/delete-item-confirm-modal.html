@@ -1,0 +1,21 @@
+<app-modal size="sm" titleM="Eliminar material" [open]="open()" [showCloseButton]="false" [showPrimaryButton]="false"
+  (openChange)="onOpenChange($event)">
+  <p class="text-sm text-slate-700">
+    ¿Eliminar este material de la orden? Su cantidad completa volverá a estar disponible.
+  </p>
+
+  <div modal-actions class="flex items-center gap-2">
+    <button type="button"
+      class="rounded-md border border-slate-300 bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-60"
+      [disabled]="loading()"
+      (click)="onOpenChange(false)">
+      Cancelar
+    </button>
+    <button type="button"
+      class="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+      [disabled]="loading()"
+      (click)="onConfirm()">
+      {{ loading() ? 'Eliminando...' : 'Eliminar' }}
+    </button>
+  </div>
+</app-modal>

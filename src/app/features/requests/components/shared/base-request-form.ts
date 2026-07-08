@@ -234,11 +234,12 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
       step: this.initialRequestData?.workflowCurrentStep?.workflow_step,
       assignedRoleName: this.initialRequestData?.workflowCurrentStep?.assigned_role?.roleName,
       isReinvoicing: this.isReinvoicingForm,
+      requestTypeId: this.requestTypeId,
     };
 
     for (const constraint of WORKFLOW_FIELD_CONSTRAINTS) {
       const shouldDisable = constraint.disableWhen(ctx);
-      for (const field of constraint.fields) {
+      for (const field of constraint.fields ?? []) {
         const control = this.form.get(field);
         if (!control) {
           continue;
@@ -1129,9 +1130,13 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
 
     if (amountControl && ivaControl && totalControl) {
       const amount = amountControl.value || 0;
+      console.log("🚀 ~ BaseRequestForm ~ updateTotalAmount ~ amount:", amount)
       const hasIva = ivaControl.value || false;
+      console.log("🚀 ~ BaseRequestForm ~ updateTotalAmount ~ hasIva:", hasIva)
       const total = hasIva ? amount * 1.16 : amount;
+      console.log("🚀 ~ BaseRequestForm ~ updateTotalAmount ~ total:", total)
       totalControl.setValue(Number(total).toFixed(2), { emitEvent: false });
+      console.log("🚀 ~ BaseRequestForm ~ updateTotalAmount ~ totalControl:", totalControl)
     }
   }
 

@@ -4,6 +4,7 @@ import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-i
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../../core/services/auth-service';
+import { ToastService } from '../../core/services/toast-service';
 import {
   ChargeTypeOption,
   CreateReturnOrderRequest,
@@ -51,6 +52,7 @@ export class Clients {
   private readonly customerService = inject(CustomerService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly translateService = inject(TranslateService);
+  private readonly toastService = inject(ToastService);
 
   readonly clientIdOverride = input<string>('');
 
@@ -216,13 +218,81 @@ export class Clients {
 
 
   protected addToReturnOrder(invoice: CustomerInvoice, product: InvoiceProduct): void {
-    if (product.qtyShipped <= 0) {
+    const result = this.upsertReturnItem(invoice, product, this.getDraftQuantity(invoice, product));
+
+    if (result.status === 'skipped') {
       return;
     }
 
+    if (result.status === 'updated') {
+      this.toastService.success(
+        this.translateService.instant('CLIENT_INVOICES.INVOICE.UPDATE_SUCCESS'),
+        this.translateService.instant('CLIENT_INVOICES.INVOICE.ADD_SUCCESS_TITLE'),
+      );
+      return;
+    }
+
+    this.toastService.success(
+      this.translateService.instant('CLIENT_INVOICES.INVOICE.ADD_SUCCESS', {
+        quantity: result.quantity,
+        part: product.partNumber,
+      }),
+      this.translateService.instant('CLIENT_INVOICES.INVOICE.ADD_SUCCESS_TITLE'),
+    );
+  }
+
+  protected addAllToReturnOrder(invoice: CustomerInvoice): void {
+    const products = invoice.products.filter(product => product.qtyShipped > 0);
+
+    if (products.length === 0) {
+      return;
+    }
+
+    let addedCount = 0;
+    let updatedCount = 0;
+
+    for (const product of products) {
+      const result = this.upsertReturnItem(invoice, product, product.qtyShipped);
+      if (result.status === 'added') {
+        addedCount++;
+      } else if (result.status === 'updated') {
+        updatedCount++;
+      }
+    }
+
+    if (addedCount === 0 && updatedCount === 0) {
+      return;
+    }
+
+    const messages: string[] = [];
+    if (addedCount > 0) {
+      messages.push(
+        this.translateService.instant('CLIENT_INVOICES.INVOICE.ADD_ALL_ADDED_COUNT', { count: addedCount }),
+      );
+    }
+    if (updatedCount > 0) {
+      messages.push(
+        this.translateService.instant('CLIENT_INVOICES.INVOICE.ADD_ALL_UPDATED_COUNT', { count: updatedCount }),
+      );
+    }
+
+    this.toastService.success(
+      messages.join(' '),
+      this.translateService.instant('CLIENT_INVOICES.INVOICE.ADD_SUCCESS_TITLE'),
+    );
+  }
+
+  private upsertReturnItem(
+    invoice: CustomerInvoice,
+    product: InvoiceProduct,
+    quantity: number,
+  ): { status: 'added' | 'updated' | 'skipped'; quantity: number } {
+    if (product.qtyShipped <= 0) {
+      return { status: 'skipped', quantity: 0 };
+    }
 
     const key = this.returnItemKey(invoice, product);
-    const selectedQuantity = this.getDraftQuantity(invoice, product);
+    const selectedQuantity = Math.min(product.qtyShipped, Math.max(1, quantity));
     const existing = this.returnItems().find(item => item.key === key);
 
     if (existing) {
@@ -234,7 +304,7 @@ export class Clients {
         ),
       );
       this.generatedOrder.set(null);
-      return;
+      return { status: 'updated', quantity: selectedQuantity };
     }
 
     const item: ReturnOrderItem = {
@@ -257,6 +327,7 @@ export class Clients {
 
     this.returnItems.update(items => [...items, item]);
     this.generatedOrder.set(null);
+    return { status: 'added', quantity: selectedQuantity };
   }
 
   protected invoiceKey(invoice: CustomerInvoice, index: number): string {
