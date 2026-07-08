@@ -14,10 +14,19 @@
                 </select>
             </div>
         </div>
-        <div class="flex flex-col">
-            <span class="text-2xl 2xl:text-4xl tracking-wider text-[#ff8200] font-semibold">{{'LIST.TITLE' |
-                translate}}</span>
-            <span class="text-xl font-semibold text-orange-400">{{'LIST.DESCRIPTION' | translate}}</span>
+        <div class="flex flex-col md:flex-row md:items-center gap-3">
+            <div class="flex flex-col">
+                <span class="text-2xl 2xl:text-4xl tracking-wider text-[#ff8200] font-semibold">{{'LIST.TITLE' |
+                    translate}}</span>
+                <span class="text-xl font-semibold text-orange-400">{{'LIST.DESCRIPTION' | translate}}</span>
+            </div>
+            @if (isAdmin()) {
+            <button type="button"
+                class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                (click)="openDraftsAdminModal()">
+                {{ 'PENDING_PAGE.VIEW_DRAFTS' | translate }}
+            </button>
+            }
         </div>
     </header>
     @if (isLoading()) {
@@ -123,4 +132,8 @@
         [requestId]="selectedRequestForAttachments()?.id ?? null" [canDelete]="canDeleteSelectedAttachments()"
         (openChange)="onAttachmentsModalChange($event)">
     </app-pending-attachments-modal>
+
+    <app-drafts-admin-modal [open]="showDraftsAdminModal()" [requestTypes]="requestTypes()"
+        (openChange)="onDraftsAdminModalChange($event)">
+    </app-drafts-admin-modal>
 </div>

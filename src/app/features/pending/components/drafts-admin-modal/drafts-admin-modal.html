@@ -1,0 +1,97 @@
+<app-modal size="2xl" [titleM]="'DRAFTS_ADMIN_MODAL.TITLE' | translate" [open]="open()" [showPrimaryButton]="false"
+  [closeText]="'DRAFTS_ADMIN_MODAL.CLOSE' | translate" (openChange)="onOpenChange($event)">
+  <div class="flex flex-col gap-3">
+    <div class="flex flex-wrap items-end gap-2">
+      <label class="flex flex-1 min-w-50 flex-col gap-1">
+        <span class="text-xs font-medium text-gray-600">{{ 'DRAFTS_ADMIN_MODAL.SEARCH_LABEL' | translate }}</span>
+        <input type="search" [formControl]="searchControl"
+          class="rounded-md border border-gray-300 px-3 py-2 text-sm"
+          [placeholder]="'DRAFTS_ADMIN_MODAL.SEARCH_PLACEHOLDER' | translate" />
+      </label>
+      <label class="flex flex-col gap-1">
+        <span class="text-xs font-medium text-gray-600">{{ 'DRAFTS_ADMIN_MODAL.REQUEST_TYPE_LABEL' | translate }}</span>
+        <select [formControl]="requestTypeControl" (change)="onRequestTypeChange()"
+          class="h-9 rounded-md border border-gray-300 px-2 text-sm">
+          <option value="all">{{ 'DRAFTS_ADMIN_MODAL.ALL_TYPES' | translate }}</option>
+          @for (requestType of requestTypes(); track requestType.id) {
+          <option [value]="requestType.id">{{ requestType.name | translate }}</option>
+          }
+        </select>
+      </label>
+    </div>
+
+    @if (isLoading()) {
+    <div class="flex justify-center py-8">
+      <app-spinner></app-spinner>
+    </div>
+    } @else if (loadError(); as err) {
+    <p class="text-sm text-red-700">{{ err }}</p>
+    } @else if (rows().length === 0) {
+    <p class="py-6 text-center text-sm text-gray-500">{{ 'DRAFTS_ADMIN_MODAL.EMPTY' | translate }}</p>
+    } @else {
+    <div class="w-full overflow-x-auto">
+      <table class="min-w-225 w-full border-collapse bg-white">
+        <thead class="bg-white text-xs uppercase tracking-wide text-gray-600">
+          <tr>
+            <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">{{
+              'DRAFTS_ADMIN_MODAL.COL_FOLIO' | translate }}</th>
+            <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">{{
+              'DRAFTS_ADMIN_MODAL.COL_STATUS' | translate }}</th>
+            <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">{{
+              'DRAFTS_ADMIN_MODAL.COL_CUSTOMER' | translate }}</th>
+            <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">{{
+              'DRAFTS_ADMIN_MODAL.COL_USER' | translate }}</th>
+            <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">{{
+              'DRAFTS_ADMIN_MODAL.COL_REASON' | translate }}</th>
+            <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">{{
+              'DRAFTS_ADMIN_MODAL.COL_CLASSIFICATION' | translate }}</th>
+            <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">{{
+              'DRAFTS_ADMIN_MODAL.COL_CREATED' | translate }}</th>
+            <th class="border-b border-gray-200 px-3 py-2 text-left font-semibold">{{
+              'DRAFTS_ADMIN_MODAL.COL_DELETED' | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of rows(); track row.id) {
+          <tr class="hover:bg-gray-50" [class.bg-red-50]="row.deletedAt">
+            <td class="border-b border-gray-200 px-3 py-2 text-sm font-medium text-gray-800">{{ row.requestNumber }}
+            </td>
+            <td class="border-b border-gray-200 px-3 py-2 text-sm text-gray-700">{{ row.status }}</td>
+            <td class="border-b border-gray-200 px-3 py-2 text-sm text-gray-700">{{ customerLabel(row) }}</td>
+            <td class="border-b border-gray-200 px-3 py-2 text-sm text-gray-700">{{ userLabel(row) }}</td>
+            <td class="border-b border-gray-200 px-3 py-2 text-sm text-gray-700">{{ reasonLabel(row) }}</td>
+            <td class="border-b border-gray-200 px-3 py-2 text-sm text-gray-700">{{ classificationLabel(row) }}</td>
+            <td class="border-b border-gray-200 px-3 py-2 text-sm text-gray-700">{{ row.createdAt | date:
+              'dd/MM/yyyy HH:mm' }}</td>
+            <td class="border-b border-gray-200 px-3 py-2 text-sm">
+              @if (row.deletedAt) {
+              <span class="text-red-700">{{ row.deletedAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+              } @else {
+              <span class="text-gray-400">-</span>
+              }
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="flex items-center justify-between pt-2 text-xs text-gray-600">
+      <span>{{ 'DRAFTS_ADMIN_MODAL.PAGE' | translate }} {{ currentPage() }} {{ 'DRAFTS_ADMIN_MODAL.OF' | translate }}
+        {{ lastPage() }} &mdash; {{ total() }} {{ 'DRAFTS_ADMIN_MODAL.RESULTS' | translate }}</span>
+      <div class="flex items-center gap-2">
+        <button type="button"
+          class="rounded-md border border-gray-300 bg-white px-2.5 py-1.5 font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+          [disabled]="currentPage() <= 1" (click)="goToPage(currentPage() - 1)">
+          {{ 'DRAFTS_ADMIN_MODAL.PREVIOUS' | translate }}
+        </button>
+        <button type="button"
+          class="rounded-md border border-gray-300 bg-white px-2.5 py-1.5 font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+          [disabled]="currentPage() >= lastPage()" (click)="goToPage(currentPage() + 1)">
+          {{ 'DRAFTS_ADMIN_MODAL.NEXT' | translate }}
+        </button>
+      </div>
+    </div>
+    }
+  </div>
+</app-modal>

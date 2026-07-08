@@ -1,5 +1,6 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { AccionPersonalizada, Column, Table } from '../../shared/components/ui/table/table';
 import { Spinner } from '../../shared/components/ui/spinner/spinner';
 import moment from 'moment';
@@ -11,25 +12,31 @@ import { WorkflowHistoryDrawer } from '../history/components/workflow-history-dr
 import { WorkflowHistoryModal } from '../history/components/workflow-history-modal/workflow-history-modal';
 import { finalize, forkJoin } from 'rxjs';
 import { RoleService } from '../../core/services/role-service';
+import { AuthService } from '../../core/services/auth-service';
 import { Request, RequestType } from '../../data/interfaces/Request';
 import { getPermissionSlugsForCustomAction } from '../../core/constants/action-permission-map';
 import { PendingAttachmentsModal } from './components/pending-attachments-modal/pending-attachments-modal';
 import { RequestInfoModal } from './components/request-info-modal/request-info-modal';
+import { DraftsAdminModal } from './components/drafts-admin-modal/drafts-admin-modal';
 import { RequestListBase } from '../../shared/base/request-list.base';
 
 @Component({
     selector: 'app-pending',
     templateUrl: './pending.html',
     styleUrl: './pending.css',
-    imports: [TranslatePipe, Table, Spinner, Badge, UpperCasePipe, CurrencyPipe, Modal, WorkflowHistoryDrawer, WorkflowHistoryModal, PendingAttachmentsModal, RequestInfoModal, ReactiveFormsModule, SlicePipe]
+    imports: [TranslatePipe, Table, Spinner, Badge, UpperCasePipe, CurrencyPipe, Modal, WorkflowHistoryDrawer, WorkflowHistoryModal, PendingAttachmentsModal, RequestInfoModal, DraftsAdminModal, ReactiveFormsModule, SlicePipe]
 })
 export class Pending extends RequestListBase {
     private readonly _roleService = inject(RoleService);
+    private readonly _authService = inject(AuthService);
 
     public requestTypes = signal<RequestType[]>([]);
     public showAttachmentsModal = signal<boolean>(false);
     public selectedRequestForAttachments = signal<Request | null>(null);
     public canDeleteSelectedAttachments = signal<boolean>(false);
+    public showDraftsAdminModal = signal<boolean>(false);
+    private readonly authUser = toSignal(this._authService.user$, { initialValue: null });
+    public isAdmin = computed(() => this.authUser()?.roleName?.trim().toUpperCase() === 'ADMIN');
 
     public columns: Column<Request>[] = [
         { key: 'requestNumber', label: 'PENDING_PAGE.REQUEST_NUMBER', sortable: true },
@@ -203,4 +210,12 @@ export class Pending extends RequestListBase {
     }
 
     public refreshData(): void { this.loadRequests(); }
+
+    public openDraftsAdminModal(): void {
+        this.showDraftsAdminModal.set(true);
+    }
+
+    public onDraftsAdminModalChange(isOpen: boolean): void {
+        this.showDraftsAdminModal.set(isOpen);
+    }
 }
