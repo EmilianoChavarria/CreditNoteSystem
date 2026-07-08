@@ -234,11 +234,12 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
       step: this.initialRequestData?.workflowCurrentStep?.workflow_step,
       assignedRoleName: this.initialRequestData?.workflowCurrentStep?.assigned_role?.roleName,
       isReinvoicing: this.isReinvoicingForm,
+      requestTypeId: this.requestTypeId,
     };
 
     for (const constraint of WORKFLOW_FIELD_CONSTRAINTS) {
       const shouldDisable = constraint.disableWhen(ctx);
-      for (const field of constraint.fields) {
+      for (const field of constraint.fields ?? []) {
         const control = this.form.get(field);
         if (!control) {
           continue;
