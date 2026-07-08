@@ -355,6 +355,42 @@ export class RequestService {
     );
   }
 
+  getAllDraftsPaginated(
+    perPage = 10,
+    page = 1,
+    search = '',
+    requestTypeId: number | null = null,
+  ): Observable<PagePagination<Request>> {
+    const params: Record<string, string | number> = { per_page: perPage, page };
+
+    if (search.trim()) {
+      params['search'] = search.trim();
+    }
+
+    if (requestTypeId) {
+      params['requestTypeId'] = requestTypeId;
+    }
+
+    return this._httpService.get<PagePagination<Request>>('/requests/drafts/all', { params }).pipe(
+      map((response: ApiResponse<PagePagination<Request>>) => {
+        const payload = response.data;
+        return {
+          data: payload?.data ?? [],
+          current_page: payload?.current_page ?? 1,
+          last_page: payload?.last_page ?? 1,
+          per_page: payload?.per_page,
+          total: payload?.total,
+          next_page_url: payload?.next_page_url ?? null,
+          prev_page_url: payload?.prev_page_url ?? null,
+        };
+      }),
+      catchError(error => {
+        console.log(error);
+        throw error;
+      })
+    );
+  }
+
   getNextRequestNumber(requestTypeId: number): Observable<RequestNumber> {
     return this._httpService.get<RequestNumber>(`/requests/next-number/${requestTypeId}`).pipe(
       map((response: ApiResponse<RequestNumber>) => response.data ?? {

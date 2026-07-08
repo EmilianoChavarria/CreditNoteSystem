@@ -39,6 +39,7 @@ export interface Request {
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
+    deletedBy?: number | null;
     requestType: RequestType;
     user: User;
     customer: Customer;
