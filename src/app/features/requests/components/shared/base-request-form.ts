@@ -235,6 +235,7 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
       assignedRoleName: this.initialRequestData?.workflowCurrentStep?.assigned_role?.roleName,
       isReinvoicing: this.isReinvoicingForm,
       requestTypeId: this.requestTypeId,
+      status: this.initialRequestData?.status,
     };
 
     for (const constraint of WORKFLOW_FIELD_CONSTRAINTS) {

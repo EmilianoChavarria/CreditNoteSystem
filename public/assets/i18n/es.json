@@ -1552,13 +1552,17 @@
       "CANCEL": "Cancelar",
       "LABEL_NAME": "Nombre",
       "LABEL_DESCRIPTION": "Descripción",
+      "LABEL_RESPONSIBLE": "Responsable",
+      "PLACEHOLDER_RESPONSIBLE": "Selecciona un responsable",
       "HINT_NEXT_STEP": "Después de crear el grupo podrás agregarle clientes."
     },
     "EDIT_GROUP_MODAL": {
       "TITLE": "Editar grupo",
       "SAVE": "Guardar",
       "CANCEL": "Cancelar",
-      "LABEL_NAME": "Nombre"
+      "LABEL_NAME": "Nombre",
+      "LABEL_RESPONSIBLE": "Responsable",
+      "PLACEHOLDER_RESPONSIBLE": "Selecciona un responsable"
     },
     "GROUP_MEMBERS_MODAL": {
       "TITLE_SUFFIX": "Miembros del grupo",

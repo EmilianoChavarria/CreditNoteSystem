@@ -163,7 +163,7 @@
   <tr class="border-t border-gray-100 bg-white hover:bg-gray-50/70 transition-colors" [class.fc-row-enter]="!closing" [class.fc-row-closing]="closing">
     <td class="sticky left-0 z-10 py-2 pl-12 pr-4 text-xs text-gray-600 whitespace-nowrap bg-white border-r border-gray-200"
       [style.box-shadow]="groupRail(true, isLast)">
-      {{ member.name }}
+      {{member.id}} - {{ member.name }}
     </td>
     <td class="px-3 py-1.5 whitespace-nowrap">
       <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">{{ 'FORECAST.TABLE.LABEL_SALES' | translate }}</span>
