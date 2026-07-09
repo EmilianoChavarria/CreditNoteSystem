@@ -19,11 +19,29 @@ export interface UpdateDistributorPayload {
   clientNumber?: string;
 }
 
+export interface ClientGroupResponsible {
+  id: number;
+  fullName: string;
+  email: string;
+  roleId: number | null;
+  supervisorId: number | null;
+  preferredLanguage: string | null;
+  isActive: boolean;
+  clientId: number | null;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  role: { id: number; roleName: string } | null;
+  supervisor: unknown | null;
+}
+
 export interface ClientGroup {
   id: number;
   name: string;
   memberCount: number;
   createdAt: string;
+  responsibleUserId?: number | null;
+  responsible?: ClientGroupResponsible | null;
 }
 
 export interface ClientGroupForecastClient {
@@ -45,6 +63,7 @@ export interface ClientGroupForecastSummary {
 
 export interface CreateClientGroupPayload {
   name: string;
+  responsibleUserId?: number;
 }
 
 export interface ClientGroupMember {
