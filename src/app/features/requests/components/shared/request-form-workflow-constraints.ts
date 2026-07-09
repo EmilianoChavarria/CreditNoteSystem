@@ -9,6 +9,8 @@ export interface ConstraintContext {
   isReinvoicing?: boolean;
   /** id del tipo de solicitud activo (ej. 3 = auditor credits, 4 = auditor debits) */
   requestTypeId?: number | null;
+  /** status actual de la solicitud (ej. "pending", "approved") */
+  status?: string | null;
 }
 
 export interface WorkflowFieldConstraint {
@@ -38,21 +40,29 @@ export const WORKFLOW_FIELD_CONSTRAINTS: WorkflowFieldConstraint[] = [
   },
   {
     // En re-invoicing sin paso (creación) siempre habilitado.
-    // En otros formularios: deshabilitado si no hay paso; con paso, solo REQUESTER.
-    disableWhen: ({ step, assignedRoleName, isReinvoicing }) =>
+    // En otros formularios: deshabilitado si no hay paso, si el rol no es REQUESTER,
+    // o si el status de la solicitud ya es "approved".
+    disableWhen: ({ step, assignedRoleName, isReinvoicing, status }) =>
       isReinvoicing && !step
         ? false
-        : !step || (assignedRoleName !== 'REQUESTER' && assignedRoleName !== 'REQUESTER / PROCESSOR'),
+        : !step ||
+          // (assignedRoleName !== 'REQUESTER' && assignedRoleName !== 'REQUESTER / PROCESSOR') &&
+          status !== 'approved',
     fields: ['orderNumber', 'deliveryNote'],
   },
   {
-    // Auditor credit/debit (requestTypeId 3/4): habilitado al crear (!step) y para
-    // cualquier rol asignado distinto de REQUESTER / REQUESTER-PROCESSOR.
+    // Auditor credit/debit (requestTypeId 3/4): habilitado al crear (!step), en el
+    // paso 1 y 2 (REQUESTER captura la factura) y para cualquier rol asignado distinto
+    // de REQUESTER / REQUESTER-PROCESSOR. A partir del paso 2, REQUESTER queda bloqueado.
     // Resto de formularios: habilitado solo cuando el rol asignado es REQUESTER
     // (al crear queda deshabilitado, salvo re-invoicing).
     disableWhen: ({ step, assignedRoleName, isReinvoicing, requestTypeId }) => {
       if (requestTypeId === 3 || requestTypeId === 4) {
-        return !!step && (assignedRoleName === 'REQUESTER' || assignedRoleName === 'REQUESTER / PROCESSOR');
+        return (
+          !!step &&
+          step.stepOrder !== 1 && step.stepOrder !== 2 &&
+          (assignedRoleName === 'REQUESTER' || assignedRoleName === 'REQUESTER / PROCESSOR')
+        );
       }
 
       return isReinvoicing && !step
