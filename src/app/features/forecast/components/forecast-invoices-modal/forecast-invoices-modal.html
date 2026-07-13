@@ -3,7 +3,7 @@
   [titleM]="monthLabel() + ' — ' + ('FORECAST.INVOICES_MODAL.TITLE_SUFFIX' | translate)"
   [showPrimaryButton]="false"
   [closeText]="'FORECAST.INVOICES_MODAL.CLOSE' | translate"
-  size="xl"
+  size="2xl"
   (closed)="closed.emit()">
 
   <p modal-title class="text-xs text-gray-400 mt-0.5">{{ clientName() }}</p>
@@ -37,7 +37,7 @@
     <div [class]="isMultiClient() ? 'flex flex-col md:flex-row gap-4' : ''">
 
       @if (isMultiClient()) {
-        <div class="md:w-56 shrink-0">
+        <div class="md:w-auto shrink-0">
           <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-1.5">
             {{ 'FORECAST.INVOICES_MODAL.CLIENTS_LABEL' | translate }} ({{ sections().length }})
           </p>
