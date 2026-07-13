@@ -15,7 +15,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '24'   # Angular 21 requiere Node 20.19+ / 22.x LTS
+          node-version: '24'
           cache: 'npm'
 
       - name: Instalar dependencias
@@ -24,7 +24,7 @@ jobs:
       - name: Build Angular (dv)
         run: npx ng build --configuration=dv
 
-      - name: Deploy por FTP (limpia chunks viejos, protege carpetas del server)
+      - name: Deploy por FTP (limpia chunks viejos)
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
@@ -32,14 +32,5 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftps
           local-dir: ./dist/notasCreditos-front/browser/
-          server-dir: /public_html/dv/
+          server-dir: /public_html/dv/frontend/
           dangerous-clean-slate: true
-          exclude: |
-            **/.git*
-            **/.git*/**
-            .well-known/**
-            cgi-bin/**
-            notasCreditos_back/**
-            .htaccess
-            .user.ini
-            php.ini
