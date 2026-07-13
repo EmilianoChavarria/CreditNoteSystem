@@ -24,7 +24,7 @@ jobs:
       - name: Build Angular (dv)
         run: npx ng build --configuration=dv
 
-      - name: Deploy por FTP (solo cambios)
+      - name: Deploy por FTP (limpia chunks viejos, protege carpetas del server)
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
@@ -33,6 +33,13 @@ jobs:
           protocol: ftps
           local-dir: ./dist/notasCreditos-front/browser/
           server-dir: /public_html/dv/
+          dangerous-clean-slate: true
           exclude: |
             **/.git*
             **/.git*/**
+            .well-known/**
+            cgi-bin/**
+            notasCreditos_back/**
+            .htaccess
+            .user.ini
+            php.ini
