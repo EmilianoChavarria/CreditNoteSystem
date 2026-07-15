@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { AuthGuard } from './core/guards/auth.guard';
 import { LoginGuard } from './core/guards/login.guard';
 import { ActionGuard } from './core/guards/action.guard';
+import { unsavedReservationGuard } from './core/guards/unsaved-reservation.guard';
 
 
 export const routes: Routes = [
@@ -20,7 +21,8 @@ export const routes: Routes = [
       {
         path: 'request/new-request',
         loadComponent: () => import('./features/requests/pages/new-request/new-request').then(m => m.NewRequest),
-        canActivate: [ActionGuard]
+        canActivate: [ActionGuard],
+        canDeactivate: [unsavedReservationGuard]
       },
       {
         path: 'request/drafts',
