@@ -699,7 +699,10 @@
     "STATUS_PENDING": "Pending",
     "STATUS_CANCELLED": "Cancelled",
     "NO_STATUS": "No status",
-    "VIEW_DRAFTS": "View drafts"
+    "VIEW_DRAFTS": "View drafts",
+    "DELETED": "Deleted",
+    "DELETED_YES": "Yes",
+    "DELETED_NO": "No"
   },
   "DRAFTS_ADMIN_MODAL": {
     "TITLE": "Drafts and missing requests",

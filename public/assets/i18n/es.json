@@ -699,7 +699,10 @@
     "STATUS_PENDING": "Pendiente",
     "STATUS_CANCELLED": "Cancelado",
     "NO_STATUS": "Sin estado",
-    "VIEW_DRAFTS": "Ver borradores"
+    "VIEW_DRAFTS": "Ver borradores",
+    "DELETED": "Eliminado",
+    "DELETED_YES": "Sí",
+    "DELETED_NO": "No"
   },
   "DRAFTS_ADMIN_MODAL": {
     "TITLE": "Borradores y solicitudes faltantes",
