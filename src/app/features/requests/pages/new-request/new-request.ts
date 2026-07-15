@@ -220,14 +220,27 @@ export class NewRequest implements OnInit, ConfirmsPendingReservationExit {
     onRequestTypeChange(event: any) {
         const value = event.target.value;
         const numericRequestTypeId = Number(value);
+        const nextRequestTypeId = Number.isNaN(numericRequestTypeId) ? null : numericRequestTypeId;
+
+        this.promptIfPendingReservation().subscribe((confirmed) => {
+            if (!confirmed) {
+                // Select vuelve a su valor anterior en el próximo ciclo de detección
+                // de cambios porque [value] sigue enlazado a selectedRequestTypeId.
+                return;
+            }
+
+            // confirmLeave() ya liberó la reserva antes de resolver el observable.
+            this.applyRequestTypeChange(nextRequestTypeId);
+        });
+    }
+
+    private applyRequestTypeChange(requestTypeId: number | null): void {
         this.isLoadingForm.set(true);
         this.isRegisterRequestDisabled.set(false);
 
-        const moduleKey = this.resolveRequestTypeModuleKey(numericRequestTypeId);
-        console.log(moduleKey);
+        const moduleKey = requestTypeId !== null ? this.resolveRequestTypeModuleKey(requestTypeId) : '';
         this.selectedRequestType = moduleKey;
-        this.selectedRequestTypeId = Number.isNaN(numericRequestTypeId) ? null : numericRequestTypeId;
-
+        this.selectedRequestTypeId = requestTypeId;
     }
 
     buildForm(moduleKey: string) {
@@ -567,6 +580,15 @@ export class NewRequest implements OnInit, ConfirmsPendingReservationExit {
      * confirmación; si no hay nada pendiente, deja salir directo.
      */
     confirmLeaveWithPendingReservation(): Observable<boolean> {
+        return this.promptIfPendingReservation();
+    }
+
+    /**
+     * Mismo modal de confirmación, reusado para el cambio de tipo de solicitud
+     * en el <select> — cambiar de tipo también abandona el folio reservado
+     * actual (aunque no se navegue de ruta), así que necesita la misma pregunta.
+     */
+    private promptIfPendingReservation(): Observable<boolean> {
         if (!this._pendingReservation.hasPending()) {
             return of(true);
         }
