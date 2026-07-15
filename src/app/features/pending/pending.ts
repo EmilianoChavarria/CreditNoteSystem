@@ -36,9 +36,9 @@ export class Pending extends RequestListBase {
     public canDeleteSelectedAttachments = signal<boolean>(false);
     public showDraftsAdminModal = signal<boolean>(false);
     private readonly authUser = toSignal(this._authService.user$, { initialValue: null });
-    public isAdmin = computed(() => this.authUser()?.roleName?.trim().toUpperCase() === 'ADMIN');
+    public isAdmin = computed(() => (this.authUser()?.roleName ?? '').trim().toUpperCase().includes('ADMIN'));
 
-    public columns: Column<Request>[] = [
+    private readonly baseColumns: Column<Request>[] = [
         { key: 'requestNumber', label: 'PENDING_PAGE.REQUEST_NUMBER', sortable: true },
         {
             key: 'razonSocial', label: 'PENDING_PAGE.SOCIAL_REASON', sortable: true, customTemplate: true
@@ -54,6 +54,19 @@ export class Pending extends RequestListBase {
         { key: 'totalAmount', label: 'PENDING_PAGE.AMOUNT', sortable: false, customTemplate: true },
         { key: 'user.fullName', label: 'CREATED BY', sortable: true}
     ];
+
+    private readonly deletedColumn: Column<Request> = {
+        key: 'deletedAt', label: 'PENDING_PAGE.DELETED', sortable: false, customTemplate: true
+    };
+
+    /**
+     * Solo admin/superadmin recibe borradores en este listado (ver
+     * RequestController::getAllByRequestType), así que la columna "Eliminado"
+     * solo aporta info para ellos.
+     */
+    public columns = computed<Column<Request>[]>(() =>
+        this.isAdmin() ? [...this.baseColumns, this.deletedColumn] : this.baseColumns
+    );
 
     private readonly baseAcciones: AccionPersonalizada<Request>[] = [
         { key: 'pdf', icon: 'file-text', label: 'PENDING_PAGE.PDF', accion: (request) => this.generatePdf(request) },
