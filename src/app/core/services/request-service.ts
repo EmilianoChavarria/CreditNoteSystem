@@ -405,6 +405,29 @@ export class RequestService {
     )
   }
 
+  /**
+   * Libera una reserva de folio abandonada (usuario salió del form sin guardar),
+   * para cuando el navegador sigue vivo (cambio de tipo, navegación in-app).
+   */
+  releaseRequestNumber(draftId: number): Observable<ApiResponse<{ released: boolean }>> {
+    return this._httpService.post<{ released: boolean }>(`/requests/next-number/${draftId}/release`, {}).pipe(
+      catchError(error => {
+        console.log(error);
+        throw error;
+      })
+    );
+  }
+
+  /**
+   * Misma liberación pero disparada vía sendBeacon: única forma confiable de
+   * avisar al backend en beforeunload/pagehide (cierre de pestaña), ya que
+   * un fetch/XHR normal ahí se puede cancelar a medias.
+   */
+  releaseRequestNumberOnUnload(draftId: number): void {
+    const url = `${runtimeConfig.apiBaseUrl}/requests/next-number/${draftId}/release`;
+    navigator.sendBeacon(url);
+  }
+
   saveRequest(formData: FormData): Observable<ApiResponse<Request | null>> {
     return this.http.post<ApiResponse<Request | null>>(
       `${runtimeConfig.apiBaseUrl}/requests/newRequest`,
