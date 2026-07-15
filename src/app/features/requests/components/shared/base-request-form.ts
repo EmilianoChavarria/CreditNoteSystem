@@ -1168,7 +1168,7 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
 
   @HostListener('window:beforeunload')
   @HostListener('window:pagehide')
-  private releasePendingReservationOnUnload(): void {
+  protected releasePendingReservationOnUnload(): void {
     if (this.reservedDraftId === null) {
       return;
     }
