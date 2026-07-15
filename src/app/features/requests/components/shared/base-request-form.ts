@@ -8,6 +8,7 @@ import { ApiResponse } from '../../../../data/interfaces/ApiResponse-interface';
 import { RequestService } from '../../../../core/services/request-service';
 import { CustomerService } from '../../../../core/services/customer-service';
 import { ToastService } from '../../../../core/services/toast-service';
+import { PendingRequestReservationService } from '../../../../core/services/pending-request-reservation.service';
 
 export interface ApprovalContext {
   requestId: number;
@@ -37,6 +38,7 @@ type SaveRequestResponse = ApiResponse<Request | null> & {
 @Directive()
 export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
   private readonly _router = inject(Router);
+  private readonly _pendingReservation = inject(PendingRequestReservationService);
 
   constructor(
     protected readonly _requestService: RequestService,
@@ -79,7 +81,6 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
   private ivaSubscription: Subscription | null = null;
   private currencySubscription: Subscription | null = null;
   private initialLoadTriggered = false;
-  private reservedDraftId: number | null = null;
 
   public form: FormGroup = this.createForm();
 
@@ -130,7 +131,7 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
       next: ({ requestNumber, reasons, classifications }) => {
         if (requestNumber) {
           this.form.controls['requestNumber'].setValue(requestNumber.requestNumber);
-          this.reservedDraftId = requestNumber.draftId ?? null;
+          this._pendingReservation.set(requestNumber.draftId ?? null);
         }
         this.reasons.set(reasons);
         this.classifications.set(classifications);
@@ -873,7 +874,7 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
     ).subscribe({
       next: (response: SaveRequestResponse) => {
         this.submitted.set(false);
-        this.reservedDraftId = null;
+        this._pendingReservation.clear();
 
         if (pendingAction === 'approve') {
           this.savedForApproval.emit();
@@ -1002,7 +1003,7 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
         if (response?.success) {
           this._toastService.success(response?.message ?? 'Borrador guardado correctamente', 'Exito');
           this.submitted.set(false);
-          this.reservedDraftId = null;
+          this._pendingReservation.clear();
           return;
         }
 
@@ -1151,30 +1152,17 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
    * Libera (borra) la reserva de folio actual si sigue sin usarse — el backend
    * solo la borra si nunca se le escribió información real (reservedOnly=true),
    * así que llamar esto sobre un draft ya guardado de verdad es un no-op seguro.
+   * Red de seguridad: la salida normal desde new-request.ts ya la libera vía el
+   * guard de confirmación antes de llegar aquí, así que esto suele ser no-op.
    */
   private releasePendingReservation(): void {
-    if (this.reservedDraftId === null) {
-      return;
-    }
-
-    const draftId = this.reservedDraftId;
-    this.reservedDraftId = null;
-    this._requestService.releaseRequestNumber(draftId).subscribe({
-      error: () => {
-        // Best-effort: si falla, el job de limpieza programado en backend la libera después.
-      }
-    });
+    this._pendingReservation.release();
   }
 
   @HostListener('window:beforeunload')
   @HostListener('window:pagehide')
   protected releasePendingReservationOnUnload(): void {
-    if (this.reservedDraftId === null) {
-      return;
-    }
-
-    this._requestService.releaseRequestNumberOnUnload(this.reservedDraftId);
-    this.reservedDraftId = null;
+    this._pendingReservation.releaseOnUnload();
   }
 
   ngOnDestroy(): void {
