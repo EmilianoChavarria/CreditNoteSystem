@@ -1,4 +1,4 @@
-import { Directive, EventEmitter, inject, Input, OnChanges, OnDestroy, OnInit, Output, signal, SimpleChanges } from '@angular/core';
+import { Directive, EventEmitter, HostListener, inject, Input, OnChanges, OnDestroy, OnInit, Output, signal, SimpleChanges } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { finalize, forkJoin, map, Observable, of, Subscription, switchMap, take } from 'rxjs';
@@ -79,6 +79,7 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
   private ivaSubscription: Subscription | null = null;
   private currencySubscription: Subscription | null = null;
   private initialLoadTriggered = false;
+  private reservedDraftId: number | null = null;
 
   public form: FormGroup = this.createForm();
 
@@ -106,6 +107,8 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
   }
 
   private loadInitialData(): void {
+    this.releasePendingReservation();
+
     if (this.requestTypeId === null) {
       this.reasons.set([]);
       this.classifications.set([]);
@@ -127,6 +130,7 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
       next: ({ requestNumber, reasons, classifications }) => {
         if (requestNumber) {
           this.form.controls['requestNumber'].setValue(requestNumber.requestNumber);
+          this.reservedDraftId = requestNumber.draftId ?? null;
         }
         this.reasons.set(reasons);
         this.classifications.set(classifications);
@@ -869,6 +873,7 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
     ).subscribe({
       next: (response: SaveRequestResponse) => {
         this.submitted.set(false);
+        this.reservedDraftId = null;
 
         if (pendingAction === 'approve') {
           this.savedForApproval.emit();
@@ -997,6 +1002,7 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
         if (response?.success) {
           this._toastService.success(response?.message ?? 'Borrador guardado correctamente', 'Exito');
           this.submitted.set(false);
+          this.reservedDraftId = null;
           return;
         }
 
@@ -1141,7 +1147,39 @@ export abstract class BaseRequestForm implements OnInit, OnDestroy, OnChanges {
     }
   }
 
+  /**
+   * Libera (borra) la reserva de folio actual si sigue sin usarse — el backend
+   * solo la borra si nunca se le escribió información real (reservedOnly=true),
+   * así que llamar esto sobre un draft ya guardado de verdad es un no-op seguro.
+   */
+  private releasePendingReservation(): void {
+    if (this.reservedDraftId === null) {
+      return;
+    }
+
+    const draftId = this.reservedDraftId;
+    this.reservedDraftId = null;
+    this._requestService.releaseRequestNumber(draftId).subscribe({
+      error: () => {
+        // Best-effort: si falla, el job de limpieza programado en backend la libera después.
+      }
+    });
+  }
+
+  @HostListener('window:beforeunload')
+  @HostListener('window:pagehide')
+  private releasePendingReservationOnUnload(): void {
+    if (this.reservedDraftId === null) {
+      return;
+    }
+
+    this._requestService.releaseRequestNumberOnUnload(this.reservedDraftId);
+    this.reservedDraftId = null;
+  }
+
   ngOnDestroy(): void {
+    this.releasePendingReservation();
+
     if (this.amountSubscription) {
       this.amountSubscription.unsubscribe();
     }
