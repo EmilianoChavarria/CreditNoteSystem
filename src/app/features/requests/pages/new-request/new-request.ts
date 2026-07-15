@@ -8,7 +8,7 @@ import { RequestService } from '../../../../core/services/request-service';
 import { CustomerService } from '../../../../core/services/customer-service';
 import { ToastService } from '../../../../core/services/toast-service';
 import { AutocompleteOption } from '../../../../shared/components/ui/autocomplete/autocomplete';
-import { Observable, of, forkJoin, combineLatest, Subscription } from 'rxjs';
+import { Observable, of, forkJoin, combineLatest, Subject, Subscription } from 'rxjs';
 import { map, catchError, startWith, finalize } from 'rxjs/operators';
 import { Classification, Reason, RequestType, Request } from '../../../../data/interfaces/Request';
 import { ToastrService } from 'ngx-toastr';
@@ -24,6 +24,8 @@ import { ApprovalContext } from '../../components/shared/base-request-form';
 import { Modal } from '../../../../shared/components/ui/modal/modal';
 import { ApproveConfirmModal } from '../../../pages/my-approvals/components/approve-confirm-modal/approve-confirm-modal';
 import { SendBackModal } from '../../../pages/my-approvals/components/send-back-modal/send-back-modal';
+import { PendingRequestReservationService } from '../../../../core/services/pending-request-reservation.service';
+import { ConfirmsPendingReservationExit } from '../../../../core/guards/unsaved-reservation.guard';
 
 @Component({
     selector: 'app-new-request',
@@ -31,7 +33,7 @@ import { SendBackModal } from '../../../pages/my-approvals/components/send-back-
     styleUrl: './new-request.css',
     imports: [ReactiveFormsModule, TranslatePipe, CommonModule, CreditForm, DebitForm, AuditorCreditForm, AuditorDebitForm, MaterialReturnForm, ReInvoicingForm, Modal, ApproveConfirmModal, SendBackModal],
 })
-export class NewRequest implements OnInit {
+export class NewRequest implements OnInit, ConfirmsPendingReservationExit {
     public profileForm: FormGroup;
     public formConfig: any = formFieldsConfig;
     public selectedRequestType: string = '';
@@ -63,12 +65,16 @@ export class NewRequest implements OnInit {
     public declineForm = new FormGroup({ comments: new FormControl<string>('', Validators.required) });
     public declineSubmitted = signal<boolean>(false);
 
+    public showLeaveConfirmModal = signal<boolean>(false);
+    private leaveConfirmSubject: Subject<boolean> | null = null;
+
     private computedSubscriptions: Subscription[] = [];
     private requestTypeActionPermissions = signal<Record<number, Record<string, boolean>>>({});
     private toastr = inject(ToastrService);
     private readonly _toastService = inject(ToastService);
     private readonly _translateService = inject(TranslateService);
     private roleService = inject(RoleService);
+    private readonly _pendingReservation = inject(PendingRequestReservationService);
     constructor(
         private fb: FormBuilder,
         private _requestService: RequestService,
@@ -553,6 +559,43 @@ export class NewRequest implements OnInit {
     declineCampoVacio(controlName: string): boolean {
         const control = this.declineForm.get(controlName);
         return !!control?.invalid && (!!control?.touched || this.declineSubmitted());
+    }
+
+    /**
+     * Llamado por el guard CanDeactivate de la ruta antes de salir de new-request.
+     * Si hay un folio reservado sin guardar, bloquea la navegación y pide
+     * confirmación; si no hay nada pendiente, deja salir directo.
+     */
+    confirmLeaveWithPendingReservation(): Observable<boolean> {
+        if (!this._pendingReservation.hasPending()) {
+            return of(true);
+        }
+
+        this.leaveConfirmSubject = new Subject<boolean>();
+        this.showLeaveConfirmModal.set(true);
+        return this.leaveConfirmSubject.asObservable();
+    }
+
+    confirmLeave(): void {
+        this._pendingReservation.release();
+        this.resolveLeaveConfirm(true);
+    }
+
+    cancelLeave(): void {
+        this.resolveLeaveConfirm(false);
+    }
+
+    onLeaveConfirmModalOpenChange(open: boolean): void {
+        if (!open) {
+            this.cancelLeave();
+        }
+    }
+
+    private resolveLeaveConfirm(result: boolean): void {
+        this.showLeaveConfirmModal.set(false);
+        this.leaveConfirmSubject?.next(result);
+        this.leaveConfirmSubject?.complete();
+        this.leaveConfirmSubject = null;
     }
 
 }
