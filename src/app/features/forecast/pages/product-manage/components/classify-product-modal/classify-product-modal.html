@@ -1,0 +1,51 @@
+<app-modal
+    [open]="open()"
+    [titleM]="'FORECAST.CLASSIFY_PRODUCT.TITLE' | translate"
+    size="md"
+    [primaryText]="'FORECAST.CLASSIFY_PRODUCT.SAVE' | translate"
+    [closeText]="'FORECAST.CLASSIFY_PRODUCT.CANCEL' | translate"
+    [primaryLoading]="saving()"
+    [primaryDisabled]="saving() || !selected()"
+    [closeOnBackdrop]="true"
+    (openChange)="openChange.emit($event)"
+    (primaryAction)="onSave()">
+
+    <div class="flex flex-col gap-4">
+
+        <div class="flex flex-col gap-1">
+            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">{{ 'FORECAST.CLASSIFY_PRODUCT.LABEL_PRODUCT' | translate }}</span>
+            <span class="text-sm font-medium text-gray-800">{{ product()?.idProducto }}</span>
+            <span class="text-xs text-gray-400">{{ product()?.descripcion }}</span>
+        </div>
+
+        <div class="flex flex-col gap-2">
+            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">{{ 'FORECAST.CLASSIFY_PRODUCT.LABEL_CLASIFICACION' | translate }}</span>
+
+            <div class="flex flex-col gap-2">
+                <label class="flex items-center gap-2 rounded-lg border px-3 py-2 cursor-pointer transition"
+                    [class.border-blue-400]="selected() === 'Rodamientos'"
+                    [class.bg-blue-50]="selected() === 'Rodamientos'"
+                    [class.border-gray-300]="selected() !== 'Rodamientos'">
+                    <input type="radio" name="clasificacion" [checked]="selected() === 'Rodamientos'" (change)="selectOption('Rodamientos')" />
+                    <span class="text-sm font-medium text-gray-700">{{ 'FORECAST.CLASSIFY_PRODUCT.OPTION_RODAMIENTOS' | translate }}</span>
+                </label>
+
+                <label class="flex items-center gap-2 rounded-lg border px-3 py-2 cursor-pointer transition"
+                    [class.border-orange-400]="selected() === 'No Rodamientos'"
+                    [class.bg-orange-50]="selected() === 'No Rodamientos'"
+                    [class.border-gray-300]="selected() !== 'No Rodamientos'">
+                    <input type="radio" name="clasificacion" [checked]="selected() === 'No Rodamientos'" (change)="selectOption('No Rodamientos')" />
+                    <span class="text-sm font-medium text-gray-700">{{ 'FORECAST.CLASSIFY_PRODUCT.OPTION_NO_RODAMIENTOS' | translate }}</span>
+                </label>
+            </div>
+        </div>
+
+        @if (errorMessage()) {
+            <div class="text-xs text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
+                {{ errorMessage() }}
+            </div>
+        }
+
+    </div>
+
+</app-modal>
