@@ -859,9 +859,8 @@ export class Clients {
       .map(token => token.trim())
       .filter(Boolean);
 
-    const firstToken = tokens[0] ?? '';
-    const partNumber = firstToken.includes(';') ? firstToken.split(';')[0].trim() : firstToken;
-    const orderNumber = tokens[1] ?? '-';
+    const partNumber = tokens[1];
+    const orderNumber = tokens[3] ?? '-';
     const deliveryNote = tokens[2] ?? '-';
 
     return {
