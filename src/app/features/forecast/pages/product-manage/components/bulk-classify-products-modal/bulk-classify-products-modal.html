@@ -1,0 +1,36 @@
+<app-modal
+    [open]="open()"
+    [titleM]="'FORECAST.BULK_CLASSIFY.TITLE' | translate"
+    size="lg"
+    [primaryText]="isCreatingBatch() ? ('BULK.COMMON.PROCESSING' | translate) : ('FORECAST.BULK_CLASSIFY.UPLOAD' | translate)"
+    [closeText]="'FORECAST.BULK_CLASSIFY.CANCEL' | translate"
+    [primaryLoading]="isCreatingBatch()"
+    [primaryDisabled]="isCreatingBatch() || uploadedFiles().length === 0"
+    [closeOnBackdrop]="true"
+    (openChange)="openChange.emit($event)"
+    (primaryAction)="onSave()">
+
+    <div class="flex flex-col gap-3">
+        <p class="text-xs text-gray-500">{{ 'FORECAST.BULK_CLASSIFY.DESCRIPTION' | translate }}</p>
+
+        <app-bulk-file-dropzone
+            [inputId]="'dropzone-file-product-classification'"
+            [dropHint]="'FORECAST.BULK_CLASSIFY.DROP_HINT' | translate"
+            [clickUploadText]="'BULK.COMMON.CLICK_UPLOAD' | translate"
+            [isDragOver]="isDragOver()"
+            [accept]="'.csv,.xlsx,.xls,.txt,.xml'"
+            (dragOver)="onDragOver($event)"
+            (dragLeave)="onDragLeave($event)"
+            (dropFile)="onDrop($event)"
+            (fileChange)="onFileInputChange($event)">
+        </app-bulk-file-dropzone>
+
+        @if (uploadedFiles().length > 0) {
+        <app-bulk-uploaded-files-table
+            [rows]="uploadedFiles()"
+            [caption]="'FORECAST.BULK_CLASSIFY.FILES_CAPTION' | translate"
+            (remove)="removeUploadedFile($event)">
+        </app-bulk-uploaded-files-table>
+        }
+    </div>
+</app-modal>
