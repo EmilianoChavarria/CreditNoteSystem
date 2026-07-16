@@ -859,8 +859,8 @@ export class Clients {
       .map(token => token.trim());
 
     const partNumber = tokens[1];
-    const orderNumber = tokens[3] ?? '-';
-    const deliveryNote = tokens[2] ?? '-';
+    const orderNumber = tokens[2] ?? '-';
+    const deliveryNote = tokens[3] ?? '-';
 
     return {
       partNumber: partNumber || '-',
