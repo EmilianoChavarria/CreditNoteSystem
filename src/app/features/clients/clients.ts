@@ -863,6 +863,10 @@ export class Clients {
     const orderNumber = tokens[3] ?? '-';
     const deliveryNote = tokens[2] ?? '-';
 
+    const string = "^30204M-90KM1;^CBM0212-1^704747215^40^^^Pedimento:242416254006636,Fecha:2024\/06\/13;"
+    const result = string.split('^')
+    console.log("🚀 ~ Clients ~ parseDescriptionParts ~ result:", result)
+
     return {
       partNumber: partNumber || '-',
       customerPart: partNumber || '-',
