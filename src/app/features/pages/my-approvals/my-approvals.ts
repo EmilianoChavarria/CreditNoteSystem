@@ -206,10 +206,15 @@ export class MyApprovals extends RequestListBase {
         return forkJoin(
             requestTypes.map((requestType) =>
                 this._requestsService.getNextRequestNumber(requestType.id).pipe(
-                    map((nextNumber) => ({
-                        requestTypeId: requestType.id,
-                        series: this.extractSeries(nextNumber.prefix ?? ''),
-                    })),
+                    map((nextNumber) => {
+                        if (nextNumber.draftId != null) {
+                            this._requestsService.releaseRequestNumber(nextNumber.draftId).subscribe({ error: () => {} });
+                        }
+                        return {
+                            requestTypeId: requestType.id,
+                            series: this.extractSeries(nextNumber.prefix ?? ''),
+                        };
+                    }),
                     catchError(() => of({ requestTypeId: requestType.id, series: '' }))
                 )
             )
