@@ -152,6 +152,32 @@ export interface InvoiceSection {
   invoices: Invoice[];
 }
 
+export interface InvoiceProduct {
+  noIdentificacion: string;
+  descripcion: string;
+  cantidad: number;
+  valorUnitario: number;
+  importe: number;
+  importeUsd: number;
+  clasificacion: string;
+  excluido: boolean;
+}
+
+export interface InvoiceProductsBreakdown {
+  totalFacturado: number;
+  totalNoRodamientos: number;
+  totalConsiderado: number;
+}
+
+export interface InvoiceProductsEntry {
+  folio: string;
+  fechaEmision: string;
+  moneda: string;
+  tipoCambio: number | null;
+  products: InvoiceProduct[];
+  breakdown: InvoiceProductsBreakdown;
+}
+
 export interface GroupInvoicesApi {
   isGroup: true;
   id: number;
@@ -352,6 +378,16 @@ export class ForecastService {
         }
         return data.sections ?? [];
       }),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
+  getInvoiceProducts(idClient: number, year: number, month: number): Observable<InvoiceProductsEntry[]> {
+    return this.httpService.get<InvoiceProductsEntry[]>(
+      `/forecast/${idClient}/${year}/${month}/invoices/products`,
+      this.withBearer()
+    ).pipe(
+      map((response: ApiResponse<InvoiceProductsEntry[]>) => response.data ?? []),
       catchError((error) => throwError(() => error))
     );
   }
