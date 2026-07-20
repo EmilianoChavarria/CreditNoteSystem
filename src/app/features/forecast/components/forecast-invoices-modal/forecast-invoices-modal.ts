@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, effect, input, output, si
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Modal } from '../../../../shared/components/ui/modal/modal';
-import { InvoiceSection } from '../../../../core/services/forecast.service';
+import { Invoice, InvoiceSection } from '../../../../core/services/forecast.service';
 
 @Component({
   selector: 'app-forecast-invoices-modal',
@@ -20,6 +20,7 @@ export class ForecastInvoicesModal {
 
   readonly closed = output<void>();
   readonly exportRequested = output<void>();
+  readonly viewProducts = output<{ clientId: number; clientName: string; folio: string }>();
 
   readonly selectedClientId = signal<number | null>(null);
 
@@ -47,6 +48,12 @@ export class ForecastInvoicesModal {
 
   selectClient(clientId: number): void {
     this.selectedClientId.set(clientId);
+  }
+
+  onViewProducts(inv: Invoice): void {
+    const section = this.selectedSection();
+    if (!section) return;
+    this.viewProducts.emit({ clientId: section.clientId, clientName: section.razonSocial || this.clientName(), folio: inv.folio });
   }
 
   grandTotal(): number {

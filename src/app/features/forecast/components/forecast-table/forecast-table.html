@@ -205,4 +205,13 @@
   [loading]="invoicesState()?.loading ?? false"
   [exporting]="exportingInvoices()"
   (closed)="closeInvoices()"
-  (exportRequested)="exportInvoices()" />
+  (exportRequested)="exportInvoices()"
+  (viewProducts)="viewInvoiceProducts($event)" />
+
+<app-forecast-invoice-products-modal
+  [open]="invoiceProductsState() !== null"
+  [clientName]="invoiceProductsState()?.clientName ?? ''"
+  [folio]="invoiceProductsState()?.folio ?? ''"
+  [entry]="invoiceProductsState()?.entry ?? null"
+  [loading]="invoiceProductsState()?.loading ?? false"
+  (closed)="closeInvoiceProducts()" />

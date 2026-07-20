@@ -10,11 +10,13 @@ import {
   Distributor,
   ForecastService,
   GroupMemberSales,
+  InvoiceProductsEntry,
   InvoiceSection,
 } from '../../../../core/services/forecast.service';
 import { ExportService } from '../../../../core/services/export-service';
 import { ForecastHistoryModal } from '../forecast-history-modal/forecast-history-modal';
 import { ForecastInvoicesModal } from '../forecast-invoices-modal/forecast-invoices-modal';
+import { ForecastInvoiceProductsModal } from '../forecast-invoice-products-modal/forecast-invoice-products-modal';
 import { ForecastClientModal } from '../forecast-client-modal/forecast-client-modal';
 
 interface EditingCell {
@@ -42,9 +44,16 @@ interface ClientModalState {
   clientName: string;
 }
 
+interface InvoiceProductsState {
+  clientName: string;
+  folio: string;
+  entry: InvoiceProductsEntry | null;
+  loading: boolean;
+}
+
 @Component({
   selector: 'app-forecast-table',
-  imports: [TranslatePipe, DecimalPipe, FormsModule, NgTemplateOutlet, LucideAngularModule, ForecastHistoryModal, ForecastInvoicesModal, ForecastClientModal],
+  imports: [TranslatePipe, DecimalPipe, FormsModule, NgTemplateOutlet, LucideAngularModule, ForecastHistoryModal, ForecastInvoicesModal, ForecastInvoiceProductsModal, ForecastClientModal],
   templateUrl: './forecast-table.html',
   styleUrl: './forecast-table.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -70,6 +79,7 @@ export class ForecastTable {
   readonly historyState = signal<HistoryState | null>(null);
   readonly invoicesState = signal<InvoicesState | null>(null);
   readonly exportingInvoices = signal(false);
+  readonly invoiceProductsState = signal<InvoiceProductsState | null>(null);
   readonly clientModalState = signal<ClientModalState | null>(null);
   readonly expandedGroups = signal<Set<number>>(new Set());
   readonly closingGroups = signal<Set<number>>(new Set());
@@ -196,6 +206,26 @@ export class ForecastTable {
 
   closeInvoices(): void {
     this.invoicesState.set(null);
+  }
+
+  viewInvoiceProducts(event: { clientId: number; clientName: string; folio: string }): void {
+    const state = this.invoicesState();
+    if (!state) return;
+
+    this.invoiceProductsState.set({ clientName: event.clientName, folio: event.folio, entry: null, loading: true });
+    const year = this.year();
+    const month = state.monthIdx + 1;
+    this.forecastService.getInvoiceProducts(event.clientId, year, month).subscribe({
+      next: (entries) => {
+        const entry = entries.find(e => e.folio === event.folio) ?? null;
+        this.invoiceProductsState.update(s => s ? { ...s, entry, loading: false } : null);
+      },
+      error: () => this.invoiceProductsState.update(s => s ? { ...s, loading: false } : null),
+    });
+  }
+
+  closeInvoiceProducts(): void {
+    this.invoiceProductsState.set(null);
   }
 
   exportInvoices(): void {
