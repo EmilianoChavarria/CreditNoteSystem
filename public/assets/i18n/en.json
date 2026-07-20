@@ -1447,7 +1447,26 @@
       "EXPORT_EXCEL": "Export to Excel",
       "CLOSE": "Close",
       "CLIENTS_LABEL": "Clients",
-      "CLIENT_EMPTY": "No invoices recorded for this client."
+      "CLIENT_EMPTY": "No invoices recorded for this client.",
+      "COL_ACTIONS": "Actions",
+      "VIEW_PRODUCTS": "View products"
+    },
+    "INVOICE_PRODUCTS_MODAL": {
+      "TITLE_PREFIX": "Invoice",
+      "LOADING": "Loading products...",
+      "EMPTY": "No products recorded for this invoice.",
+      "COL_PRODUCT": "Product",
+      "COL_CLASIFICACION": "Classification",
+      "COL_QTY": "Quantity",
+      "COL_UNIT_VALUE": "Unit value",
+      "COL_AMOUNT": "Amount",
+      "COL_AMOUNT_USD": "Amount USD",
+      "EXCLUDED_TAG": "Excluded",
+      "TOTAL_FACTURADO": "Total invoiced",
+      "TOTAL_NO_RODAMIENTOS": "Non-bearings",
+      "TOTAL_CONSIDERADO": "Total considered",
+      "EXPLANATION": "The considered total excludes products classified as \"No Rodamientos\" (non-bearings).",
+      "CLOSE": "Close"
     },
     "GROUP_FORECAST_MODAL": {
       "TITLE_SUFFIX": "Group forecast",

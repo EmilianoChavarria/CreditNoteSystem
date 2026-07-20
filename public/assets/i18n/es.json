@@ -1447,7 +1447,26 @@
       "EXPORT_EXCEL": "Exportar a Excel",
       "CLOSE": "Cerrar",
       "CLIENTS_LABEL": "Clientes",
-      "CLIENT_EMPTY": "Sin facturas registradas para este cliente."
+      "CLIENT_EMPTY": "Sin facturas registradas para este cliente.",
+      "COL_ACTIONS": "Acciones",
+      "VIEW_PRODUCTS": "Ver productos"
+    },
+    "INVOICE_PRODUCTS_MODAL": {
+      "TITLE_PREFIX": "Factura",
+      "LOADING": "Cargando productos...",
+      "EMPTY": "Sin productos registrados para esta factura.",
+      "COL_PRODUCT": "Producto",
+      "COL_CLASIFICACION": "Clasificación",
+      "COL_QTY": "Cantidad",
+      "COL_UNIT_VALUE": "Valor unitario",
+      "COL_AMOUNT": "Importe",
+      "COL_AMOUNT_USD": "Importe USD",
+      "EXCLUDED_TAG": "Excluido",
+      "TOTAL_FACTURADO": "Total facturado",
+      "TOTAL_NO_RODAMIENTOS": "No rodamientos",
+      "TOTAL_CONSIDERADO": "Total considerado",
+      "EXPLANATION": "El total considerado excluye los productos clasificados como \"No Rodamientos\".",
+      "CLOSE": "Cerrar"
     },
     "GROUP_FORECAST_MODAL": {
       "TITLE_SUFFIX": "Forecast del grupo",
