@@ -39,7 +39,6 @@ export class EditDistributorModal {
 
   readonly client = input<ForecastClient | null>(null);
   readonly open = input<boolean>(false);
-  readonly forceDisableSave = input<boolean>(false);
 
   readonly openChange = output<boolean>();
   readonly saved = output<void>();
@@ -135,7 +134,7 @@ export class EditDistributorModal {
 
   onSave(): void {
     const client = this.client();
-    if (!client || this.saving() || this.forceDisableSave()) return;
+    if (!client || this.saving()) return;
 
     const raw = this.form();
     const payload: UpdateDistributorPayload = {};
