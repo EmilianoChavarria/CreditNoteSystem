@@ -133,10 +133,12 @@ export class EditDistributorModal {
   }
 
   onSave(): void {
-    const client = this.client();
-    if (!client || this.saving()) return;
+    if (this.saving()) return;
 
     const raw = this.form();
+    const id = this.client()?.idCliente ?? raw.clientNumber?.trim();
+    if (!id) return;
+
     const payload: UpdateDistributorPayload = {};
     if (raw.businessName?.trim()) payload.businessName = raw.businessName.trim();
     if (raw.taxId?.trim()) payload.taxId = raw.taxId.trim();
@@ -147,7 +149,7 @@ export class EditDistributorModal {
 
     this.saving.set(true);
     this.forecastService
-      .updateDistributor(client.idCliente, payload)
+      .updateDistributor(id, payload)
       .pipe(finalize(() => this.saving.set(false)))
       .subscribe({
         next: () => {
