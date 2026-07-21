@@ -35,6 +35,10 @@ export class DistributorsManage {
   readonly editModalOpen = signal(false);
   readonly selectedClient = signal<ForecastClient | null>(null);
 
+  readonly foreignClients = signal<ForecastClient[]>([]);
+  readonly foreignModalOpen = signal(false);
+  readonly selectedForeignClient = signal<ForecastClient | null>(null);
+
   readonly groups = signal<ClientGroup[]>([]);
   readonly groupsLoading = signal(true);
   readonly groupForecastModalOpen = signal(false);
@@ -53,6 +57,7 @@ export class DistributorsManage {
 
   readonly columns: Column<ForecastClient>[];
   readonly acciones: AccionPersonalizada<ForecastClient>[];
+  readonly foreignAcciones: AccionPersonalizada<ForecastClient>[];
 
   constructor(
     private readonly forecastService: ForecastService,
@@ -74,6 +79,14 @@ export class DistributorsManage {
         accion: (item) => this.openEditModal(item),
       },
     ];
+    this.foreignAcciones = [
+      {
+        label: this.translate.instant('FORECAST.DISTRIBUTORS.ACTION_EDIT'),
+        icon: 'pencil',
+        className: 'text-left text-gray-700',
+        accion: (item) => this.openEditForeignModal(item),
+      },
+    ];
     this.loadData();
     this.loadGroups();
   }
@@ -81,6 +94,16 @@ export class DistributorsManage {
   openEditModal(client: ForecastClient): void {
     this.selectedClient.set(client);
     this.editModalOpen.set(true);
+  }
+
+  openCreateForeignClient(): void {
+    this.selectedForeignClient.set(null);
+    this.foreignModalOpen.set(true);
+  }
+
+  openEditForeignModal(client: ForecastClient): void {
+    this.selectedForeignClient.set(client);
+    this.foreignModalOpen.set(true);
   }
 
   loadGroups(): void {
