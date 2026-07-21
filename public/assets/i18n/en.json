@@ -1547,6 +1547,9 @@
       "DESCRIPTION": "Manage forecast clients",
       "TAB_CLIENTS": "Clients",
       "TAB_GROUPS": "Groups",
+      "TAB_FOREIGN_CLIENTS": "Foreign Clients",
+      "ACTION_ADD_FOREIGN": "Foreign client",
+      "FOREIGN_EMPTY": "No foreign clients registered.",
       "COL_ID": "Client ID",
       "COL_RAZON_SOCIAL": "Business Name",
       "COL_RFC": "Tax ID",
@@ -1654,6 +1657,8 @@
     },
     "EDIT_DISTRIBUTOR": {
       "TITLE": "Edit distributor",
+      "TITLE_CREATE": "New foreign client",
+      "NO_BACKEND_HINT": "Registration and editing coming soon. Saving is not enabled yet.",
       "SAVE": "Save",
       "CANCEL": "Cancel",
       "LABEL_RAZON_SOCIAL": "Business Name",

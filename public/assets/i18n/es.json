@@ -1547,6 +1547,9 @@
       "DESCRIPTION": "Gestión de clientes del forecast",
       "TAB_CLIENTS": "Clientes",
       "TAB_GROUPS": "Grupos",
+      "TAB_FOREIGN_CLIENTS": "Clientes Extranjeros",
+      "ACTION_ADD_FOREIGN": "Cliente extranjero",
+      "FOREIGN_EMPTY": "Sin clientes extranjeros registrados.",
       "COL_ID": "ID Cliente",
       "COL_RAZON_SOCIAL": "Razón Social",
       "COL_RFC": "RFC",
@@ -1654,6 +1657,8 @@
     },
     "EDIT_DISTRIBUTOR": {
       "TITLE": "Editar distribuidor",
+      "TITLE_CREATE": "Nuevo cliente extranjero",
+      "NO_BACKEND_HINT": "Registro y edición disponibles próximamente. El guardado aún no está habilitado.",
       "SAVE": "Guardar",
       "CANCEL": "Cancelar",
       "LABEL_RAZON_SOCIAL": "Razón Social",
