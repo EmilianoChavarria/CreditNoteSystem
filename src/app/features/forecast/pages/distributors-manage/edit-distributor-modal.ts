@@ -84,7 +84,7 @@ export class EditDistributorModal {
         address: c.direccion ?? '',
         emails: c.correosForecast?.replace(/;/g, ',') ?? '',
         clientNumber: c.idCliente ?? '',
-        countrycode: '',
+        countrycode: c.countrycode ?? '',
       } : {
         businessName: '',
         taxId: '',
