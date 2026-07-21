@@ -9,6 +9,27 @@ export interface ForecastClient {
   direccion: string;
   rfc: string;
   correosForecast: string | null;
+  countrycode?: string;
+}
+
+export interface DistributorRecord {
+  id: number;
+  businessName: string;
+  taxId: string;
+  address: string;
+  emails: string;
+  clientNumber: string;
+  countrycode: string;
+}
+
+export interface DistributorPage {
+  data: DistributorRecord[];
+  current_page: number;
+  last_page: number;
+  per_page?: number;
+  total?: number;
+  next_page_url?: string | null;
+  prev_page_url?: string | null;
 }
 
 export interface UpdateDistributorPayload {
@@ -492,6 +513,29 @@ export class ForecastService {
 
     return this.httpService.get<ForecastClientPage>('/forecast/clients', { ...this.withBearer(), params }).pipe(
       map((response: ApiResponse<ForecastClientPage>) => {
+        const payload = response.data;
+        return {
+          data: payload?.data ?? [],
+          current_page: payload?.current_page ?? 1,
+          last_page: payload?.last_page ?? 1,
+          per_page: payload?.per_page,
+          total: payload?.total,
+          next_page_url: payload?.next_page_url,
+          prev_page_url: payload?.prev_page_url,
+        };
+      }),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
+  getDistributorsPaginated(perPage = 15, page = 1, search?: string): Observable<DistributorPage> {
+    const params: { per_page: number; page: number; search?: string } = { per_page: perPage, page };
+    if (search?.trim()) {
+      params.search = search.trim();
+    }
+
+    return this.httpService.get<DistributorPage>('/distributors', { ...this.withBearer(), params }).pipe(
+      map((response: ApiResponse<DistributorPage>) => {
         const payload = response.data;
         return {
           data: payload?.data ?? [],
