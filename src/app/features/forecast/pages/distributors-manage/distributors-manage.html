@@ -1,67 +1,59 @@
 <section class="flex w-full flex-col px-2 py-3 sm:px-4 md:px-0 md:py-0">
     <header class="w-full flex flex-col items-start justify-end gap-1 sm:items-end sm:gap-0 mb-2">
         <div class="flex flex-col">
-            <span class="text-2xl 2xl:text-4xl tracking-wider text-[#ff8200] font-semibold">{{ 'FORECAST.DISTRIBUTORS.TITLE' | translate }}</span>
-            <span class="text-sm sm:text-base text-orange-400">{{ 'FORECAST.DISTRIBUTORS.DESCRIPTION' | translate }}</span>
+            <span class="text-2xl 2xl:text-4xl tracking-wider text-[#ff8200] font-semibold">{{
+                'FORECAST.DISTRIBUTORS.TITLE' | translate }}</span>
+            <span class="text-sm sm:text-base text-orange-400">{{ 'FORECAST.DISTRIBUTORS.DESCRIPTION' | translate
+                }}</span>
         </div>
     </header>
 
     <app-tabs-container [showBottomButtons]="false">
         <app-tab [titleT]="'FORECAST.DISTRIBUTORS.TAB_CLIENTS' | translate">
 
-            <app-tabla-dinamica
-                [datos]="clients()"
-                [columnas]="columns"
-                [canAdd]="false"
-                [actionMode]="'menu'"
-                [accionesPersonalizadas]="acciones"
-                [serverPagination]="true"
-                [registrosPorPagina]="pageSize()"
-                [paginaActualExterna]="currentPage()"
-                [totalPaginasExterno]="totalPages()"
-                [hasNextPage]="hasNextPage()"
-                [hasPrevPage]="hasPrevPage()"
-                [loading]="loading()"
-                (paginaSiguiente)="onNextPage()"
-                (paginaAnterior)="onPrevPage()"
-                (paginaPrimera)="onFirstPage()"
-                (paginaUltima)="onLastPage()"
-                (registrosPorPaginaChange)="onPageSizeChange($event)"
-                (searchChange)="onSearch($event)"
+            <app-tabla-dinamica [datos]="clients()" [columnas]="columns" [canAdd]="false" [actionMode]="'menu'"
+                [accionesPersonalizadas]="acciones" [serverPagination]="true" [registrosPorPagina]="pageSize()"
+                [paginaActualExterna]="currentPage()" [totalPaginasExterno]="totalPages()" [hasNextPage]="hasNextPage()"
+                [hasPrevPage]="hasPrevPage()" [loading]="loading()" (paginaSiguiente)="onNextPage()"
+                (paginaAnterior)="onPrevPage()" (paginaPrimera)="onFirstPage()" (paginaUltima)="onLastPage()"
+                (registrosPorPaginaChange)="onPageSizeChange($event)" (searchChange)="onSearch($event)"
                 (refreshClick)="loadData()">
 
                 <ng-template #cellTemplate let-item let-col="column">
                     <div class="py-3 px-2">
                         @switch (col.key) {
-                            @case ('idCliente') {
-                                <span class="font-medium text-gray-600">{{ item.idCliente }}</span>
+                        @case ('idCliente') {
+                        <span class="font-medium text-gray-600">{{ item.idCliente }}</span>
+                        }
+                        @case ('razonSocial') {
+                        <span class="font-medium text-gray-800">{{ item.razonSocial }}</span>
+                        }
+                        @case ('rfc') {
+                        <span class="font-medium tracking-wide text-gray-700">{{ item.rfc }}</span>
+                        }
+                        @case ('direccion') {
+                        <span class="font-medium text-gray-500">{{ item.direccion }}</span>
+                        }
+                        @case ('correosForecast') {
+                        @let emails = splitEmails(item.correosForecast);
+                        @if (emails.length > 0) {
+                        <div class="flex flex-wrap gap-1">
+                            @for (email of emails; track email) {
+                            <span
+                                class="inline-flex items-center gap-1 rounded-full bg-blue-50 border border-blue-200 px-2 py-0.5 text-xs text-blue-700 leading-none">
+                                <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" stroke-width="2"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
+                                {{ email }}
+                            </span>
                             }
-                            @case ('razonSocial') {
-                                <span class="font-medium text-gray-800">{{ item.razonSocial }}</span>
-                            }
-                            @case ('rfc') {
-                                <span class="font-medium tracking-wide text-gray-700">{{ item.rfc }}</span>
-                            }
-                            @case ('direccion') {
-                                <span class="font-medium text-gray-500">{{ item.direccion }}</span>
-                            }
-                            @case ('correosForecast') {
-                                @let emails = splitEmails(item.correosForecast);
-                                @if (emails.length > 0) {
-                                    <div class="flex flex-wrap gap-1">
-                                        @for (email of emails; track email) {
-                                            <span class="inline-flex items-center gap-1 rounded-full bg-blue-50 border border-blue-200 px-2 py-0.5 text-xs text-blue-700 leading-none">
-                                                <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-                                                </svg>
-                                                {{ email }}
-                                            </span>
-                                        }
-                                    </div>
-                                } @else {
-                                    <span class="text-gray-400">—</span>
-                                }
-                            }
+                        </div>
+                        } @else {
+                        <span class="text-gray-400">—</span>
+                        }
+                        }
                         }
                     </div>
                 </ng-template>
@@ -70,6 +62,62 @@
 
         </app-tab>
 
+        <app-tab [titleT]="'FORECAST.DISTRIBUTORS.TAB_FOREIGN_CLIENTS' | translate">
+
+            <app-tabla-dinamica [datos]="foreignClients()" [columnas]="foreignColumns" [canAdd]="true"
+                [addLabel]="'FORECAST.DISTRIBUTORS.ACTION_ADD_FOREIGN'" [actionMode]="'menu'"
+                [accionesPersonalizadas]="foreignAcciones" [emptyMessageKey]="'FORECAST.DISTRIBUTORS.FOREIGN_EMPTY'"
+                [serverPagination]="true" [registrosPorPagina]="foreignPageSize()"
+                [paginaActualExterna]="foreignCurrentPage()" [totalPaginasExterno]="foreignTotalPages()"
+                [hasNextPage]="foreignHasNextPage()" [hasPrevPage]="foreignHasPrevPage()" [loading]="foreignLoading()"
+                (paginaSiguiente)="onForeignNextPage()" (paginaAnterior)="onForeignPrevPage()"
+                (paginaPrimera)="onForeignFirstPage()" (paginaUltima)="onForeignLastPage()"
+                (registrosPorPaginaChange)="onForeignPageSizeChange($event)" (searchChange)="onForeignSearch($event)"
+                (refreshClick)="loadForeignData(foreignCurrentPage())" (addClick)="openCreateForeignClient()">
+
+                <ng-template #cellTemplate let-item let-col="column">
+                    <div class="py-3 px-2">
+                        @switch (col.key) {
+                        @case ('clientNumber') {
+                        <span class="font-medium text-gray-600">{{ item.clientNumber }}</span>
+                        }
+                        @case ('businessName') {
+                        <span class="font-medium text-gray-800">{{ item.businessName }}</span>
+                        }
+                        @case ('taxId') {
+                        <span class="font-medium tracking-wide text-gray-700">{{ item.taxId }}</span>
+                        }
+                        @case ('address') {
+                        <span class="font-medium text-gray-500">{{ item.address }}</span>
+                        }
+                        @case ('emails') {
+                        @let emails = splitEmails(item.emails);
+                        @if (emails.length > 0) {
+                        <div class="flex flex-wrap gap-1">
+                            @for (email of emails; track email) {
+                            <span
+                                class="inline-flex items-center gap-1 rounded-full bg-blue-50 border border-blue-200 px-2 py-0.5 text-xs text-blue-700 leading-none">
+                                <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" stroke-width="2"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
+                                {{ email }}
+                            </span>
+                            }
+                        </div>
+                        } @else {
+                        <span class="text-gray-400">—</span>
+                        }
+                        }
+                        }
+                    </div>
+                </ng-template>
+
+            </app-tabla-dinamica>
+
+        </app-tab>
+        
         <app-tab [titleT]="'FORECAST.DISTRIBUTORS.TAB_GROUPS' | translate">
 
             <div class="p-1">
@@ -89,186 +137,115 @@
                 </div>
 
                 @if (groupsLoading()) {
-                    <div class="flex items-center justify-center py-10 text-sm text-gray-400">
-                        {{ 'FORECAST.GROUP_FORECAST_MODAL.LOADING' | translate }}
-                    </div>
+                <div class="flex items-center justify-center py-10 text-sm text-gray-400">
+                    {{ 'FORECAST.GROUP_FORECAST_MODAL.LOADING' | translate }}
+                </div>
                 } @else if (groups().length === 0) {
-                    <div class="flex items-center justify-center py-10 text-sm text-gray-400">
-                        {{ 'FORECAST.DISTRIBUTORS.GROUPS_EMPTY' | translate }}
-                    </div>
+                <div class="flex items-center justify-center py-10 text-sm text-gray-400">
+                    {{ 'FORECAST.DISTRIBUTORS.GROUPS_EMPTY' | translate }}
+                </div>
                 } @else {
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-3">
-                        @for (group of groups(); track group.id) {
-                            <article class="rounded-xl border border-gray-200 bg-white px-4 py-3.5 shadow-sm hover:shadow-md transition-shadow">
-                                <div class="flex items-center justify-between">
-                                    <div class="flex items-center gap-2.5 min-w-0">
-                                        <span class="shrink-0 flex h-9 w-9 items-center justify-center rounded-full bg-[#ff8200]/10 text-xs font-bold text-[#ff8200]">
-                                            {{ groupInitials(group.name) }}
-                                        </span>
-                                        <span class="font-semibold text-gray-800 truncate">{{ group.name }}</span>
-                                    </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-3">
+                    @for (group of groups(); track group.id) {
+                    <article
+                        class="rounded-xl border border-gray-200 bg-white px-4 py-3.5 shadow-sm hover:shadow-md transition-shadow">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2.5 min-w-0">
+                                <span
+                                    class="shrink-0 flex h-9 w-9 items-center justify-center rounded-full bg-[#ff8200]/10 text-xs font-bold text-[#ff8200]">
+                                    {{ groupInitials(group.name) }}
+                                </span>
+                                <span class="font-semibold text-gray-800 truncate">{{ group.name }}</span>
+                            </div>
 
-                                    <app-popover position="bottom-right" width="200px">
-                                        <div trigger class="p-1.5 rounded-md hover:bg-gray-100 cursor-pointer inline-flex text-gray-400">
-                                            <lucide-icon name="more-vertical" size="18"></lucide-icon>
-                                        </div>
-                                        <div content class="p-2 space-y-1">
-                                            <!-- <button type="button"
+                            <app-popover position="bottom-right" width="200px">
+                                <div trigger
+                                    class="p-1.5 rounded-md hover:bg-gray-100 cursor-pointer inline-flex text-gray-400">
+                                    <lucide-icon name="more-vertical" size="18"></lucide-icon>
+                                </div>
+                                <div content class="p-2 space-y-1">
+                                    <!-- <button type="button"
                                                 (click)="openGroupForecast(group)"
                                                 class="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-gray-100 transition text-left text-gray-700">
                                                 <lucide-icon name="bar-chart-2" size="16"></lucide-icon>
                                                 {{ 'FORECAST.DISTRIBUTORS.ACTION_VIEW_FORECAST' | translate }}
                                             </button> -->
-                                            <button type="button"
-                                                (click)="openManageMembers(group)"
-                                                class="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-gray-100 transition text-left text-gray-700">
-                                                <lucide-icon name="users" size="16"></lucide-icon>
-                                                {{ 'FORECAST.DISTRIBUTORS.ACTION_MANAGE_MEMBERS' | translate }}
-                                            </button>
-                                            <button type="button"
-                                                (click)="openEditGroup(group)"
-                                                class="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-gray-100 transition text-left text-gray-700">
-                                                <lucide-icon name="pencil" size="16"></lucide-icon>
-                                                {{ 'FORECAST.DISTRIBUTORS.ACTION_EDIT_GROUP' | translate }}
-                                            </button>
-                                            <button type="button"
-                                                (click)="openDeleteGroup(group)"
-                                                class="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-red-50 transition text-left text-red-600">
-                                                <lucide-icon name="trash-2" size="16"></lucide-icon>
-                                                {{ 'FORECAST.DISTRIBUTORS.ACTION_DELETE_GROUP' | translate }}
-                                            </button>
-                                        </div>
-                                    </app-popover>
+                                    <button type="button" (click)="openManageMembers(group)"
+                                        class="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-gray-100 transition text-left text-gray-700">
+                                        <lucide-icon name="users" size="16"></lucide-icon>
+                                        {{ 'FORECAST.DISTRIBUTORS.ACTION_MANAGE_MEMBERS' | translate }}
+                                    </button>
+                                    <button type="button" (click)="openEditGroup(group)"
+                                        class="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-gray-100 transition text-left text-gray-700">
+                                        <lucide-icon name="pencil" size="16"></lucide-icon>
+                                        {{ 'FORECAST.DISTRIBUTORS.ACTION_EDIT_GROUP' | translate }}
+                                    </button>
+                                    <button type="button" (click)="openDeleteGroup(group)"
+                                        class="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-red-50 transition text-left text-red-600">
+                                        <lucide-icon name="trash-2" size="16"></lucide-icon>
+                                        {{ 'FORECAST.DISTRIBUTORS.ACTION_DELETE_GROUP' | translate }}
+                                    </button>
                                 </div>
+                            </app-popover>
+                        </div>
 
-                                @if (group.responsible?.fullName) {
-                                    <div class="mt-2 flex items-center gap-1.5 text-xs text-gray-400 truncate">
-                                        <lucide-icon name="user" size="14"></lucide-icon>
-                                        <span class="truncate">{{ group.responsible?.fullName }}</span>
-                                    </div>
-                                }
-
-                                <div class="mt-3 flex items-center justify-between text-xs text-gray-400">
-                                    <span class="inline-flex items-center gap-1.5">
-                                        <lucide-icon name="users" size="14"></lucide-icon>
-                                        <span class="font-medium text-blue-600">{{ group.memberCount }}</span>
-                                        {{ 'FORECAST.DISTRIBUTORS.MEMBERS_LABEL' | translate }}
-                                    </span>
-                                    <span class="inline-flex items-center gap-1.5">
-                                        <lucide-icon name="calendar" size="14"></lucide-icon>
-                                        {{ group.createdAt | date:'d MMM y' }}
-                                    </span>
-                                </div>
-                            </article>
+                        @if (group.responsible?.fullName) {
+                        <div class="mt-2 flex items-center gap-1.5 text-xs text-gray-400 truncate">
+                            <lucide-icon name="user" size="14"></lucide-icon>
+                            <span class="truncate">{{ group.responsible?.fullName }}</span>
+                        </div>
                         }
-                    </div>
+
+                        <div class="mt-3 flex items-center justify-between text-xs text-gray-400">
+                            <span class="inline-flex items-center gap-1.5">
+                                <lucide-icon name="users" size="14"></lucide-icon>
+                                <span class="font-medium text-blue-600">{{ group.memberCount }}</span>
+                                {{ 'FORECAST.DISTRIBUTORS.MEMBERS_LABEL' | translate }}
+                            </span>
+                            <span class="inline-flex items-center gap-1.5">
+                                <lucide-icon name="calendar" size="14"></lucide-icon>
+                                {{ group.createdAt | date:'d MMM y' }}
+                            </span>
+                        </div>
+                    </article>
+                    }
+                </div>
                 }
             </div>
 
         </app-tab>
 
-        <app-tab [titleT]="'FORECAST.DISTRIBUTORS.TAB_FOREIGN_CLIENTS' | translate">
 
-            <app-tabla-dinamica
-                [datos]="foreignClients()"
-                [columnas]="columns"
-                [canAdd]="true"
-                [addLabel]="'FORECAST.DISTRIBUTORS.ACTION_ADD_FOREIGN'"
-                [actionMode]="'menu'"
-                [accionesPersonalizadas]="foreignAcciones"
-                [emptyMessageKey]="'FORECAST.DISTRIBUTORS.FOREIGN_EMPTY'"
-                (addClick)="openCreateForeignClient()">
-
-                <ng-template #cellTemplate let-item let-col="column">
-                    <div class="py-3 px-2">
-                        @switch (col.key) {
-                            @case ('idCliente') {
-                                <span class="font-medium text-gray-600">{{ item.idCliente }}</span>
-                            }
-                            @case ('razonSocial') {
-                                <span class="font-medium text-gray-800">{{ item.razonSocial }}</span>
-                            }
-                            @case ('rfc') {
-                                <span class="font-medium tracking-wide text-gray-700">{{ item.rfc }}</span>
-                            }
-                            @case ('direccion') {
-                                <span class="font-medium text-gray-500">{{ item.direccion }}</span>
-                            }
-                            @case ('correosForecast') {
-                                @let emails = splitEmails(item.correosForecast);
-                                @if (emails.length > 0) {
-                                    <div class="flex flex-wrap gap-1">
-                                        @for (email of emails; track email) {
-                                            <span class="inline-flex items-center gap-1 rounded-full bg-blue-50 border border-blue-200 px-2 py-0.5 text-xs text-blue-700 leading-none">
-                                                <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-                                                </svg>
-                                                {{ email }}
-                                            </span>
-                                        }
-                                    </div>
-                                } @else {
-                                    <span class="text-gray-400">—</span>
-                                }
-                            }
-                        }
-                    </div>
-                </ng-template>
-
-            </app-tabla-dinamica>
-
-        </app-tab>
     </app-tabs-container>
 
-    <app-edit-distributor-modal
-        [client]="selectedClient()"
-        [open]="editModalOpen()"
-        (openChange)="editModalOpen.set($event)"
-        (saved)="loadData(currentPage())">
+    <app-edit-distributor-modal [client]="selectedClient()" [open]="editModalOpen()"
+        (openChange)="editModalOpen.set($event)" (saved)="loadData(currentPage())">
     </app-edit-distributor-modal>
 
-    <app-edit-distributor-modal
-        [client]="selectedForeignClient()"
-        [open]="foreignModalOpen()"
-        (openChange)="foreignModalOpen.set($event)">
+    <app-edit-distributor-modal [client]="selectedForeignClient()" [open]="foreignModalOpen()"
+        (openChange)="foreignModalOpen.set($event)" (saved)="loadForeignData(foreignCurrentPage())">
     </app-edit-distributor-modal>
 
-    <app-group-forecast-modal
-        [group]="selectedGroup()"
-        [open]="groupForecastModalOpen()"
+    <app-group-forecast-modal [group]="selectedGroup()" [open]="groupForecastModalOpen()"
         (closed)="closeGroupForecast()">
     </app-group-forecast-modal>
 
-    <app-create-group-modal
-        [open]="createGroupModalOpen()"
-        (openChange)="createGroupModalOpen.set($event)"
+    <app-create-group-modal [open]="createGroupModalOpen()" (openChange)="createGroupModalOpen.set($event)"
         (created)="onGroupCreated($event)">
     </app-create-group-modal>
 
-    <app-group-members-modal
-        [group]="membersModalGroup()"
-        [open]="membersModalOpen()"
-        (closed)="closeMembersModal()"
+    <app-group-members-modal [group]="membersModalGroup()" [open]="membersModalOpen()" (closed)="closeMembersModal()"
         (membersChanged)="onMembersChanged()">
     </app-group-members-modal>
 
-    <app-edit-group-modal
-        [group]="editGroupTarget()"
-        [open]="editGroupModalOpen()"
-        (openChange)="editGroupModalOpen.set($event)"
-        (updated)="onGroupUpdated($event)">
+    <app-edit-group-modal [group]="editGroupTarget()" [open]="editGroupModalOpen()"
+        (openChange)="editGroupModalOpen.set($event)" (updated)="onGroupUpdated($event)">
     </app-edit-group-modal>
 
-    <app-modal
-        size="md"
-        [titleM]="'FORECAST.DISTRIBUTORS.DELETE_GROUP_TITLE' | translate"
-        [open]="deleteGroupModalOpen()"
-        [closeText]="'FORECAST.DISTRIBUTORS.DELETE_GROUP_CANCEL' | translate"
-        [primaryText]="'FORECAST.DISTRIBUTORS.DELETE_GROUP_CONFIRM' | translate"
-        [primaryLoading]="deletingGroup()"
-        [primaryDisabled]="deletingGroup()"
-        (openChange)="cancelDeleteGroup()"
-        (primaryAction)="confirmDeleteGroup()">
+    <app-modal size="md" [titleM]="'FORECAST.DISTRIBUTORS.DELETE_GROUP_TITLE' | translate"
+        [open]="deleteGroupModalOpen()" [closeText]="'FORECAST.DISTRIBUTORS.DELETE_GROUP_CANCEL' | translate"
+        [primaryText]="'FORECAST.DISTRIBUTORS.DELETE_GROUP_CONFIRM' | translate" [primaryLoading]="deletingGroup()"
+        [primaryDisabled]="deletingGroup()" (openChange)="cancelDeleteGroup()" (primaryAction)="confirmDeleteGroup()">
         <p class="text-sm text-slate-700">
             {{ 'FORECAST.DISTRIBUTORS.DELETE_GROUP_MESSAGE' | translate }}
             <span class="font-semibold">{{ deleteGroupTarget()?.name }}</span>?

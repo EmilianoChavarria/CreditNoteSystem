@@ -9,7 +9,7 @@ import { TabsContainer } from '../../../../shared/components/ui/tab/tab-containe
 import { Tab } from '../../../../shared/components/ui/tab/tab';
 import { Popover } from '../../../../shared/components/ui/popover/popover';
 import { Modal } from '../../../../shared/components/ui/modal/modal';
-import { ClientGroup, ForecastClient, ForecastService } from '../../../../core/services/forecast.service';
+import { ClientGroup, DistributorRecord, ForecastClient, ForecastService } from '../../../../core/services/forecast.service';
 import { EditDistributorModal } from './edit-distributor-modal';
 import { GroupForecastModal } from '../../components/group-forecast-modal/group-forecast-modal';
 import { CreateGroupModal } from '../../components/create-group-modal/create-group-modal';
@@ -35,7 +35,14 @@ export class DistributorsManage {
   readonly editModalOpen = signal(false);
   readonly selectedClient = signal<ForecastClient | null>(null);
 
-  readonly foreignClients = signal<ForecastClient[]>([]);
+  readonly foreignClients = signal<DistributorRecord[]>([]);
+  readonly foreignLoading = signal(true);
+  readonly foreignCurrentPage = signal(1);
+  readonly foreignTotalPages = signal(1);
+  readonly foreignHasNextPage = signal(false);
+  readonly foreignHasPrevPage = signal(false);
+  readonly foreignPageSize = signal(15);
+  readonly foreignSearchTerm = signal('');
   readonly foreignModalOpen = signal(false);
   readonly selectedForeignClient = signal<ForecastClient | null>(null);
 
@@ -54,10 +61,12 @@ export class DistributorsManage {
   readonly deletingGroup = signal(false);
 
   private searchDebounce: ReturnType<typeof setTimeout> | null = null;
+  private foreignSearchDebounce: ReturnType<typeof setTimeout> | null = null;
 
   readonly columns: Column<ForecastClient>[];
   readonly acciones: AccionPersonalizada<ForecastClient>[];
-  readonly foreignAcciones: AccionPersonalizada<ForecastClient>[];
+  readonly foreignColumns: Column<DistributorRecord>[];
+  readonly foreignAcciones: AccionPersonalizada<DistributorRecord>[];
 
   constructor(
     private readonly forecastService: ForecastService,
@@ -79,6 +88,13 @@ export class DistributorsManage {
         accion: (item) => this.openEditModal(item),
       },
     ];
+    this.foreignColumns = [
+      { key: 'clientNumber', label: this.translate.instant('FORECAST.DISTRIBUTORS.COL_ID'), sortable: true, customTemplate: true },
+      { key: 'businessName', label: this.translate.instant('FORECAST.DISTRIBUTORS.COL_RAZON_SOCIAL'), sortable: true, customTemplate: true },
+      { key: 'taxId', label: this.translate.instant('FORECAST.DISTRIBUTORS.COL_RFC'), sortable: true, customTemplate: true },
+      { key: 'address', label: this.translate.instant('FORECAST.DISTRIBUTORS.COL_ADDRESS'), sortable: true, customTemplate: true },
+      { key: 'emails', label: this.translate.instant('FORECAST.DISTRIBUTORS.COL_EMAILS'), sortable: false, customTemplate: true },
+    ];
     this.foreignAcciones = [
       {
         label: this.translate.instant('FORECAST.DISTRIBUTORS.ACTION_EDIT'),
@@ -89,6 +105,7 @@ export class DistributorsManage {
     ];
     this.loadData();
     this.loadGroups();
+    this.loadForeignData();
   }
 
   openEditModal(client: ForecastClient): void {
@@ -101,8 +118,15 @@ export class DistributorsManage {
     this.foreignModalOpen.set(true);
   }
 
-  openEditForeignModal(client: ForecastClient): void {
-    this.selectedForeignClient.set(client);
+  openEditForeignModal(record: DistributorRecord): void {
+    this.selectedForeignClient.set({
+      idCliente: record.clientNumber,
+      razonSocial: record.businessName,
+      rfc: record.taxId,
+      direccion: record.address,
+      correosForecast: record.emails,
+      countrycode: record.countrycode,
+    });
     this.foreignModalOpen.set(true);
   }
 
@@ -235,7 +259,7 @@ export class DistributorsManage {
 
   splitEmails(value: string | null): string[] {
     if (!value) return [];
-    return value.split(';').map(e => e.trim()).filter(Boolean);
+    return value.split(/[;,]/).map(e => e.trim()).filter(Boolean);
   }
 
   onSearch(term: string): void {
@@ -245,6 +269,57 @@ export class DistributorsManage {
       if (normalized === this.searchTerm()) return;
       this.searchTerm.set(normalized);
       this.loadData(1);
+    }, 350);
+  }
+
+  loadForeignData(page = 1): void {
+    this.foreignLoading.set(true);
+    this.forecastService
+      .getDistributorsPaginated(this.foreignPageSize(), page, this.foreignSearchTerm())
+      .pipe(finalize(() => this.foreignLoading.set(false)))
+      .subscribe({
+        next: (res) => {
+          this.foreignClients.set(res.data);
+          this.foreignCurrentPage.set(res.current_page ?? page);
+          this.foreignTotalPages.set(res.last_page ?? 1);
+          this.foreignHasNextPage.set(!!res.next_page_url);
+          this.foreignHasPrevPage.set(!!res.prev_page_url);
+        },
+        error: (err) => console.error('Error loading distributors', err),
+      });
+  }
+
+  onForeignNextPage(): void {
+    const page = this.foreignCurrentPage();
+    if (page < this.foreignTotalPages()) this.loadForeignData(page + 1);
+  }
+
+  onForeignPrevPage(): void {
+    const page = this.foreignCurrentPage();
+    if (page > 1) this.loadForeignData(page - 1);
+  }
+
+  onForeignFirstPage(): void {
+    if (this.foreignCurrentPage() !== 1) this.loadForeignData(1);
+  }
+
+  onForeignLastPage(): void {
+    const last = this.foreignTotalPages();
+    if (this.foreignCurrentPage() !== last) this.loadForeignData(last);
+  }
+
+  onForeignPageSizeChange(size: number): void {
+    this.foreignPageSize.set(size);
+    this.loadForeignData(1);
+  }
+
+  onForeignSearch(term: string): void {
+    if (this.foreignSearchDebounce) clearTimeout(this.foreignSearchDebounce);
+    this.foreignSearchDebounce = setTimeout(() => {
+      const normalized = term.trim();
+      if (normalized === this.foreignSearchTerm()) return;
+      this.foreignSearchTerm.set(normalized);
+      this.loadForeignData(1);
     }, 350);
   }
 }
