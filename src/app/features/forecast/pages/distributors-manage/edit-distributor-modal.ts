@@ -28,9 +28,12 @@ export interface AddressParts {
 export class EditDistributorModal {
   readonly client = input<ForecastClient | null>(null);
   readonly open = input<boolean>(false);
+  readonly forceDisableSave = input<boolean>(false);
 
   readonly openChange = output<boolean>();
   readonly saved = output<void>();
+
+  readonly isCreate = computed(() => this.client() === null);
 
   readonly saving = signal(false);
   readonly showAddressAssistant = signal(false);
@@ -61,17 +64,24 @@ export class EditDistributorModal {
   constructor(private readonly forecastService: ForecastService) {
     effect(() => {
       const c = this.client();
-      if (c) {
-        this.form.set({
-          businessName: c.razonSocial ?? '',
-          taxId: c.rfc ?? '',
-          address: c.direccion ?? '',
-          emails: c.correosForecast?.replace(/;/g, ',') ?? '',
-          clientNumber: c.idCliente ?? '',
-        });
-        this.showAddressAssistant.set(false);
-        this.addressParts.set({ calle: '', noExterior: '', noInterior: '', colonia: '', localidad: '', municipio: '', estado: '', cp: '', pais: '', referencia: '' });
-      }
+      const isOpen = this.open();
+      if (!isOpen) return;
+
+      this.form.set(c ? {
+        businessName: c.razonSocial ?? '',
+        taxId: c.rfc ?? '',
+        address: c.direccion ?? '',
+        emails: c.correosForecast?.replace(/;/g, ',') ?? '',
+        clientNumber: c.idCliente ?? '',
+      } : {
+        businessName: '',
+        taxId: '',
+        address: '',
+        emails: '',
+        clientNumber: '',
+      });
+      this.showAddressAssistant.set(false);
+      this.addressParts.set({ calle: '', noExterior: '', noInterior: '', colonia: '', localidad: '', municipio: '', estado: '', cp: '', pais: '', referencia: '' });
     });
   }
 
@@ -106,7 +116,7 @@ export class EditDistributorModal {
 
   onSave(): void {
     const client = this.client();
-    if (!client || this.saving()) return;
+    if (!client || this.saving() || this.forceDisableSave()) return;
 
     const raw = this.form();
     const payload: UpdateDistributorPayload = {};
