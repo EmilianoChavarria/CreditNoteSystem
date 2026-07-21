@@ -55,6 +55,7 @@ export class EditDistributorModal {
     address: '',
     emails: '',
     clientNumber: '',
+    countrycode: ''
   });
 
   readonly addressParts = signal<AddressParts>({
@@ -84,12 +85,14 @@ export class EditDistributorModal {
         address: c.direccion ?? '',
         emails: c.correosForecast?.replace(/;/g, ',') ?? '',
         clientNumber: c.idCliente ?? '',
+        countrycode: '',
       } : {
         businessName: '',
         taxId: '',
         address: '',
         emails: '',
         clientNumber: '',
+        countrycode: '',
       });
       this.showAddressAssistant.set(false);
       this.addressParts.set({ calle: '', noExterior: '', noInterior: '', colonia: '', localidad: '', municipio: '', estado: '', cp: '', pais: '', referencia: '' });
@@ -104,6 +107,10 @@ export class EditDistributorModal {
     this.addressParts.update(p => ({ ...p, [field]: value }));
   }
 
+  private countryName(code: string): string {
+    return this.countryOptions.find(c => c.code === code)?.name ?? code;
+  }
+
   private buildAddress(parts: AddressParts): string {
     return [
       parts.calle,
@@ -114,14 +121,15 @@ export class EditDistributorModal {
       parts.municipio,
       parts.estado,
       parts.cp,
-      parts.pais,
+      parts.pais ? this.countryName(parts.pais) : '',
       parts.referencia,
     ].map(v => v.trim()).filter(Boolean).join(', ');
   }
 
   applyAddressAssistant(): void {
     const address = this.buildAddress(this.addressParts());
-    this.form.update(f => ({ ...f, address }));
+    const countrycode = this.addressParts().pais;
+    this.form.update(f => ({ ...f, address, countrycode }));
     this.showAddressAssistant.set(false);
   }
 
@@ -136,6 +144,7 @@ export class EditDistributorModal {
     if (raw.address?.trim()) payload.address = raw.address.trim();
     if (raw.emails?.trim()) payload.emails = raw.emails.trim();
     if (raw.clientNumber?.trim()) payload.clientNumber = raw.clientNumber.trim();
+    if (raw.countrycode?.trim()) payload.countrycode = raw.countrycode.trim();
 
     this.saving.set(true);
     this.forecastService

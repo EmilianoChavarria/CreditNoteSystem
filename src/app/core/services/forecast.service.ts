@@ -17,6 +17,7 @@ export interface UpdateDistributorPayload {
   address?: string;
   emails?: string;
   clientNumber?: string;
+  countrycode?: string;
 }
 
 export interface ClientGroupResponsible {
