@@ -1677,6 +1677,7 @@
       "LABEL_STATE": "State",
       "LABEL_ZIP": "ZIP",
       "LABEL_COUNTRY": "Country",
+      "SELECT_COUNTRY": "Select a country",
       "LABEL_REFERENCE": "Reference",
       "PREVIEW_LABEL": "Preview",
       "BTN_CANCEL_ASSISTANT": "Cancel",

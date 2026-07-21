@@ -26,6 +26,17 @@ export interface AddressParts {
   templateUrl: './edit-distributor-modal.html',
 })
 export class EditDistributorModal {
+  readonly countryOptions = [
+    { code: 'BLZ', name: 'Belice' },
+    { code: 'CRI', name: 'Costa Rica' },
+    { code: 'SLV', name: 'El Salvador' },
+    { code: 'GTM', name: 'Guatemala' },
+    { code: 'HND', name: 'Honduras' },
+    { code: 'NIC', name: 'Nicaragua' },
+    { code: 'PAN', name: 'Panamá' },
+    { code: 'ARG', name: 'Argentina' },
+  ];
+
   readonly client = input<ForecastClient | null>(null);
   readonly open = input<boolean>(false);
   readonly forceDisableSave = input<boolean>(false);
