@@ -1,0 +1,204 @@
+<app-modal
+  [open]="open()"
+  [titleM]="distributor()?.businessName ?? ''"
+  [showPrimaryButton]="false"
+  [closeText]="'FORECAST.DISTRIBUTOR_FORECAST_MODAL.CLOSE' | translate"
+  size="2xl"
+  (openChange)="close()">
+
+  <p modal-title class="text-xs text-gray-400 mt-0.5">{{ 'FORECAST.DISTRIBUTOR_FORECAST_MODAL.TITLE_SUFFIX' | translate }} {{ year() }}</p>
+
+  <div class="flex items-center justify-between gap-2 flex-wrap mb-4">
+    <div class="flex items-center gap-0.5 bg-gray-50 border border-gray-200 rounded-full px-1 py-1 w-fit">
+      @for (y of years; track y) {
+        <button
+          type="button"
+          (click)="selectYear(y)"
+          [class]="year() === y
+            ? 'bg-[#ff8200] text-white px-4 py-1 rounded-full text-xs font-semibold transition'
+            : 'text-gray-500 px-4 py-1 rounded-full text-xs hover:text-gray-800 transition'">
+          {{ y }}
+        </button>
+      }
+    </div>
+
+    @if (isForecastAdmin()) {
+      <div class="flex items-center gap-2">
+        <button
+          type="button"
+          (click)="exportTemplate()"
+          class="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-md border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
+          <lucide-icon name="download" size="14"></lucide-icon>
+          {{ 'FORECAST.DISTRIBUTOR_FORECAST_MODAL.DOWNLOAD_TEMPLATE' | translate }}
+        </button>
+        <label class="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-md border border-gray-300 text-gray-600 hover:bg-gray-50 transition cursor-pointer">
+          <lucide-icon name="upload" size="14"></lucide-icon>
+          {{ 'FORECAST.DISTRIBUTOR_FORECAST_MODAL.UPLOAD_TEMPLATE' | translate }}
+          <input type="file" accept=".xlsx,.xls" class="hidden" (change)="onImportTemplate($event)">
+        </label>
+        <button
+          type="button"
+          (click)="saveAll()"
+          [disabled]="!canSaveAll() || saving()"
+          class="text-xs font-semibold px-3 py-1.5 rounded-md bg-[#ff8200] text-white hover:bg-[#db7201] transition disabled:opacity-40 disabled:cursor-not-allowed">
+          {{ (saving() ? 'FORECAST.DISTRIBUTOR_FORECAST_MODAL.SAVING' : 'FORECAST.DISTRIBUTOR_FORECAST_MODAL.SAVE_ALL') | translate }}
+        </button>
+      </div>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="flex items-center justify-center py-16 text-sm text-gray-400">
+      {{ 'FORECAST.DISTRIBUTOR_FORECAST_MODAL.LOADING' | translate }}
+    </div>
+  } @else {
+
+    <div class="grid grid-cols-4 gap-3 mb-5">
+
+      <div class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+        <p class="text-[10px] font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.DISTRIBUTOR_FORECAST_MODAL.ANNUAL_FORECAST' | translate }}</p>
+        <p class="mt-1 text-lg font-bold text-gray-800">$ {{ forecastTotal() | number:'1.0-0' }}</p>
+      </div>
+
+      <div class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+        <p class="text-[10px] font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.DISTRIBUTOR_FORECAST_MODAL.ANNUAL_SALES' | translate }}</p>
+        <p class="mt-1 text-lg font-bold text-gray-800">$ {{ salesTotal() | number:'1.0-0' }}</p>
+      </div>
+
+      <div class="rounded-lg border border-gray-200 px-4 py-3"
+        [class.bg-green-50]="fulfillmentPct() >= 80"
+        [class.bg-amber-50]="fulfillmentPct() > 0 && fulfillmentPct() < 80"
+        [class.bg-gray-50]="fulfillmentPct() === 0">
+        <p class="text-[10px] font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.DISTRIBUTOR_FORECAST_MODAL.FULFILLMENT' | translate }}</p>
+        <p class="mt-1 text-lg font-bold"
+          [class.text-green-700]="fulfillmentPct() >= 80"
+          [class.text-amber-700]="fulfillmentPct() > 0 && fulfillmentPct() < 80"
+          [class.text-gray-400]="fulfillmentPct() === 0">
+          {{ fulfillmentPct() | number:'1.1-1' }}%
+        </p>
+        <p class="text-xs text-amber-700">{{ 'FORECAST.DISTRIBUTOR_FORECAST_MODAL.SALES_VS_FORECAST' | translate }}</p>
+      </div>
+
+      <div class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+        <p class="text-[10px] font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.DISTRIBUTOR_FORECAST_MODAL.BEST_MONTH' | translate }}</p>
+        @if (bestMonth(); as best) {
+          <p class="mt-1 text-lg font-bold text-gray-800">{{ best.label }}</p>
+          <p class="text-xs text-gray-500">$ {{ best.value | number:'1.0-0' }}</p>
+        } @else {
+          <p class="mt-1 text-lg font-bold text-gray-400">---</p>
+        }
+      </div>
+
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b-2 border-gray-200 bg-gray-50">
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400 min-w-44 sticky left-0 z-10 align-middle border-r border-gray-200 bg-gray-50">
+              {{ 'FORECAST.DISTRIBUTOR_FORECAST_MODAL.COL_CONCEPT' | translate }}
+            </th>
+            @for (row of rows(); track row.month) {
+              <th class="px-2 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-400 min-w-28">
+                {{ MONTHS[row.month - 1] }}
+              </th>
+            }
+            <th class="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-400 min-w-32">
+              {{ 'FORECAST.DISTRIBUTOR_FORECAST_MODAL.COL_TOTAL' | translate }}
+            </th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          <!-- Forecast row -->
+          <tr class="border-t-2 border-gray-200 bg-gray-50/40">
+            <td class="px-4 py-1.5 whitespace-nowrap sticky left-0 z-10 font-semibold text-sm align-middle bg-white border-r border-gray-200">
+              <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">{{ 'FORECAST.DISTRIBUTOR_FORECAST_MODAL.LABEL_FORECAST' | translate }}</span>
+            </td>
+            @for (row of rows(); track row.month) {
+              <td class="px-2 py-1.5 text-right text-xs text-gray-600 whitespace-nowrap">
+                @if (isEditingCell(row.month, 'forecast')) {
+                  <input
+                    type="number"
+                    step="1"
+                    autofocus
+                    [value]="row.forecast"
+                    (input)="patchRow(row.month, 'forecast', $any($event.target).value)"
+                    (blur)="onCellBlur(row, 'forecast')"
+                    (keydown)="onCellKeydown($event, row, 'forecast')"
+                    (focus)="$any($event.target).select()"
+                    class="w-20 text-xs text-right px-2 py-1 border border-orange-400 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400 transition" />
+                } @else {
+                  <span
+                    [class.cursor-pointer]="isForecastAdmin()"
+                    [class.hover:bg-gray-100]="isForecastAdmin()"
+                    [class.opacity-50]="savingRow() === row.month"
+                    class="inline-block px-2 py-1 rounded-md transition"
+                    [title]="isForecastAdmin() ? ('FORECAST.DISTRIBUTOR_FORECAST_MODAL.DBLCLICK_HINT' | translate) : ''"
+                    (dblclick)="startEdit(row, 'forecast')">
+                    $ {{ forecastAt(row.month) | number:'1.0-0' }}
+                  </span>
+                }
+              </td>
+            }
+            <td class="px-3 py-1.5 text-right text-xs font-semibold text-gray-600 whitespace-nowrap border-l border-gray-100">
+              $ {{ forecastTotal() | number:'1.0-0' }}
+            </td>
+          </tr>
+
+          <!-- Modificación row -->
+          <tr class="bg-white">
+            <td class="px-4 py-1.5 whitespace-nowrap sticky left-0 z-10 font-semibold text-sm align-middle bg-white border-r border-gray-200">
+              <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">{{ 'FORECAST.DISTRIBUTOR_FORECAST_MODAL.LABEL_MODIFICATION' | translate }}</span>
+            </td>
+            @for (row of rows(); track row.month) {
+              <td class="px-2 py-1.5 text-right text-xs whitespace-nowrap">
+                <span class="text-gray-300">---</span>
+              </td>
+            }
+            <td class="px-3 py-1.5 border-l border-gray-100"></td>
+          </tr>
+
+          <!-- Ventas row -->
+          <tr class="bg-white border-b border-gray-100">
+            <td class="px-4 py-1.5 whitespace-nowrap sticky left-0 z-10 font-semibold text-sm align-middle bg-white border-r border-gray-200">
+              <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">{{ 'FORECAST.DISTRIBUTOR_FORECAST_MODAL.LABEL_SALES' | translate }}</span>
+            </td>
+            @for (row of rows(); track row.month) {
+              <td class="px-2 py-1.5 text-right text-xs text-gray-600 whitespace-nowrap">
+                @if (isEditingCell(row.month, 'sales')) {
+                  <input
+                    type="number"
+                    step="1"
+                    autofocus
+                    [value]="row.sales"
+                    (input)="patchRow(row.month, 'sales', $any($event.target).value)"
+                    (blur)="onCellBlur(row, 'sales')"
+                    (keydown)="onCellKeydown($event, row, 'sales')"
+                    (focus)="$any($event.target).select()"
+                    class="w-20 text-xs text-right px-2 py-1 border border-orange-400 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400 transition" />
+                } @else {
+                  <span
+                    [class.cursor-pointer]="isForecastAdmin()"
+                    [class.hover:bg-gray-100]="isForecastAdmin()"
+                    [class.opacity-50]="savingRow() === row.month"
+                    class="inline-block px-2 py-1 rounded-md transition"
+                    [title]="isForecastAdmin() ? ('FORECAST.DISTRIBUTOR_FORECAST_MODAL.DBLCLICK_HINT' | translate) : ''"
+                    (dblclick)="startEdit(row, 'sales')">
+                    $ {{ salesAt(row.month) | number:'1.0-0' }}
+                  </span>
+                }
+              </td>
+            }
+            <td class="px-3 py-1.5 text-right text-xs font-semibold text-gray-600 whitespace-nowrap border-l border-gray-100">
+              $ {{ salesTotal() | number:'1.0-0' }}
+            </td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+  }
+
+</app-modal>
