@@ -10,6 +10,10 @@ export interface ForecastClient {
   rfc: string;
   correosForecast: string | null;
   countrycode?: string;
+  salesEngineerId?: number | null;
+  salesEngineerName?: string | null;
+  salesManagerId?: number | null;
+  salesManagerName?: string | null;
 }
 
 export interface DistributorRecord {
@@ -20,6 +24,10 @@ export interface DistributorRecord {
   emails: string;
   clientNumber: string;
   countrycode: string;
+  salesEngineerId: number | null;
+  salesEngineerName: string | null;
+  salesManagerId: number | null;
+  salesManagerName: string | null;
 }
 
 export interface DistributorPage {
@@ -39,6 +47,25 @@ export interface UpdateDistributorPayload {
   emails?: string;
   clientNumber?: string;
   countrycode?: string;
+  salesEngineerId?: number;
+  salesManagerId?: number;
+}
+
+export interface DistributorForecastMonth {
+  month: number;
+  forecast: number;
+  sales: number;
+  modification: null;
+}
+
+export interface StoreDistributorForecastPayload {
+  year: number;
+  months: Array<{ month: number; forecast: number; sales: number }>;
+}
+
+export interface UpdateDistributorForecastMonthPayload {
+  forecast?: number;
+  sales?: number;
 }
 
 export interface ClientGroupResponsible {
@@ -547,6 +574,43 @@ export class ForecastService {
           prev_page_url: payload?.prev_page_url,
         };
       }),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
+  getDistributorForecast(distributorId: number, year: number): Observable<DistributorForecastMonth[]> {
+    return this.httpService.get<DistributorForecastMonth[]>(
+      `/distributors/${distributorId}/forecast/${year}`,
+      this.withBearer()
+    ).pipe(
+      map((response: ApiResponse<DistributorForecastMonth[]>) => response.data ?? []),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
+  storeDistributorForecast(distributorId: number, payload: StoreDistributorForecastPayload): Observable<DistributorForecastMonth[]> {
+    return this.httpService.post<DistributorForecastMonth[]>(
+      `/distributors/${distributorId}/forecast`,
+      payload,
+      this.withBearer()
+    ).pipe(
+      map((response: ApiResponse<DistributorForecastMonth[]>) => response.data ?? []),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
+  updateDistributorForecastMonth(
+    distributorId: number,
+    year: number,
+    month: number,
+    payload: UpdateDistributorForecastMonthPayload
+  ): Observable<DistributorForecastMonth> {
+    return this.httpService.put<DistributorForecastMonth>(
+      `/distributors/${distributorId}/forecast/${year}/${month}`,
+      payload,
+      this.withBearer()
+    ).pipe(
+      map((response: ApiResponse<DistributorForecastMonth>) => response.data!),
       catchError((error) => throwError(() => error))
     );
   }
