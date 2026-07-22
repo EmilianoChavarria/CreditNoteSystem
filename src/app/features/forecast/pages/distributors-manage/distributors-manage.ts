@@ -15,10 +15,11 @@ import { GroupForecastModal } from '../../components/group-forecast-modal/group-
 import { CreateGroupModal } from '../../components/create-group-modal/create-group-modal';
 import { GroupMembersModal } from '../../components/group-members-modal/group-members-modal';
 import { EditGroupModal } from '../../components/edit-group-modal/edit-group-modal';
+import { DistributorForecastModal } from '../../components/distributor-forecast-modal/distributor-forecast-modal';
 
 @Component({
   selector: 'app-distributors-manage',
-  imports: [TranslatePipe, Table, TabsContainer, Tab, Popover, Modal, LucideAngularModule, DatePipe, EditDistributorModal, GroupForecastModal, CreateGroupModal, GroupMembersModal, EditGroupModal],
+  imports: [TranslatePipe, Table, TabsContainer, Tab, Popover, Modal, LucideAngularModule, DatePipe, EditDistributorModal, GroupForecastModal, CreateGroupModal, GroupMembersModal, EditGroupModal, DistributorForecastModal],
   templateUrl: './distributors-manage.html',
   styleUrl: './distributors-manage.css',
 })
@@ -45,6 +46,9 @@ export class DistributorsManage {
   readonly foreignSearchTerm = signal('');
   readonly foreignModalOpen = signal(false);
   readonly selectedForeignClient = signal<ForecastClient | null>(null);
+
+  readonly forecastModalOpen = signal(false);
+  readonly selectedForecastDistributor = signal<DistributorRecord | null>(null);
 
   readonly groups = signal<ClientGroup[]>([]);
   readonly groupsLoading = signal(true);
@@ -94,6 +98,8 @@ export class DistributorsManage {
       { key: 'taxId', label: this.translate.instant('FORECAST.DISTRIBUTORS.COL_RFC'), sortable: true, customTemplate: true },
       { key: 'address', label: this.translate.instant('FORECAST.DISTRIBUTORS.COL_ADDRESS'), sortable: true, customTemplate: true },
       { key: 'emails', label: this.translate.instant('FORECAST.DISTRIBUTORS.COL_EMAILS'), sortable: false, customTemplate: true },
+      { key: 'salesEngineerName', label: this.translate.instant('FORECAST.DISTRIBUTORS.COL_SALES_ENGINEER'), sortable: false, customTemplate: true },
+      { key: 'salesManagerName', label: this.translate.instant('FORECAST.DISTRIBUTORS.COL_SALES_MANAGER'), sortable: false, customTemplate: true },
     ];
     this.foreignAcciones = [
       {
@@ -101,6 +107,12 @@ export class DistributorsManage {
         icon: 'pencil',
         className: 'text-left text-gray-700',
         accion: (item) => this.openEditForeignModal(item),
+      },
+      {
+        label: this.translate.instant('FORECAST.DISTRIBUTORS.ACTION_VIEW_FORECAST'),
+        icon: 'bar-chart-2',
+        className: 'text-left text-gray-700',
+        accion: (item) => this.openForecastModal(item),
       },
     ];
     this.loadData();
@@ -126,8 +138,15 @@ export class DistributorsManage {
       direccion: record.address,
       correosForecast: record.emails,
       countrycode: record.countrycode,
+      salesEngineerId: record.salesEngineerId,
+      salesManagerId: record.salesManagerId,
     });
     this.foreignModalOpen.set(true);
+  }
+
+  openForecastModal(record: DistributorRecord): void {
+    this.selectedForecastDistributor.set(record);
+    this.forecastModalOpen.set(true);
   }
 
   loadGroups(): void {

@@ -110,6 +110,12 @@
                         <span class="text-gray-400">—</span>
                         }
                         }
+                        @case ('salesEngineerName') {
+                        <span class="font-medium text-gray-600">{{ item.salesEngineerName ?? '—' }}</span>
+                        }
+                        @case ('salesManagerName') {
+                        <span class="font-medium text-gray-600">{{ item.salesManagerName ?? '—' }}</span>
+                        }
                         }
                     </div>
                 </ng-template>
@@ -225,6 +231,10 @@
     <app-edit-distributor-modal [client]="selectedForeignClient()" [open]="foreignModalOpen()"
         (openChange)="foreignModalOpen.set($event)" (saved)="loadForeignData(foreignCurrentPage())">
     </app-edit-distributor-modal>
+
+    <app-distributor-forecast-modal [distributor]="selectedForecastDistributor()" [open]="forecastModalOpen()"
+        (openChange)="forecastModalOpen.set($event)">
+    </app-distributor-forecast-modal>
 
     <app-group-forecast-modal [group]="selectedGroup()" [open]="groupForecastModalOpen()"
         (closed)="closeGroupForecast()">
