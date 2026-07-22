@@ -1,9 +1,11 @@
-import { ChangeDetectionStrategy, Component, input, output, signal, effect, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output, signal, effect, computed, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Modal } from '../../../../shared/components/ui/modal/modal';
 import { ForecastClient, ForecastService, UpdateDistributorPayload } from '../../../../core/services/forecast.service';
+import { UserService, SalesUserOption } from '../../../../core/services/user-service';
+import { UiSelect, SelectOption } from '../../../../shared/components/ui/select/select';
 
 export interface AddressParts {
   calle: string;
@@ -22,10 +24,11 @@ export interface AddressParts {
   selector: 'app-edit-distributor-modal',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, Modal, FormsModule],
+  imports: [TranslatePipe, Modal, FormsModule, UiSelect],
   templateUrl: './edit-distributor-modal.html',
 })
 export class EditDistributorModal {
+  private readonly userService = inject(UserService);
   readonly countryOptions = [
     { code: 'BLZ', name: 'Belice' },
     { code: 'CRI', name: 'Costa Rica' },
@@ -72,6 +75,21 @@ export class EditDistributorModal {
 
   readonly addressPreview = computed(() => this.buildAddress(this.addressParts()));
 
+  readonly salesEngineerId = signal('');
+  readonly salesManagerId = signal('');
+  readonly salesEngineers = signal<SalesUserOption[]>([]);
+  readonly salesManagers = signal<SalesUserOption[]>([]);
+  readonly loadingSalesUsers = signal(false);
+  private salesUsersLoaded = false;
+
+  readonly salesEngineerOptions = computed<SelectOption[]>(() =>
+    this.salesEngineers().map(u => ({ value: u.id, label: u.fullName }))
+  );
+
+  readonly salesManagerOptions = computed<SelectOption[]>(() =>
+    this.salesManagers().map(u => ({ value: u.id, label: u.fullName }))
+  );
+
   constructor(private readonly forecastService: ForecastService) {
     effect(() => {
       const c = this.client();
@@ -93,9 +111,30 @@ export class EditDistributorModal {
         clientNumber: '',
         countrycode: '',
       });
+      this.salesEngineerId.set(c?.salesEngineerId != null ? String(c.salesEngineerId) : '');
+      this.salesManagerId.set(c?.salesManagerId != null ? String(c.salesManagerId) : '');
       this.showAddressAssistant.set(false);
       this.addressParts.set({ calle: '', noExterior: '', noInterior: '', colonia: '', localidad: '', municipio: '', estado: '', cp: '', pais: '', referencia: '' });
+
+      if (!this.salesUsersLoaded) {
+        this.salesUsersLoaded = true;
+        this.loadSalesUsers();
+      }
     });
+  }
+
+  private loadSalesUsers(): void {
+    this.loadingSalesUsers.set(true);
+    this.userService.getSalesEngineers().subscribe({
+      next: (users) => this.salesEngineers.set(users),
+      error: () => this.salesEngineers.set([]),
+    });
+    this.userService.getSalesManagers()
+      .pipe(finalize(() => this.loadingSalesUsers.set(false)))
+      .subscribe({
+        next: (users) => this.salesManagers.set(users),
+        error: () => this.salesManagers.set([]),
+      });
   }
 
   patchForm(field: keyof UpdateDistributorPayload, value: string): void {
@@ -146,6 +185,8 @@ export class EditDistributorModal {
     if (raw.emails?.trim()) payload.emails = raw.emails.trim();
     if (raw.clientNumber?.trim()) payload.clientNumber = raw.clientNumber.trim();
     if (raw.countrycode?.trim()) payload.countrycode = raw.countrycode.trim();
+    if (this.salesEngineerId()) payload.salesEngineerId = Number(this.salesEngineerId());
+    if (this.salesManagerId()) payload.salesManagerId = Number(this.salesManagerId());
 
     this.saving.set(true);
     this.forecastService

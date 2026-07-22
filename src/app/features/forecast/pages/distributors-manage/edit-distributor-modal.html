@@ -205,6 +205,16 @@
                 class="w-full text-sm px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 transition" />
         </div>
 
+        <app-select id="sales-engineer" [label]="'FORECAST.EDIT_DISTRIBUTOR.LABEL_SALES_ENGINEER' | translate"
+            [placeholder]="'FORECAST.EDIT_DISTRIBUTOR.PLACEHOLDER_SALES_ENGINEER' | translate"
+            [options]="salesEngineerOptions()" [value]="salesEngineerId()"
+            (valueChange)="salesEngineerId.set($event)" [disabled]="loadingSalesUsers()" />
+
+        <app-select id="sales-manager" [label]="'FORECAST.EDIT_DISTRIBUTOR.LABEL_SALES_MANAGER' | translate"
+            [placeholder]="'FORECAST.EDIT_DISTRIBUTOR.PLACEHOLDER_SALES_MANAGER' | translate"
+            [options]="salesManagerOptions()" [value]="salesManagerId()"
+            (valueChange)="salesManagerId.set($event)" [disabled]="loadingSalesUsers()" />
+
     </div>
 
 </app-modal>
