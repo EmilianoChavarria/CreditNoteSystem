@@ -96,17 +96,7 @@ export class MaterialReturnForm extends BaseRequestForm {
   protected readonly hasReplenishmentIva = signal<boolean>(false);
   protected readonly hasWarehouseIva = signal<boolean>(false);
 
-  protected readonly replenishmentAcceptedTotal = computed(() => {
-    const acceptedMap = this.replenishmentAcceptedByMaterialId();
-    const materials = this.materialList();
-    let total = 0;
-    materials.forEach((material) => {
-      const acceptedQty = acceptedMap.get(material.id) || 0;
-      const unitPrice = Number(material.valorUnitario) || 0;
-      total += (acceptedQty * unitPrice);
-    });
-    return total;
-  });
+  protected readonly replenishmentAcceptedTotal = computed(() => this.materialListSubtotal());
 
   protected readonly warehouseReceivedTotal = computed(() => {
     const map = this.warehouseReceivedByMaterialId();
@@ -115,17 +105,7 @@ export class MaterialReturnForm extends BaseRequestForm {
     return total;
   });
 
-  protected readonly warehouseAcceptedTotal = computed(() => {
-    const acceptedMap = this.warehouseAcceptedByMaterialId();
-    const materials = this.materialList();
-    let total = 0;
-    materials.forEach((material) => {
-      const acceptedQty = acceptedMap.get(material.id) || 0;
-      const unitPrice = Number(material.valorUnitario) || 0;
-      total += (acceptedQty * unitPrice);
-    });
-    return total;
-  });
+  protected readonly warehouseAcceptedTotal = computed(() => this.materialListSubtotal());
 
   protected readonly replenishmentIvaAmount = computed(() => {
     const total = this.replenishmentAcceptedTotal();
