@@ -137,7 +137,8 @@ export interface ForecastClientPage {
 
 export interface PendingRequest {
   id: number;
-  proposedAmount: string;
+  proposedAmount?: string | number;
+  proposedForecast?: string | number;
   status: 'pending' | 'approved' | 'rejected';
   currentStep: 'sales_manager' | 'general_manager';
   submittedAt: string;
@@ -145,7 +146,8 @@ export interface PendingRequest {
 
 export interface ForecastMonthApi {
   month: number;
-  amount: string | null;
+  amount?: string | number | null;
+  forecast?: string | number | null;
   modification: PendingRequest | null;
   sales: string | number;
 }
@@ -291,12 +293,43 @@ export interface ChangeRequestPayload {
   amount: number;
 }
 
+export interface DistributorChangeRequestHistory {
+  action: 'submitted' | 'approved' | 'rejected' | 'auto_approved';
+  step: 'sales_manager' | 'general_manager' | 'auto_approved';
+  forecast: number;
+  actor: ChangeRequestUser | null;
+  at: string;
+}
+
+export interface DistributorChangeRequest {
+  id: number;
+  distributorId: number;
+  year: number;
+  month: number;
+  previousForecast: number;
+  proposedForecast: number;
+  status: 'pending' | 'approved' | 'rejected';
+  currentStep: 'sales_manager' | 'general_manager' | 'auto_approved';
+  distributor: { id: number; businessName: string } | null;
+  submittedBy: ChangeRequestUser | null;
+  approver: ChangeRequestUser | null;
+  history: DistributorChangeRequestHistory[];
+  submittedAt: string;
+}
+
+export interface DistributorChangeRequestPayload {
+  distributorId: number;
+  year: number;
+  month: number;
+  forecast: number;
+}
+
 function buildMonthEntries(months: ForecastMonthApi[]): MonthEntry[] {
   const monthMap = new Map(months.map(m => [m.month, m]));
   return Array.from({ length: 12 }, (_, i) => {
     const apiMonth = monthMap.get(i + 1);
     return {
-      forecast: apiMonth ? parseFloat(apiMonth.amount ?? '0') || 0 : 0,
+      forecast: apiMonth ? parseFloat(String(apiMonth.amount ?? apiMonth.forecast ?? '0')) || 0 : 0,
       pendingRequest: apiMonth?.modification ?? null,
       sales: apiMonth ? parseFloat(String(apiMonth.sales)) || 0 : 0,
     };
@@ -335,6 +368,29 @@ function mapGroupToDistributor(group: ForecastGroupApi): Distributor {
 
 export function mapApiToDistributors(rows: ForecastRowApi[]): Distributor[] {
   return rows.map(row => row.isGroup ? mapGroupToDistributor(row) : mapClientToDistributor(row));
+}
+
+export function mapDistributorChangeRequestToChangeRequest(reqs: DistributorChangeRequest[]): ChangeRequest[] {
+  return reqs.map(req => ({
+    id: req.id,
+    idClient: req.distributorId,
+    year: req.year,
+    month: req.month,
+    previousAmount: String(req.previousForecast),
+    proposedAmount: String(req.proposedForecast),
+    status: req.status,
+    currentStep: req.currentStep === 'auto_approved' ? 'general_manager' : req.currentStep,
+    submittedBy: req.submittedBy ?? { id: 0, fullName: '—' },
+    approver: req.approver ?? { id: 0, fullName: '—' },
+    history: req.history.map(h => ({
+      action: h.action === 'auto_approved' ? 'approved' : h.action,
+      step: h.step,
+      amount: String(h.forecast),
+      actor: h.actor ?? { id: 0, fullName: '—' },
+      at: h.at,
+    })),
+    submittedAt: req.submittedAt,
+  }));
 }
 
 @Injectable({ providedIn: 'root' })
@@ -406,6 +462,79 @@ export class ForecastService {
   rejectRequest(id: number): Observable<void> {
     return this.httpService.post<unknown>(
       `/forecast/change-requests/${id}/reject`,
+      {},
+      this.withBearer()
+    ).pipe(
+      map(() => void 0),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
+  getDistributorsByEngineer(engineerId: number, year: number): Observable<ForecastRowApi[]> {
+    return this.httpService.get<ForecastRowApi[]>(
+      `/distributors/sales-engineer/${engineerId}/${year}`,
+      this.withBearer()
+    ).pipe(
+      map((response: ApiResponse<ForecastRowApi[]>) => response.data ?? []),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
+  submitDistributorChangeRequest(payload: DistributorChangeRequestPayload): Observable<DistributorChangeRequest> {
+    return this.httpService.post<DistributorChangeRequest>(
+      '/distributors/forecast/change-requests',
+      payload,
+      this.withBearer()
+    ).pipe(
+      map((response: ApiResponse<DistributorChangeRequest>) => response.data!),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
+  getDistributorMyRequests(): Observable<DistributorChangeRequest[]> {
+    return this.httpService.get<DistributorChangeRequest[]>(
+      '/distributors/forecast/change-requests/mine',
+      this.withBearer()
+    ).pipe(
+      map((response: ApiResponse<DistributorChangeRequest[]>) => response.data ?? []),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
+  getDistributorPendingApprovals(): Observable<DistributorChangeRequest[]> {
+    return this.httpService.get<DistributorChangeRequest[]>(
+      '/distributors/forecast/change-requests/pending',
+      this.withBearer()
+    ).pipe(
+      map((response: ApiResponse<DistributorChangeRequest[]>) => response.data ?? []),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
+  getDistributorHistory(distributorId: number, year: number, month: number): Observable<DistributorChangeRequest[]> {
+    return this.httpService.get<DistributorChangeRequest[]>(
+      `/distributors/forecast/change-requests/history?distributorId=${distributorId}&year=${year}&month=${month}`,
+      this.withBearer()
+    ).pipe(
+      map((response: ApiResponse<DistributorChangeRequest[]>) => response.data ?? []),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
+  approveDistributorRequest(id: number): Observable<void> {
+    return this.httpService.post<unknown>(
+      `/distributors/forecast/change-requests/${id}/approve`,
+      {},
+      this.withBearer()
+    ).pipe(
+      map(() => void 0),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
+  rejectDistributorRequest(id: number): Observable<void> {
+    return this.httpService.post<unknown>(
+      `/distributors/forecast/change-requests/${id}/reject`,
       {},
       this.withBearer()
     ).pipe(
@@ -555,10 +684,13 @@ export class ForecastService {
     );
   }
 
-  getDistributorsPaginated(perPage = 15, page = 1, search?: string): Observable<DistributorPage> {
-    const params: { per_page: number; page: number; search?: string } = { per_page: perPage, page };
+  getDistributorsPaginated(perPage = 15, page = 1, search?: string, zone?: string): Observable<DistributorPage> {
+    const params: { per_page: number; page: number; search?: string; zone?: string } = { per_page: perPage, page };
     if (search?.trim()) {
       params.search = search.trim();
+    }
+    if (zone?.trim()) {
+      params.zone = zone.trim();
     }
 
     return this.httpService.get<DistributorPage>('/distributors', { ...this.withBearer(), params }).pipe(
