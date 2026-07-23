@@ -76,14 +76,14 @@ export const WORKFLOW_FIELD_CONSTRAINTS: WorkflowFieldConstraint[] = [
     // Al crear (!step) queda deshabilitado; en cualquier otro rol también.
     // Nota: usa || en lugar de && — cualquier rol distinto a WAREHOUSE deshabilita.
     disableWhen: ({ step, assignedRoleName }) => !step || (!!assignedRoleName && assignedRoleName !== 'WAREHOUSE'),
-    fields: ['warehouseAmount', 'hasWarehouseIva', 'warehouseTotal'],
+    fields: ['warehouseAmount', 'warehouseTotal'],
     arrayFields: ['warehouseReceived', 'warehouseAccepted', 'warehouseReason'],
   },
   {
     // Habilitado solo cuando el rol asignado es REPLENISHMENT.
     // Al crear (!step) queda deshabilitado; en cualquier otro rol también.
     disableWhen: ({ step, assignedRoleName }) => !step || (!!assignedRoleName && assignedRoleName !== 'REPLENISHMENT'),
-    fields: ['replenishmentAmount', 'hasReplenishmentIva', 'replenishmentTotal'],
+    fields: ['replenishmentAmount', 'replenishmentTotal'],
     arrayFields: ['replenishmentAccepted', 'replenishmentReason'],
   },
   {
@@ -96,6 +96,6 @@ export const WORKFLOW_FIELD_CONSTRAINTS: WorkflowFieldConstraint[] = [
     // Habilitado al crear (sin paso) y en los pasos 1 y 2 del flujo.
     // A partir del paso 3 en adelante queda deshabilitado.
     disableWhen: ({ step }) => !!step && step.stepOrder !== 1 && step.stepOrder !== 2,
-    arrayFields: ['sapId']
+    arrayFields: ['sapId', 'hasWarehouseIva', 'hasReplenishmentIva']
   },
 ];
