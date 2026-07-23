@@ -14,6 +14,7 @@ export interface RequestNumber {
   requestTypeId: number;
   requestNumber: string;
   prefix: string;
+  draftId?: number;
 }
 
 export interface RequestHistoryRole {

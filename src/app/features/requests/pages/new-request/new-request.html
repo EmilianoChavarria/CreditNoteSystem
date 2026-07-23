@@ -134,4 +134,11 @@
         (openChange)="showSendBackModal.set($event)"
         (sent)="onSendBackSent()">
     </app-send-back-modal>
+
+    <app-modal size="md" titleM="¿Salir sin guardar?" [open]="showLeaveConfirmModal()"
+        closeText="Cancelar"
+        primaryText="Salir y liberar folio"
+        (openChange)="onLeaveConfirmModalOpenChange($event)" (primaryAction)="confirmLeave()">
+        <p>Tienes un folio reservado que aún no se ha guardado. Si sales, se liberará para que otro usuario lo pueda tomar.</p>
+    </app-modal>
 </div>

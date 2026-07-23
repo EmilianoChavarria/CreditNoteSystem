@@ -4,6 +4,12 @@ import { catchError, map, Observable, tap } from 'rxjs';
 import { User } from '../../data/interfaces/User';
 import { ApiResponse } from '../../data/interfaces/ApiResponse-interface';
 
+export interface SalesUserOption {
+  id: number;
+  fullName: string;
+  role: string;
+}
+
 export interface CursorPagination<T> {
   data: T[];
   current_page?: number;
@@ -45,6 +51,26 @@ export class UserService {
         throw error;
       })
     )
+  }
+
+  getSalesEngineers(): Observable<SalesUserOption[]> {
+    return this._httpService.get<SalesUserOption[]>('/users/sales-engineers').pipe(
+      map((response: ApiResponse<SalesUserOption[]>) => response.data ?? []),
+      catchError((error) => {
+        console.log(error);
+        throw error;
+      })
+    );
+  }
+
+  getSalesManagers(): Observable<SalesUserOption[]> {
+    return this._httpService.get<SalesUserOption[]>('/users/sales-managers').pipe(
+      map((response: ApiResponse<SalesUserOption[]>) => response.data ?? []),
+      catchError((error) => {
+        console.log(error);
+        throw error;
+      })
+    );
   }
 
   getRequesters(): Observable<User[]> {

@@ -48,6 +48,7 @@ export class MaterialReturnForm extends BaseRequestForm {
   protected readonly isSavingCharge = signal<boolean>(false);
   protected readonly totalWithReturnCharge = computed(() => {
     const subtotal = this.materialListSubtotal();
+    if (!this.hasReturnCharge()) return subtotal;
     const percent = Number(this.returnChargePercent()) || 0;
     return subtotal - (subtotal * (percent / 100));
   });
@@ -96,17 +97,7 @@ export class MaterialReturnForm extends BaseRequestForm {
   protected readonly hasReplenishmentIva = signal<boolean>(false);
   protected readonly hasWarehouseIva = signal<boolean>(false);
 
-  protected readonly replenishmentAcceptedTotal = computed(() => {
-    const acceptedMap = this.replenishmentAcceptedByMaterialId();
-    const materials = this.materialList();
-    let total = 0;
-    materials.forEach((material) => {
-      const acceptedQty = acceptedMap.get(material.id) || 0;
-      const unitPrice = Number(material.valorUnitario) || 0;
-      total += (acceptedQty * unitPrice);
-    });
-    return total;
-  });
+  protected readonly replenishmentAcceptedTotal = computed(() => this.totalWithReturnCharge());
 
   protected readonly warehouseReceivedTotal = computed(() => {
     const map = this.warehouseReceivedByMaterialId();
@@ -115,17 +106,7 @@ export class MaterialReturnForm extends BaseRequestForm {
     return total;
   });
 
-  protected readonly warehouseAcceptedTotal = computed(() => {
-    const acceptedMap = this.warehouseAcceptedByMaterialId();
-    const materials = this.materialList();
-    let total = 0;
-    materials.forEach((material) => {
-      const acceptedQty = acceptedMap.get(material.id) || 0;
-      const unitPrice = Number(material.valorUnitario) || 0;
-      total += (acceptedQty * unitPrice);
-    });
-    return total;
-  });
+  protected readonly warehouseAcceptedTotal = computed(() => this.totalWithReturnCharge());
 
   protected readonly replenishmentIvaAmount = computed(() => {
     const total = this.replenishmentAcceptedTotal();
@@ -218,7 +199,7 @@ export class MaterialReturnForm extends BaseRequestForm {
   }
 
   protected override getExtraPayloadKeysToExclude(): string[] {
-    return ['materialItems'];
+    return ['materialItems', 'replenishmentTotal', 'warehouseTotal'];
   }
 
   protected override onRequestCreated(requestId: number, _response: unknown): Observable<unknown> {
@@ -625,11 +606,18 @@ export class MaterialReturnForm extends BaseRequestForm {
     const replenishmentTotal = this.hasReplenishmentIva() ? replenishmentAmount * 1.16 : replenishmentAmount;
     const warehouseTotal = this.hasWarehouseIva() ? warehouseAmount * 1.16 : warehouseAmount;
 
+    const subtotal = this.totalWithReturnCharge();
+    const hasIva = this.hasReplenishmentIva() || this.hasWarehouseIva();
+    const totalAmount = hasIva ? subtotal * 1.16 : subtotal;
+
     this.form.patchValue({
       replenishmentAmount: replenishmentAmount.toFixed(2),
       warehouseAmount: warehouseAmount.toFixed(2),
       replenishmentTotal: replenishmentTotal.toFixed(2),
       warehouseTotal: warehouseTotal.toFixed(2),
+      amount: subtotal,
+      hasIva,
+      totalAmount: totalAmount.toFixed(2),
     }, { emitEvent: false });
   }
 

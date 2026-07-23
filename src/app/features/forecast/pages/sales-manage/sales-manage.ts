@@ -75,7 +75,9 @@ export class SalesManage {
 
   selectYear(year: number): void {
     this.activeYear.set(year);
-    const engineerId = this.isSalesManager() ? this.selectedEngineer()?.id : this.authService.getCurrentUser()?.id;
+    const engineerId = (this.isSalesManager() || this.isForecastAdmin())
+      ? this.selectedEngineer()?.id
+      : this.authService.getCurrentUser()?.id;
     if (engineerId) {
       this.loadForecast(engineerId, year);
     }
@@ -101,7 +103,9 @@ export class SalesManage {
   }
 
   onRefreshNeeded(): void {
-    const engineerId = this.isSalesManager() ? this.selectedEngineer()?.id : this.authService.getCurrentUser()?.id;
+    const engineerId = (this.isSalesManager() || this.isForecastAdmin())
+      ? this.selectedEngineer()?.id
+      : this.authService.getCurrentUser()?.id;
     if (engineerId) {
       this.loadForecast(engineerId, this.activeYear());
     }

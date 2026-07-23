@@ -3,7 +3,7 @@
   [titleM]="monthLabel() + ' — ' + ('FORECAST.INVOICES_MODAL.TITLE_SUFFIX' | translate)"
   [showPrimaryButton]="false"
   [closeText]="'FORECAST.INVOICES_MODAL.CLOSE' | translate"
-  size="xl"
+  size="2xl"
   (closed)="closed.emit()">
 
   <p modal-title class="text-xs text-gray-400 mt-0.5">{{ clientName() }}</p>
@@ -37,7 +37,7 @@
     <div [class]="isMultiClient() ? 'flex flex-col md:flex-row gap-4' : ''">
 
       @if (isMultiClient()) {
-        <div class="md:w-56 shrink-0">
+        <div class="md:w-auto shrink-0">
           <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-1.5">
             {{ 'FORECAST.INVOICES_MODAL.CLIENTS_LABEL' | translate }} ({{ sections().length }})
           </p>
@@ -85,6 +85,9 @@
                 <th class="px-4 py-2.5 text-right text-xs font-semibold uppercase tracking-wider text-gray-400">
                   {{ 'FORECAST.INVOICES_MODAL.COL_TOTAL' | translate }}
                 </th>
+                <th class="px-4 py-2.5 text-center text-xs font-semibold uppercase tracking-wider text-gray-400">
+                  {{ 'FORECAST.INVOICES_MODAL.COL_ACTIONS' | translate }}
+                </th>
               </tr>
             </thead>
 
@@ -120,6 +123,18 @@
                       <div class="text-[11px] font-normal text-gray-400"> ${{ +inv.originalTotal | number:'1.2-2' }} {{ inv.originalMoneda }} · TC {{ +(inv.tipoCambio ?? 0) | number:'1.2-4' }}</div>
                     }
                   </td>
+                  <td class="px-4 py-2.5 text-center whitespace-nowrap">
+                    <button
+                      type="button"
+                      class="inline-flex items-center justify-center rounded-md p-1.5 text-gray-400 transition hover:bg-orange-50 hover:text-orange-600"
+                      [title]="'FORECAST.INVOICES_MODAL.VIEW_PRODUCTS' | translate"
+                      (click)="onViewProducts(inv)">
+                      <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                    </button>
+                  </td>
                 </tr>
               }
             </tbody>
@@ -138,6 +153,7 @@
                 <td class="px-4 py-2.5 text-right text-xs font-bold text-gray-700 whitespace-nowrap">
                   ${{ grandTotal() | number:'1.2-2' }}
                 </td>
+                <td></td>
               </tr>
             </tfoot>
           </table>

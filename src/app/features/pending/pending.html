@@ -34,7 +34,7 @@
         <app-spinner></app-spinner>
     </div>
     } @else if (selectedRequestType !== 'DE' && selectedRequestType) {
-    <app-tabla-dinamica [datos]="requests()" [columnas]="columns" [accionesPersonalizadas]="acciones()"
+    <app-tabla-dinamica [datos]="requests()" [columnas]="columns()" [accionesPersonalizadas]="acciones()"
         actionMode="menu" [enableFilter]="true" filterField="workflowCurrentStep.assigned_role.roleName"
         [filterOptions]="roleFilterOptions()" [filterDefault]="selectedRoleName()" [filterLabel]="'FILTERS.ROLE'" excelExportModule="requests"
         [excelExportParams]="{ requestTypeId: selectedRequestType, search: searchTerm(), roleName: selectedRoleName() }"
@@ -90,6 +90,12 @@
             <span class="font-semibold text-slate-800 text-nowrap">
                 {{ (item.requestTypeId === 6 ? ($any(item).returnOrderRequest?.globalSubTotal ?? item.totalAmount) : item.totalAmount) | currency: item.currency : 'code' : '1.2-2' }}
             </span>
+            } @else if (column.key === 'deletedAt') {
+            @if (item.deletedAt) {
+            <app-badge color="red" [text]="'PENDING_PAGE.DELETED_YES' | translate | uppercase" />
+            } @else {
+            <app-badge color="green" [text]="'PENDING_PAGE.DELETED_NO' | translate | uppercase" />
+            }
             }
         </ng-template>
     </app-tabla-dinamica>

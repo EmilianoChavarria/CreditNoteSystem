@@ -9,6 +9,35 @@ export interface ForecastClient {
   direccion: string;
   rfc: string;
   correosForecast: string | null;
+  countrycode?: string;
+  salesEngineerId?: number | null;
+  salesEngineerName?: string | null;
+  salesManagerId?: number | null;
+  salesManagerName?: string | null;
+}
+
+export interface DistributorRecord {
+  id: number;
+  businessName: string;
+  taxId: string;
+  address: string;
+  emails: string;
+  clientNumber: string;
+  countrycode: string;
+  salesEngineerId: number | null;
+  salesEngineerName: string | null;
+  salesManagerId: number | null;
+  salesManagerName: string | null;
+}
+
+export interface DistributorPage {
+  data: DistributorRecord[];
+  current_page: number;
+  last_page: number;
+  per_page?: number;
+  total?: number;
+  next_page_url?: string | null;
+  prev_page_url?: string | null;
 }
 
 export interface UpdateDistributorPayload {
@@ -17,6 +46,26 @@ export interface UpdateDistributorPayload {
   address?: string;
   emails?: string;
   clientNumber?: string;
+  countrycode?: string;
+  salesEngineerId?: number;
+  salesManagerId?: number;
+}
+
+export interface DistributorForecastMonth {
+  month: number;
+  forecast: number;
+  sales: number;
+  modification: null;
+}
+
+export interface StoreDistributorForecastPayload {
+  year: number;
+  months: Array<{ month: number; forecast: number; sales: number }>;
+}
+
+export interface UpdateDistributorForecastMonthPayload {
+  forecast?: number;
+  sales?: number;
 }
 
 export interface ClientGroupResponsible {
@@ -150,6 +199,32 @@ export interface InvoiceSection {
   clientId: number;
   razonSocial: string;
   invoices: Invoice[];
+}
+
+export interface InvoiceProduct {
+  noIdentificacion: string;
+  descripcion: string;
+  cantidad: number;
+  valorUnitario: number;
+  importe: number;
+  importeUsd: number;
+  clasificacion: string;
+  excluido: boolean;
+}
+
+export interface InvoiceProductsBreakdown {
+  totalFacturado: number;
+  totalNoRodamientos: number;
+  totalConsiderado: number;
+}
+
+export interface InvoiceProductsEntry {
+  folio: string;
+  fechaEmision: string;
+  moneda: string;
+  tipoCambio: number | null;
+  products: InvoiceProduct[];
+  breakdown: InvoiceProductsBreakdown;
 }
 
 export interface GroupInvoicesApi {
@@ -356,6 +431,16 @@ export class ForecastService {
     );
   }
 
+  getInvoiceProducts(idClient: number, year: number, month: number): Observable<InvoiceProductsEntry[]> {
+    return this.httpService.get<InvoiceProductsEntry[]>(
+      `/forecast/${idClient}/${year}/${month}/invoices/products`,
+      this.withBearer()
+    ).pipe(
+      map((response: ApiResponse<InvoiceProductsEntry[]>) => response.data ?? []),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
   getClientForecast(idClient: number, year: number): Observable<ForecastMonthApi[]> {
     return this.httpService.get<ForecastMonthApi[]>(
       `/forecast/${idClient}/${year}`,
@@ -466,6 +551,66 @@ export class ForecastService {
           prev_page_url: payload?.prev_page_url,
         };
       }),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
+  getDistributorsPaginated(perPage = 15, page = 1, search?: string): Observable<DistributorPage> {
+    const params: { per_page: number; page: number; search?: string } = { per_page: perPage, page };
+    if (search?.trim()) {
+      params.search = search.trim();
+    }
+
+    return this.httpService.get<DistributorPage>('/distributors', { ...this.withBearer(), params }).pipe(
+      map((response: ApiResponse<DistributorPage>) => {
+        const payload = response.data;
+        return {
+          data: payload?.data ?? [],
+          current_page: payload?.current_page ?? 1,
+          last_page: payload?.last_page ?? 1,
+          per_page: payload?.per_page,
+          total: payload?.total,
+          next_page_url: payload?.next_page_url,
+          prev_page_url: payload?.prev_page_url,
+        };
+      }),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
+  getDistributorForecast(distributorId: number, year: number): Observable<DistributorForecastMonth[]> {
+    return this.httpService.get<DistributorForecastMonth[]>(
+      `/distributors/${distributorId}/forecast/${year}`,
+      this.withBearer()
+    ).pipe(
+      map((response: ApiResponse<DistributorForecastMonth[]>) => response.data ?? []),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
+  storeDistributorForecast(distributorId: number, payload: StoreDistributorForecastPayload): Observable<DistributorForecastMonth[]> {
+    return this.httpService.post<DistributorForecastMonth[]>(
+      `/distributors/${distributorId}/forecast`,
+      payload,
+      this.withBearer()
+    ).pipe(
+      map((response: ApiResponse<DistributorForecastMonth[]>) => response.data ?? []),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
+  updateDistributorForecastMonth(
+    distributorId: number,
+    year: number,
+    month: number,
+    payload: UpdateDistributorForecastMonthPayload
+  ): Observable<DistributorForecastMonth> {
+    return this.httpService.put<DistributorForecastMonth>(
+      `/distributors/${distributorId}/forecast/${year}/${month}`,
+      payload,
+      this.withBearer()
+    ).pipe(
+      map((response: ApiResponse<DistributorForecastMonth>) => response.data!),
       catchError((error) => throwError(() => error))
     );
   }

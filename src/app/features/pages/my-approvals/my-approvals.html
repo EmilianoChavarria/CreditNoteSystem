@@ -145,7 +145,7 @@
             </div>
             } @else if (column.key === 'totalAmount') {
             <span class="font-semibold text-slate-800 text-nowrap">
-                {{ (item.requestTypeId === 6 ? item.returnOrderTotal : item.totalAmount) }} {{item.currency}}
+                {{ (item.totalAmount) }} {{item.currency}}
             </span>
             }
         </ng-template>

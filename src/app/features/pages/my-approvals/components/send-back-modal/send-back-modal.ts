@@ -60,7 +60,7 @@ export class SendBackModal {
         }
         const currentOrder = data.currentStep?.workflow_step?.stepOrder ?? Infinity;
         const eligible = data.steps.filter(
-          (s) => s.wasVisited && !s.isCurrent && !s.isInitialStep && s.stepOrder < currentOrder
+          (s) => s.wasVisited && !s.isCurrent && s.stepOrder < currentOrder
         );
         this.availableSteps.set(eligible);
         this.isLoadingSteps.set(false);

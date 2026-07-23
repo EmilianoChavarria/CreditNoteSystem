@@ -1,0 +1,111 @@
+<app-modal
+  [open]="open()"
+  [titleM]="('FORECAST.INVOICE_PRODUCTS_MODAL.TITLE_PREFIX' | translate) + ' ' + folio()"
+  [showPrimaryButton]="false"
+  [closeText]="'FORECAST.INVOICE_PRODUCTS_MODAL.CLOSE' | translate"
+  size="2xl"
+  (closed)="closed.emit()">
+
+  <p modal-title class="text-xs text-gray-400 mt-0.5">
+    {{ clientName() }}
+    @if (entry()?.fechaEmision) {
+      · {{ entry()!.fechaEmision | date:'dd/MM/yyyy HH:mm:ss':'UTC' }}
+    }
+    @if (entry()?.moneda) {
+      · {{ entry()!.moneda }}
+    }
+  </p>
+
+  @if (loading()) {
+    <div class="flex items-center justify-center py-10 text-sm text-gray-400">
+      {{ 'FORECAST.INVOICE_PRODUCTS_MODAL.LOADING' | translate }}
+    </div>
+  } @else if (!entry() || products().length === 0) {
+    <div class="flex items-center justify-center py-10 text-sm text-gray-400">
+      {{ 'FORECAST.INVOICE_PRODUCTS_MODAL.EMPTY' | translate }}
+    </div>
+  } @else {
+
+    <div class="grid grid-cols-3 gap-3 mb-4">
+      <div class="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5">
+        <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">
+          {{ 'FORECAST.INVOICE_PRODUCTS_MODAL.TOTAL_FACTURADO' | translate }}
+        </p>
+        <p class="text-base font-bold text-gray-700 mt-0.5">${{ breakdown().totalFacturado | number:'1.2-2' }} USD</p>
+      </div>
+      <div class="rounded-lg border border-orange-200 bg-orange-50 px-3 py-2.5">
+        <p class="text-[11px] font-semibold text-orange-500 uppercase tracking-wide">
+          − {{ 'FORECAST.INVOICE_PRODUCTS_MODAL.TOTAL_NO_RODAMIENTOS' | translate }}
+        </p>
+        <p class="text-base font-bold text-orange-700 mt-0.5">${{ breakdown().totalNoRodamientos | number:'1.2-2' }} USD</p>
+      </div>
+      <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5">
+        <p class="text-[11px] font-semibold text-emerald-500 uppercase tracking-wide">
+          = {{ 'FORECAST.INVOICE_PRODUCTS_MODAL.TOTAL_CONSIDERADO' | translate }}
+        </p>
+        <p class="text-base font-bold text-emerald-700 mt-0.5">${{ breakdown().totalConsiderado | number:'1.2-2' }} USD</p>
+      </div>
+    </div>
+
+    @if (hasExclusions()) {
+      <p class="text-xs text-gray-400 mb-3">
+        {{ 'FORECAST.INVOICE_PRODUCTS_MODAL.EXPLANATION' | translate }}
+      </p>
+    }
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b-2 border-gray-200 bg-gray-50">
+            <th class="px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">
+              {{ 'FORECAST.INVOICE_PRODUCTS_MODAL.COL_PRODUCT' | translate }}
+            </th>
+            <th class="px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">
+              {{ 'FORECAST.INVOICE_PRODUCTS_MODAL.COL_CLASIFICACION' | translate }}
+            </th>
+            <th class="px-3 py-2.5 text-right text-xs font-semibold uppercase tracking-wider text-gray-400">
+              {{ 'FORECAST.INVOICE_PRODUCTS_MODAL.COL_QTY' | translate }}
+            </th>
+            <th class="px-3 py-2.5 text-right text-xs font-semibold uppercase tracking-wider text-gray-400">
+              {{ 'FORECAST.INVOICE_PRODUCTS_MODAL.COL_UNIT_VALUE' | translate }}
+            </th>
+            <th class="px-3 py-2.5 text-right text-xs font-semibold uppercase tracking-wider text-gray-400">
+              {{ 'FORECAST.INVOICE_PRODUCTS_MODAL.COL_AMOUNT' | translate }}
+            </th>
+            <th class="px-3 py-2.5 text-right text-xs font-semibold uppercase tracking-wider text-gray-400">
+              {{ 'FORECAST.INVOICE_PRODUCTS_MODAL.COL_AMOUNT_USD' | translate }}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of products(); track p.noIdentificacion + p.descripcion) {
+            <tr [class]="'border-t border-gray-100 ' + (p.excluido ? 'bg-orange-50/40' : '')">
+              <td class="px-3 py-2.5 max-w-xs">
+                <div class="text-xs font-medium text-gray-700">{{ p.noIdentificacion }}</div>
+                <div class="text-[11px] text-gray-400 truncate" [title]="p.descripcion">{{ p.descripcion }}</div>
+              </td>
+              <td class="px-3 py-2.5 whitespace-nowrap">
+                <span
+                  [class]="'inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ' + (p.excluido ? 'bg-orange-100 text-orange-700' : 'bg-blue-50 text-blue-700')">
+                  {{ p.clasificacion }}
+                </span>
+                @if (p.excluido) {
+                  <span class="ml-1 text-[10px] text-orange-500">({{ 'FORECAST.INVOICE_PRODUCTS_MODAL.EXCLUDED_TAG' | translate }})</span>
+                }
+              </td>
+              <td class="px-3 py-2.5 text-right text-xs text-gray-600 whitespace-nowrap">{{ p.cantidad }}</td>
+              <td class="px-3 py-2.5 text-right text-xs text-gray-600 whitespace-nowrap">${{ p.valorUnitario | number:'1.2-2' }}</td>
+              <td [class]="'px-3 py-2.5 text-right text-xs whitespace-nowrap ' + (p.excluido ? 'text-orange-400 line-through' : 'text-gray-600')">
+                ${{ p.importe | number:'1.2-2' }}
+              </td>
+              <td [class]="'px-3 py-2.5 text-right text-xs font-medium whitespace-nowrap ' + (p.excluido ? 'text-orange-400 line-through' : 'text-gray-700')">
+                ${{ p.importeUsd | number:'1.2-2' }}
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+</app-modal>

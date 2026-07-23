@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { AuthGuard } from './core/guards/auth.guard';
 import { LoginGuard } from './core/guards/login.guard';
 import { ActionGuard } from './core/guards/action.guard';
+import { unsavedReservationGuard } from './core/guards/unsaved-reservation.guard';
 
 
 export const routes: Routes = [
@@ -20,7 +21,8 @@ export const routes: Routes = [
       {
         path: 'request/new-request',
         loadComponent: () => import('./features/requests/pages/new-request/new-request').then(m => m.NewRequest),
-        canActivate: [ActionGuard]
+        canActivate: [ActionGuard],
+        canDeactivate: [unsavedReservationGuard]
       },
       {
         path: 'request/drafts',
@@ -54,6 +56,8 @@ export const routes: Routes = [
       { path: 'forecast-sales-objective', loadComponent: () => import('./features/forecast/pages/sales-manage/sales-manage').then(m => m.SalesManage) },
       { path: 'forecast-sales-engineer', loadComponent: () => import('./features/forecast/pages/sales-engineer-manage/sales-engineer-manage').then(m => m.SalesEngineerManage) },
       { path: 'forecast-distributors', loadComponent: () => import('./features/forecast/pages/distributors-manage/distributors-manage').then(m => m.DistributorsManage) },
+      { path: 'forecast-products', loadComponent: () => import('./features/forecast/pages/product-manage/product-manage').then(m => m.ProductManage) },
+      
       { path: '404', loadComponent: () => import('./features/not-found/not-found').then(m => m.NotFound) },
       { path: '**', loadComponent: () => import('./features/not-found/not-found').then(m => m.NotFound) },
     ]

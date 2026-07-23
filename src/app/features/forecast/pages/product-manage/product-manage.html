@@ -1,0 +1,117 @@
+<section class="flex w-full flex-col px-2 py-3 sm:px-4 md:px-0 md:py-0">
+    <header class="w-full flex flex-col sm:flex-row items-start sm:items-end justify-between gap-2 mb-2">
+        <div class="flex flex-col">
+            <span class="text-2xl 2xl:text-4xl tracking-wider text-[#ff8200] font-semibold">{{ 'FORECAST.PRODUCTS.TITLE' | translate }}</span>
+            <span class="text-sm sm:text-base text-orange-400">{{ 'FORECAST.PRODUCTS.DESCRIPTION' | translate }}</span>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <button type="button"
+                class="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-100"
+                (click)="openBulkHistoryModal()">
+                <lucide-icon name="history" size="14"></lucide-icon>
+                {{ 'FORECAST.BULK_CLASSIFY.HISTORY_BUTTON' | translate }}
+            </button>
+
+            <button type="button"
+                class="inline-flex items-center gap-2 rounded-lg bg-[#ff8200] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#db7201]"
+                (click)="openBulkClassifyModal()">
+                <lucide-icon name="upload" size="14"></lucide-icon>
+                {{ 'FORECAST.BULK_CLASSIFY.BUTTON' | translate }}
+            </button>
+        </div>
+    </header>
+
+    <app-tabla-dinamica
+        [datos]="products()"
+        [columnas]="columns"
+        [canAdd]="false"
+        [actionMode]="'menu'"
+        [accionesPersonalizadas]="acciones"
+        [serverPagination]="true"
+        [registrosPorPagina]="pageSize()"
+        [paginaActualExterna]="currentPage()"
+        [totalPaginasExterno]="totalPages()"
+        [hasNextPage]="hasNextPage()"
+        [hasPrevPage]="hasPrevPage()"
+        [loading]="loading()"
+        (paginaSiguiente)="onNextPage()"
+        (paginaAnterior)="onPrevPage()"
+        (paginaPrimera)="onFirstPage()"
+        (paginaUltima)="onLastPage()"
+        (registrosPorPaginaChange)="onPageSizeChange($event)"
+        (searchChange)="onSearch($event)"
+        (refreshClick)="loadData(currentPage())">
+
+        <ng-template #cellTemplate let-item let-col="column">
+            <div class="py-3 px-2">
+                @switch (col.key) {
+                    @case ('idProducto') {
+                        <span class="font-medium text-gray-600">{{ item.idProducto }}</span>
+                    }
+                    @case ('descripcion') {
+                        <span class="font-medium text-gray-800">{{ item.descripcion }}</span>
+                    }
+                    @case ('claveProdServ') {
+                        <span class="font-medium text-gray-500">{{ item.claveProdServ ?? '—' }}</span>
+                    }
+                    @case ('claveUnidad') {
+                        <span class="font-medium text-gray-500">{{ item.claveUnidad ?? '—' }}</span>
+                    }
+                    @case ('unidadMedida') {
+                        <span class="font-medium text-gray-500">{{ item.unidadMedida }}</span>
+                    }
+                    @case ('valorUnitario') {
+                        <span class="font-medium text-gray-700">{{ +item.valorUnitario | number:'1.2-2' }}</span>
+                    }
+                    @case ('rfc') {
+                        <span class="font-medium tracking-wide text-gray-700">{{ item.rfc }}</span>
+                    }
+                    @case ('estatus') {
+                        <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold"
+                            [class.bg-green-50]="item.estatus === 'Activo'"
+                            [class.text-green-700]="item.estatus === 'Activo'"
+                            [class.bg-gray-100]="item.estatus !== 'Activo'"
+                            [class.text-gray-600]="item.estatus !== 'Activo'">
+                            {{ item.estatus }}
+                        </span>
+                    }
+                    @case ('clasificacion') {
+                        @if (item.clasificacion === 'Rodamientos') {
+                            <span class="inline-flex items-center rounded-full bg-blue-50 border border-blue-200 px-2 py-0.5 text-xs font-semibold text-blue-700">
+                                {{ item.clasificacion }}
+                            </span>
+                        } @else if (item.clasificacion === 'No Rodamientos') {
+                            <span class="inline-flex items-center rounded-full bg-orange-50 border border-orange-200 px-2 py-0.5 text-xs font-semibold text-orange-700">
+                                {{ item.clasificacion }}
+                            </span>
+                        } @else {
+                            <span class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-500">
+                                {{ 'FORECAST.PRODUCTS.CLASIFICACION_PENDIENTE' | translate }}
+                            </span>
+                        }
+                    }
+                }
+            </div>
+        </ng-template>
+
+    </app-tabla-dinamica>
+
+    <app-classify-product-modal
+        [product]="selectedProduct()"
+        [open]="classifyModalOpen()"
+        (openChange)="classifyModalOpen.set($event)"
+        (classified)="onClassified($event)">
+    </app-classify-product-modal>
+
+    <app-bulk-classify-products-modal
+        [open]="bulkClassifyModalOpen()"
+        (openChange)="bulkClassifyModalOpen.set($event)"
+        (batchCreated)="onBulkBatchCreated()">
+    </app-bulk-classify-products-modal>
+
+    <app-bulk-classify-history-modal
+        [open]="bulkHistoryModalOpen()"
+        (openChange)="bulkHistoryModalOpen.set($event)">
+    </app-bulk-classify-history-modal>
+</section>

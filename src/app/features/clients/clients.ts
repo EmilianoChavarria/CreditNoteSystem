@@ -856,13 +856,11 @@ export class Clients {
 
     const tokens = normalized
       .split('^')
-      .map(token => token.trim())
-      .filter(Boolean);
+      .map(token => token.trim());
 
-    const firstToken = tokens[0] ?? '';
-    const partNumber = firstToken.includes(';') ? firstToken.split(';')[0].trim() : firstToken;
-    const orderNumber = tokens[1] ?? '-';
-    const deliveryNote = tokens[2] ?? '-';
+    const partNumber = tokens[1];
+    const orderNumber = tokens[2] ?? '-';
+    const deliveryNote = tokens[3] ?? '-';
 
     return {
       partNumber: partNumber || '-',
