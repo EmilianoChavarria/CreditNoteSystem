@@ -1,0 +1,66 @@
+<app-modal
+    size="lg"
+    [titleM]="'FORECAST.DISTRIBUTORS.BULK_UPLOAD_TITLE' | translate"
+    [open]="open()"
+    [closeText]="'COMMON.CANCEL' | translate"
+    [primaryText]="isUploading() ? ('FORECAST.DISTRIBUTORS.BULK_UPLOADING' | translate) : ('FORECAST.DISTRIBUTORS.BULK_UPLOAD_BTN' | translate)"
+    [primaryDisabled]="!file() || isUploading()"
+    [primaryLoading]="isUploading()"
+    (openChange)="onOpenChange($event)"
+    (primaryAction)="submitUpload()">
+
+    <div class="flex flex-col gap-4">
+        <p class="text-xs text-gray-500">{{ 'FORECAST.DISTRIBUTORS.BULK_UPLOAD_DESCRIPTION' | translate }}</p>
+
+        <div class="flex items-center justify-center w-full">
+            <label for="bulk-distributors-input"
+                class="flex flex-col items-center justify-center w-full min-h-48 bg-blue-50 border border-dashed border-blue-600 rounded-md cursor-pointer px-4 py-6 transition-colors"
+                [class.bg-blue-100]="isDragOver()"
+                [class.border-orange-400]="isDragOver()"
+                (dragover)="onDragOver($event)"
+                (dragleave)="onDragLeave($event)"
+                (drop)="onDrop($event)">
+                <div class="flex flex-col items-center justify-center text-center pt-5 pb-4">
+                    <img src="assets/svg/cloud.svg" alt="" class="w-full max-w-20 h-auto object-contain my-3">
+                    <p class="mb-2 text-sm leading-snug">
+                        {{ 'FORECAST.DISTRIBUTORS.BULK_DROP_HINT' | translate }}
+                        <span class="font-semibold text-[#ff8200]">{{ 'BULK.COMMON.CLICK_UPLOAD' | translate }}</span>
+                    </p>
+                    <span class="text-xs text-gray-400">.csv · .xlsx</span>
+                </div>
+                <input id="bulk-distributors-input" type="file" accept=".csv,.xlsx" class="hidden"
+                    (change)="onFileChange($event)" />
+            </label>
+        </div>
+
+        @if (file(); as f) {
+        <div class="w-full overflow-x-auto rounded-md border border-gray-200">
+            <table class="w-full border-collapse">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="border-b border-gray-200 px-4 py-2 text-left text-xs font-semibold text-gray-600">{{ 'BULK.COMMON.FILE_NAME' | translate }}</th>
+                        <th class="border-b border-gray-200 px-4 py-2 text-left text-xs font-semibold text-gray-600">{{ 'BULK.COMMON.SIZE' | translate }}</th>
+                        <th class="border-b border-gray-200 px-4 py-2 text-left text-xs font-semibold text-gray-600">{{ 'BULK.COMMON.TYPE' | translate }}</th>
+                        <th class="border-b border-gray-200 px-4 py-2 text-left text-xs font-semibold text-gray-600">{{ 'BULK.COMMON.UPLOADED_AT' | translate }}</th>
+                        <th class="border-b border-gray-200 px-4 py-2 text-left text-xs font-semibold text-gray-600">{{ 'BULK.COMMON.ACTIONS' | translate }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="hover:bg-gray-50">
+                        <td class="border-b border-gray-100 px-4 py-2 text-sm text-gray-700 max-w-48 truncate">{{ f.name }}</td>
+                        <td class="border-b border-gray-100 px-4 py-2 text-sm text-gray-700 whitespace-nowrap">{{ formatFileSize(f.size) }}</td>
+                        <td class="border-b border-gray-100 px-4 py-2 text-sm text-gray-700 uppercase">{{ f.name.split('.').pop() }}</td>
+                        <td class="border-b border-gray-100 px-4 py-2 text-sm text-gray-700 whitespace-nowrap">{{ uploadedAt() }}</td>
+                        <td class="border-b border-gray-100 px-4 py-2 text-gray-700">
+                            <button type="button" (click)="removeFile()"
+                                class="p-1 text-[#fb2c36] bg-[#fb2c361a] rounded-md hover:cursor-pointer">
+                                <lucide-icon name="trash" size="18"></lucide-icon>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        }
+    </div>
+</app-modal>
