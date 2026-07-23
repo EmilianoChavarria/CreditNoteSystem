@@ -48,6 +48,7 @@ export class MaterialReturnForm extends BaseRequestForm {
   protected readonly isSavingCharge = signal<boolean>(false);
   protected readonly totalWithReturnCharge = computed(() => {
     const subtotal = this.materialListSubtotal();
+    if (!this.hasReturnCharge()) return subtotal;
     const percent = Number(this.returnChargePercent()) || 0;
     return subtotal - (subtotal * (percent / 100));
   });
@@ -96,7 +97,7 @@ export class MaterialReturnForm extends BaseRequestForm {
   protected readonly hasReplenishmentIva = signal<boolean>(false);
   protected readonly hasWarehouseIva = signal<boolean>(false);
 
-  protected readonly replenishmentAcceptedTotal = computed(() => this.materialListSubtotal());
+  protected readonly replenishmentAcceptedTotal = computed(() => this.totalWithReturnCharge());
 
   protected readonly warehouseReceivedTotal = computed(() => {
     const map = this.warehouseReceivedByMaterialId();
@@ -105,7 +106,7 @@ export class MaterialReturnForm extends BaseRequestForm {
     return total;
   });
 
-  protected readonly warehouseAcceptedTotal = computed(() => this.materialListSubtotal());
+  protected readonly warehouseAcceptedTotal = computed(() => this.totalWithReturnCharge());
 
   protected readonly replenishmentIvaAmount = computed(() => {
     const total = this.replenishmentAcceptedTotal();
