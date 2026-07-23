@@ -48,7 +48,7 @@ export class ForecastClientModal {
 
   forecastAt(idx: number): number {
     const m = this.months().find(m => m.month === idx + 1);
-    return parseFloat(m?.amount ?? '0') || 0;
+    return parseFloat(String(m?.amount ?? '0')) || 0;
   }
 
   salesAt(idx: number): number {
