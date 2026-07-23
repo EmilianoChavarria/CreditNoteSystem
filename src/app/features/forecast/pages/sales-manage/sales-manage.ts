@@ -24,6 +24,8 @@ export class SalesManage {
   readonly activeYear = signal(new Date().getFullYear());
   readonly distributors = signal<Distributor[]>([]);
   readonly loading = signal(false);
+  readonly foreignDistributors = signal<Distributor[]>([]);
+  readonly foreignLoading = signal(false);
   readonly uploading = signal(false);
   readonly refreshTrigger = signal(0);
 
@@ -35,7 +37,9 @@ export class SalesManage {
 
   readonly showMyRequestsModal = signal(false);
   readonly showPendingApprovalsModal = signal(false);
-  readonly pendingCount = signal(0);
+  readonly pendingClientCount = signal(0);
+  readonly pendingForeignCount = signal(0);
+  readonly pendingCount = computed(() => this.pendingClientCount() + this.pendingForeignCount());
 
   readonly grandTotal = computed(() =>
     this.distributors().reduce(
@@ -132,12 +136,16 @@ export class SalesManage {
   }
 
   onPendingResolved(): void {
-    this.pendingCount.update(n => Math.max(0, n - 1));
+    this.loadPendingCount();
   }
 
   private loadPendingCount(): void {
     this.forecastService.getPendingApprovals().subscribe({
-      next: (reqs) => this.pendingCount.set(reqs.length),
+      next: (reqs) => this.pendingClientCount.set(reqs.length),
+      error: () => {},
+    });
+    this.forecastService.getDistributorPendingApprovals().subscribe({
+      next: (reqs) => this.pendingForeignCount.set(reqs.length),
       error: () => {},
     });
   }
@@ -173,6 +181,15 @@ export class SalesManage {
         this.loading.set(false);
       },
       error: () => this.loading.set(false),
+    });
+
+    this.foreignLoading.set(true);
+    this.forecastService.getDistributorsByEngineer(engineerId, year).subscribe({
+      next: (rows) => {
+        this.foreignDistributors.set(mapApiToDistributors(rows));
+        this.foreignLoading.set(false);
+      },
+      error: () => this.foreignLoading.set(false),
     });
   }
 }

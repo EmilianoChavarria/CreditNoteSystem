@@ -132,6 +132,18 @@
       (refreshNeeded)="onRefreshNeeded()" />
   </div>
 
+  <!-- Distributors (foreign clients) table -->
+  <div class="flex items-center gap-2 mb-3">
+    <span class="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-blue-600">
+      {{ 'FORECAST.SALES_MANAGE.DISTRIBUTORS_BADGE' | translate }}
+    </span>
+    <h2 class="text-base font-semibold text-gray-800">{{ 'FORECAST.SALES_MANAGE.DISTRIBUTORS_TITLE' | translate }}</h2>
+  </div>
+  <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden mb-6">
+    <app-forecast-table [distributors]="foreignDistributors()" [year]="activeYear()" [loading]="foreignLoading()"
+      mode="distributor" (refreshNeeded)="onRefreshNeeded()" />
+  </div>
+
   <!-- Summary cards -->
   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
     <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
