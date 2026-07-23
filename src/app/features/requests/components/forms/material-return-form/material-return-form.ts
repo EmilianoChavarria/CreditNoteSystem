@@ -199,7 +199,7 @@ export class MaterialReturnForm extends BaseRequestForm {
   }
 
   protected override getExtraPayloadKeysToExclude(): string[] {
-    return ['materialItems'];
+    return ['materialItems', 'replenishmentTotal', 'warehouseTotal'];
   }
 
   protected override onRequestCreated(requestId: number, _response: unknown): Observable<unknown> {
@@ -606,11 +606,18 @@ export class MaterialReturnForm extends BaseRequestForm {
     const replenishmentTotal = this.hasReplenishmentIva() ? replenishmentAmount * 1.16 : replenishmentAmount;
     const warehouseTotal = this.hasWarehouseIva() ? warehouseAmount * 1.16 : warehouseAmount;
 
+    const subtotal = this.totalWithReturnCharge();
+    const hasIva = this.hasReplenishmentIva() || this.hasWarehouseIva();
+    const totalAmount = hasIva ? subtotal * 1.16 : subtotal;
+
     this.form.patchValue({
       replenishmentAmount: replenishmentAmount.toFixed(2),
       warehouseAmount: warehouseAmount.toFixed(2),
       replenishmentTotal: replenishmentTotal.toFixed(2),
       warehouseTotal: warehouseTotal.toFixed(2),
+      amount: subtotal,
+      hasIva,
+      totalAmount: totalAmount.toFixed(2),
     }, { emitEvent: false });
   }
 
