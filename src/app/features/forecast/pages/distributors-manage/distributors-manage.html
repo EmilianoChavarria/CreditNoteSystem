@@ -64,16 +64,29 @@
 
         <app-tab [titleT]="'FORECAST.DISTRIBUTORS.TAB_FOREIGN_CLIENTS' | translate">
 
-            <app-tabla-dinamica [datos]="foreignClients()" [columnas]="foreignColumns" [canAdd]="true"
+            <div class="mb-3 flex justify-end">
+                <button type="button"
+                    class="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-100"
+                    (click)="openBulkHistoryModal()">
+                    <lucide-icon name="history" size="14"></lucide-icon>
+                    {{ 'FORECAST.DISTRIBUTORS.BULK_HISTORY_BUTTON' | translate }}
+                </button>
+            </div>
+
+            <app-tabla-dinamica [datos]="foreignClients()" [columnas]="foreignColumns" [canAdd]="true" [canBulk]="true"
                 [addLabel]="'FORECAST.DISTRIBUTORS.ACTION_ADD_FOREIGN'" [actionMode]="'menu'"
                 [accionesPersonalizadas]="foreignAcciones" [emptyMessageKey]="'FORECAST.DISTRIBUTORS.FOREIGN_EMPTY'"
                 [serverPagination]="true" [registrosPorPagina]="foreignPageSize()"
                 [paginaActualExterna]="foreignCurrentPage()" [totalPaginasExterno]="foreignTotalPages()"
                 [hasNextPage]="foreignHasNextPage()" [hasPrevPage]="foreignHasPrevPage()" [loading]="foreignLoading()"
+                [fourthFilterOptions]="zoneFilterOptions" [fourthFilterDefault]="'all'"
+                [fourthFilterLabel]="'FORECAST.DISTRIBUTORS.ZONE_LABEL'"
+                [fourthFilterAllLabel]="'FORECAST.DISTRIBUTORS.ZONE_ALL'"
                 (paginaSiguiente)="onForeignNextPage()" (paginaAnterior)="onForeignPrevPage()"
                 (paginaPrimera)="onForeignFirstPage()" (paginaUltima)="onForeignLastPage()"
                 (registrosPorPaginaChange)="onForeignPageSizeChange($event)" (searchChange)="onForeignSearch($event)"
-                (refreshClick)="loadForeignData(foreignCurrentPage())" (addClick)="openCreateForeignClient()">
+                (refreshClick)="loadForeignData(foreignCurrentPage())" (addClick)="openCreateForeignClient()"
+                (bulkClick)="openForeignBulkUpload()" (fourthFilterChange)="onForeignZoneChange($event)">
 
                 <ng-template #cellTemplate let-item let-col="column">
                     <div class="py-3 px-2">
@@ -231,6 +244,14 @@
     <app-edit-distributor-modal [client]="selectedForeignClient()" [open]="foreignModalOpen()"
         (openChange)="foreignModalOpen.set($event)" (saved)="loadForeignData(foreignCurrentPage())">
     </app-edit-distributor-modal>
+
+    <app-bulk-distributor-upload-modal [open]="foreignBulkUploadModalOpen()"
+        (openChange)="foreignBulkUploadModalOpen.set($event)" (uploaded)="onForeignBulkUploaded()">
+    </app-bulk-distributor-upload-modal>
+
+    <app-bulk-distributor-history-modal [open]="bulkHistoryModalOpen()"
+        (openChange)="bulkHistoryModalOpen.set($event)">
+    </app-bulk-distributor-history-modal>
 
     <app-distributor-forecast-modal [distributor]="selectedForecastDistributor()" [open]="forecastModalOpen()"
         (openChange)="forecastModalOpen.set($event)">

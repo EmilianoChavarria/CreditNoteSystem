@@ -1,4 +1,5 @@
-import { Component, signal } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal, viewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DatePipe } from '@angular/common';
 import { finalize } from 'rxjs';
 import { LucideAngularModule } from 'lucide-angular';
@@ -10,20 +11,28 @@ import { Tab } from '../../../../shared/components/ui/tab/tab';
 import { Popover } from '../../../../shared/components/ui/popover/popover';
 import { Modal } from '../../../../shared/components/ui/modal/modal';
 import { ClientGroup, DistributorRecord, ForecastClient, ForecastService } from '../../../../core/services/forecast.service';
+import { AuthService } from '../../../../core/services/auth-service';
+import { BatchFinishedMessage, ReverbSocketService } from '../../../../core/services/reverb-socket-service';
 import { EditDistributorModal } from './edit-distributor-modal';
 import { GroupForecastModal } from '../../components/group-forecast-modal/group-forecast-modal';
 import { CreateGroupModal } from '../../components/create-group-modal/create-group-modal';
 import { GroupMembersModal } from '../../components/group-members-modal/group-members-modal';
 import { EditGroupModal } from '../../components/edit-group-modal/edit-group-modal';
 import { DistributorForecastModal } from '../../components/distributor-forecast-modal/distributor-forecast-modal';
+import { BulkDistributorUploadModal } from '../../components/bulk-distributor-upload-modal/bulk-distributor-upload-modal';
+import { BulkDistributorHistoryModal } from './components/bulk-distributor-history-modal/bulk-distributor-history-modal';
 
 @Component({
   selector: 'app-distributors-manage',
-  imports: [TranslatePipe, Table, TabsContainer, Tab, Popover, Modal, LucideAngularModule, DatePipe, EditDistributorModal, GroupForecastModal, CreateGroupModal, GroupMembersModal, EditGroupModal, DistributorForecastModal],
+  imports: [TranslatePipe, Table, TabsContainer, Tab, Popover, Modal, LucideAngularModule, DatePipe, EditDistributorModal, GroupForecastModal, CreateGroupModal, GroupMembersModal, EditGroupModal, DistributorForecastModal, BulkDistributorUploadModal, BulkDistributorHistoryModal],
   templateUrl: './distributors-manage.html',
   styleUrl: './distributors-manage.css',
 })
-export class DistributorsManage {
+export class DistributorsManage implements OnInit {
+  private readonly socketService = inject(ReverbSocketService);
+  private readonly authService = inject(AuthService);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly bulkHistoryModal = viewChild(BulkDistributorHistoryModal);
   readonly clients = signal<ForecastClient[]>([]);
   readonly loading = signal(true);
   readonly currentPage = signal(1);
@@ -44,8 +53,15 @@ export class DistributorsManage {
   readonly foreignHasPrevPage = signal(false);
   readonly foreignPageSize = signal(15);
   readonly foreignSearchTerm = signal('');
+  readonly foreignZone = signal('all');
+  readonly zoneFilterOptions = [
+    { label: 'FORECAST.DISTRIBUTORS.ZONE_CENTROAMERICA', value: 'centroamerica' },
+    { label: 'FORECAST.DISTRIBUTORS.ZONE_ARGENTINA', value: 'argentina' },
+  ];
   readonly foreignModalOpen = signal(false);
   readonly selectedForeignClient = signal<ForecastClient | null>(null);
+  readonly foreignBulkUploadModalOpen = signal(false);
+  readonly bulkHistoryModalOpen = signal(false);
 
   readonly forecastModalOpen = signal(false);
   readonly selectedForecastDistributor = signal<DistributorRecord | null>(null);
@@ -120,6 +136,75 @@ export class DistributorsManage {
     this.loadForeignData();
   }
 
+  ngOnInit(): void {
+    this.socketService.connectToGlobalNotifications();
+
+    this.socketService.batchFinished$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((message) => this.handleBatchFinishedEvent(message));
+  }
+
+  private handleBatchFinishedEvent(message: BatchFinishedMessage): void {
+    if (this.resolveEventName(message) !== 'batch.finished') return;
+    if (this.resolveBatchType(message) !== 'distributors') return;
+
+    const currentUserId = this.authService.getCurrentUser()?.id;
+    if (!this.isTargetedToCurrentUser(message, currentUserId)) return;
+
+    this.toastr.info(this.translate.instant('FORECAST.DISTRIBUTORS.BULK_UPLOAD_FINISHED_REFRESH'));
+    this.loadForeignData(this.foreignCurrentPage());
+    this.bulkHistoryModal()?.refresh();
+  }
+
+  openBulkHistoryModal(): void {
+    this.bulkHistoryModalOpen.set(true);
+  }
+
+  private resolveEventName(message: BatchFinishedMessage): string {
+    const rootEvent = String(message.event ?? '');
+    if (rootEvent.length > 0) return rootEvent;
+
+    const recordMessage = message as Record<string, unknown>;
+    const data = (recordMessage['data'] ?? null) as Record<string, unknown> | null;
+    return String(data?.['event'] ?? '');
+  }
+
+  private resolveBatchType(message: BatchFinishedMessage): string | undefined {
+    const recordMessage = message as Record<string, unknown>;
+    const data = (recordMessage['data'] ?? null) as Record<string, unknown> | null;
+    const nestedBatch = (data?.['batch'] ?? null) as Record<string, unknown> | null;
+
+    return (message.batch?.['batchType'] as string | undefined)
+      ?? (nestedBatch?.['batchType'] as string | undefined);
+  }
+
+  private isTargetedToCurrentUser(message: BatchFinishedMessage, currentUserId?: number): boolean {
+    const payloadTarget = this.extractTargetUserId(message);
+
+    if (payloadTarget === undefined || payloadTarget === null || payloadTarget === '') {
+      return true;
+    }
+
+    if (typeof currentUserId !== 'number') {
+      return true;
+    }
+
+    return String(payloadTarget) === String(currentUserId);
+  }
+
+  private extractTargetUserId(message: BatchFinishedMessage): unknown {
+    const recordMessage = message as Record<string, unknown>;
+    const data = (recordMessage['data'] ?? null) as Record<string, unknown> | null;
+    const batch = (recordMessage['batch'] ?? null) as Record<string, unknown> | null;
+
+    return message.targetUserId
+      ?? message.target_user_id
+      ?? data?.['targetUserId']
+      ?? data?.['target_user_id']
+      ?? batch?.['targetUserId']
+      ?? batch?.['target_user_id'];
+  }
+
   openEditModal(client: ForecastClient): void {
     this.selectedClient.set(client);
     this.editModalOpen.set(true);
@@ -142,6 +227,15 @@ export class DistributorsManage {
       salesManagerId: record.salesManagerId,
     });
     this.foreignModalOpen.set(true);
+  }
+
+  openForeignBulkUpload(): void {
+    this.foreignBulkUploadModalOpen.set(true);
+  }
+
+  onForeignBulkUploaded(): void {
+    this.loadForeignData(this.foreignCurrentPage());
+    this.bulkHistoryModal()?.refresh();
   }
 
   openForecastModal(record: DistributorRecord): void {
@@ -291,10 +385,16 @@ export class DistributorsManage {
     }, 350);
   }
 
+  onForeignZoneChange(value: string): void {
+    this.foreignZone.set(value);
+    this.loadForeignData(1);
+  }
+
   loadForeignData(page = 1): void {
     this.foreignLoading.set(true);
+    const zone = this.foreignZone();
     this.forecastService
-      .getDistributorsPaginated(this.foreignPageSize(), page, this.foreignSearchTerm())
+      .getDistributorsPaginated(this.foreignPageSize(), page, this.foreignSearchTerm(), zone !== 'all' ? zone : undefined)
       .pipe(finalize(() => this.foreignLoading.set(false)))
       .subscribe({
         next: (res) => {
