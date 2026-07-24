@@ -138,10 +138,6 @@ export class Clients {
     () => new Set(this.filteredInvoices().map(invoice => invoice.id)),
   );
 
-  private static readonly CHARGE_RATES: Record<string, number> = {
-    annual: 0.25,
-    sporadic: 0.12,
-  };
 
   private readonly chargeTypeIdSignal = toSignal(
     this.invoiceChargeType.valueChanges.pipe(startWith(this.invoiceChargeType.getRawValue())),
@@ -169,7 +165,7 @@ export class Clients {
   );
 
   protected readonly chargeRate = computed(() =>
-    Clients.CHARGE_RATES[this.selectedChargeOption()?.name ?? ''] ?? 0,
+    Number(this.selectedChargeOption()?.percentage ?? 0) / 100,
   );
 
   protected readonly canGenerateOrder = computed(() => this.returnItems().length > 0);
