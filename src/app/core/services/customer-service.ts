@@ -47,7 +47,7 @@ export interface CustomerInvoiceSummary {
   subTotal: string | null;
 }
 
-export type InvoiceChargeType = 'annual' | 'sporadic';
+export type InvoiceChargeType = 'annual' | 'sporadic' | 'exception';
 
 export interface ChargeTypeOption {
   id: number;
