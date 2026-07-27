@@ -194,9 +194,13 @@ export class Clients {
   constructor() {
     this.customerService.getChargeTypes().pipe(take(1)).subscribe({
       next: options => {
-        this.invoiceChargeTypeOptions.set(options);
-        if (options.length > 0) {
-          this.invoiceChargeType.setValue(options[0].id);
+        const roleName = this.authService.getCurrentUser()?.roleName?.trim().toUpperCase();
+        const filteredOptions = roleName === 'CUSTOMER'
+          ? options.filter(o => o.name !== 'exception')
+          : options;
+        this.invoiceChargeTypeOptions.set(filteredOptions);
+        if (filteredOptions.length > 0) {
+          this.invoiceChargeType.setValue(filteredOptions[0].id);
         }
       },
     });
