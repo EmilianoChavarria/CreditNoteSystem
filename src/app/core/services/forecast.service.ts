@@ -595,6 +595,11 @@ export class ForecastService {
     return this.httpService.getBlob(`/forecast/${idClient}/${year}/${month}/invoices/export`);
   }
 
+  exportTemplate(salesEngineerId?: number): Observable<Blob> {
+    const params = salesEngineerId ? { salesEngineerId: String(salesEngineerId) } : undefined;
+    return this.httpService.getBlob('/forecast/template/export', params);
+  }
+
   getClientGroups(): Observable<ClientGroup[]> {
     return this.httpService.get<ClientGroup[]>('/client-groups', this.withBearer()).pipe(
       map((response: ApiResponse<ClientGroup[]>) => response.data ?? []),
