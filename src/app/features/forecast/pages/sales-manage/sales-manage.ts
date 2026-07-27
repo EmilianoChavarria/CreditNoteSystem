@@ -1,4 +1,4 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, signal, viewChild } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { ToastrService } from 'ngx-toastr';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -12,15 +12,18 @@ import { ForecastTable } from '../../components/forecast-table/forecast-table';
 import { MyRequestsModal } from '../../components/my-requests-modal/my-requests-modal';
 import { PendingApprovalsModal } from '../../components/pending-approvals-modal/pending-approvals-modal';
 import { Popover } from '../../../../shared/components/ui/popover/popover';
+import { BulkForecastHistoryModal } from './components/bulk-forecast-history-modal/bulk-forecast-history-modal';
 import { LucideAngularModule } from "lucide-angular";
 
 @Component({
   selector: 'app-sales-manage',
-  imports: [TranslatePipe, DecimalPipe, ForecastTable, MyRequestsModal, PendingApprovalsModal, Popover, LucideAngularModule],
+  imports: [TranslatePipe, DecimalPipe, ForecastTable, MyRequestsModal, PendingApprovalsModal, Popover, BulkForecastHistoryModal, LucideAngularModule],
   templateUrl: './sales-manage.html',
   styleUrl: './sales-manage.css',
 })
 export class SalesManage {
+  private readonly bulkHistoryModal = viewChild(BulkForecastHistoryModal);
+
   readonly years = [2024, 2025, 2026];
 
   readonly activeYear = signal(new Date().getFullYear());
@@ -40,6 +43,7 @@ export class SalesManage {
 
   readonly showMyRequestsModal = signal(false);
   readonly showPendingApprovalsModal = signal(false);
+  readonly showBulkHistoryModal = signal(false);
   readonly pendingClientCount = signal(0);
   readonly pendingForeignCount = signal(0);
   readonly pendingCount = computed(() => this.pendingClientCount() + this.pendingForeignCount());
@@ -137,12 +141,17 @@ export class SalesManage {
       next: () => {
         this.uploading.set(false);
         this.toastr.success(this.translate.instant('FORECAST.SALES_MANAGE.UPLOAD_SUCCESS'), this.translate.instant('FORECAST.SALES_MANAGE.TOAST_TITLE'));
+        this.bulkHistoryModal()?.refresh();
       },
       error: (err) => {
         this.uploading.set(false);
         this.toastr.error(err?.error?.message ?? this.translate.instant('FORECAST.SALES_MANAGE.UPLOAD_ERROR'), this.translate.instant('FORECAST.SALES_MANAGE.TOAST_ERROR'));
       },
     });
+  }
+
+  openBulkHistoryModal(): void {
+    this.showBulkHistoryModal.set(true);
   }
 
   downloadTemplate(scope: 'engineer' | 'all'): void {
