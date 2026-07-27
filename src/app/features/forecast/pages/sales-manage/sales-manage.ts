@@ -7,14 +7,16 @@ import { ForecastService, Distributor, mapApiToDistributors } from '../../../../
 import { BatchService } from '../../../../core/services/batch-service';
 import { SalesEngineerAssignmentService } from '../../../../core/services/sales-engineer-assignment.service';
 import { AssignmentUser } from '../../../../core/services/user-assignment-service';
+import { ExportService } from '../../../../core/services/export-service';
 import { ForecastTable } from '../../components/forecast-table/forecast-table';
 import { MyRequestsModal } from '../../components/my-requests-modal/my-requests-modal';
 import { PendingApprovalsModal } from '../../components/pending-approvals-modal/pending-approvals-modal';
+import { Popover } from '../../../../shared/components/ui/popover/popover';
 import { LucideAngularModule } from "lucide-angular";
 
 @Component({
   selector: 'app-sales-manage',
-  imports: [TranslatePipe, DecimalPipe, ForecastTable, MyRequestsModal, PendingApprovalsModal, LucideAngularModule],
+  imports: [TranslatePipe, DecimalPipe, ForecastTable, MyRequestsModal, PendingApprovalsModal, Popover, LucideAngularModule],
   templateUrl: './sales-manage.html',
   styleUrl: './sales-manage.css',
 })
@@ -27,6 +29,7 @@ export class SalesManage {
   readonly foreignDistributors = signal<Distributor[]>([]);
   readonly foreignLoading = signal(false);
   readonly uploading = signal(false);
+  readonly downloadingTemplate = signal(false);
   readonly refreshTrigger = signal(0);
 
   readonly isSalesManager = signal(false);
@@ -52,11 +55,18 @@ export class SalesManage {
     this.distributors().reduce((s, d) => s + (d.isGroup ? d.members?.length ?? 0 : 1), 0)
   );
 
+  readonly currentEngineerId = computed(() =>
+    (this.isSalesManager() || this.isForecastAdmin())
+      ? this.selectedEngineer()?.id ?? null
+      : this.authService.getCurrentUser()?.id ?? null
+  );
+
   constructor(
     private readonly forecastService: ForecastService,
     private readonly batchService: BatchService,
     private readonly authService: AuthService,
     private readonly seAssignmentService: SalesEngineerAssignmentService,
+    private readonly exportService: ExportService,
     private readonly toastr: ToastrService,
     private readonly translate: TranslateService,
   ) {
@@ -131,6 +141,22 @@ export class SalesManage {
       error: (err) => {
         this.uploading.set(false);
         this.toastr.error(err?.error?.message ?? this.translate.instant('FORECAST.SALES_MANAGE.UPLOAD_ERROR'), this.translate.instant('FORECAST.SALES_MANAGE.TOAST_ERROR'));
+      },
+    });
+  }
+
+  downloadTemplate(scope: 'engineer' | 'all'): void {
+    const engineerId = scope === 'engineer' ? this.currentEngineerId() ?? undefined : undefined;
+
+    this.downloadingTemplate.set(true);
+    this.forecastService.exportTemplate(engineerId).subscribe({
+      next: (blob) => {
+        this.downloadingTemplate.set(false);
+        this.exportService.downloadBlob(blob, 'Layout Forecast.csv');
+      },
+      error: (err) => {
+        this.downloadingTemplate.set(false);
+        this.toastr.error(err?.error?.message ?? this.translate.instant('FORECAST.SALES_MANAGE.DOWNLOAD_TEMPLATE_ERROR'), this.translate.instant('FORECAST.SALES_MANAGE.TOAST_ERROR'));
       },
     });
   }
