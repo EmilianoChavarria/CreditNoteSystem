@@ -1401,7 +1401,13 @@
       "TOAST_TITLE": "Forecast",
       "TOAST_ERROR": "Error",
       "DISTRIBUTORS_BADGE": "Clientes extranjeros",
-      "DISTRIBUTORS_TITLE": "Distribuidores"
+      "DISTRIBUTORS_TITLE": "Distribuidores",
+      "BULK_HISTORY_BUTTON": "Historial de cargas",
+      "BULK_HISTORY_TITLE": "Historial de cargas masivas",
+      "BULK_HISTORY_CLOSE": "Cerrar",
+      "BULK_HISTORY_LOAD_ERROR": "No se pudo cargar el historial de cargas.",
+      "BULK_HISTORY_LOAD_DETAIL_ERROR": "No se pudo cargar el detalle del batch.",
+      "BULK_HISTORY_LOAD_REQUESTS_ERROR": "No se pudieron cargar los registros del batch."
     },
     "TABLE": {
       "LOADING": "Cargando forecast...",

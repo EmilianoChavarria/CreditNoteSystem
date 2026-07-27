@@ -1401,7 +1401,13 @@
       "TOAST_TITLE": "Forecast",
       "TOAST_ERROR": "Error",
       "DISTRIBUTORS_BADGE": "Foreign clients",
-      "DISTRIBUTORS_TITLE": "Distributors"
+      "DISTRIBUTORS_TITLE": "Distributors",
+      "BULK_HISTORY_BUTTON": "Upload history",
+      "BULK_HISTORY_TITLE": "Bulk upload history",
+      "BULK_HISTORY_CLOSE": "Close",
+      "BULK_HISTORY_LOAD_ERROR": "Could not load the upload history.",
+      "BULK_HISTORY_LOAD_DETAIL_ERROR": "Could not load the batch detail.",
+      "BULK_HISTORY_LOAD_REQUESTS_ERROR": "Could not load the batch records."
     },
     "TABLE": {
       "LOADING": "Loading forecast...",
