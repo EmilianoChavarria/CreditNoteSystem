@@ -350,6 +350,18 @@ export class BatchService {
     );
   }
 
+  getForecastBatches(perPage = 15, page = 1, bearerToken?: string): Observable<PagePagination<BatchSummary>> {
+    const options = this.buildOptions({ perPage, page }, bearerToken);
+
+    return this.httpService.get<PagePagination<BatchSummary>>('/batches/forecast', options).pipe(
+      map((response: ApiResponse<PagePagination<BatchSummary>>) => this.toPagination<BatchSummary>(response.data)),
+      catchError((error) => {
+        console.error('Error loading forecast batches', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
   getDistributorsBatches(perPage = 15, page = 1, bearerToken?: string): Observable<PagePagination<BatchSummary>> {
     const options = this.buildOptions({ perPage, page }, bearerToken);
 
