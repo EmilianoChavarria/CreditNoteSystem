@@ -129,19 +129,10 @@
         </div>
       </app-popover>
 
-      <input #fileInput type="file" accept=".csv,.xlsx" class="hidden" (change)="onFileSelected($event)">
-      <button type="button" [disabled]="uploading()" (click)="fileInput.click()"
-        class="inline-flex items-center gap-2 rounded-lg bg-[#395f93] white px-3 py-2 text-sm font-medium text-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-sm">
-        @if (uploading()) {
-        <svg class="animate-spin w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-        </svg>
-        {{ 'FORECAST.SALES_MANAGE.UPLOADING' | translate }}
-        } @else {
+      <button type="button" (click)="openBulkUploadModal()"
+        class="inline-flex items-center gap-2 rounded-lg bg-[#395f93] white px-3 py-2 text-sm font-medium text-white hover:bg-gray-50 transition shadow-sm">
         <lucide-icon name="upload" class="my-auto" size="14"></lucide-icon>
         {{ 'FORECAST.SALES_MANAGE.BULK_UPLOAD' | translate }}
-        }
       </button>
 
       <button type="button" (click)="openBulkHistoryModal()"
@@ -203,5 +194,10 @@
   <app-bulk-forecast-history-modal
     [open]="showBulkHistoryModal()"
     (openChange)="showBulkHistoryModal.set($event)" />
+
+  <app-bulk-forecast-upload-modal
+    [open]="showBulkUploadModal()"
+    (openChange)="showBulkUploadModal.set($event)"
+    (uploaded)="onForecastBulkUploaded()" />
 
 </div>

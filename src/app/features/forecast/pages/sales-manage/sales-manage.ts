@@ -4,7 +4,6 @@ import { ToastrService } from 'ngx-toastr';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../../../../core/services/auth-service';
 import { ForecastService, Distributor, mapApiToDistributors } from '../../../../core/services/forecast.service';
-import { BatchService } from '../../../../core/services/batch-service';
 import { SalesEngineerAssignmentService } from '../../../../core/services/sales-engineer-assignment.service';
 import { AssignmentUser } from '../../../../core/services/user-assignment-service';
 import { ExportService } from '../../../../core/services/export-service';
@@ -13,11 +12,12 @@ import { MyRequestsModal } from '../../components/my-requests-modal/my-requests-
 import { PendingApprovalsModal } from '../../components/pending-approvals-modal/pending-approvals-modal';
 import { Popover } from '../../../../shared/components/ui/popover/popover';
 import { BulkForecastHistoryModal } from './components/bulk-forecast-history-modal/bulk-forecast-history-modal';
+import { BulkForecastUploadModal } from '../../components/bulk-forecast-upload-modal/bulk-forecast-upload-modal';
 import { LucideAngularModule } from "lucide-angular";
 
 @Component({
   selector: 'app-sales-manage',
-  imports: [TranslatePipe, DecimalPipe, ForecastTable, MyRequestsModal, PendingApprovalsModal, Popover, BulkForecastHistoryModal, LucideAngularModule],
+  imports: [TranslatePipe, DecimalPipe, ForecastTable, MyRequestsModal, PendingApprovalsModal, Popover, BulkForecastHistoryModal, BulkForecastUploadModal, LucideAngularModule],
   templateUrl: './sales-manage.html',
   styleUrl: './sales-manage.css',
 })
@@ -31,7 +31,6 @@ export class SalesManage {
   readonly loading = signal(false);
   readonly foreignDistributors = signal<Distributor[]>([]);
   readonly foreignLoading = signal(false);
-  readonly uploading = signal(false);
   readonly downloadingTemplate = signal(false);
   readonly refreshTrigger = signal(0);
 
@@ -44,6 +43,7 @@ export class SalesManage {
   readonly showMyRequestsModal = signal(false);
   readonly showPendingApprovalsModal = signal(false);
   readonly showBulkHistoryModal = signal(false);
+  readonly showBulkUploadModal = signal(false);
   readonly pendingClientCount = signal(0);
   readonly pendingForeignCount = signal(0);
   readonly pendingCount = computed(() => this.pendingClientCount() + this.pendingForeignCount());
@@ -67,7 +67,6 @@ export class SalesManage {
 
   constructor(
     private readonly forecastService: ForecastService,
-    private readonly batchService: BatchService,
     private readonly authService: AuthService,
     private readonly seAssignmentService: SalesEngineerAssignmentService,
     private readonly exportService: ExportService,
@@ -130,24 +129,12 @@ export class SalesManage {
     this.refreshTrigger.update(v => v + 1);
   }
 
-  onFileSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
-    input.value = '';
+  openBulkUploadModal(): void {
+    this.showBulkUploadModal.set(true);
+  }
 
-    this.uploading.set(true);
-    this.batchService.createForecastBatch(file).subscribe({
-      next: () => {
-        this.uploading.set(false);
-        this.toastr.success(this.translate.instant('FORECAST.SALES_MANAGE.UPLOAD_SUCCESS'), this.translate.instant('FORECAST.SALES_MANAGE.TOAST_TITLE'));
-        this.bulkHistoryModal()?.refresh();
-      },
-      error: (err) => {
-        this.uploading.set(false);
-        this.toastr.error(err?.error?.message ?? this.translate.instant('FORECAST.SALES_MANAGE.UPLOAD_ERROR'), this.translate.instant('FORECAST.SALES_MANAGE.TOAST_ERROR'));
-      },
-    });
+  onForecastBulkUploaded(): void {
+    this.bulkHistoryModal()?.refresh();
   }
 
   openBulkHistoryModal(): void {
