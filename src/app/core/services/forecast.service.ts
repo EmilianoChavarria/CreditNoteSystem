@@ -68,6 +68,51 @@ export interface UpdateDistributorForecastMonthPayload {
   sales?: number;
 }
 
+export interface ForecastSearchClient {
+  tipo: 'cliente';
+  id: number;
+  numeroCliente: string;
+  nombre: string;
+}
+
+export interface ForecastSearchForeignClient {
+  tipo: 'clienteExtranjero';
+  id: number;
+  numeroCliente: number;
+  nombre: string;
+}
+
+export interface ForecastSearchGroup {
+  tipo: 'grupo';
+  id: number;
+  numeroCliente: number;
+  nombre: string;
+}
+
+export interface ForecastSearchResults {
+  clientes: ForecastSearchClient[];
+  clientesExtranjeros: ForecastSearchForeignClient[];
+  grupos: ForecastSearchGroup[];
+}
+
+export type ForecastEntityType = 'cliente' | 'clienteExtranjero' | 'grupo';
+
+export interface ForecastSummaryMonth {
+  mes: number;
+  objetivo: number | null;
+  ventaMensual: number | null;
+  porcentajeCumplimiento: number | null;
+  porcentajeRetorno: number | null;
+}
+
+export interface ForecastSummaryResponse {
+  tipo: ForecastEntityType;
+  numeroCliente: number;
+  nombre: string;
+  anio: number;
+  meses: ForecastSummaryMonth[];
+}
+
 export interface ClientGroupResponsible {
   id: number;
   fullName: string;
@@ -87,10 +132,13 @@ export interface ClientGroupResponsible {
 export interface ClientGroup {
   id: number;
   name: string;
+  clientNumber?: string | null;
   memberCount: number;
   createdAt: string;
   responsibleUserId?: number | null;
   responsible?: ClientGroupResponsible | null;
+  salesManagerId?: number | null;
+  salesManager?: ClientGroupResponsible | null;
 }
 
 export interface ClientGroupForecastClient {
@@ -112,7 +160,9 @@ export interface ClientGroupForecastSummary {
 
 export interface CreateClientGroupPayload {
   name: string;
+  clientNumber?: string;
   responsibleUserId?: number;
+  salesManagerId?: number;
 }
 
 export interface ClientGroupMember {
@@ -274,6 +324,7 @@ export interface ChangeRequestHistory {
 export interface ChangeRequest {
   id: number;
   idClient: number;
+  clientName: string;
   year: number;
   month: number;
   previousAmount: string;
@@ -304,6 +355,7 @@ export interface DistributorChangeRequestHistory {
 export interface DistributorChangeRequest {
   id: number;
   distributorId: number;
+  distributorName: string;
   year: number;
   month: number;
   previousForecast: number;
@@ -322,6 +374,27 @@ export interface DistributorChangeRequestPayload {
   year: number;
   month: number;
   forecast: number;
+}
+
+export interface NationalCustomer {
+  customerNumber: string;
+  emails: string;
+  returnPercentage: number;
+}
+
+export interface NationalCustomerPage {
+  data: NationalCustomer[];
+  current_page: number;
+  last_page: number;
+  per_page?: number;
+  total?: number;
+  next_page_url?: string | null;
+  prev_page_url?: string | null;
+}
+
+export interface UpdateNationalCustomerPayload {
+  emails?: string;
+  returnPercentage?: number;
 }
 
 function buildMonthEntries(months: ForecastMonthApi[]): MonthEntry[] {
@@ -374,6 +447,7 @@ export function mapDistributorChangeRequestToChangeRequest(reqs: DistributorChan
   return reqs.map(req => ({
     id: req.id,
     idClient: req.distributorId,
+    clientName: req.distributorName,
     year: req.year,
     month: req.month,
     previousAmount: String(req.previousForecast),
@@ -600,6 +674,26 @@ export class ForecastService {
     return this.httpService.getBlob('/forecast/template/export', params);
   }
 
+  searchForecastEntities(term: string): Observable<ForecastSearchResults> {
+    return this.httpService.get<ForecastSearchResults>(
+      '/forecast/search',
+      { ...this.withBearer(), params: { q: term } }
+    ).pipe(
+      map((response: ApiResponse<ForecastSearchResults>) => response.data ?? { clientes: [], clientesExtranjeros: [], grupos: [] }),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
+  getForecastSummary(tipo: ForecastEntityType, id: number, year: number): Observable<ForecastSummaryResponse | null> {
+    return this.httpService.get<ForecastSummaryResponse>(
+      `/forecast/summary/${tipo}/${id}/${year}`,
+      this.withBearer()
+    ).pipe(
+      map((response: ApiResponse<ForecastSummaryResponse>) => response.data ?? null),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
   getClientGroups(): Observable<ClientGroup[]> {
     return this.httpService.get<ClientGroup[]>('/client-groups', this.withBearer()).pipe(
       map((response: ApiResponse<ClientGroup[]>) => response.data ?? []),
@@ -748,6 +842,40 @@ export class ForecastService {
       this.withBearer()
     ).pipe(
       map((response: ApiResponse<DistributorForecastMonth>) => response.data!),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
+  getNationalCustomers(perPage = 15, page = 1, search?: string): Observable<NationalCustomerPage> {
+    const params: { per_page: number; page: number; search?: string } = { per_page: perPage, page };
+    if (search?.trim()) {
+      params.search = search.trim();
+    }
+
+    return this.httpService.get<NationalCustomerPage>('/national-customers', { ...this.withBearer(), params }).pipe(
+      map((response: ApiResponse<NationalCustomerPage>) => {
+        const payload = response.data;
+        return {
+          data: payload?.data ?? [],
+          current_page: payload?.current_page ?? 1,
+          last_page: payload?.last_page ?? 1,
+          per_page: payload?.per_page,
+          total: payload?.total,
+          next_page_url: payload?.next_page_url,
+          prev_page_url: payload?.prev_page_url,
+        };
+      }),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
+  updateNationalCustomer(customerNumber: string, payload: UpdateNationalCustomerPayload): Observable<NationalCustomer> {
+    return this.httpService.put<NationalCustomer>(
+      `/national-customers/${encodeURIComponent(customerNumber)}`,
+      payload,
+      this.withBearer()
+    ).pipe(
+      map((response: ApiResponse<NationalCustomer>) => response.data!),
       catchError((error) => throwError(() => error))
     );
   }
