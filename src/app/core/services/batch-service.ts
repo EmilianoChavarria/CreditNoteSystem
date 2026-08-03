@@ -269,6 +269,33 @@ export class BatchService {
     );
   }
 
+  createNationalCustomersBatch(file: File, bearerToken?: string): Observable<BatchSummary | null> {
+    const resolvedBearer = bearerToken ?? this.resolveBearerToken();
+    const headers = resolvedBearer
+      ? new HttpHeaders({ Authorization: `Bearer ${resolvedBearer}` })
+      : undefined;
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('batchType', 'nationalCustomers');
+
+    return this.httpClient.post<ApiResponse<unknown>>(
+      `${this.baseApiUrl}/batches`,
+      formData,
+      { headers, withCredentials: true }
+    ).pipe(
+      map((response) => {
+        const data = (response.data ?? {}) as Record<string, unknown>;
+        const batchCandidate = data['batch'] ?? data;
+        return this.toBatchSummary(batchCandidate);
+      }),
+      catchError((error) => {
+        console.error('Error creating nationalCustomers batch', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
   createCreditsDataBatch(file: File, bearerToken?: string): Observable<BatchSummary | null> {
     const resolvedBearer = bearerToken ?? this.resolveBearerToken();
     const headers = resolvedBearer
@@ -369,6 +396,18 @@ export class BatchService {
       map((response: ApiResponse<PagePagination<BatchSummary>>) => this.toPagination<BatchSummary>(response.data)),
       catchError((error) => {
         console.error('Error loading distributors batches', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  getNationalCustomersBatches(perPage = 15, page = 1, bearerToken?: string): Observable<PagePagination<BatchSummary>> {
+    const options = this.buildOptions({ perPage, page }, bearerToken);
+
+    return this.httpService.get<PagePagination<BatchSummary>>('/batches/national-customers', options).pipe(
+      map((response: ApiResponse<PagePagination<BatchSummary>>) => this.toPagination<BatchSummary>(response.data)),
+      catchError((error) => {
+        console.error('Error loading national customers batches', error);
         return throwError(() => error);
       })
     );
