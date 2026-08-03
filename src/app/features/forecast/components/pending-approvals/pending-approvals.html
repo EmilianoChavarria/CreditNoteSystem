@@ -30,7 +30,7 @@
         <tbody>
           @for (req of requests(); track req.id) {
             <tr class="border-t border-gray-100 hover:bg-gray-50 transition-colors">
-              <td class="px-4 py-2.5 text-gray-700 font-medium">#{{ req.idClient }}</td>
+              <td class="px-4 py-2.5 text-gray-700 font-medium">#{{ req.idClient }} - {{req.clientName}}</td>
               <td class="px-4 py-2.5 text-gray-600 whitespace-nowrap">
                 {{ monthName(req.month) }} {{ req.year }}
               </td>
@@ -110,7 +110,7 @@
         <tbody>
           @for (req of distributorRequests(); track req.id) {
             <tr class="border-t border-gray-100 hover:bg-gray-50 transition-colors">
-              <td class="px-4 py-2.5 text-gray-700 font-medium">{{ req.distributor?.businessName ?? '#' + req.distributorId }}</td>
+              <td class="px-4 py-2.5 text-gray-700 font-medium">{{ req.distributor?.businessName ?? '#' + `${req.distributorId} - ${req.distributorName}` }}</td>
               <td class="px-4 py-2.5 text-gray-600 whitespace-nowrap">
                 {{ monthName(req.month) }} {{ req.year }}
               </td>
