@@ -1,6 +1,6 @@
 import { Component, DestroyRef, inject, OnInit, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { DatePipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { finalize } from 'rxjs';
 import { LucideAngularModule } from 'lucide-angular';
 import { ToastrService } from 'ngx-toastr';
@@ -21,10 +21,13 @@ import { EditGroupModal } from '../../components/edit-group-modal/edit-group-mod
 import { DistributorForecastModal } from '../../components/distributor-forecast-modal/distributor-forecast-modal';
 import { BulkDistributorUploadModal } from '../../components/bulk-distributor-upload-modal/bulk-distributor-upload-modal';
 import { BulkDistributorHistoryModal } from './components/bulk-distributor-history-modal/bulk-distributor-history-modal';
+import { BulkNationalCustomersUploadModal } from '../../components/bulk-national-customers-upload-modal/bulk-national-customers-upload-modal';
+import { BulkNationalCustomersHistoryModal } from './components/bulk-national-customers-history-modal/bulk-national-customers-history-modal';
+import { EditNationalCustomerModal } from './components/edit-national-customer-modal/edit-national-customer-modal';
 
 @Component({
   selector: 'app-distributors-manage',
-  imports: [TranslatePipe, Table, TabsContainer, Tab, Popover, Modal, LucideAngularModule, DatePipe, EditDistributorModal, GroupForecastModal, CreateGroupModal, GroupMembersModal, EditGroupModal, DistributorForecastModal, BulkDistributorUploadModal, BulkDistributorHistoryModal],
+  imports: [TranslatePipe, DecimalPipe, Table, TabsContainer, Tab, Popover, Modal, LucideAngularModule, DatePipe, EditDistributorModal, GroupForecastModal, CreateGroupModal, GroupMembersModal, EditGroupModal, DistributorForecastModal, BulkDistributorUploadModal, BulkDistributorHistoryModal, BulkNationalCustomersUploadModal, BulkNationalCustomersHistoryModal, EditNationalCustomerModal],
   templateUrl: './distributors-manage.html',
   styleUrl: './distributors-manage.css',
 })
@@ -33,6 +36,7 @@ export class DistributorsManage implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly bulkHistoryModal = viewChild(BulkDistributorHistoryModal);
+  private readonly nationalBulkHistoryModal = viewChild(BulkNationalCustomersHistoryModal);
   readonly clients = signal<ForecastClient[]>([]);
   readonly loading = signal(true);
   readonly currentPage = signal(1);
@@ -42,8 +46,10 @@ export class DistributorsManage implements OnInit {
   readonly pageSize = signal(15);
   readonly searchTerm = signal('');
 
-  readonly editModalOpen = signal(false);
-  readonly selectedClient = signal<ForecastClient | null>(null);
+  readonly editNationalCustomerModalOpen = signal(false);
+  readonly selectedNationalCustomer = signal<ForecastClient | null>(null);
+  readonly nationalBulkUploadModalOpen = signal(false);
+  readonly nationalBulkHistoryModalOpen = signal(false);
 
   readonly foreignClients = signal<DistributorRecord[]>([]);
   readonly foreignLoading = signal(true);
@@ -98,14 +104,15 @@ export class DistributorsManage implements OnInit {
       { key: 'razonSocial', label: this.translate.instant('FORECAST.DISTRIBUTORS.COL_RAZON_SOCIAL'), sortable: true, customTemplate: true },
       { key: 'rfc', label: this.translate.instant('FORECAST.DISTRIBUTORS.COL_RFC'), sortable: true, customTemplate: true },
       { key: 'direccion', label: this.translate.instant('FORECAST.DISTRIBUTORS.COL_ADDRESS'), sortable: true, customTemplate: true },
-      { key: 'correosForecast', label: this.translate.instant('FORECAST.DISTRIBUTORS.COL_EMAILS'), sortable: false, customTemplate: true },
+      { key: 'emails', label: this.translate.instant('FORECAST.DISTRIBUTORS.COL_EMAILS'), sortable: false, customTemplate: true },
+      { key: 'returnPercentage', label: this.translate.instant('FORECAST.DISTRIBUTORS.COL_RETURN'), sortable: false, customTemplate: true },
     ];
     this.acciones = [
       {
-        label: this.translate.instant('FORECAST.DISTRIBUTORS.ACTION_EDIT'),
+        label: this.translate.instant('FORECAST.DISTRIBUTORS.ACTION_EDIT_EMAILS_RETURN'),
         icon: 'pencil',
         className: 'text-left text-gray-700',
-        accion: (item) => this.openEditModal(item),
+        accion: (item) => this.openEditNationalCustomerModal(item),
       },
     ];
     this.foreignColumns = [
@@ -146,10 +153,19 @@ export class DistributorsManage implements OnInit {
 
   private handleBatchFinishedEvent(message: BatchFinishedMessage): void {
     if (this.resolveEventName(message) !== 'batch.finished') return;
-    if (this.resolveBatchType(message) !== 'distributors') return;
+
+    const batchType = this.resolveBatchType(message);
+    if (batchType !== 'distributors' && batchType !== 'nationalCustomers') return;
 
     const currentUserId = this.authService.getCurrentUser()?.id;
     if (!this.isTargetedToCurrentUser(message, currentUserId)) return;
+
+    if (batchType === 'nationalCustomers') {
+      this.toastr.info(this.translate.instant('FORECAST.DISTRIBUTORS.NATIONAL_BULK_UPLOAD_FINISHED_REFRESH'));
+      this.loadData(this.currentPage());
+      this.nationalBulkHistoryModal()?.refresh();
+      return;
+    }
 
     this.toastr.info(this.translate.instant('FORECAST.DISTRIBUTORS.BULK_UPLOAD_FINISHED_REFRESH'));
     this.loadForeignData(this.foreignCurrentPage());
@@ -205,9 +221,26 @@ export class DistributorsManage implements OnInit {
       ?? batch?.['target_user_id'];
   }
 
-  openEditModal(client: ForecastClient): void {
-    this.selectedClient.set(client);
-    this.editModalOpen.set(true);
+  openEditNationalCustomerModal(client: ForecastClient): void {
+    this.selectedNationalCustomer.set(client);
+    this.editNationalCustomerModalOpen.set(true);
+  }
+
+  onNationalCustomerSaved(): void {
+    this.loadData(this.currentPage());
+  }
+
+  openNationalBulkUploadModal(): void {
+    this.nationalBulkUploadModalOpen.set(true);
+  }
+
+  openNationalBulkHistoryModal(): void {
+    this.nationalBulkHistoryModalOpen.set(true);
+  }
+
+  onNationalBulkUploaded(): void {
+    this.loadData(this.currentPage());
+    this.nationalBulkHistoryModal()?.refresh();
   }
 
   openCreateForeignClient(): void {
