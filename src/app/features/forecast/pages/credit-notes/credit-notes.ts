@@ -1,0 +1,251 @@
+import { Component, computed, signal } from '@angular/core';
+import { FormControl } from '@angular/forms';
+import { CurrencyPipe, DecimalPipe } from '@angular/common';
+import { LucideAngularModule } from "lucide-angular";
+import { Observable, finalize, map, of } from 'rxjs';
+import { ToastrService } from 'ngx-toastr';
+import {
+  ForecastEntityType,
+  ForecastService,
+  ForecastSummaryMonth,
+  InvoiceProductsEntry,
+  InvoiceSection,
+} from '../../../../core/services/forecast.service';
+import { ExportService } from '../../../../core/services/export-service';
+import { AutocompleteOption } from '../../../../shared/components/ui/autocomplete/autocomplete';
+import { GroupedAutocomplete, AutocompleteOptionGroup } from '../../../../shared/components/ui/grouped-autocomplete/grouped-autocomplete';
+import { ForecastInvoicesModal } from '../../components/forecast-invoices-modal/forecast-invoices-modal';
+import { ForecastInvoiceProductsModal } from '../../components/forecast-invoice-products-modal/forecast-invoice-products-modal';
+
+type StatusFilter = 'all' | 'met' | 'missed' | 'pending-note' | 'with-note';
+
+interface SelectedEntity {
+  tipo: ForecastEntityType;
+  id: number;
+  nombre: string;
+}
+
+interface SummaryRow extends ForecastSummaryMonth {
+  monthLabel: string;
+  cumplido: boolean | null;
+}
+
+const CUMPLIMIENTO_THRESHOLD = 97;
+
+interface InvoicesState {
+  clientId: number;
+  clientName: string;
+  monthLabel: string;
+  year: number;
+  month: number;
+  sections: InvoiceSection[];
+  loading: boolean;
+}
+
+interface InvoiceProductsState {
+  clientName: string;
+  folio: string;
+  entry: InvoiceProductsEntry | null;
+  loading: boolean;
+}
+
+@Component({
+  selector: 'app-credit-notes',
+  imports: [
+    LucideAngularModule,
+    GroupedAutocomplete,
+    CurrencyPipe,
+    DecimalPipe,
+    ForecastInvoicesModal,
+    ForecastInvoiceProductsModal,
+  ],
+  templateUrl: './credit-notes.html',
+  styleUrl: './credit-notes.css',
+})
+export class CreditNotes {
+  readonly years = [2024, 2025, 2026];
+
+  readonly monthsLong = [
+    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
+  ];
+
+  readonly monthsShort = [
+    'ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC',
+  ];
+
+  readonly entityControl = new FormControl<AutocompleteOption | null>(null);
+
+  readonly year = signal(new Date().getFullYear());
+  readonly entity = signal('all');
+  readonly month = signal('all');
+  readonly status = signal<StatusFilter>('all');
+  readonly tab = signal<'active' | 'history'>('active');
+
+  readonly selectedEntity = signal<SelectedEntity | null>(null);
+  readonly loadingSummary = signal(false);
+  readonly summaryMonths = signal<ForecastSummaryMonth[]>([]);
+
+  readonly invoicesState = signal<InvoicesState | null>(null);
+  readonly exportingInvoices = signal(false);
+  readonly invoiceProductsState = signal<InvoiceProductsState | null>(null);
+
+  readonly stats = computed(() => ({ pending: 0 }));
+
+  readonly summaryRows = computed<SummaryRow[]>(() =>
+    this.summaryMonths().map((m) => ({
+      ...m,
+      monthLabel: `${this.monthsShort[m.mes - 1]} ${this.year()}`,
+      cumplido: m.porcentajeCumplimiento == null ? null : m.porcentajeCumplimiento >= CUMPLIMIENTO_THRESHOLD,
+    }))
+  );
+
+  constructor(
+    private readonly forecastService: ForecastService,
+    private readonly exportService: ExportService,
+    private readonly toastr: ToastrService,
+  ) {}
+
+  setYear(year: number): void {
+    this.year.set(year);
+    const entity = this.selectedEntity();
+    if (entity) {
+      this.loadSummary(entity);
+    }
+  }
+
+  searchEntities(term: string): Observable<AutocompleteOptionGroup[]> {
+    if (!term || term.trim().length === 0) {
+      return of([]);
+    }
+
+    return this.forecastService.searchForecastEntities(term.trim()).pipe(
+      map((results) => [
+        {
+          groupLabel: 'Agrupaciones',
+          options: results.grupos.map((g) => ({
+            id: `group:${g.id}`,
+            label: g.nombre,
+            data: g,
+          })),
+        },
+        {
+          groupLabel: 'Clientes',
+          options: results.clientes.map((c) => ({
+            id: `client:${c.id}`,
+            label: `${c.numeroCliente} — ${c.nombre}`,
+            data: c,
+          })),
+        },
+        {
+          groupLabel: 'Clientes extranjeros',
+          options: results.clientesExtranjeros.map((c) => ({
+            id: `clientExt:${c.id}`,
+            label: `${c.numeroCliente} — ${c.nombre}`,
+            data: c,
+          })),
+        },
+      ])
+    );
+  }
+
+  onEntitySelected(option: AutocompleteOption): void {
+    if (!option) {
+      this.entity.set('all');
+      this.selectedEntity.set(null);
+      this.summaryMonths.set([]);
+      return;
+    }
+
+    this.entity.set(String(option.id));
+
+    const entity: SelectedEntity = {
+      tipo: option['data'].tipo,
+      id: option['data'].id,
+      nombre: option['data'].nombre,
+    };
+    this.selectedEntity.set(entity);
+    this.loadSummary(entity);
+  }
+
+  onMonthChange(event: Event): void {
+    this.month.set((event.target as HTMLSelectElement).value);
+  }
+
+  onStatusChange(event: Event): void {
+    this.status.set((event.target as HTMLSelectElement).value as StatusFilter);
+  }
+
+  private loadSummary(entity: SelectedEntity): void {
+    this.loadingSummary.set(true);
+    this.forecastService.getForecastSummary(entity.tipo, entity.id, this.year()).subscribe({
+      next: (summary) => {
+        this.summaryMonths.set(summary?.meses ?? []);
+        this.loadingSummary.set(false);
+      },
+      error: () => {
+        this.summaryMonths.set([]);
+        this.loadingSummary.set(false);
+      },
+    });
+  }
+
+  openInvoices(row: SummaryRow): void {
+    const entity = this.selectedEntity();
+    if (!entity) return;
+
+    const year = this.year();
+    const month = row.mes;
+    this.invoicesState.set({
+      clientId: entity.id,
+      clientName: entity.nombre,
+      monthLabel: row.monthLabel,
+      year,
+      month,
+      sections: [],
+      loading: true,
+    });
+    this.forecastService.getInvoices(entity.id, year, month).subscribe({
+      next: (sections) => this.invoicesState.update(s => s ? { ...s, sections, loading: false } : null),
+      error: () => this.invoicesState.update(s => s ? { ...s, loading: false } : null),
+    });
+  }
+
+  closeInvoices(): void {
+    this.invoicesState.set(null);
+  }
+
+  viewInvoiceProducts(event: { clientId: number; clientName: string; folio: string }): void {
+    const state = this.invoicesState();
+    if (!state) return;
+
+    this.invoiceProductsState.set({ clientName: event.clientName, folio: event.folio, entry: null, loading: true });
+    this.forecastService.getInvoiceProducts(event.clientId, state.year, state.month).subscribe({
+      next: (entries) => {
+        const entry = entries.find(e => e.folio === event.folio) ?? null;
+        this.invoiceProductsState.update(s => s ? { ...s, entry, loading: false } : null);
+      },
+      error: () => this.invoiceProductsState.update(s => s ? { ...s, loading: false } : null),
+    });
+  }
+
+  closeInvoiceProducts(): void {
+    this.invoiceProductsState.set(null);
+  }
+
+  exportInvoices(): void {
+    const state = this.invoicesState();
+    if (!state || this.exportingInvoices()) return;
+
+    this.exportingInvoices.set(true);
+    this.forecastService.exportInvoicesExcel(state.clientId, state.year, state.month).pipe(
+      finalize(() => this.exportingInvoices.set(false))
+    ).subscribe({
+      next: (blob) => {
+        const fileName = `facturas_${state.clientName.trim().replace(/\s+/g, '_')}_${state.year}_${state.month}.xlsx`;
+        this.exportService.downloadBlob(blob, fileName);
+      },
+      error: () => this.toastr.error('No se pudo exportar el archivo.'),
+    });
+  }
+}
