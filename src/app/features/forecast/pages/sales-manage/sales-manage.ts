@@ -1,30 +1,37 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, signal, viewChild } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { ToastrService } from 'ngx-toastr';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../../../../core/services/auth-service';
 import { ForecastService, Distributor, mapApiToDistributors } from '../../../../core/services/forecast.service';
-import { BatchService } from '../../../../core/services/batch-service';
 import { SalesEngineerAssignmentService } from '../../../../core/services/sales-engineer-assignment.service';
 import { AssignmentUser } from '../../../../core/services/user-assignment-service';
+import { ExportService } from '../../../../core/services/export-service';
 import { ForecastTable } from '../../components/forecast-table/forecast-table';
 import { MyRequestsModal } from '../../components/my-requests-modal/my-requests-modal';
 import { PendingApprovalsModal } from '../../components/pending-approvals-modal/pending-approvals-modal';
+import { Popover } from '../../../../shared/components/ui/popover/popover';
+import { BulkForecastHistoryModal } from './components/bulk-forecast-history-modal/bulk-forecast-history-modal';
+import { BulkForecastUploadModal } from '../../components/bulk-forecast-upload-modal/bulk-forecast-upload-modal';
 import { LucideAngularModule } from "lucide-angular";
 
 @Component({
   selector: 'app-sales-manage',
-  imports: [TranslatePipe, DecimalPipe, ForecastTable, MyRequestsModal, PendingApprovalsModal, LucideAngularModule],
+  imports: [TranslatePipe, DecimalPipe, ForecastTable, MyRequestsModal, PendingApprovalsModal, Popover, BulkForecastHistoryModal, BulkForecastUploadModal, LucideAngularModule],
   templateUrl: './sales-manage.html',
   styleUrl: './sales-manage.css',
 })
 export class SalesManage {
+  private readonly bulkHistoryModal = viewChild(BulkForecastHistoryModal);
+
   readonly years = [2024, 2025, 2026];
 
   readonly activeYear = signal(new Date().getFullYear());
   readonly distributors = signal<Distributor[]>([]);
   readonly loading = signal(false);
-  readonly uploading = signal(false);
+  readonly foreignDistributors = signal<Distributor[]>([]);
+  readonly foreignLoading = signal(false);
+  readonly downloadingTemplate = signal(false);
   readonly refreshTrigger = signal(0);
 
   readonly isSalesManager = signal(false);
@@ -35,7 +42,11 @@ export class SalesManage {
 
   readonly showMyRequestsModal = signal(false);
   readonly showPendingApprovalsModal = signal(false);
-  readonly pendingCount = signal(0);
+  readonly showBulkHistoryModal = signal(false);
+  readonly showBulkUploadModal = signal(false);
+  readonly pendingClientCount = signal(0);
+  readonly pendingForeignCount = signal(0);
+  readonly pendingCount = computed(() => this.pendingClientCount() + this.pendingForeignCount());
 
   readonly grandTotal = computed(() =>
     this.distributors().reduce(
@@ -48,11 +59,17 @@ export class SalesManage {
     this.distributors().reduce((s, d) => s + (d.isGroup ? d.members?.length ?? 0 : 1), 0)
   );
 
+  readonly currentEngineerId = computed(() =>
+    (this.isSalesManager() || this.isForecastAdmin())
+      ? this.selectedEngineer()?.id ?? null
+      : this.authService.getCurrentUser()?.id ?? null
+  );
+
   constructor(
     private readonly forecastService: ForecastService,
-    private readonly batchService: BatchService,
     private readonly authService: AuthService,
     private readonly seAssignmentService: SalesEngineerAssignmentService,
+    private readonly exportService: ExportService,
     private readonly toastr: ToastrService,
     private readonly translate: TranslateService,
   ) {
@@ -112,32 +129,45 @@ export class SalesManage {
     this.refreshTrigger.update(v => v + 1);
   }
 
-  onFileSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
-    input.value = '';
+  openBulkUploadModal(): void {
+    this.showBulkUploadModal.set(true);
+  }
 
-    this.uploading.set(true);
-    this.batchService.createForecastBatch(file).subscribe({
-      next: () => {
-        this.uploading.set(false);
-        this.toastr.success(this.translate.instant('FORECAST.SALES_MANAGE.UPLOAD_SUCCESS'), this.translate.instant('FORECAST.SALES_MANAGE.TOAST_TITLE'));
+  onForecastBulkUploaded(): void {
+    this.bulkHistoryModal()?.refresh();
+  }
+
+  openBulkHistoryModal(): void {
+    this.showBulkHistoryModal.set(true);
+  }
+
+  downloadTemplate(scope: 'engineer' | 'all'): void {
+    const engineerId = scope === 'engineer' ? this.currentEngineerId() ?? undefined : undefined;
+
+    this.downloadingTemplate.set(true);
+    this.forecastService.exportTemplate(engineerId).subscribe({
+      next: (blob) => {
+        this.downloadingTemplate.set(false);
+        this.exportService.downloadBlob(blob, 'Layout Forecast.csv');
       },
       error: (err) => {
-        this.uploading.set(false);
-        this.toastr.error(err?.error?.message ?? this.translate.instant('FORECAST.SALES_MANAGE.UPLOAD_ERROR'), this.translate.instant('FORECAST.SALES_MANAGE.TOAST_ERROR'));
+        this.downloadingTemplate.set(false);
+        this.toastr.error(err?.error?.message ?? this.translate.instant('FORECAST.SALES_MANAGE.DOWNLOAD_TEMPLATE_ERROR'), this.translate.instant('FORECAST.SALES_MANAGE.TOAST_ERROR'));
       },
     });
   }
 
   onPendingResolved(): void {
-    this.pendingCount.update(n => Math.max(0, n - 1));
+    this.loadPendingCount();
   }
 
   private loadPendingCount(): void {
     this.forecastService.getPendingApprovals().subscribe({
-      next: (reqs) => this.pendingCount.set(reqs.length),
+      next: (reqs) => this.pendingClientCount.set(reqs.length),
+      error: () => {},
+    });
+    this.forecastService.getDistributorPendingApprovals().subscribe({
+      next: (reqs) => this.pendingForeignCount.set(reqs.length),
       error: () => {},
     });
   }
@@ -173,6 +203,15 @@ export class SalesManage {
         this.loading.set(false);
       },
       error: () => this.loading.set(false),
+    });
+
+    this.foreignLoading.set(true);
+    this.forecastService.getDistributorsByEngineer(engineerId, year).subscribe({
+      next: (rows) => {
+        this.foreignDistributors.set(mapApiToDistributors(rows));
+        this.foreignLoading.set(false);
+      },
+      error: () => this.foreignLoading.set(false),
     });
   }
 }

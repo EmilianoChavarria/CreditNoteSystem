@@ -1,0 +1,21 @@
+:host {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.autocomplete-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+input {
+  transition: all 0.2s ease;
+}
+
+
+@media (max-width: 640px) {
+  .autocomplete-wrapper {
+    min-width: 0;
+  }
+}

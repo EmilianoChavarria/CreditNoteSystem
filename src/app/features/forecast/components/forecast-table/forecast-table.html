@@ -65,12 +65,16 @@
             <lucide-icon name="users" size="11"></lucide-icon>
           </span>
         }
-        <button
-          type="button"
-          class="text-left text-blue-700 hover:text-blue-900 hover:underline cursor-pointer transition-colors truncate"
-          (click)="openClientModal(dist)">
-          {{ dist.name }}
-        </button>
+        @if (mode() === 'client') {
+          <button
+            type="button"
+            class="text-left text-blue-700 hover:text-blue-900 hover:underline cursor-pointer transition-colors truncate"
+            (click)="openClientModal(dist)">
+            {{ dist.name }}
+          </button>
+        } @else {
+          <span class="text-left text-gray-700 truncate">{{ dist.name }}</span>
+        }
         @if (dist.isGroup) {
           <span class="shrink-0 inline-flex items-center rounded-full bg-orange-100 px-1.5 py-0.5 text-[9px] font-bold text-orange-700 uppercase">
             {{ 'FORECAST.TABLE.GROUP_BADGE' | translate }} · {{ dist.members?.length ?? 0 }} 
@@ -124,11 +128,11 @@
         @if (m.pendingRequest !== null) {
           @if (m.pendingRequest.status === 'approved') {
             <span class="font-semibold text-green-700" [title]="stepTooltip(m.pendingRequest.currentStep)">
-              $ {{ m.pendingRequest.proposedAmount | number:'1.0-0' }}
+              $ {{ proposedValue(m.pendingRequest) | number:'1.0-0' }}
             </span>
           } @else {
             <span class="font-semibold text-amber-700" [title]="stepTooltip(m.pendingRequest.currentStep)">
-              $ {{ m.pendingRequest.proposedAmount | number:'1.0-0' }}
+              $ {{ proposedValue(m.pendingRequest) | number:'1.0-0' }}
             </span>
           }
         } @else {
@@ -146,8 +150,8 @@
     </td>
     @for (m of dist.months; track $index) {
       <td
-        class="px-2 py-1.5 text-right text-xs text-gray-600 whitespace-nowrap cursor-pointer hover:bg-blue-50 hover:text-blue-700 transition-colors"
-        [title]="'FORECAST.TABLE.VIEW_INVOICES' | translate"
+        [class]="'px-2 py-1.5 text-right text-xs text-gray-600 whitespace-nowrap transition-colors ' + (mode() === 'client' ? 'cursor-pointer hover:bg-blue-50 hover:text-blue-700' : '')"
+        [title]="mode() === 'client' ? ('FORECAST.TABLE.VIEW_INVOICES' | translate) : ''"
         (click)="openInvoices(dist, $index)">
         $ {{ m.sales | number:'1.0-0' }}
       </td>

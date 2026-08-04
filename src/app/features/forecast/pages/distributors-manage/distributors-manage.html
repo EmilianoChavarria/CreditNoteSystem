@@ -11,6 +11,21 @@
     <app-tabs-container [showBottomButtons]="false">
         <app-tab [titleT]="'FORECAST.DISTRIBUTORS.TAB_CLIENTS' | translate">
 
+            <div class="mb-3 flex justify-end gap-2">
+                <button type="button"
+                    class="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-100"
+                    (click)="openNationalBulkHistoryModal()">
+                    <lucide-icon name="history" size="14"></lucide-icon>
+                    {{ 'FORECAST.DISTRIBUTORS.NATIONAL_BULK_HISTORY_BUTTON' | translate }}
+                </button>
+                <button type="button"
+                    class="inline-flex items-center gap-2 rounded-lg bg-[#ff8200] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#db7201]"
+                    (click)="openNationalBulkUploadModal()">
+                    <lucide-icon name="file-up" size="14"></lucide-icon>
+                    {{ 'FORECAST.DISTRIBUTORS.NATIONAL_BULK_UPLOAD_BUTTON' | translate }}
+                </button>
+            </div>
+
             <app-tabla-dinamica [datos]="clients()" [columnas]="columns" [canAdd]="false" [actionMode]="'menu'"
                 [accionesPersonalizadas]="acciones" [serverPagination]="true" [registrosPorPagina]="pageSize()"
                 [paginaActualExterna]="currentPage()" [totalPaginasExterno]="totalPages()" [hasNextPage]="hasNextPage()"
@@ -34,8 +49,8 @@
                         @case ('direccion') {
                         <span class="font-medium text-gray-500">{{ item.direccion }}</span>
                         }
-                        @case ('correosForecast') {
-                        @let emails = splitEmails(item.correosForecast);
+                        @case ('emails') {
+                        @let emails = splitEmails(item.emails);
                         @if (emails.length > 0) {
                         <div class="flex flex-wrap gap-1">
                             @for (email of emails; track email) {
@@ -54,6 +69,9 @@
                         <span class="text-gray-400">—</span>
                         }
                         }
+                        @case ('returnPercentage') {
+                            <span class="font-medium text-gray-500">{{ item.returnPercentage ? (item.returnPercentage | number: '1.2-2') + '%' : '-' }}</span>
+                        }
                         }
                     </div>
                 </ng-template>
@@ -64,16 +82,29 @@
 
         <app-tab [titleT]="'FORECAST.DISTRIBUTORS.TAB_FOREIGN_CLIENTS' | translate">
 
-            <app-tabla-dinamica [datos]="foreignClients()" [columnas]="foreignColumns" [canAdd]="true"
+            <div class="mb-3 flex justify-end">
+                <button type="button"
+                    class="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-100"
+                    (click)="openBulkHistoryModal()">
+                    <lucide-icon name="history" size="14"></lucide-icon>
+                    {{ 'FORECAST.DISTRIBUTORS.BULK_HISTORY_BUTTON' | translate }}
+                </button>
+            </div>
+
+            <app-tabla-dinamica [datos]="foreignClients()" [columnas]="foreignColumns" [canAdd]="true" [canBulk]="true"
                 [addLabel]="'FORECAST.DISTRIBUTORS.ACTION_ADD_FOREIGN'" [actionMode]="'menu'"
                 [accionesPersonalizadas]="foreignAcciones" [emptyMessageKey]="'FORECAST.DISTRIBUTORS.FOREIGN_EMPTY'"
                 [serverPagination]="true" [registrosPorPagina]="foreignPageSize()"
                 [paginaActualExterna]="foreignCurrentPage()" [totalPaginasExterno]="foreignTotalPages()"
                 [hasNextPage]="foreignHasNextPage()" [hasPrevPage]="foreignHasPrevPage()" [loading]="foreignLoading()"
+                [fourthFilterOptions]="zoneFilterOptions" [fourthFilterDefault]="'all'"
+                [fourthFilterLabel]="'FORECAST.DISTRIBUTORS.ZONE_LABEL'"
+                [fourthFilterAllLabel]="'FORECAST.DISTRIBUTORS.ZONE_ALL'"
                 (paginaSiguiente)="onForeignNextPage()" (paginaAnterior)="onForeignPrevPage()"
                 (paginaPrimera)="onForeignFirstPage()" (paginaUltima)="onForeignLastPage()"
                 (registrosPorPaginaChange)="onForeignPageSizeChange($event)" (searchChange)="onForeignSearch($event)"
-                (refreshClick)="loadForeignData(foreignCurrentPage())" (addClick)="openCreateForeignClient()">
+                (refreshClick)="loadForeignData(foreignCurrentPage())" (addClick)="openCreateForeignClient()"
+                (bulkClick)="openForeignBulkUpload()" (fourthFilterChange)="onForeignZoneChange($event)">
 
                 <ng-template #cellTemplate let-item let-col="column">
                     <div class="py-3 px-2">
@@ -195,10 +226,34 @@
                             </app-popover>
                         </div>
 
+                        @if (group.clientNumber) {
+                        <div class="mt-2.5 inline-flex items-center gap-1.5 rounded-md bg-slate-100 px-2.5 py-1 text-xs font-bold tracking-wide text-slate-700">
+                            <lucide-icon name="hash" size="13" class="text-slate-400"></lucide-icon>
+                            {{ group.clientNumber }}
+                        </div>
+                        }
+
                         @if (group.responsible?.fullName) {
-                        <div class="mt-2 flex items-center gap-1.5 text-xs text-gray-400 truncate">
-                            <lucide-icon name="user" size="14"></lucide-icon>
+                        <div class="mt-2 flex items-center gap-1.5 text-xs text-gray-500 truncate">
+                            <lucide-icon name="user" size="14" class="shrink-0 text-blue-500"></lucide-icon>
+                            <span class="shrink-0 font-semibold text-gray-400">{{ 'FORECAST.DISTRIBUTORS.COL_SALES_ENGINEER' | translate }}:</span>
                             <span class="truncate">{{ group.responsible?.fullName }}</span>
+                        </div>
+                        }
+
+                        @if (group.salesManager?.fullName) {
+                        <div class="mt-1.5 flex items-center gap-1.5 text-xs text-gray-500 truncate">
+                            <lucide-icon name="user-check" size="14" class="shrink-0 text-emerald-500"></lucide-icon>
+                            <span class="shrink-0 font-semibold text-gray-400">{{ 'FORECAST.DISTRIBUTORS.COL_SALES_MANAGER' | translate }}:</span>
+                            <span class="truncate">{{ group.salesManager?.fullName }}</span>
+                        </div>
+                        }
+
+                        @if (group.returnPercentage != null) {
+                        <div class="mt-1.5 flex items-center gap-1.5 text-xs text-gray-500 truncate">
+                            <lucide-icon name="percent" size="14" class="shrink-0 text-[#E87722]"></lucide-icon>
+                            <span class="shrink-0 font-semibold text-gray-400">{{ 'FORECAST.DISTRIBUTORS.COL_RETURN' | translate }}:</span>
+                            <span class="truncate">{{ group.returnPercentage }}%</span>
                         </div>
                         }
 
@@ -224,13 +279,29 @@
 
     </app-tabs-container>
 
-    <app-edit-distributor-modal [client]="selectedClient()" [open]="editModalOpen()"
-        (openChange)="editModalOpen.set($event)" (saved)="loadData(currentPage())">
-    </app-edit-distributor-modal>
+    <app-edit-national-customer-modal [client]="selectedNationalCustomer()" [open]="editNationalCustomerModalOpen()"
+        (openChange)="editNationalCustomerModalOpen.set($event)" (saved)="onNationalCustomerSaved()">
+    </app-edit-national-customer-modal>
+
+    <app-bulk-national-customers-upload-modal [open]="nationalBulkUploadModalOpen()"
+        (openChange)="nationalBulkUploadModalOpen.set($event)" (uploaded)="onNationalBulkUploaded()">
+    </app-bulk-national-customers-upload-modal>
+
+    <app-bulk-national-customers-history-modal [open]="nationalBulkHistoryModalOpen()"
+        (openChange)="nationalBulkHistoryModalOpen.set($event)">
+    </app-bulk-national-customers-history-modal>
 
     <app-edit-distributor-modal [client]="selectedForeignClient()" [open]="foreignModalOpen()"
         (openChange)="foreignModalOpen.set($event)" (saved)="loadForeignData(foreignCurrentPage())">
     </app-edit-distributor-modal>
+
+    <app-bulk-distributor-upload-modal [open]="foreignBulkUploadModalOpen()"
+        (openChange)="foreignBulkUploadModalOpen.set($event)" (uploaded)="onForeignBulkUploaded()">
+    </app-bulk-distributor-upload-modal>
+
+    <app-bulk-distributor-history-modal [open]="bulkHistoryModalOpen()"
+        (openChange)="bulkHistoryModalOpen.set($event)">
+    </app-bulk-distributor-history-modal>
 
     <app-distributor-forecast-modal [distributor]="selectedForecastDistributor()" [open]="forecastModalOpen()"
         (openChange)="forecastModalOpen.set($event)">

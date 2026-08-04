@@ -3,6 +3,7 @@ import { AuthGuard } from './core/guards/auth.guard';
 import { LoginGuard } from './core/guards/login.guard';
 import { ActionGuard } from './core/guards/action.guard';
 import { unsavedReservationGuard } from './core/guards/unsaved-reservation.guard';
+import { CreditNotes } from './features/forecast/pages/credit-notes/credit-notes';
 
 
 export const routes: Routes = [
@@ -57,6 +58,7 @@ export const routes: Routes = [
       { path: 'forecast-sales-engineer', loadComponent: () => import('./features/forecast/pages/sales-engineer-manage/sales-engineer-manage').then(m => m.SalesEngineerManage) },
       { path: 'forecast-distributors', loadComponent: () => import('./features/forecast/pages/distributors-manage/distributors-manage').then(m => m.DistributorsManage) },
       { path: 'forecast-products', loadComponent: () => import('./features/forecast/pages/product-manage/product-manage').then(m => m.ProductManage) },
+      { path: 'forecast-auditor-credits', loadComponent: () => import('./features/forecast/pages/credit-notes/credit-notes').then(m => m.CreditNotes) },
       
       { path: '404', loadComponent: () => import('./features/not-found/not-found').then(m => m.NotFound) },
       { path: '**', loadComponent: () => import('./features/not-found/not-found').then(m => m.NotFound) },

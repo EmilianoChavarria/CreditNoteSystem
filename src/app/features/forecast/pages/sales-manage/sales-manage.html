@@ -102,26 +102,46 @@
 
     <!-- Template buttons -->
     <div class="mt-1 flex gap-x-2">
-      <a href="assets/templates/Layout Forecast.csv" download="Layout Forecast.csv"
-        class="w-full sm:w-auto bg-[#ff8200] text-white rounded-md text-sm px-3 py-2 hover:cursor-pointer hover:bg-[#fc9629] text-center flex flex-row items-center gap-x-2 justify-center">
-        <lucide-icon name="download" class="my-auto" size="14"></lucide-icon>
-        {{ 'FORECAST.SALES_MANAGE.DOWNLOAD_TEMPLATE' | translate }}
-      </a>
+      <app-popover position="bottom-right" width="240px">
+        <button trigger type="button" [disabled]="downloadingTemplate()"
+          class="w-full sm:w-auto bg-[#ff8200] text-white rounded-md text-sm px-3 py-2 hover:cursor-pointer hover:bg-[#fc9629] text-center flex flex-row items-center gap-x-2 justify-center disabled:opacity-50 disabled:cursor-not-allowed">
+          @if (downloadingTemplate()) {
+          <svg class="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          </svg>
+          } @else {
+          <lucide-icon name="download" class="my-auto" size="14"></lucide-icon>
+          }
+          {{ 'FORECAST.SALES_MANAGE.DOWNLOAD_TEMPLATE' | translate }}
+        </button>
+        <div content class="p-2 space-y-1">
+          <button type="button" [disabled]="!currentEngineerId()" (click)="downloadTemplate('engineer')"
+            class="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-gray-100 transition text-left text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed">
+            <lucide-icon name="user" size="16"></lucide-icon>
+            {{ 'FORECAST.SALES_MANAGE.DOWNLOAD_TEMPLATE_ENGINEER' | translate }}
+          </button>
+          <button type="button" (click)="downloadTemplate('all')"
+            class="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-gray-100 transition text-left text-gray-700">
+            <lucide-icon name="users" size="16"></lucide-icon>
+            {{ 'FORECAST.SALES_MANAGE.DOWNLOAD_TEMPLATE_ALL' | translate }}
+          </button>
+        </div>
+      </app-popover>
 
-      <input #fileInput type="file" accept=".csv,.xlsx" class="hidden" (change)="onFileSelected($event)">
-      <button type="button" [disabled]="uploading()" (click)="fileInput.click()"
-        class="inline-flex items-center gap-2 rounded-lg bg-[#395f93] white px-3 py-2 text-sm font-medium text-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-sm">
-        @if (uploading()) {
-        <svg class="animate-spin w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-        </svg>
-        {{ 'FORECAST.SALES_MANAGE.UPLOADING' | translate }}
-        } @else {
+      @if (isForecastAdmin()) {
+      <button type="button" (click)="openBulkUploadModal()"
+        class="inline-flex items-center gap-2 rounded-lg bg-[#395f93] white px-3 py-2 text-sm font-medium text-white hover:bg-[#5988ca] transition shadow-sm">
         <lucide-icon name="upload" class="my-auto" size="14"></lucide-icon>
         {{ 'FORECAST.SALES_MANAGE.BULK_UPLOAD' | translate }}
-        }
       </button>
+
+      <button type="button" (click)="openBulkHistoryModal()"
+        class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm transition">
+        <lucide-icon name="history" size="14"></lucide-icon>
+        {{ 'FORECAST.SALES_MANAGE.BULK_HISTORY_BUTTON' | translate }}
+      </button>
+      }
     </div>
   </div>
 
@@ -130,6 +150,18 @@
   <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden mb-6">
     <app-forecast-table [distributors]="distributors()" [year]="activeYear()" [loading]="loading()"
       (refreshNeeded)="onRefreshNeeded()" />
+  </div>
+
+  <!-- Distributors (foreign clients) table -->
+  <div class="flex items-center gap-2 mb-3">
+    <span class="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-blue-600">
+      {{ 'FORECAST.SALES_MANAGE.DISTRIBUTORS_BADGE' | translate }}
+    </span>
+    <h2 class="text-base font-semibold text-gray-800">{{ 'FORECAST.SALES_MANAGE.DISTRIBUTORS_TITLE' | translate }}</h2>
+  </div>
+  <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden mb-6">
+    <app-forecast-table [distributors]="foreignDistributors()" [year]="activeYear()" [loading]="foreignLoading()"
+      mode="distributor" (refreshNeeded)="onRefreshNeeded()" />
   </div>
 
   <!-- Summary cards -->
@@ -160,5 +192,14 @@
     [open]="showPendingApprovalsModal()"
     (closed)="showPendingApprovalsModal.set(false)"
     (resolved)="onPendingResolved()" />
+
+  <app-bulk-forecast-history-modal
+    [open]="showBulkHistoryModal()"
+    (openChange)="showBulkHistoryModal.set($event)" />
+
+  <app-bulk-forecast-upload-modal
+    [open]="showBulkUploadModal()"
+    (openChange)="showBulkUploadModal.set($event)"
+    (uploaded)="onForecastBulkUploaded()" />
 
 </div>

@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
 import { ToastrService } from 'ngx-toastr';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { finalize } from 'rxjs';
+import { finalize, map } from 'rxjs';
 import {
   ChangeRequest,
   Distributor,
@@ -12,6 +12,8 @@ import {
   GroupMemberSales,
   InvoiceProductsEntry,
   InvoiceSection,
+  mapDistributorChangeRequestToChangeRequest,
+  PendingRequest,
 } from '../../../../core/services/forecast.service';
 import { ExportService } from '../../../../core/services/export-service';
 import { ForecastHistoryModal } from '../forecast-history-modal/forecast-history-modal';
@@ -67,6 +69,7 @@ export class ForecastTable {
   readonly distributors = input.required<Distributor[]>();
   readonly year = input.required<number>();
   readonly loading = input<boolean>(false);
+  readonly mode = input<'client' | 'distributor'>('client');
 
   readonly refreshNeeded = output<void>();
 
@@ -182,7 +185,12 @@ export class ForecastTable {
 
   openHistory(dist: Distributor, monthIdx: number): void {
     this.historyState.set({ clientName: dist.name, monthIdx, requests: [], loading: true });
-    this.forecastService.getHistory(dist.id, this.year(), monthIdx + 1).subscribe({
+    const year = this.year();
+    const month = monthIdx + 1;
+    const request$ = this.mode() === 'distributor'
+      ? this.forecastService.getDistributorHistory(dist.id, year, month).pipe(map(mapDistributorChangeRequestToChangeRequest))
+      : this.forecastService.getHistory(dist.id, year, month);
+    request$.subscribe({
       next: (reqs) => this.historyState.update(s => s ? { ...s, requests: reqs, loading: false } : null),
       error: () => this.historyState.update(s => s ? { ...s, loading: false } : null),
     });
@@ -193,6 +201,7 @@ export class ForecastTable {
   }
 
   openInvoices(dist: { id: number; name: string }, monthIdx: number): void {
+    if (this.mode() === 'distributor') return;
     this.invoicesState.set({ clientId: dist.id, clientName: dist.name, monthIdx, sections: [], loading: true });
     this.forecastService.getInvoices(dist.id, this.year(), monthIdx + 1).subscribe({
       next: (sections) => this.invoicesState.update(s => s ? { ...s, sections, loading: false } : null),
@@ -249,6 +258,7 @@ export class ForecastTable {
   }
 
   openClientModal(dist: Distributor): void {
+    if (this.mode() === 'distributor') return;
     this.clientModalState.set({ clientId: dist.id, clientName: dist.name });
   }
 
@@ -276,19 +286,21 @@ export class ForecastTable {
     if (Math.round(raw) === this.originalValue) return;
 
     this.submittingCell.set({ clientId, monthIdx });
-    this.forecastService.submitChangeRequest({
-      idClient: clientId,
-      year: this.year(),
-      month: monthIdx + 1,
-      amount: Math.round(raw),
-    }).subscribe({
+    const year = this.year();
+    const month = monthIdx + 1;
+    const amount = Math.round(raw);
+    const request$ = this.mode() === 'distributor'
+      ? this.forecastService.submitDistributorChangeRequest({ distributorId: clientId, year, month, forecast: amount }).pipe(map(() => void 0))
+      : this.forecastService.submitChangeRequest({ idClient: clientId, year, month, amount }).pipe(map(() => void 0));
+    request$.subscribe({
       next: () => {
         this.submittingCell.set(null);
         this.refreshNeeded.emit();
       },
-      error: (err) => {
+      error: (err: unknown) => {
         this.submittingCell.set(null);
-        this.toastr.error(err?.error?.message ?? this.translate.instant('FORECAST.TABLE.SUBMIT_ERROR'), this.translate.instant('FORECAST.SALES_MANAGE.TOAST_ERROR'));
+        const message = (err as { error?: { message?: string } })?.error?.message;
+        this.toastr.error(message ?? this.translate.instant('FORECAST.TABLE.SUBMIT_ERROR'), this.translate.instant('FORECAST.SALES_MANAGE.TOAST_ERROR'));
       },
     });
   }
@@ -296,6 +308,10 @@ export class ForecastTable {
   handleKeydown(e: KeyboardEvent, clientId: number, monthIdx: number): void {
     if (e.key === 'Enter') { e.preventDefault(); (e.target as HTMLElement).blur(); }
     if (e.key === 'Escape') { e.preventDefault(); this.cancelEdit(); }
+  }
+
+  proposedValue(req: PendingRequest): number {
+    return parseFloat(String(req.proposedAmount ?? req.proposedForecast ?? '0')) || 0;
   }
 
   stepTooltip(step: 'sales_manager' | 'general_manager'): string {
