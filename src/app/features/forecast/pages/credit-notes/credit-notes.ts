@@ -14,6 +14,7 @@ import {
   InvoiceSection,
 } from '../../../../core/services/forecast.service';
 import { ExportService } from '../../../../core/services/export-service';
+import { RequestService } from '../../../../core/services/request-service';
 import { AutocompleteOption } from '../../../../shared/components/ui/autocomplete/autocomplete';
 import { GroupedAutocomplete, AutocompleteOptionGroup } from '../../../../shared/components/ui/grouped-autocomplete/grouped-autocomplete';
 import { ForecastInvoicesModal } from '../../components/forecast-invoices-modal/forecast-invoices-modal';
@@ -121,7 +122,19 @@ export class CreditNotes {
     private readonly forecastService: ForecastService,
     private readonly exportService: ExportService,
     private readonly toastr: ToastrService,
+    private readonly requestService: RequestService,
   ) {}
+
+  viewNotePdf(requestId: number): void {
+    this.requestService.getRequestPdf(requestId).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
+        setTimeout(() => URL.revokeObjectURL(url), 10000);
+      },
+      error: () => this.toastr.error('No se pudo abrir el PDF de la solicitud.'),
+    });
+  }
 
   setYear(year: number): void {
     this.year.set(year);
