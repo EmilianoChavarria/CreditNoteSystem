@@ -249,6 +249,14 @@
                         </div>
                         }
 
+                        @if (group.returnPercentage != null) {
+                        <div class="mt-1.5 flex items-center gap-1.5 text-xs text-gray-500 truncate">
+                            <lucide-icon name="percent" size="14" class="shrink-0 text-[#E87722]"></lucide-icon>
+                            <span class="shrink-0 font-semibold text-gray-400">{{ 'FORECAST.DISTRIBUTORS.COL_RETURN' | translate }}:</span>
+                            <span class="truncate">{{ group.returnPercentage }}%</span>
+                        </div>
+                        }
+
                         <div class="mt-3 flex items-center justify-between text-xs text-gray-400">
                             <span class="inline-flex items-center gap-1.5">
                                 <lucide-icon name="users" size="14"></lucide-icon>
