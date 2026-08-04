@@ -7,6 +7,7 @@ import { ToastrService } from 'ngx-toastr';
 import {
   ForecastCreditNote,
   ForecastEntityType,
+  ForecastGroupMemberBreakdown,
   ForecastGroupMonthBreakdown,
   ForecastService,
   ForecastSummaryMonth,
@@ -107,6 +108,8 @@ export class CreditNotes {
   readonly generateModalOpen = signal(false);
   readonly generatingNC = signal(false);
   readonly generateError = signal<string | null>(null);
+  readonly loadingGenerateMembers = signal(false);
+  readonly generateAttachments = signal<Map<string, File[]>>(new Map());
 
   readonly stats = computed(() => ({ pending: 0 }));
 
@@ -252,30 +255,71 @@ export class CreditNotes {
 
   openGenerateNC(row: SummaryRow): void {
     if (!this.canGenerateNC(row)) return;
+    const entity = this.selectedEntity();
+
     this.generateTarget.set(row);
     this.generateError.set(null);
+    this.generateAttachments.set(new Map());
     this.generateModalOpen.set(true);
+
+    if (entity?.tipo === 'grupo') {
+      this.ensureBreakdownLoaded(entity, row.mes, this.loadingGenerateMembers);
+    }
   }
 
   cancelGenerateNC(): void {
     if (this.generatingNC()) return;
     this.generateModalOpen.set(false);
     this.generateTarget.set(null);
+    this.generateAttachments.set(new Map());
+  }
+
+  /** Miembros del grupo que recibirán NC este mes: aportaron venta considerada y aún no tienen nota. */
+  contributingMembersFor(row: SummaryRow): ForecastGroupMemberBreakdown[] {
+    return (this.breakdownFor(row.mes)?.members ?? []).filter(m => m.folioCount > 0 && !m.note);
+  }
+
+  onAttachmentFilesChange(clientId: string, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const files = input.files ? Array.from(input.files) : [];
+    const map = new Map(this.generateAttachments());
+    map.set(clientId, files);
+    this.generateAttachments.set(map);
+  }
+
+  canSubmitGenerate(): boolean {
+    const entity = this.selectedEntity();
+    const row = this.generateTarget();
+    if (!entity || !row) return false;
+
+    if (entity.tipo === 'cliente') {
+      return (this.generateAttachments().get(String(entity.id))?.length ?? 0) > 0;
+    }
+
+    if (entity.tipo !== 'grupo' || this.loadingGenerateMembers()) return false;
+
+    const members = this.contributingMembersFor(row);
+    return members.length > 0 && members.every(m => (this.generateAttachments().get(m.clientId)?.length ?? 0) > 0);
   }
 
   confirmGenerateNC(): void {
     const entity = this.selectedEntity();
     const row = this.generateTarget();
-    if (!entity || !row || this.generatingNC() || entity.tipo === 'clienteExtranjero') return;
+    if (!entity || !row || this.generatingNC() || entity.tipo === 'clienteExtranjero' || !this.canSubmitGenerate()) return;
+
+    const attachments: { clientId: string; files: File[] }[] = entity.tipo === 'cliente'
+      ? [{ clientId: String(entity.id), files: this.generateAttachments().get(String(entity.id)) ?? [] }]
+      : this.contributingMembersFor(row).map(m => ({ clientId: m.clientId, files: this.generateAttachments().get(m.clientId) ?? [] }));
 
     this.generatingNC.set(true);
     this.generateError.set(null);
-    this.forecastService.generateForecastCreditNote(entity.tipo, entity.id, this.year(), row.mes)
+    this.forecastService.generateForecastCreditNote(entity.tipo, entity.id, this.year(), row.mes, attachments)
       .pipe(finalize(() => this.generatingNC.set(false)))
       .subscribe({
         next: (result) => {
           this.generateModalOpen.set(false);
           this.generateTarget.set(null);
+          this.generateAttachments.set(new Map());
 
           const count = result.created.length;
           this.toastr.success(
@@ -284,7 +328,7 @@ export class CreditNotes {
               : `${count} notas de crédito generadas correctamente.`
           );
           if (result.skipped.length > 0) {
-            this.toastr.info(`${result.skipped.length} cliente(s) del grupo no aplicaron (ya tenían NC o sin ventas consideradas).`);
+            this.toastr.info(`${result.skipped.length} cliente(s) del grupo no aplicaron (ya tenían NC, sin ventas consideradas o sin adjunto).`);
           }
 
           const map = new Map(this.breakdownCache());
@@ -322,17 +366,21 @@ export class CreditNotes {
     }
 
     this.expandedMes.set(row.mes);
+    this.ensureBreakdownLoaded(entity, row.mes, (loading) => this.loadingBreakdown.set(loading ? row.mes : null));
+  }
 
-    if (this.breakdownCache().has(row.mes)) return;
+  /** Carga (y cachea por mes) la aportación por cliente del grupo, si no está ya cacheada. */
+  private ensureBreakdownLoaded(entity: SelectedEntity, mes: number, setLoading: (loading: boolean) => void): void {
+    if (this.breakdownCache().has(mes)) return;
 
-    this.loadingBreakdown.set(row.mes);
-    this.forecastService.getGroupMonthBreakdown(entity.id, this.year(), row.mes)
-      .pipe(finalize(() => this.loadingBreakdown.set(null)))
+    setLoading(true);
+    this.forecastService.getGroupMonthBreakdown(entity.id, this.year(), mes)
+      .pipe(finalize(() => setLoading(false)))
       .subscribe({
         next: (breakdown) => {
           if (!breakdown) return;
           const map = new Map(this.breakdownCache());
-          map.set(row.mes, breakdown);
+          map.set(mes, breakdown);
           this.breakdownCache.set(map);
         },
         error: () => {},
