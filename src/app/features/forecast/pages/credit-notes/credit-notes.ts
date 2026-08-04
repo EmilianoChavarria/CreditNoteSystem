@@ -222,14 +222,14 @@ export class CreditNotes {
     });
   }
 
-  /** NC ya generada para ese mes del año seleccionado, si existe. */
-  generatedNoteFor(mes: number): ForecastCreditNote | null {
-    return this.creditNotesHistory().find(h => h.month === mes && h.year === this.year()) ?? null;
+  /** NC ya generadas para ese mes del año seleccionado (puede ser >1 si la entidad es un grupo). */
+  generatedNotesFor(mes: number): ForecastCreditNote[] {
+    return this.creditNotesHistory().filter(h => h.month === mes && h.year === this.year());
   }
 
   canGenerateNC(row: SummaryRow): boolean {
     const entity = this.selectedEntity();
-    return !!entity && entity.tipo !== 'clienteExtranjero' && !!row.cumplido && !this.generatedNoteFor(row.mes);
+    return !!entity && entity.tipo !== 'clienteExtranjero' && !!row.cumplido && this.generatedNotesFor(row.mes).length === 0;
   }
 
   openGenerateNC(row: SummaryRow): void {
@@ -255,10 +255,20 @@ export class CreditNotes {
     this.forecastService.generateForecastCreditNote(entity.tipo, entity.id, this.year(), row.mes)
       .pipe(finalize(() => this.generatingNC.set(false)))
       .subscribe({
-        next: () => {
+        next: (result) => {
           this.generateModalOpen.set(false);
           this.generateTarget.set(null);
-          this.toastr.success('Nota de crédito generada correctamente.');
+
+          const count = result.created.length;
+          this.toastr.success(
+            count === 1
+              ? 'Nota de crédito generada correctamente.'
+              : `${count} notas de crédito generadas correctamente.`
+          );
+          if (result.skipped.length > 0) {
+            this.toastr.info(`${result.skipped.length} cliente(s) del grupo no aplicaron (ya tenían NC o sin ventas consideradas).`);
+          }
+
           this.loadHistory(entity);
         },
         error: (err) => {
