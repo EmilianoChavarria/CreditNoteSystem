@@ -1687,6 +1687,7 @@
       "PLACEHOLDER_RESPONSIBLE": "Selecciona un ingeniero",
       "LABEL_SALES_MANAGER": "Gerente de Ventas",
       "PLACEHOLDER_SALES_MANAGER": "Selecciona un gerente",
+      "LABEL_RETURN_PERCENTAGE": "% Retorno",
       "HINT_NEXT_STEP": "Después de crear el grupo podrás agregarle clientes."
     },
     "EDIT_GROUP_MODAL": {
@@ -1698,7 +1699,8 @@
       "LABEL_RESPONSIBLE": "Ingeniero de Ventas",
       "PLACEHOLDER_RESPONSIBLE": "Selecciona un ingeniero",
       "LABEL_SALES_MANAGER": "Gerente de Ventas",
-      "PLACEHOLDER_SALES_MANAGER": "Selecciona un gerente"
+      "PLACEHOLDER_SALES_MANAGER": "Selecciona un gerente",
+      "LABEL_RETURN_PERCENTAGE": "% Retorno"
     },
     "GROUP_MEMBERS_MODAL": {
       "TITLE_SUFFIX": "Miembros del grupo",

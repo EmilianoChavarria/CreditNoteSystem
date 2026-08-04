@@ -1688,6 +1688,7 @@
       "PLACEHOLDER_RESPONSIBLE": "Select an engineer",
       "LABEL_SALES_MANAGER": "Sales Manager",
       "PLACEHOLDER_SALES_MANAGER": "Select a manager",
+      "LABEL_RETURN_PERCENTAGE": "Return %",
       "HINT_NEXT_STEP": "After creating the group you'll be able to add clients to it."
     },
     "EDIT_GROUP_MODAL": {
@@ -1699,7 +1700,8 @@
       "LABEL_RESPONSIBLE": "Sales Engineer",
       "PLACEHOLDER_RESPONSIBLE": "Select an engineer",
       "LABEL_SALES_MANAGER": "Sales Manager",
-      "PLACEHOLDER_SALES_MANAGER": "Select a manager"
+      "PLACEHOLDER_SALES_MANAGER": "Select a manager",
+      "LABEL_RETURN_PERCENTAGE": "Return %"
     },
     "GROUP_MEMBERS_MODAL": {
       "TITLE_SUFFIX": "Group members",
