@@ -185,6 +185,16 @@ export interface ForecastCreditNote {
   createdAt: string;
 }
 
+export interface ForecastCreditNoteSkipped {
+  clientId: string;
+  reason: string;
+}
+
+export interface ForecastCreditNoteGenerationResult {
+  created: ForecastCreditNote[];
+  skipped: ForecastCreditNoteSkipped[];
+}
+
 export interface ClientGroupMember {
   clientId: string;
   razonSocial: string;
@@ -714,13 +724,13 @@ export class ForecastService {
     );
   }
 
-  generateForecastCreditNote(tipo: 'cliente' | 'grupo', id: number, year: number, month: number): Observable<ForecastCreditNote> {
-    return this.httpService.post<ForecastCreditNote>(
+  generateForecastCreditNote(tipo: 'cliente' | 'grupo', id: number, year: number, month: number): Observable<ForecastCreditNoteGenerationResult> {
+    return this.httpService.post<ForecastCreditNoteGenerationResult>(
       `/forecast/credit-notes/${tipo}/${id}/${year}/${month}`,
       {},
       this.withBearer()
     ).pipe(
-      map((response: ApiResponse<ForecastCreditNote>) => response.data!),
+      map((response: ApiResponse<ForecastCreditNoteGenerationResult>) => response.data ?? { created: [], skipped: [] }),
       catchError((error) => throwError(() => error))
     );
   }
