@@ -1,10 +1,11 @@
 import { Component, computed, signal } from '@angular/core';
 import { FormControl } from '@angular/forms';
-import { CurrencyPipe, DecimalPipe } from '@angular/common';
+import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { LucideAngularModule } from "lucide-angular";
 import { Observable, finalize, map, of } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
 import {
+  ForecastCreditNote,
   ForecastEntityType,
   ForecastService,
   ForecastSummaryMonth,
@@ -16,6 +17,7 @@ import { AutocompleteOption } from '../../../../shared/components/ui/autocomplet
 import { GroupedAutocomplete, AutocompleteOptionGroup } from '../../../../shared/components/ui/grouped-autocomplete/grouped-autocomplete';
 import { ForecastInvoicesModal } from '../../components/forecast-invoices-modal/forecast-invoices-modal';
 import { ForecastInvoiceProductsModal } from '../../components/forecast-invoice-products-modal/forecast-invoice-products-modal';
+import { Modal } from '../../../../shared/components/ui/modal/modal';
 
 type StatusFilter = 'all' | 'met' | 'missed' | 'pending-note' | 'with-note';
 
@@ -56,8 +58,10 @@ interface InvoiceProductsState {
     GroupedAutocomplete,
     CurrencyPipe,
     DecimalPipe,
+    DatePipe,
     ForecastInvoicesModal,
     ForecastInvoiceProductsModal,
+    Modal,
   ],
   templateUrl: './credit-notes.html',
   styleUrl: './credit-notes.css',
@@ -89,6 +93,14 @@ export class CreditNotes {
   readonly invoicesState = signal<InvoicesState | null>(null);
   readonly exportingInvoices = signal(false);
   readonly invoiceProductsState = signal<InvoiceProductsState | null>(null);
+
+  readonly creditNotesHistory = signal<ForecastCreditNote[]>([]);
+  readonly loadingHistory = signal(false);
+
+  readonly generateTarget = signal<SummaryRow | null>(null);
+  readonly generateModalOpen = signal(false);
+  readonly generatingNC = signal(false);
+  readonly generateError = signal<string | null>(null);
 
   readonly stats = computed(() => ({ pending: 0 }));
 
@@ -188,6 +200,72 @@ export class CreditNotes {
         this.loadingSummary.set(false);
       },
     });
+    this.loadHistory(entity);
+  }
+
+  private loadHistory(entity: SelectedEntity): void {
+    if (entity.tipo === 'clienteExtranjero') {
+      this.creditNotesHistory.set([]);
+      return;
+    }
+
+    this.loadingHistory.set(true);
+    this.forecastService.getForecastCreditNoteHistory(entity.tipo, entity.id).subscribe({
+      next: (history) => {
+        this.creditNotesHistory.set(history);
+        this.loadingHistory.set(false);
+      },
+      error: () => {
+        this.creditNotesHistory.set([]);
+        this.loadingHistory.set(false);
+      },
+    });
+  }
+
+  /** NC ya generada para ese mes del año seleccionado, si existe. */
+  generatedNoteFor(mes: number): ForecastCreditNote | null {
+    return this.creditNotesHistory().find(h => h.month === mes && h.year === this.year()) ?? null;
+  }
+
+  canGenerateNC(row: SummaryRow): boolean {
+    const entity = this.selectedEntity();
+    return !!entity && entity.tipo !== 'clienteExtranjero' && !!row.cumplido && !this.generatedNoteFor(row.mes);
+  }
+
+  openGenerateNC(row: SummaryRow): void {
+    if (!this.canGenerateNC(row)) return;
+    this.generateTarget.set(row);
+    this.generateError.set(null);
+    this.generateModalOpen.set(true);
+  }
+
+  cancelGenerateNC(): void {
+    if (this.generatingNC()) return;
+    this.generateModalOpen.set(false);
+    this.generateTarget.set(null);
+  }
+
+  confirmGenerateNC(): void {
+    const entity = this.selectedEntity();
+    const row = this.generateTarget();
+    if (!entity || !row || this.generatingNC() || entity.tipo === 'clienteExtranjero') return;
+
+    this.generatingNC.set(true);
+    this.generateError.set(null);
+    this.forecastService.generateForecastCreditNote(entity.tipo, entity.id, this.year(), row.mes)
+      .pipe(finalize(() => this.generatingNC.set(false)))
+      .subscribe({
+        next: () => {
+          this.generateModalOpen.set(false);
+          this.generateTarget.set(null);
+          this.toastr.success('Nota de crédito generada correctamente.');
+          this.loadHistory(entity);
+        },
+        error: (err) => {
+          const message = err?.error?.message ?? err?.error?.errors ?? 'No se pudo generar la nota de crédito.';
+          this.generateError.set(typeof message === 'string' ? message : Object.values(message).flat().join(' '));
+        },
+      });
   }
 
   openInvoices(row: SummaryRow): void {
