@@ -34,6 +34,7 @@ export class EditGroupModal {
   readonly salesManagerId = signal('');
   readonly salesManagers = signal<SalesUserOption[]>([]);
   readonly loadingSalesManagers = signal(false);
+  readonly returnPercentage = signal('');
   readonly saving = signal(false);
   readonly error = signal<string | null>(null);
 
@@ -52,6 +53,7 @@ export class EditGroupModal {
       this.name.set(group.name);
       this.responsibleUserId.set(group.responsibleUserId != null ? String(group.responsibleUserId) : '');
       this.salesManagerId.set(group.salesManagerId != null ? String(group.salesManagerId) : '');
+      this.returnPercentage.set(group.returnPercentage != null ? String(group.returnPercentage) : '');
       this.error.set(null);
       this.loadEngineers();
       this.loadSalesManagers();
@@ -83,7 +85,7 @@ export class EditGroupModal {
     const name = this.name().trim();
     if (!group || !name || this.saving()) return;
 
-    const payload: { name: string; clientNumber?: string; responsibleUserId?: number; salesManagerId?: number } = { name };
+    const payload: { name: string; clientNumber?: string; responsibleUserId?: number; salesManagerId?: number; returnPercentage?: number } = { name };
     if (this.clientNumber().trim()) {
       payload.clientNumber = this.clientNumber().trim();
     }
@@ -94,6 +96,10 @@ export class EditGroupModal {
     const salesManagerId = Number(this.salesManagerId());
     if (this.salesManagerId() && Number.isFinite(salesManagerId)) {
       payload.salesManagerId = salesManagerId;
+    }
+    const returnPercentage = Number(this.returnPercentage());
+    if (this.returnPercentage().trim() && Number.isFinite(returnPercentage)) {
+      payload.returnPercentage = returnPercentage;
     }
 
     this.saving.set(true);
