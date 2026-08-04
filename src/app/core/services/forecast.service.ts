@@ -195,6 +195,33 @@ export interface ForecastCreditNoteGenerationResult {
   skipped: ForecastCreditNoteSkipped[];
 }
 
+export interface ForecastGroupMemberBreakdownNote {
+  id: number;
+  requestId: number;
+  requestNumber: string | null;
+  requestStatus: string | null;
+}
+
+export interface ForecastGroupMemberBreakdown {
+  clientId: string;
+  name: string;
+  folioCount: number;
+  salesAmount: number;
+  participation: number | null;
+  returnAmount: number | null;
+  note: ForecastGroupMemberBreakdownNote | null;
+}
+
+export interface ForecastGroupMonthBreakdown {
+  groupId: number;
+  groupName: string;
+  year: number;
+  month: number;
+  returnPercentage: number | null;
+  totalSales: number;
+  members: ForecastGroupMemberBreakdown[];
+}
+
 export interface ClientGroupMember {
   clientId: string;
   razonSocial: string;
@@ -731,6 +758,16 @@ export class ForecastService {
       this.withBearer()
     ).pipe(
       map((response: ApiResponse<ForecastCreditNoteGenerationResult>) => response.data ?? { created: [], skipped: [] }),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
+  getGroupMonthBreakdown(groupId: number, year: number, month: number): Observable<ForecastGroupMonthBreakdown | null> {
+    return this.httpService.get<ForecastGroupMonthBreakdown>(
+      `/forecast/credit-notes/grupo/${groupId}/${year}/${month}/breakdown`,
+      this.withBearer()
+    ).pipe(
+      map((response: ApiResponse<ForecastGroupMonthBreakdown>) => response.data ?? null),
       catchError((error) => throwError(() => error))
     );
   }
