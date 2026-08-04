@@ -139,6 +139,7 @@ export interface ClientGroup {
   responsible?: ClientGroupResponsible | null;
   salesManagerId?: number | null;
   salesManager?: ClientGroupResponsible | null;
+  returnPercentage?: number | null;
 }
 
 export interface ClientGroupForecastClient {
@@ -163,6 +164,25 @@ export interface CreateClientGroupPayload {
   clientNumber?: string;
   responsibleUserId?: number;
   salesManagerId?: number;
+  returnPercentage?: number;
+}
+
+export interface ForecastCreditNote {
+  id: number;
+  requestId: number;
+  requestNumber: string | null;
+  requestStatus: string | null;
+  entityType: ForecastEntityType;
+  entityId: number;
+  customerNumber: string;
+  year: number;
+  month: number;
+  returnPercentage: number;
+  salesAmount: number;
+  totalAmount: number;
+  invoiceFolios: string;
+  generatedBy: number;
+  createdAt: string;
 }
 
 export interface ClientGroupMember {
@@ -690,6 +710,27 @@ export class ForecastService {
       this.withBearer()
     ).pipe(
       map((response: ApiResponse<ForecastSummaryResponse>) => response.data ?? null),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
+  generateForecastCreditNote(tipo: 'cliente' | 'grupo', id: number, year: number, month: number): Observable<ForecastCreditNote> {
+    return this.httpService.post<ForecastCreditNote>(
+      `/forecast/credit-notes/${tipo}/${id}/${year}/${month}`,
+      {},
+      this.withBearer()
+    ).pipe(
+      map((response: ApiResponse<ForecastCreditNote>) => response.data!),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
+  getForecastCreditNoteHistory(tipo: 'cliente' | 'grupo', id: number): Observable<ForecastCreditNote[]> {
+    return this.httpService.get<ForecastCreditNote[]>(
+      `/forecast/credit-notes/${tipo}/${id}`,
+      this.withBearer()
+    ).pipe(
+      map((response: ApiResponse<ForecastCreditNote[]>) => response.data ?? []),
       catchError((error) => throwError(() => error))
     );
   }
