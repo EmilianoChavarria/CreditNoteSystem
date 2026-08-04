@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { HttpService, RequestOptions } from './http-service';
 import { ApiResponse } from '../../data/interfaces/ApiResponse-interface';
+import { runtimeConfig } from '../config/runtime-config';
 import { catchError, map, Observable, throwError } from 'rxjs';
 
 export interface ForecastClient {
@@ -526,7 +528,10 @@ export function mapDistributorChangeRequestToChangeRequest(reqs: DistributorChan
 
 @Injectable({ providedIn: 'root' })
 export class ForecastService {
-  constructor(private readonly httpService: HttpService) {}
+  constructor(
+    private readonly httpService: HttpService,
+    private readonly http: HttpClient,
+  ) {}
 
   getByEngineer(engineerId: number, year: number): Observable<ForecastRowApi[]> {
     return this.httpService.get<ForecastRowApi[]>(
@@ -751,13 +756,35 @@ export class ForecastService {
     );
   }
 
-  generateForecastCreditNote(tipo: 'cliente' | 'grupo', id: number, year: number, month: number): Observable<ForecastCreditNoteGenerationResult> {
-    return this.httpService.post<ForecastCreditNoteGenerationResult>(
-      `/forecast/credit-notes/${tipo}/${id}/${year}/${month}`,
-      {},
-      this.withBearer()
+  /**
+   * Genera la(s) NC. `attachments` trae los adjuntos obligatorios por cliente (clientId=id para tipo cliente,
+   * o clientId de cada miembro elegible para tipo grupo) — el workflow no deja avanzar una solicitud sin adjuntos.
+   * Se manda como multipart/form-data directo con HttpClient (no vía HttpService: fuerza Content-Type json que
+   * rompería el boundary del FormData — mismo patrón que RequestService.saveRequest).
+   */
+  generateForecastCreditNote(
+    tipo: 'cliente' | 'grupo',
+    id: number,
+    year: number,
+    month: number,
+    attachments: { clientId: string; files: File[] }[]
+  ): Observable<ForecastCreditNoteGenerationResult> {
+    const formData = new FormData();
+    for (const entry of attachments) {
+      for (const file of entry.files) {
+        formData.append(`attachments[${entry.clientId}][]`, file);
+      }
+    }
+
+    const token = this.resolveBearerToken();
+    const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
+
+    return this.http.post<ApiResponse<ForecastCreditNoteGenerationResult>>(
+      `${runtimeConfig.apiBaseUrl}/forecast/credit-notes/${tipo}/${id}/${year}/${month}`,
+      formData,
+      { withCredentials: true, headers }
     ).pipe(
-      map((response: ApiResponse<ForecastCreditNoteGenerationResult>) => response.data ?? { created: [], skipped: [] }),
+      map((response) => response.data ?? { created: [], skipped: [] }),
       catchError((error) => throwError(() => error))
     );
   }
