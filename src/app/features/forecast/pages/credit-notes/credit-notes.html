@@ -258,6 +258,17 @@
                                     class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-[#E87722] transition">
                                     <lucide-icon name="eye" size="14"></lucide-icon>
                                 </button>
+                                @if (selectedEntity()?.tipo === 'grupo') {
+                                <button type="button" (click)="toggleBreakdown(row)"
+                                    title="Ver aportación por cliente"
+                                    [class]="expandedMes() === row.mes
+                                    ? 'inline-flex items-center gap-1 rounded-md border border-[#E87722] bg-orange-50 px-2.5 py-1.5 text-xs font-semibold text-[#E87722] transition'
+                                    : 'inline-flex items-center gap-1 rounded-md border border-gray-200 px-2.5 py-1.5 text-xs font-semibold text-gray-500 hover:bg-gray-50 transition'">
+                                    <lucide-icon name="users" size="12"></lucide-icon>
+                                    Ver notas
+                                    <lucide-icon [name]="expandedMes() === row.mes ? 'chevron-up' : 'chevron-down'" size="12"></lucide-icon>
+                                </button>
+                                }
                                 @if (generatedNotesFor(row.mes).length > 0) {
                                 <span class="inline-flex items-center gap-1.5 rounded-md bg-green-50 px-3 py-1.5 text-xs font-semibold text-green-700">
                                     <lucide-icon name="badge-check" size="12"></lucide-icon>
@@ -275,6 +286,67 @@
                             </div>
                         </td>
                     </tr>
+                    @if (selectedEntity()?.tipo === 'grupo' && expandedMes() === row.mes) {
+                    <tr class="border-b border-gray-100 last:border-b-0 bg-gray-50/60">
+                        <td colspan="9" class="px-5 py-4">
+                            @if (loadingBreakdown() === row.mes) {
+                            <div class="flex items-center gap-2 py-4 text-sm text-gray-400">
+                                <svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                                </svg>
+                                Cargando aportación por cliente...
+                            </div>
+                            } @else if (breakdownFor(row.mes); as breakdown) {
+                            <p class="mb-2 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                                Aportación por cliente del grupo
+                            </p>
+                            <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+                                <table class="w-full text-left text-sm">
+                                    <thead>
+                                        <tr class="border-b border-gray-200 bg-gray-50 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                                            <th class="px-4 py-2">Cliente</th>
+                                            <th class="px-3 py-2">Facturas</th>
+                                            <th class="px-3 py-2">Aportación</th>
+                                            <th class="px-3 py-2">Participación</th>
+                                            <th class="px-3 py-2">Retorno {{ breakdown.returnPercentage != null ? (breakdown.returnPercentage | number:'1.1-2') + '%' : '' }}</th>
+                                            <th class="px-4 py-2">Nota</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @for (member of breakdown.members; track member.clientId) {
+                                        <tr class="border-b border-gray-100 last:border-b-0">
+                                            <td class="px-4 py-2">
+                                                <div class="font-semibold text-gray-800">{{ member.name }}</div>
+                                                <div class="text-xs text-gray-400">{{ member.clientId }}</div>
+                                            </td>
+                                            <td class="px-3 py-2 text-gray-700">{{ member.folioCount }}</td>
+                                            <td class="px-3 py-2 text-gray-700">{{ member.salesAmount | currency:'USD':'symbol':'1.2-2' }}</td>
+                                            <td class="px-3 py-2 text-gray-700">{{ member.participation != null ? (member.participation | number:'1.1-1') + '%' : '—' }}</td>
+                                            <td class="px-3 py-2 font-semibold text-[#E87722]">
+                                                {{ member.folioCount > 0 && member.returnAmount != null ? (member.returnAmount | currency:'USD':'symbol':'1.2-2') : '—' }}
+                                            </td>
+                                            <td class="px-4 py-2">
+                                                @if (member.note; as note) {
+                                                <span class="inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-1 text-xs font-semibold text-green-700">
+                                                    <lucide-icon name="badge-check" size="12"></lucide-icon>
+                                                    {{ note.requestNumber ?? ('#' + note.requestId) }}
+                                                </span>
+                                                } @else if (member.folioCount === 0) {
+                                                <span class="text-xs text-gray-400">Sin facturación</span>
+                                                } @else {
+                                                <span class="text-xs text-gray-400">—</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                            }
+                        </td>
+                    </tr>
+                    }
                     }
                 </tbody>
             </table>

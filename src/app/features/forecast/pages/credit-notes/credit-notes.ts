@@ -7,6 +7,7 @@ import { ToastrService } from 'ngx-toastr';
 import {
   ForecastCreditNote,
   ForecastEntityType,
+  ForecastGroupMonthBreakdown,
   ForecastService,
   ForecastSummaryMonth,
   InvoiceProductsEntry,
@@ -96,6 +97,10 @@ export class CreditNotes {
 
   readonly creditNotesHistory = signal<ForecastCreditNote[]>([]);
   readonly loadingHistory = signal(false);
+
+  readonly expandedMes = signal<number | null>(null);
+  readonly loadingBreakdown = signal<number | null>(null);
+  private readonly breakdownCache = signal<Map<number, ForecastGroupMonthBreakdown>>(new Map());
 
   readonly generateTarget = signal<SummaryRow | null>(null);
   readonly generateModalOpen = signal(false);
@@ -269,12 +274,51 @@ export class CreditNotes {
             this.toastr.info(`${result.skipped.length} cliente(s) del grupo no aplicaron (ya tenían NC o sin ventas consideradas).`);
           }
 
+          const map = new Map(this.breakdownCache());
+          map.delete(row.mes);
+          this.breakdownCache.set(map);
+          if (this.expandedMes() === row.mes) {
+            this.expandedMes.set(null);
+            this.toggleBreakdown(row);
+          }
+
           this.loadHistory(entity);
         },
         error: (err) => {
           const message = err?.error?.message ?? err?.error?.errors ?? 'No se pudo generar la nota de crédito.';
           this.generateError.set(typeof message === 'string' ? message : Object.values(message).flat().join(' '));
         },
+      });
+  }
+
+  breakdownFor(mes: number): ForecastGroupMonthBreakdown | undefined {
+    return this.breakdownCache().get(mes);
+  }
+
+  toggleBreakdown(row: SummaryRow): void {
+    const entity = this.selectedEntity();
+    if (!entity || entity.tipo !== 'grupo') return;
+
+    if (this.expandedMes() === row.mes) {
+      this.expandedMes.set(null);
+      return;
+    }
+
+    this.expandedMes.set(row.mes);
+
+    if (this.breakdownCache().has(row.mes)) return;
+
+    this.loadingBreakdown.set(row.mes);
+    this.forecastService.getGroupMonthBreakdown(entity.id, this.year(), row.mes)
+      .pipe(finalize(() => this.loadingBreakdown.set(null)))
+      .subscribe({
+        next: (breakdown) => {
+          if (!breakdown) return;
+          const map = new Map(this.breakdownCache());
+          map.set(row.mes, breakdown);
+          this.breakdownCache.set(map);
+        },
+        error: () => {},
       });
   }
 
