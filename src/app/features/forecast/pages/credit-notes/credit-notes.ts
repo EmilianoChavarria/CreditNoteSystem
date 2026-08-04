@@ -291,6 +291,10 @@ export class CreditNotes {
       });
   }
 
+  noteLabels(notes: ForecastCreditNote[]): string {
+    return notes.map(n => n.requestNumber ?? ('#' + n.requestId)).join(', ');
+  }
+
   breakdownFor(mes: number): ForecastGroupMonthBreakdown | undefined {
     return this.breakdownCache().get(mes);
   }
