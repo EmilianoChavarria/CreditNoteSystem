@@ -3,7 +3,12 @@ import { finalize } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Modal } from '../../../../../../shared/components/ui/modal/modal';
-import { ForecastClient, ForecastService } from '../../../../../../core/services/forecast.service';
+import {
+  CUSTOMER_CURRENCIES,
+  CustomerCurrency,
+  ForecastClient,
+  ForecastService,
+} from '../../../../../../core/services/forecast.service';
 
 @Component({
   selector: 'app-edit-national-customer-modal',
@@ -27,6 +32,9 @@ export class EditNationalCustomerModal {
   readonly saving = signal(false);
   readonly emails = signal('');
   readonly returnPercentage = signal('');
+  readonly currency = signal<CustomerCurrency | ''>('');
+
+  readonly currencies = CUSTOMER_CURRENCIES;
 
   private wasOpen = false;
 
@@ -43,6 +51,7 @@ export class EditNationalCustomerModal {
 
       this.emails.set(c?.correosForecast?.replace(/;/g, ',') ?? '');
       this.returnPercentage.set('');
+      this.currency.set(c?.currency ?? '');
       if (c?.idCliente) {
         this.loadCurrent(c.idCliente);
       }
@@ -59,6 +68,7 @@ export class EditNationalCustomerModal {
           if (!match) return;
           this.emails.set(match.emails ?? '');
           this.returnPercentage.set(match.returnPercentage != null ? String(match.returnPercentage) : '');
+          this.currency.set(match.currency ?? '');
         },
         error: () => {},
       });
@@ -78,8 +88,11 @@ export class EditNationalCustomerModal {
       return;
     }
 
+    // La moneda solo viaja si el usuario eligió una: así no se borra la ya guardada.
+    const currency = this.currency() || undefined;
+
     this.saving.set(true);
-    this.forecastService.updateNationalCustomer(customerNumber, { emails, returnPercentage })
+    this.forecastService.updateNationalCustomer(customerNumber, { emails, returnPercentage, currency })
       .pipe(finalize(() => this.saving.set(false)))
       .subscribe({
         next: () => {

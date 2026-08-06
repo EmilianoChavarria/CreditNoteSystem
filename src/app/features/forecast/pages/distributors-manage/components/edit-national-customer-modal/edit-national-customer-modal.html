@@ -49,6 +49,20 @@
             <span class="text-xs text-gray-400">{{ 'FORECAST.EDIT_NATIONAL_CUSTOMER.RETURN_PERCENTAGE_HINT' | translate }}</span>
         </div>
 
+        <div class="flex flex-col gap-1">
+            <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">{{ 'FORECAST.EDIT_NATIONAL_CUSTOMER.LABEL_CURRENCY' | translate }}</label>
+            <select
+                [value]="currency()"
+                (change)="currency.set($any($event.target).value)"
+                class="w-full text-sm px-3 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-orange-400 transition">
+                <option value="">{{ 'FORECAST.EDIT_NATIONAL_CUSTOMER.CURRENCY_PLACEHOLDER' | translate }}</option>
+                @for (c of currencies; track c) {
+                <option [value]="c">{{ c }}</option>
+                }
+            </select>
+            <span class="text-xs text-gray-400">{{ 'FORECAST.EDIT_NATIONAL_CUSTOMER.CURRENCY_HINT' | translate }}</span>
+        </div>
+
     </div>
 
 </app-modal>
