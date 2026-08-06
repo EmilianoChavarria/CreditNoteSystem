@@ -119,7 +119,7 @@
 
             <tbody>
               @for (inv of selectedInvoices(); track inv.folio) {
-                <tr [class]="'border-t border-gray-100 hover:bg-gray-50 transition-colors ' + (!inv.cuenta ? 'bg-gray-50/60' : '')">
+                <tr class="border-t border-gray-100 hover:bg-gray-50 transition-colors">
                   <td class="px-4 py-2.5 text-xs font-medium text-gray-700 whitespace-nowrap">
                     {{ inv.folio }}
                     @if (inv.originalMoneda) {
@@ -128,12 +128,8 @@
                       </span>
                     }
                     <div class="mt-1">
-                      @if (!inv.cuenta) {
-                        <span class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-500" [title]="inv.motivo ?? ''">
-                          {{ 'FORECAST.INVOICES_MODAL.BADGE_NO_CUENTA' | translate }}
-                        </span>
-                      } @else if (inv.signo < 0) {
-                        <span class="inline-flex items-center rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-semibold text-orange-700" [title]="inv.motivo ?? ''">
+                      @if (inv.signo < 0) {
+                        <span class="inline-flex items-center rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-semibold text-orange-700">
                           {{ 'FORECAST.INVOICES_MODAL.BADGE_DEVOLUCION' | translate }}
                         </span>
                       } @else {
@@ -146,19 +142,19 @@
                   <td class="px-4 py-2.5 text-xs text-gray-500 whitespace-nowrap">
                     {{ inv.fechaEmision | date:'dd/MM/yyyy HH:mm:ss':'UTC' }}
                   </td>
-                  <td [class]="'px-4 py-2.5 text-right text-xs whitespace-nowrap ' + (!inv.cuenta ? 'text-gray-400 line-through' : 'text-gray-600')">
+                  <td class="px-4 py-2.5 text-right text-xs whitespace-nowrap text-gray-600">
                     ${{ +inv.subTotal | number:'1.2-2' }} {{ inv.moneda }}
                     @if (inv.originalSubTotal !== undefined) {
                       <div class="text-[11px] text-gray-400">${{ +inv.originalSubTotal | number:'1.2-2' }} {{ inv.originalMoneda }} </div>
                     }
                   </td>
-                  <td [class]="'px-4 py-2.5 text-right text-xs whitespace-nowrap ' + (!inv.cuenta ? 'text-gray-400 line-through' : 'text-gray-600')">
+                  <td class="px-4 py-2.5 text-right text-xs whitespace-nowrap text-gray-600">
                     ${{ +inv.iva | number:'1.2-2' }} {{ inv.moneda }}
                     @if (inv.originalIva !== undefined) {
                       <div class="text-[11px] text-gray-400"> ${{ +inv.originalIva | number:'1.2-2' }} {{ inv.originalMoneda }}</div>
                     }
                   </td>
-                  <td [class]="'px-4 py-2.5 text-right text-xs font-semibold whitespace-nowrap ' + (!inv.cuenta ? 'text-gray-400 line-through' : (inv.signo < 0 ? 'text-orange-600' : 'text-gray-700'))">
+                  <td [class]="'px-4 py-2.5 text-right text-xs font-semibold whitespace-nowrap ' + (inv.signo < 0 ? 'text-orange-600' : 'text-gray-700')">
                      {{ inv.signo < 0 ? '−' : '' }}${{ +inv.total | number:'1.2-2' }} {{ inv.moneda }}
                     @if (inv.originalTotal !== undefined) {
                       <div class="text-[11px] font-normal text-gray-400"> ${{ +inv.originalTotal | number:'1.2-2' }} {{ inv.originalMoneda }} · TC {{ +(inv.tipoCambio ?? 0) | number:'1.2-4' }}</div>
