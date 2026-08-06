@@ -20,7 +20,7 @@ import { AutocompleteOption } from '../../../../shared/components/ui/autocomplet
 import { GroupedAutocomplete, AutocompleteOptionGroup } from '../../../../shared/components/ui/grouped-autocomplete/grouped-autocomplete';
 import { ForecastInvoicesModal } from '../../components/forecast-invoices-modal/forecast-invoices-modal';
 import { ForecastInvoiceProductsModal } from '../../components/forecast-invoice-products-modal/forecast-invoice-products-modal';
-import { Modal } from '../../../../shared/components/ui/modal/modal';
+import { GenerateCreditNoteModal } from '../../components/generate-credit-note-modal/generate-credit-note-modal';
 
 type StatusFilter = 'all' | 'met' | 'missed' | 'pending-note' | 'with-note';
 
@@ -64,7 +64,7 @@ interface InvoiceProductsState {
     DatePipe,
     ForecastInvoicesModal,
     ForecastInvoiceProductsModal,
-    Modal,
+    GenerateCreditNoteModal,
   ],
   templateUrl: './credit-notes.html',
   styleUrl: './credit-notes.css',
@@ -109,7 +109,6 @@ export class CreditNotes {
   readonly generatingNC = signal(false);
   readonly generateError = signal<string | null>(null);
   readonly loadingGenerateMembers = signal(false);
-  readonly generateAttachments = signal<Map<string, File[]>>(new Map());
 
   readonly stats = computed(() => ({ pending: 0 }));
 
@@ -259,7 +258,6 @@ export class CreditNotes {
 
     this.generateTarget.set(row);
     this.generateError.set(null);
-    this.generateAttachments.set(new Map());
     this.generateModalOpen.set(true);
 
     if (entity?.tipo === 'grupo') {
@@ -271,7 +269,6 @@ export class CreditNotes {
     if (this.generatingNC()) return;
     this.generateModalOpen.set(false);
     this.generateTarget.set(null);
-    this.generateAttachments.set(new Map());
   }
 
   /** Miembros del grupo que recibirán NC este mes: aportaron venta considerada y aún no tienen nota. */
@@ -279,37 +276,10 @@ export class CreditNotes {
     return (this.breakdownFor(row.mes)?.members ?? []).filter(m => m.folioCount > 0 && !m.note);
   }
 
-  onAttachmentFilesChange(clientId: string, event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const files = input.files ? Array.from(input.files) : [];
-    const map = new Map(this.generateAttachments());
-    map.set(clientId, files);
-    this.generateAttachments.set(map);
-  }
-
-  canSubmitGenerate(): boolean {
+  confirmGenerateNC(attachments: { clientId: string; files: File[] }[]): void {
     const entity = this.selectedEntity();
     const row = this.generateTarget();
-    if (!entity || !row) return false;
-
-    if (entity.tipo === 'cliente') {
-      return (this.generateAttachments().get(String(entity.id))?.length ?? 0) > 0;
-    }
-
-    if (entity.tipo !== 'grupo' || this.loadingGenerateMembers()) return false;
-
-    const members = this.contributingMembersFor(row);
-    return members.length > 0 && members.every(m => (this.generateAttachments().get(m.clientId)?.length ?? 0) > 0);
-  }
-
-  confirmGenerateNC(): void {
-    const entity = this.selectedEntity();
-    const row = this.generateTarget();
-    if (!entity || !row || this.generatingNC() || entity.tipo === 'clienteExtranjero' || !this.canSubmitGenerate()) return;
-
-    const attachments: { clientId: string; files: File[] }[] = entity.tipo === 'cliente'
-      ? [{ clientId: String(entity.id), files: this.generateAttachments().get(String(entity.id)) ?? [] }]
-      : this.contributingMembersFor(row).map(m => ({ clientId: m.clientId, files: this.generateAttachments().get(m.clientId) ?? [] }));
+    if (!entity || !row || this.generatingNC() || entity.tipo === 'clienteExtranjero') return;
 
     this.generatingNC.set(true);
     this.generateError.set(null);
@@ -319,7 +289,6 @@ export class CreditNotes {
         next: (result) => {
           this.generateModalOpen.set(false);
           this.generateTarget.set(null);
-          this.generateAttachments.set(new Map());
 
           const count = result.created.length;
           this.toastr.success(
