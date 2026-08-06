@@ -24,10 +24,11 @@ import { BulkDistributorHistoryModal } from './components/bulk-distributor-histo
 import { BulkNationalCustomersUploadModal } from '../../components/bulk-national-customers-upload-modal/bulk-national-customers-upload-modal';
 import { BulkNationalCustomersHistoryModal } from './components/bulk-national-customers-history-modal/bulk-national-customers-history-modal';
 import { EditNationalCustomerModal } from './components/edit-national-customer-modal/edit-national-customer-modal';
+import { AddNationalCustomerModal } from './components/add-national-customer-modal/add-national-customer-modal';
 
 @Component({
   selector: 'app-distributors-manage',
-  imports: [TranslatePipe, DecimalPipe, Table, TabsContainer, Tab, Popover, Modal, LucideAngularModule, DatePipe, EditDistributorModal, GroupForecastModal, CreateGroupModal, GroupMembersModal, EditGroupModal, DistributorForecastModal, BulkDistributorUploadModal, BulkDistributorHistoryModal, BulkNationalCustomersUploadModal, BulkNationalCustomersHistoryModal, EditNationalCustomerModal],
+  imports: [TranslatePipe, DecimalPipe, Table, TabsContainer, Tab, Popover, Modal, LucideAngularModule, DatePipe, EditDistributorModal, GroupForecastModal, CreateGroupModal, GroupMembersModal, EditGroupModal, DistributorForecastModal, BulkDistributorUploadModal, BulkDistributorHistoryModal, BulkNationalCustomersUploadModal, BulkNationalCustomersHistoryModal, EditNationalCustomerModal, AddNationalCustomerModal],
   templateUrl: './distributors-manage.html',
   styleUrl: './distributors-manage.css',
 })
@@ -50,6 +51,10 @@ export class DistributorsManage implements OnInit {
   readonly selectedNationalCustomer = signal<ForecastClient | null>(null);
   readonly nationalBulkUploadModalOpen = signal(false);
   readonly nationalBulkHistoryModalOpen = signal(false);
+  readonly addNationalCustomerModalOpen = signal(false);
+  readonly deleteNationalCustomerModalOpen = signal(false);
+  readonly deleteNationalCustomerTarget = signal<ForecastClient | null>(null);
+  readonly deletingNationalCustomer = signal(false);
 
   readonly foreignClients = signal<DistributorRecord[]>([]);
   readonly foreignLoading = signal(true);
@@ -114,6 +119,12 @@ export class DistributorsManage implements OnInit {
         icon: 'pencil',
         className: 'text-left text-gray-700',
         accion: (item) => this.openEditNationalCustomerModal(item),
+      },
+      {
+        label: this.translate.instant('FORECAST.DISTRIBUTORS.ACTION_REMOVE_NATIONAL'),
+        icon: 'trash',
+        className: 'text-left text-red-600',
+        accion: (item) => this.askDeleteNationalCustomer(item),
       },
     ];
     this.foreignColumns = [
@@ -229,6 +240,44 @@ export class DistributorsManage implements OnInit {
 
   onNationalCustomerSaved(): void {
     this.loadData(this.currentPage());
+  }
+
+  openAddNationalCustomerModal(): void {
+    this.addNationalCustomerModalOpen.set(true);
+  }
+
+  onNationalCustomerAdded(): void {
+    this.loadData(1);
+  }
+
+  askDeleteNationalCustomer(client: ForecastClient): void {
+    this.deleteNationalCustomerTarget.set(client);
+    this.deleteNationalCustomerModalOpen.set(true);
+  }
+
+  cancelDeleteNationalCustomer(): void {
+    this.deleteNationalCustomerModalOpen.set(false);
+    this.deleteNationalCustomerTarget.set(null);
+  }
+
+  confirmDeleteNationalCustomer(): void {
+    const target = this.deleteNationalCustomerTarget();
+    if (!target || this.deletingNationalCustomer()) return;
+
+    this.deletingNationalCustomer.set(true);
+    this.forecastService
+      .deleteNationalCustomer(target.idCliente)
+      .pipe(finalize(() => this.deletingNationalCustomer.set(false)))
+      .subscribe({
+        next: () => {
+          this.cancelDeleteNationalCustomer();
+          this.loadData(this.currentPage());
+          this.toastr.success(this.translate.instant('FORECAST.DISTRIBUTORS.REMOVE_NATIONAL_SUCCESS'));
+        },
+        error: (err) => this.toastr.error(
+          err?.error?.message ?? this.translate.instant('FORECAST.DISTRIBUTORS.REMOVE_NATIONAL_ERROR')
+        ),
+      });
   }
 
   openNationalBulkUploadModal(): void {
