@@ -106,6 +106,7 @@ export class DistributorsManage implements OnInit {
       { key: 'direccion', label: this.translate.instant('FORECAST.DISTRIBUTORS.COL_ADDRESS'), sortable: true, customTemplate: true },
       { key: 'emails', label: this.translate.instant('FORECAST.DISTRIBUTORS.COL_EMAILS'), sortable: false, customTemplate: true },
       { key: 'returnPercentage', label: this.translate.instant('FORECAST.DISTRIBUTORS.COL_RETURN'), sortable: false, customTemplate: true },
+      { key: 'currency', label: this.translate.instant('FORECAST.DISTRIBUTORS.COL_CURRENCY'), sortable: false, customTemplate: true },
     ];
     this.acciones = [
       {
