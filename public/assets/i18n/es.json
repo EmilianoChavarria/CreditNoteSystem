@@ -1469,10 +1469,9 @@
       "TOTAL_FACTURAS": "Total facturas",
       "TOTAL_DEVOLUCIONES": "Devoluciones (DM)",
       "TOTAL_CONSIDERADO": "Total considerado",
-      "EXPLANATION": "Las notas de crédito con PO de devolución (empieza con \"DM\") restan del total. Las demás notas de crédito no cuentan ni suman ni restan.",
+      "EXPLANATION": "Las notas de crédito con PO de devolución (empieza con \"DM\") restan del total. Las demás notas de crédito no forman parte de la venta y no se listan.",
       "BADGE_FACTURA": "Factura",
-      "BADGE_DEVOLUCION": "Devolución (resta)",
-      "BADGE_NO_CUENTA": "No cuenta"
+      "BADGE_DEVOLUCION": "Devolución (resta)"
     },
     "INVOICE_PRODUCTS_MODAL": {
       "TITLE_PREFIX": "Factura",

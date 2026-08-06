@@ -1470,10 +1470,9 @@
       "TOTAL_FACTURAS": "Total invoices",
       "TOTAL_DEVOLUCIONES": "Returns (DM)",
       "TOTAL_CONSIDERADO": "Total considered",
-      "EXPLANATION": "Credit notes with a return PO (starts with \"DM\") subtract from the total. Other credit notes don't count — they neither add nor subtract.",
+      "EXPLANATION": "Credit notes with a return PO (starts with \"DM\") subtract from the total. Other credit notes are not part of sales and are not listed.",
       "BADGE_FACTURA": "Invoice",
-      "BADGE_DEVOLUCION": "Return (subtracts)",
-      "BADGE_NO_CUENTA": "Doesn't count"
+      "BADGE_DEVOLUCION": "Return (subtracts)"
     },
     "INVOICE_PRODUCTS_MODAL": {
       "TITLE_PREFIX": "Invoice",
