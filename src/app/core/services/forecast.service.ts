@@ -449,9 +449,28 @@ export const CUSTOMER_CURRENCIES: readonly CustomerCurrency[] = ['USD', 'MXN'];
 
 export interface NationalCustomer {
   customerNumber: string;
-  emails: string;
-  returnPercentage: number;
+  emails: string | null;
+  returnPercentage: number | null;
   currency: CustomerCurrency | null;
+  /** Resueltos por el backend desde la BD externa. */
+  razonSocial?: string | null;
+  rfc?: string | null;
+  direccion?: string | null;
+  createdAt?: string | null;
+}
+
+/** Cliente de la BD externa aún no dado de alta en forecast. */
+export interface NationalCustomerCandidate {
+  customerNumber: string;
+  razonSocial: string | null;
+  rfc: string | null;
+}
+
+export interface CreateNationalCustomerPayload {
+  customerNumber: string;
+  emails?: string;
+  returnPercentage?: number;
+  currency?: CustomerCurrency;
 }
 
 export interface NationalCustomerPage {
@@ -1005,6 +1024,34 @@ export class ForecastService {
       this.withBearer()
     ).pipe(
       map((response: ApiResponse<NationalCustomer>) => response.data!),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
+  /** Clientes de la BD externa que aún no participan en forecast, para el alta. */
+  searchNationalCustomerCandidates(term: string): Observable<NationalCustomerCandidate[]> {
+    return this.httpService.get<NationalCustomerCandidate[]>(
+      '/national-customers/search',
+      { ...this.withBearer(), params: { q: term } }
+    ).pipe(
+      map((response: ApiResponse<NationalCustomerCandidate[]>) => response.data ?? []),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
+  createNationalCustomer(payload: CreateNationalCustomerPayload): Observable<NationalCustomer> {
+    return this.httpService.post<NationalCustomer>('/national-customers', payload, this.withBearer()).pipe(
+      map((response: ApiResponse<NationalCustomer>) => response.data!),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
+  deleteNationalCustomer(customerNumber: string): Observable<void> {
+    return this.httpService.delete<void>(
+      `/national-customers/${encodeURIComponent(customerNumber)}`,
+      this.withBearer()
+    ).pipe(
+      map(() => undefined),
       catchError((error) => throwError(() => error))
     );
   }
