@@ -143,6 +143,7 @@ export class MyApprovals extends RequestListBase {
             requestTypes: this._requestsService.getRequestTypes(),
             permissions: this.roleService.getRequestTypePermissionsForCurrentContext(),
         }).subscribe({
+            
             next: ({ actions, roles, requestTypes, permissions }) => {
                 this.setRoleFilterOptions(roles);
                 const permissionMatrix = this.buildRequestTypeActionPermissions(actions, permissions);
