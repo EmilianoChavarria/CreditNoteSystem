@@ -11,6 +11,7 @@ export interface ForecastClient {
   direccion: string;
   rfc: string;
   correosForecast: string | null;
+  currency?: CustomerCurrency | null;
   countrycode?: string;
   salesEngineerId?: number | null;
   salesEngineerName?: string | null;
@@ -441,10 +442,16 @@ export interface DistributorChangeRequestPayload {
   forecast: number;
 }
 
+/** Moneda del cliente nacional. */
+export type CustomerCurrency = 'USD' | 'MXN';
+
+export const CUSTOMER_CURRENCIES: readonly CustomerCurrency[] = ['USD', 'MXN'];
+
 export interface NationalCustomer {
   customerNumber: string;
   emails: string;
   returnPercentage: number;
+  currency: CustomerCurrency | null;
 }
 
 export interface NationalCustomerPage {
@@ -460,6 +467,7 @@ export interface NationalCustomerPage {
 export interface UpdateNationalCustomerPayload {
   emails?: string;
   returnPercentage?: number;
+  currency?: CustomerCurrency;
 }
 
 function buildMonthEntries(months: ForecastMonthApi[]): MonthEntry[] {
