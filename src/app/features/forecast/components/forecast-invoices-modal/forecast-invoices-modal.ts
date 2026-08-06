@@ -57,14 +57,32 @@ export class ForecastInvoicesModal {
   }
 
   grandTotal(): number {
-    return this.selectedInvoices().reduce((s, inv) => s + Number(inv.total), 0);
+    return this.selectedInvoices().reduce((s, inv) => s + this.signedAmount(inv, Number(inv.total)), 0);
   }
 
   grandSubTotal(): number {
-    return this.selectedInvoices().reduce((s, inv) => s + Number(inv.subTotal), 0);
+    return this.selectedInvoices().reduce((s, inv) => s + this.signedAmount(inv, Number(inv.subTotal)), 0);
   }
 
   grandIva(): number {
-    return this.selectedInvoices().reduce((s, inv) => s + Number(inv.iva), 0);
+    return this.selectedInvoices().reduce((s, inv) => s + this.signedAmount(inv, Number(inv.iva)), 0);
+  }
+
+  /** Suma de facturas (signo +1) que sí cuentan. */
+  totalFacturas(): number {
+    return this.selectedInvoices()
+      .filter(inv => inv.cuenta && inv.signo > 0)
+      .reduce((s, inv) => s + Number(inv.total), 0);
+  }
+
+  /** Suma de notas de crédito de devolución (signo -1) — se muestra como monto positivo, se resta en totalConsiderado. */
+  totalDevoluciones(): number {
+    return this.selectedInvoices()
+      .filter(inv => inv.cuenta && inv.signo < 0)
+      .reduce((s, inv) => s + Number(inv.total), 0);
+  }
+
+  private signedAmount(inv: Invoice, amount: number): number {
+    return inv.cuenta ? amount * inv.signo : 0;
   }
 }
