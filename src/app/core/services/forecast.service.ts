@@ -305,12 +305,11 @@ export interface Invoice {
   originalMoneda?: string;
   tipoCambio?: number;
   tipoComprobante?: string;
-  /** false para notas de crédito que no son devolución de material: no suman ni restan del total mensual. */
-  cuenta: boolean;
-  /** 1 = suma (factura), -1 = resta (nota de crédito de devolución), 0 = no cuenta. */
+  /**
+   * 1 = suma (factura), -1 = resta (nota de crédito de devolución).
+   * Las notas de crédito que no son devolución no llegan: el backend no las lista.
+   */
   signo: number;
-  /** Motivo por el que no cuenta / resta, para mostrar en la UI. */
-  motivo?: string | null;
 }
 
 export interface InvoiceSection {
