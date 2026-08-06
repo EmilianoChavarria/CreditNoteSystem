@@ -1,0 +1,83 @@
+import { ChangeDetectionStrategy, Component, computed, effect, input, output, signal } from '@angular/core';
+import { CurrencyPipe, DecimalPipe } from '@angular/common';
+import { Modal } from '../../../../shared/components/ui/modal/modal';
+import { ForecastEntityType, ForecastGroupMemberBreakdown } from '../../../../core/services/forecast.service';
+
+@Component({
+  selector: 'app-generate-credit-note-modal',
+  imports: [Modal, CurrencyPipe, DecimalPipe],
+  templateUrl: './generate-credit-note-modal.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class GenerateCreditNoteModal {
+  readonly open = input<boolean>(false);
+  readonly entityType = input<ForecastEntityType | null>(null);
+  readonly entityId = input<number | null>(null);
+  readonly entityName = input<string>('');
+  readonly monthLabel = input<string>('');
+  readonly ventaMensual = input<number | null>(null);
+  readonly porcentajeRetorno = input<number | null>(null);
+  readonly generating = input<boolean>(false);
+  readonly error = input<string | null>(null);
+  readonly loadingMembers = input<boolean>(false);
+  readonly members = input<ForecastGroupMemberBreakdown[]>([]);
+
+  readonly closed = output<void>();
+  readonly confirmed = output<{ clientId: string; files: File[] }[]>();
+
+  readonly attachments = signal<Map<string, File[]>>(new Map());
+
+  private readonly resetOnOpenEffect = effect(() => {
+    if (this.open()) {
+      this.attachments.set(new Map());
+    }
+  });
+
+  readonly estimatedAmount = computed(() => {
+    const venta = this.ventaMensual();
+    const porcentaje = this.porcentajeRetorno();
+    return venta && porcentaje ? (venta * porcentaje) / 100 : 0;
+  });
+
+  onAttachmentFilesChange(clientId: string, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const files = input.files ? Array.from(input.files) : [];
+    const map = new Map(this.attachments());
+    map.set(clientId, files);
+    this.attachments.set(map);
+  }
+
+  canSubmit(): boolean {
+    const type = this.entityType();
+    const id = this.entityId();
+    if (!type || id == null) return false;
+
+    if (type === 'cliente') {
+      return (this.attachments().get(String(id))?.length ?? 0) > 0;
+    }
+
+    if (type !== 'grupo' || this.loadingMembers()) return false;
+
+    const members = this.members();
+    return members.length > 0 && members.every(m => (this.attachments().get(m.clientId)?.length ?? 0) > 0);
+  }
+
+  onCancel(): void {
+    if (this.generating()) return;
+    this.closed.emit();
+  }
+
+  onConfirm(): void {
+    if (this.generating() || !this.canSubmit()) return;
+
+    const type = this.entityType();
+    const id = this.entityId();
+    if (!type || id == null) return;
+
+    const attachments: { clientId: string; files: File[] }[] = type === 'cliente'
+      ? [{ clientId: String(id), files: this.attachments().get(String(id)) ?? [] }]
+      : this.members().map(m => ({ clientId: m.clientId, files: this.attachments().get(m.clientId) ?? [] }));
+
+    this.confirmed.emit(attachments);
+  }
+}
