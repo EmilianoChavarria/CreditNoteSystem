@@ -276,7 +276,7 @@ export class CreditNotes {
     return (this.breakdownFor(row.mes)?.members ?? []).filter(m => m.folioCount > 0 && !m.note);
   }
 
-  confirmGenerateNC(attachments: { clientId: string; files: File[] }[]): void {
+  confirmGenerateNC(attachments: File[]): void {
     const entity = this.selectedEntity();
     const row = this.generateTarget();
     if (!entity || !row || this.generatingNC() || entity.tipo === 'clienteExtranjero') return;
