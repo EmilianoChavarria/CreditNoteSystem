@@ -800,13 +800,12 @@ export class ForecastService {
     id: number,
     year: number,
     month: number,
-    attachments: { clientId: string; files: File[] }[]
+    attachments: File[]
   ): Observable<ForecastCreditNoteGenerationResult> {
+    // Un solo set de adjuntos: el backend lo aplica a cada NC generada (todas las del grupo).
     const formData = new FormData();
-    for (const entry of attachments) {
-      for (const file of entry.files) {
-        formData.append(`attachments[${entry.clientId}][]`, file);
-      }
+    for (const file of attachments) {
+      formData.append('sharedAttachments[]', file);
     }
 
     const token = this.resolveBearerToken();
