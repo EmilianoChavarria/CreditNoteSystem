@@ -1632,7 +1632,7 @@
       "DELETE_GROUP_SUCCESS": "Grupo eliminado correctamente.",
       "NATIONAL_BULK_UPLOAD_BUTTON": "Carga masiva",
       "NATIONAL_BULK_UPLOAD_TITLE": "Carga masiva de clientes nacionales",
-      "NATIONAL_BULK_UPLOAD_DESCRIPTION": "Sube un archivo con las columnas customerNumber, emails y returnPercentage para actualizar correos y porcentaje de retorno en lote. Puedes incluir la columna currency (USD o MXN); si la omites, se conserva la moneda actual.",
+      "NATIONAL_BULK_UPLOAD_DESCRIPTION": "Sube un archivo con las columnas Customer Number, Emails y Return Percentage para actualizar correos y porcentaje de retorno en lote. Puedes incluir la columna Currency (USD o MXN); si la omites, se conserva la moneda actual.",
       "NATIONAL_BULK_DROP_HINT": "Arrastra tu archivo aquí o ",
       "NATIONAL_BULK_UPLOAD_BTN": "Cargar",
       "NATIONAL_BULK_UPLOADING": "Cargando...",
@@ -1674,7 +1674,7 @@
     "BULK_CLASSIFY": {
       "BUTTON": "Carga masiva",
       "TITLE": "Carga masiva de clasificaciones",
-      "DESCRIPTION": "Sube un archivo CSV, XLSX, XLS, TXT o XML con las columnas idProducto y clasificacion para clasificar productos en lote.",
+      "DESCRIPTION": "Sube un archivo CSV, XLSX, XLS, TXT o XML con las columnas ID Producto y Clasificacion para clasificar productos en lote.",
       "DROP_HINT": "Arrastra tu archivo aquí o ",
       "UPLOAD": "Cargar",
       "CANCEL": "Cancelar",
