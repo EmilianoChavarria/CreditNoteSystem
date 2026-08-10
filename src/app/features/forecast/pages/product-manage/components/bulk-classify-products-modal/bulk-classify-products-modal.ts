@@ -1,10 +1,12 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { LucideAngularModule } from 'lucide-angular';
 import { Modal } from '../../../../../../shared/components/ui/modal/modal';
 import { BulkFileDropzone } from '../../../../../../features/requests/components/batchs/shared/bulk-file-dropzone/bulk-file-dropzone';
 import { BulkUploadedFilesTable } from '../../../../../../features/requests/components/batchs/shared/bulk-uploaded-files-table/bulk-uploaded-files-table';
 import { BatchService } from '../../../../../../core/services/batch-service';
+import { BulkTemplateService } from '../../../../../../core/services/bulk-template-service';
 import { ToastService } from '../../../../../../core/services/toast-service';
 
 interface UploadedFileRow {
@@ -18,11 +20,12 @@ interface UploadedFileRow {
   selector: 'app-bulk-classify-products-modal',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, Modal, BulkFileDropzone, BulkUploadedFilesTable],
+  imports: [TranslatePipe, Modal, BulkFileDropzone, BulkUploadedFilesTable, LucideAngularModule],
   templateUrl: './bulk-classify-products-modal.html',
 })
 export class BulkClassifyProductsModal {
   private readonly batchService = inject(BatchService);
+  private readonly bulkTemplateService = inject(BulkTemplateService);
   private readonly toastService = inject(ToastService);
   private readonly translateService = inject(TranslateService);
   private readonly destroyRef = inject(DestroyRef);
@@ -59,6 +62,10 @@ export class BulkClassifyProductsModal {
     const input = event.target as HTMLInputElement;
     this.appendFile(input.files);
     input.value = '';
+  }
+
+  downloadTemplate(): void {
+    this.bulkTemplateService.download('productClassification');
   }
 
   removeUploadedFile(index: number): void {
