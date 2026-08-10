@@ -3,6 +3,8 @@ import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { Modal } from '../../../../shared/components/ui/modal/modal';
 import { ForecastEntityType, ForecastGroupMemberBreakdown } from '../../../../core/services/forecast.service';
 
+const IVA_RATE = 0.16;
+
 @Component({
   selector: 'app-generate-credit-note-modal',
   imports: [Modal, CurrencyPipe, DecimalPipe],
@@ -34,11 +36,16 @@ export class GenerateCreditNoteModal {
     }
   });
 
+  /** Retorno sin IVA; la NC siempre se genera con IVA (16%). */
   readonly estimatedAmount = computed(() => {
     const venta = this.ventaMensual();
     const porcentaje = this.porcentajeRetorno();
     return venta && porcentaje ? (venta * porcentaje) / 100 : 0;
   });
+
+  readonly estimatedIva = computed(() => this.estimatedAmount() * IVA_RATE);
+
+  readonly estimatedTotal = computed(() => this.estimatedAmount() * (1 + IVA_RATE));
 
   onAttachmentFilesChange(event: Event): void {
     const input = event.target as HTMLInputElement;
