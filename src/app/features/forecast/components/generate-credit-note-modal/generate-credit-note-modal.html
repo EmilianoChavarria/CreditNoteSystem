@@ -29,11 +29,7 @@
                 Adjuntos (obligatorio, la solicitud no puede avanzar sin al menos uno)
             </label>
 
-            @if (entityType() === 'cliente') {
-            <input type="file" multiple
-                (change)="onAttachmentFilesChange('' + entityId(), $event)"
-                class="w-full text-sm text-gray-600 file:mr-3 file:rounded-md file:border-0 file:bg-orange-50 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-[#E87722] hover:file:bg-orange-100" />
-            } @else {
+            @if (entityType() === 'grupo') {
                 @if (loadingMembers()) {
                 <div class="flex items-center gap-2 py-3 text-xs text-gray-400">
                     <svg class="h-3.5 w-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -45,17 +41,22 @@
                 } @else if (members().length === 0) {
                 <p class="text-xs text-red-500">No hay clientes elegibles para este periodo.</p>
                 } @else {
-                <div class="flex flex-col gap-2 max-h-56 overflow-y-auto pr-1">
+                <p class="text-xs text-gray-500">
+                    Los mismos adjuntos se usarán para las
+                    <span class="font-semibold">{{ members().length }}</span> notas de crédito del grupo:
+                </p>
+                <div class="flex flex-col gap-1 max-h-32 overflow-y-auto rounded-md border border-gray-200 p-2">
                     @for (member of members(); track member.clientId) {
-                    <div class="rounded-md border border-gray-200 p-2">
-                        <p class="mb-1 text-xs font-semibold text-gray-700">{{ member.name }} <span class="font-normal text-gray-400">({{ member.clientId }})</span></p>
-                        <input type="file" multiple
-                            (change)="onAttachmentFilesChange(member.clientId, $event)"
-                            class="w-full text-xs text-gray-600 file:mr-2 file:rounded-md file:border-0 file:bg-orange-50 file:px-2 file:py-1 file:text-[11px] file:font-semibold file:text-[#E87722] hover:file:bg-orange-100" />
-                    </div>
+                    <p class="text-xs text-gray-700">{{ member.name }} <span class="text-gray-400">({{ member.clientId }})</span></p>
                     }
                 </div>
                 }
+            }
+
+            @if (entityType() === 'cliente' || (entityType() === 'grupo' && !loadingMembers() && members().length > 0)) {
+            <input type="file" multiple
+                (change)="onAttachmentFilesChange($event)"
+                class="w-full text-sm text-gray-600 file:mr-3 file:rounded-md file:border-0 file:bg-orange-50 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-[#E87722] hover:file:bg-orange-100" />
             }
         </div>
 

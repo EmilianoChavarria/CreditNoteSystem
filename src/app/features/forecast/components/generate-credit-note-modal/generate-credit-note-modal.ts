@@ -23,13 +23,14 @@ export class GenerateCreditNoteModal {
   readonly members = input<ForecastGroupMemberBreakdown[]>([]);
 
   readonly closed = output<void>();
-  readonly confirmed = output<{ clientId: string; files: File[] }[]>();
+  /** Un solo set de adjuntos: en grupo, los mismos archivos se usan para todas las NC generadas. */
+  readonly confirmed = output<File[]>();
 
-  readonly attachments = signal<Map<string, File[]>>(new Map());
+  readonly attachments = signal<File[]>([]);
 
   private readonly resetOnOpenEffect = effect(() => {
     if (this.open()) {
-      this.attachments.set(new Map());
+      this.attachments.set([]);
     }
   });
 
@@ -39,27 +40,22 @@ export class GenerateCreditNoteModal {
     return venta && porcentaje ? (venta * porcentaje) / 100 : 0;
   });
 
-  onAttachmentFilesChange(clientId: string, event: Event): void {
+  onAttachmentFilesChange(event: Event): void {
     const input = event.target as HTMLInputElement;
-    const files = input.files ? Array.from(input.files) : [];
-    const map = new Map(this.attachments());
-    map.set(clientId, files);
-    this.attachments.set(map);
+    this.attachments.set(input.files ? Array.from(input.files) : []);
   }
 
   canSubmit(): boolean {
     const type = this.entityType();
     const id = this.entityId();
     if (!type || id == null) return false;
+    if (this.attachments().length === 0) return false;
 
-    if (type === 'cliente') {
-      return (this.attachments().get(String(id))?.length ?? 0) > 0;
-    }
+    if (type === 'cliente') return true;
 
     if (type !== 'grupo' || this.loadingMembers()) return false;
 
-    const members = this.members();
-    return members.length > 0 && members.every(m => (this.attachments().get(m.clientId)?.length ?? 0) > 0);
+    return this.members().length > 0;
   }
 
   onCancel(): void {
@@ -74,10 +70,6 @@ export class GenerateCreditNoteModal {
     const id = this.entityId();
     if (!type || id == null) return;
 
-    const attachments: { clientId: string; files: File[] }[] = type === 'cliente'
-      ? [{ clientId: String(id), files: this.attachments().get(String(id)) ?? [] }]
-      : this.members().map(m => ({ clientId: m.clientId, files: this.attachments().get(m.clientId) ?? [] }));
-
-    this.confirmed.emit(attachments);
+    this.confirmed.emit(this.attachments());
   }
 }
