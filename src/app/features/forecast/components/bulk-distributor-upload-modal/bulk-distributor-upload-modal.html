@@ -10,7 +10,14 @@
     (primaryAction)="submitUpload()">
 
     <div class="flex flex-col gap-4">
-        <p class="text-xs text-gray-500">{{ 'FORECAST.DISTRIBUTORS.BULK_UPLOAD_DESCRIPTION' | translate }}</p>
+        <div class="flex items-start justify-between gap-3">
+            <p class="text-xs text-gray-500">{{ 'FORECAST.DISTRIBUTORS.BULK_UPLOAD_DESCRIPTION' | translate }}</p>
+            <button type="button" (click)="downloadTemplate()"
+                class="shrink-0 inline-flex items-center gap-1.5 rounded-md border border-gray-300 px-2.5 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50 hover:cursor-pointer transition">
+                <lucide-icon name="download" size="14"></lucide-icon>
+                {{ 'BULK.COMMON.DOWNLOAD_TEMPLATE' | translate }}
+            </button>
+        </div>
 
         <div class="flex items-center justify-center w-full">
             <label for="bulk-distributors-input"

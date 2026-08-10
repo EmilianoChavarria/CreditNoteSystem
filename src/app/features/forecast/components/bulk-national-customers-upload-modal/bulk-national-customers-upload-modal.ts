@@ -5,6 +5,7 @@ import moment from 'moment';
 import { ToastrService } from 'ngx-toastr';
 import { finalize } from 'rxjs';
 import { BatchService } from '../../../../core/services/batch-service';
+import { BulkTemplateService } from '../../../../core/services/bulk-template-service';
 import { Modal } from '../../../../shared/components/ui/modal/modal';
 
 @Component({
@@ -19,6 +20,7 @@ export class BulkNationalCustomersUploadModal {
   readonly uploaded = output<void>();
 
   private readonly batchService = inject(BatchService);
+  private readonly bulkTemplateService = inject(BulkTemplateService);
   private readonly toastr = inject(ToastrService);
   private readonly translate = inject(TranslateService);
 
@@ -53,6 +55,10 @@ export class BulkNationalCustomersUploadModal {
     event.preventDefault();
     this.isDragOver.set(false);
     this.setFile(event.dataTransfer?.files?.[0] ?? null);
+  }
+
+  downloadTemplate(): void {
+    this.bulkTemplateService.download('nationalCustomers');
   }
 
   removeFile(): void {
