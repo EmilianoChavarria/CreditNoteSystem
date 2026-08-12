@@ -1484,7 +1484,7 @@
       "COL_QTY": "Quantity",
       "COL_UNIT_VALUE": "Unit value",
       "COL_AMOUNT": "Amount",
-      "COL_AMOUNT_USD": "Amount USD",
+      "COL_AMOUNT_CONVERTED": "Amount",
       "EXCLUDED_TAG": "Excluded",
       "TOTAL_FACTURADO": "Total invoiced",
       "TOTAL_NO_RODAMIENTOS": "Non-bearings",

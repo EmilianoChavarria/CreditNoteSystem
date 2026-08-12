@@ -1483,7 +1483,7 @@
       "COL_QTY": "Cantidad",
       "COL_UNIT_VALUE": "Valor unitario",
       "COL_AMOUNT": "Importe",
-      "COL_AMOUNT_USD": "Importe USD",
+      "COL_AMOUNT_CONVERTED": "Importe",
       "EXCLUDED_TAG": "Excluido",
       "TOTAL_FACTURADO": "Total facturado",
       "TOTAL_NO_RODAMIENTOS": "No rodamientos",
