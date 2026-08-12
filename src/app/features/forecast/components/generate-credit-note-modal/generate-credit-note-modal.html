@@ -17,12 +17,13 @@
         </p>
         }
         <div class="rounded-lg bg-gray-50 p-3 text-xs text-gray-600 space-y-1">
-            <div class="flex justify-between"><span>Facturado (total)</span><span>{{ ventaMensual() | currency:'USD':'symbol':'1.2-2' }}</span></div>
+            <div class="flex justify-between"><span>Moneda del cliente</span><span class="font-semibold text-gray-800">{{ currency() }}</span></div>
+            <div class="flex justify-between"><span>Facturado (total)</span><span>{{ ventaMensual() | currency:currency():'symbol':'1.2-2' }}</span></div>
             <div class="flex justify-between"><span>% Retorno</span><span>{{ porcentajeRetorno() != null ? (porcentajeRetorno() | number:'1.1-2') + '%' : '—' }}</span></div>
-            <div class="flex justify-between"><span>Retorno estimado (subtotal)</span><span>{{ estimatedAmount() | currency:'USD':'symbol':'1.2-2' }}</span></div>
-            <div class="flex justify-between"><span>IVA (16%)</span><span>{{ estimatedIva() | currency:'USD':'symbol':'1.2-2' }}</span></div>
+            <div class="flex justify-between"><span>Retorno estimado (subtotal)</span><span>{{ estimatedAmount() | currency:currency():'symbol':'1.2-2' }}</span></div>
+            <div class="flex justify-between"><span>IVA (16%)</span><span>{{ estimatedIva() | currency:currency():'symbol':'1.2-2' }}</span></div>
             <div class="flex justify-between font-semibold text-gray-800"><span>Monto estimado NC (total)</span>
-                <span>{{ estimatedTotal() | currency:'USD':'symbol':'1.2-2' }}</span>
+                <span>{{ estimatedTotal() | currency:currency():'symbol':'1.2-2' }}</span>
             </div>
         </div>
 

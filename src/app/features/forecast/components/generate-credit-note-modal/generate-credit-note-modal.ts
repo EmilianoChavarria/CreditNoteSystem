@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, effect, input, output, signal } from '@angular/core';
 import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { Modal } from '../../../../shared/components/ui/modal/modal';
-import { ForecastEntityType, ForecastGroupMemberBreakdown } from '../../../../core/services/forecast.service';
+import { CustomerCurrency, ForecastEntityType, ForecastGroupMemberBreakdown } from '../../../../core/services/forecast.service';
 
 const IVA_RATE = 0.16;
 
@@ -17,7 +17,9 @@ export class GenerateCreditNoteModal {
   readonly entityId = input<number | null>(null);
   readonly entityName = input<string>('');
   readonly monthLabel = input<string>('');
+  /** Venta considerada en la moneda del cliente: es la base del retorno. */
   readonly ventaMensual = input<number | null>(null);
+  readonly currency = input<CustomerCurrency>('USD');
   readonly porcentajeRetorno = input<number | null>(null);
   readonly generating = input<boolean>(false);
   readonly error = input<string | null>(null);
