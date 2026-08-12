@@ -1633,7 +1633,7 @@
       "DELETE_GROUP_SUCCESS": "Group deleted successfully.",
       "NATIONAL_BULK_UPLOAD_BUTTON": "Bulk upload",
       "NATIONAL_BULK_UPLOAD_TITLE": "Bulk upload of national customers",
-      "NATIONAL_BULK_UPLOAD_DESCRIPTION": "Upload a file with the columns Customer Number, Emails and Return Percentage to update emails and return percentage in bulk. You can include a Currency column (USD or MXN); if omitted, the current currency is kept.",
+      "NATIONAL_BULK_UPLOAD_DESCRIPTION": "Upload a file with the columns Customer Number, Emails, Return Percentage and Currency (USD or MXN). Only Customer Number is required: every cell you leave blank keeps the customer's current value, so you can update just the currency, just the emails or just the percentage.",
       "NATIONAL_BULK_DROP_HINT": "Drag your file here or ",
       "NATIONAL_BULK_UPLOAD_BTN": "Upload",
       "NATIONAL_BULK_UPLOADING": "Uploading...",

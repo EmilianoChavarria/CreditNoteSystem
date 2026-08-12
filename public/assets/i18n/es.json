@@ -1632,7 +1632,7 @@
       "DELETE_GROUP_SUCCESS": "Grupo eliminado correctamente.",
       "NATIONAL_BULK_UPLOAD_BUTTON": "Carga masiva",
       "NATIONAL_BULK_UPLOAD_TITLE": "Carga masiva de clientes nacionales",
-      "NATIONAL_BULK_UPLOAD_DESCRIPTION": "Sube un archivo con las columnas Customer Number, Emails y Return Percentage para actualizar correos y porcentaje de retorno en lote. Puedes incluir la columna Currency (USD o MXN); si la omites, se conserva la moneda actual.",
+      "NATIONAL_BULK_UPLOAD_DESCRIPTION": "Sube un archivo con las columnas Customer Number, Emails, Return Percentage y Currency (USD o MXN). Solo Customer Number es obligatorio: cada celda que dejes vacía conserva el valor actual del cliente, así puedes actualizar solo la moneda, solo el correo o solo el porcentaje.",
       "NATIONAL_BULK_DROP_HINT": "Arrastra tu archivo aquí o ",
       "NATIONAL_BULK_UPLOAD_BTN": "Cargar",
       "NATIONAL_BULK_UPLOADING": "Cargando...",
