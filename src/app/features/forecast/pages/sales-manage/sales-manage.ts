@@ -1,5 +1,6 @@
 import { Component, computed, signal, viewChild } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../../../../core/services/auth-service';
@@ -14,6 +15,9 @@ import { Popover } from '../../../../shared/components/ui/popover/popover';
 import { BulkForecastHistoryModal } from './components/bulk-forecast-history-modal/bulk-forecast-history-modal';
 import { BulkForecastUploadModal } from '../../components/bulk-forecast-upload-modal/bulk-forecast-upload-modal';
 import { LucideAngularModule } from "lucide-angular";
+
+/** Valor del select y del query param `scope` para la vista sin filtro por ingeniero. */
+const ALL_SCOPE = 'all';
 
 @Component({
   selector: 'app-sales-manage',
@@ -39,6 +43,13 @@ export class SalesManage {
   readonly engineers = signal<AssignmentUser[]>([]);
   readonly selectedEngineer = signal<AssignmentUser | null>(null);
   readonly loadingEngineers = signal(false);
+  /** Vista sin filtro de sales engineer: todos los distribuidores y grupos. Se refleja en ?scope=all. */
+  readonly showAll = signal(false);
+
+  /** Valor que debe quedar marcado en el select del filtro. */
+  readonly engineerFilterValue = computed(() =>
+    this.showAll() ? ALL_SCOPE : (this.selectedEngineer()?.id.toString() ?? '')
+  );
 
   readonly showMyRequestsModal = signal(false);
   readonly showPendingApprovalsModal = signal(false);
@@ -72,6 +83,8 @@ export class SalesManage {
     private readonly exportService: ExportService,
     private readonly toastr: ToastrService,
     private readonly translate: TranslateService,
+    private readonly router: Router,
+    private readonly route: ActivatedRoute,
   ) {
     const roleName = this.authService.getCurrentUser()?.roleName?.trim().toUpperCase();
     const isMgr = roleName === 'SALES ENGINEER / MANAGER';
@@ -79,10 +92,14 @@ export class SalesManage {
     this.isSalesManager.set(isMgr);
     this.isForecastAdmin.set(isAdmin);
 
-    if (isMgr) {
-      this.loadEngineers('my');
-    } else if (isAdmin) {
-      this.loadEngineers('all');
+    if (isMgr || isAdmin) {
+      this.loadEngineers(isAdmin ? 'all' : 'my');
+
+      // ?scope=all deja la vista de todos los distribuidores enlazable/recargable.
+      if (this.route.snapshot.queryParamMap.get('scope') === ALL_SCOPE) {
+        this.showAll.set(true);
+        this.loadAll(this.activeYear());
+      }
     } else {
       this.loadData(this.activeYear());
     }
@@ -92,26 +109,38 @@ export class SalesManage {
 
   selectYear(year: number): void {
     this.activeYear.set(year);
-    const engineerId = (this.isSalesManager() || this.isForecastAdmin())
-      ? this.selectedEngineer()?.id
-      : this.authService.getCurrentUser()?.id;
-    if (engineerId) {
-      this.loadForecast(engineerId, year);
-    }
+    this.reload(year);
   }
 
   selectEngineerById(engineer: AssignmentUser): void {
+    this.showAll.set(false);
     this.selectedEngineer.set(engineer);
+    this.syncScopeParam();
     this.loadForecast(engineer.id, this.activeYear());
   }
 
   onEngineerSelected(event: Event): void {
-    const id = parseInt((event.target as HTMLSelectElement).value, 10);
+    const value = (event.target as HTMLSelectElement).value;
+
+    if (value === ALL_SCOPE) {
+      this.showAll.set(true);
+      this.selectedEngineer.set(null);
+      this.syncScopeParam();
+      this.loadAll(this.activeYear());
+      return;
+    }
+
+    this.showAll.set(false);
+    this.syncScopeParam();
+
+    const id = parseInt(value, 10);
     if (isNaN(id)) {
       this.selectedEngineer.set(null);
       this.distributors.set([]);
+      this.foreignDistributors.set([]);
       return;
     }
+
     const engineer = this.engineers().find(e => e.id === id) ?? null;
     this.selectedEngineer.set(engineer);
     if (engineer) {
@@ -120,13 +149,33 @@ export class SalesManage {
   }
 
   onRefreshNeeded(): void {
+    this.reload(this.activeYear());
+    this.refreshTrigger.update(v => v + 1);
+  }
+
+  /** Recarga lo que esté a la vista: todos, el ingeniero elegido o el propio usuario. */
+  private reload(year: number): void {
+    if (this.showAll()) {
+      this.loadAll(year);
+      return;
+    }
+
     const engineerId = (this.isSalesManager() || this.isForecastAdmin())
       ? this.selectedEngineer()?.id
       : this.authService.getCurrentUser()?.id;
+
     if (engineerId) {
-      this.loadForecast(engineerId, this.activeYear());
+      this.loadForecast(engineerId, year);
     }
-    this.refreshTrigger.update(v => v + 1);
+  }
+
+  private syncScopeParam(): void {
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { scope: this.showAll() ? ALL_SCOPE : null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
   }
 
   openBulkUploadModal(): void {
@@ -207,6 +256,27 @@ export class SalesManage {
 
     this.foreignLoading.set(true);
     this.forecastService.getDistributorsByEngineer(engineerId, year).subscribe({
+      next: (rows) => {
+        this.foreignDistributors.set(mapApiToDistributors(rows));
+        this.foreignLoading.set(false);
+      },
+      error: () => this.foreignLoading.set(false),
+    });
+  }
+
+  /** Clientes/grupos y distribuidores extranjeros del año, sin filtrar por sales engineer. */
+  private loadAll(year: number): void {
+    this.loading.set(true);
+    this.forecastService.getAllForecast(year).subscribe({
+      next: (clients) => {
+        this.distributors.set(mapApiToDistributors(clients));
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false),
+    });
+
+    this.foreignLoading.set(true);
+    this.forecastService.getAllDistributorsForecast(year).subscribe({
       next: (rows) => {
         this.foreignDistributors.set(mapApiToDistributors(rows));
         this.foreignLoading.set(false);

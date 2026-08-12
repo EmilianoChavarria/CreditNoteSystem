@@ -55,16 +55,22 @@
     <!-- Dropdown for SALES MANAGER and FORECAST ADMIN -->
     <div class="flex flex-col sm:flex-row sm:items-center gap-3">
       <label class="text-sm font-medium text-gray-600 shrink-0">{{ 'FORECAST.SALES_MANAGE.SELECT_ENGINEER_LABEL' | translate }}</label>
-      <select (change)="onEngineerSelected($event)"
+      <select [value]="engineerFilterValue()" (change)="onEngineerSelected($event)"
         class="flex-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#395f93] focus:border-transparent transition">
         <option value="">{{ 'FORECAST.SALES_MANAGE.SELECT_PLACEHOLDER' | translate }}</option>
+        <option value="all">{{ 'FORECAST.SALES_MANAGE.SHOW_ALL_OPTION' | translate }}</option>
         @for (eng of engineers(); track eng.id) {
         <option [value]="eng.id">{{ eng.fullName }} ({{ eng.email }})</option>
         }
       </select>
     </div>
 
-    @if (selectedEngineer()) {
+    @if (showAll()) {
+    <div class="mt-3 flex items-center gap-2 text-sm text-gray-500">
+      <lucide-icon name="users" size="14" class="text-[#ff8200]"></lucide-icon>
+      {{ 'FORECAST.SALES_MANAGE.VIEWING_ALL' | translate }}
+    </div>
+    } @else if (selectedEngineer()) {
     <div class="mt-3 flex items-center gap-2 text-sm text-gray-500">
       <lucide-icon name="user" size="14" class="text-[#ff8200]"></lucide-icon>
       {{ 'FORECAST.SALES_MANAGE.VIEWING_FORECAST' | translate }} <span class="font-semibold text-gray-700 ml-1">{{ selectedEngineer()!.fullName }}</span>
@@ -147,7 +153,7 @@
   </div>
 
   <!-- Forecast table (show always for SE; for SM/FA only after selecting engineer) -->
-  @if ((!isSalesManager() && !isForecastAdmin()) || selectedEngineer()) {
+  @if ((!isSalesManager() && !isForecastAdmin()) || selectedEngineer() || showAll()) {
   <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden mb-6">
     <app-forecast-table [distributors]="distributors()" [year]="activeYear()" [loading]="loading()"
       (refreshNeeded)="onRefreshNeeded()" />
