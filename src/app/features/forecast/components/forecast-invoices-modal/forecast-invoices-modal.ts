@@ -46,6 +46,12 @@ export class ForecastInvoicesModal {
 
   readonly totalInvoiceCount = computed(() => this.sections().reduce((s, sec) => s + sec.invoices.length, 0));
 
+  /** Moneda del cliente de la sección: todas sus facturas ya vienen convertidas a ella. */
+  readonly moneda = computed(() => {
+    const section = this.selectedSection();
+    return section?.moneda ?? section?.invoices[0]?.moneda ?? 'USD';
+  });
+
   selectClient(clientId: number): void {
     this.selectedClientId.set(clientId);
   }

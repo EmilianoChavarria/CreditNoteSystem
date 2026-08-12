@@ -73,19 +73,19 @@
               <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">
                 {{ 'FORECAST.INVOICES_MODAL.TOTAL_FACTURAS' | translate }}
               </p>
-              <p class="text-base font-bold text-gray-700 mt-0.5">${{ totalFacturas() | number:'1.2-2' }}</p>
+              <p class="text-base font-bold text-gray-700 mt-0.5">${{ totalFacturas() | number:'1.2-2' }} {{ moneda() }}</p>
             </div>
             <div class="rounded-lg border border-orange-200 bg-orange-50 px-3 py-2.5">
               <p class="text-[11px] font-semibold text-orange-500 uppercase tracking-wide">
                 − {{ 'FORECAST.INVOICES_MODAL.TOTAL_DEVOLUCIONES' | translate }}
               </p>
-              <p class="text-base font-bold text-orange-700 mt-0.5">${{ totalDevoluciones() | number:'1.2-2' }}</p>
+              <p class="text-base font-bold text-orange-700 mt-0.5">${{ totalDevoluciones() | number:'1.2-2' }} {{ moneda() }}</p>
             </div>
             <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5">
               <p class="text-[11px] font-semibold text-emerald-500 uppercase tracking-wide">
                 = {{ 'FORECAST.INVOICES_MODAL.TOTAL_CONSIDERADO' | translate }}
               </p>
-              <p class="text-base font-bold text-emerald-700 mt-0.5">${{ grandTotal() | number:'1.2-2' }}</p>
+              <p class="text-base font-bold text-emerald-700 mt-0.5">${{ grandTotal() | number:'1.2-2' }} {{ moneda() }}</p>
             </div>
           </div>
 
@@ -182,13 +182,13 @@
                   {{ 'FORECAST.INVOICES_MODAL.TOTAL_LABEL' | translate:{ count: selectedInvoices().length } }}
                 </td>
                 <td class="px-4 py-2.5 text-right text-xs font-bold text-gray-700 whitespace-nowrap">
-                  ${{ grandSubTotal() | number:'1.2-2' }}
+                  ${{ grandSubTotal() | number:'1.2-2' }} {{ moneda() }}
                 </td>
                 <td class="px-4 py-2.5 text-right text-xs font-bold text-gray-700 whitespace-nowrap">
-                  ${{ grandIva() | number:'1.2-2' }}
+                  ${{ grandIva() | number:'1.2-2' }} {{ moneda() }}
                 </td>
                 <td class="px-4 py-2.5 text-right text-xs font-bold text-gray-700 whitespace-nowrap">
-                  ${{ grandTotal() | number:'1.2-2' }}
+                  ${{ grandTotal() | number:'1.2-2' }} {{ moneda() }}
                 </td>
                 <td></td>
               </tr>
