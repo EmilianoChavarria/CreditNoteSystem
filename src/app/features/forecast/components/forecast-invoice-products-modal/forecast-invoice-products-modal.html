@@ -14,6 +14,11 @@
     @if (entry()?.moneda) {
       · {{ entry()!.moneda }}
     }
+    @if (esDevolucion()) {
+      <span class="ml-1.5 inline-flex items-center rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-semibold text-orange-700">
+        {{ 'FORECAST.INVOICES_MODAL.BADGE_DEVOLUCION' | translate }} · resta del total
+      </span>
+    }
   </p>
 
   @if (loading()) {
@@ -31,19 +36,19 @@
         <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">
           {{ 'FORECAST.INVOICE_PRODUCTS_MODAL.TOTAL_FACTURADO' | translate }}
         </p>
-        <p class="text-base font-bold text-gray-700 mt-0.5">${{ breakdown().totalFacturado | number:'1.2-2' }} USD</p>
+        <p class="text-base font-bold text-gray-700 mt-0.5">${{ breakdown().totalFacturado | number:'1.2-2' }} {{ moneda() }}</p>
       </div>
       <div class="rounded-lg border border-orange-200 bg-orange-50 px-3 py-2.5">
         <p class="text-[11px] font-semibold text-orange-500 uppercase tracking-wide">
           − {{ 'FORECAST.INVOICE_PRODUCTS_MODAL.TOTAL_NO_RODAMIENTOS' | translate }}
         </p>
-        <p class="text-base font-bold text-orange-700 mt-0.5">${{ breakdown().totalNoRodamientos | number:'1.2-2' }} USD</p>
+        <p class="text-base font-bold text-orange-700 mt-0.5">${{ breakdown().totalNoRodamientos | number:'1.2-2' }} {{ moneda() }}</p>
       </div>
       <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5">
         <p class="text-[11px] font-semibold text-emerald-500 uppercase tracking-wide">
           = {{ 'FORECAST.INVOICE_PRODUCTS_MODAL.TOTAL_CONSIDERADO' | translate }}
         </p>
-        <p class="text-base font-bold text-emerald-700 mt-0.5">${{ breakdown().totalConsiderado | number:'1.2-2' }} USD</p>
+        <p class="text-base font-bold text-emerald-700 mt-0.5">${{ breakdown().totalConsiderado | number:'1.2-2' }} {{ moneda() }}</p>
       </div>
     </div>
 
@@ -73,7 +78,7 @@
               {{ 'FORECAST.INVOICE_PRODUCTS_MODAL.COL_AMOUNT' | translate }}
             </th>
             <th class="px-3 py-2.5 text-right text-xs font-semibold uppercase tracking-wider text-gray-400">
-              {{ 'FORECAST.INVOICE_PRODUCTS_MODAL.COL_AMOUNT_USD' | translate }}
+              {{ 'FORECAST.INVOICE_PRODUCTS_MODAL.COL_AMOUNT_CONVERTED' | translate }} ({{ moneda() }})
             </th>
           </tr>
         </thead>
@@ -99,7 +104,7 @@
                 ${{ p.importe | number:'1.2-2' }}
               </td>
               <td [class]="'px-3 py-2.5 text-right text-xs font-medium whitespace-nowrap ' + (p.excluido ? 'text-orange-400 line-through' : 'text-gray-700')">
-                ${{ p.importeUsd | number:'1.2-2' }}
+                ${{ p.importeConvertido | number:'1.2-2' }}
               </td>
             </tr>
           }

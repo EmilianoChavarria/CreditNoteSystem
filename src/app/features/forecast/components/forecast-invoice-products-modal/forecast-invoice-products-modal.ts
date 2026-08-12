@@ -30,4 +30,10 @@ export class ForecastInvoiceProductsModal {
   readonly breakdown = computed<InvoiceProductsBreakdown>(() => this.entry()?.breakdown ?? EMPTY_BREAKDOWN);
 
   readonly hasExclusions = computed(() => this.breakdown().totalNoRodamientos > 0);
+
+  /** Moneda en la que vienen los importes convertidos y los totales del desglose. */
+  readonly moneda = computed(() => this.entry()?.moneda ?? 'USD');
+
+  /** Nota de crédito de devolución: su total resta de la venta del mes. */
+  readonly esDevolucion = computed(() => (this.entry()?.signo ?? 1) < 0);
 }
