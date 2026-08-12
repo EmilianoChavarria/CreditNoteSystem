@@ -103,7 +103,11 @@ export type ForecastEntityType = 'cliente' | 'clienteExtranjero' | 'grupo';
 export interface ForecastSummaryMonth {
   mes: number;
   objetivo: number | null;
+  /** Venta en USD: el objetivo está en USD, así que el cumplimiento se mide con esta. */
   ventaMensual: number | null;
+  /** La misma venta en la moneda del cliente/grupo; es la base del retorno y de la NC. */
+  ventaMensualMoneda: number | null;
+  moneda: CustomerCurrency;
   porcentajeCumplimiento: number | null;
   porcentajeRetorno: number | null;
 }
@@ -113,6 +117,7 @@ export interface ForecastSummaryResponse {
   numeroCliente: number;
   nombre: string;
   anio: number;
+  moneda: CustomerCurrency;
   meses: ForecastSummaryMonth[];
 }
 
@@ -181,6 +186,8 @@ export interface ForecastCreditNote {
   year: number;
   month: number;
   returnPercentage: number;
+  /** Moneda en la que se calculó la nota (la del cliente). */
+  currency: CustomerCurrency;
   salesAmount: number;
   totalAmount: number;
   invoiceFolios: string;
@@ -209,7 +216,11 @@ export interface ForecastGroupMemberBreakdown {
   clientId: string;
   name: string;
   folioCount: number;
+  /** Moneda del cliente: la de su aportación, su retorno y su nota de crédito. */
+  currency: CustomerCurrency;
   salesAmount: number;
+  /** La misma aportación en la moneda del grupo; es la que hace comparable la participación. */
+  salesAmountGroup: number;
   participation: number | null;
   returnAmount: number | null;
   note: ForecastGroupMemberBreakdownNote | null;
@@ -221,6 +232,8 @@ export interface ForecastGroupMonthBreakdown {
   year: number;
   month: number;
   returnPercentage: number | null;
+  /** Moneda del grupo (la de sus miembros si todos coinciden, USD si son mixtas). */
+  currency: CustomerCurrency;
   totalSales: number;
   members: ForecastGroupMemberBreakdown[];
 }
@@ -316,6 +329,8 @@ export interface Invoice {
 export interface InvoiceSection {
   clientId: number;
   razonSocial: string;
+  /** Moneda a la que vienen convertidas las facturas de esta sección. */
+  moneda?: CustomerCurrency;
   invoices: Invoice[];
 }
 
@@ -325,7 +340,8 @@ export interface InvoiceProduct {
   cantidad: number;
   valorUnitario: number;
   importe: number;
-  importeUsd: number;
+  /** Importe en la moneda del cliente (la `moneda` de la factura). */
+  importeConvertido: number;
   clasificacion: string;
   excluido: boolean;
 }
@@ -341,6 +357,8 @@ export interface InvoiceProductsEntry {
   fechaEmision: string;
   moneda: string;
   tipoCambio: number | null;
+  /** 1 = factura (suma), -1 = nota de crédito de devolución (resta del total del mes). */
+  signo: number;
   products: InvoiceProduct[];
   breakdown: InvoiceProductsBreakdown;
 }
