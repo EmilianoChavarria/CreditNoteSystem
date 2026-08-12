@@ -594,6 +594,28 @@ export class ForecastService {
     );
   }
 
+  /** Todos los clientes y grupos con forecast, sin filtrar por sales engineer. */
+  getAllForecast(year: number): Observable<ForecastRowApi[]> {
+    return this.httpService.get<ForecastRowApi[]>(
+      '/forecast/all',
+      { ...this.withBearer(), params: { year } }
+    ).pipe(
+      map((response: ApiResponse<ForecastRowApi[]>) => response.data ?? []),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
+  /** Todos los clientes extranjeros (distribuidores) con forecast, sin filtrar por sales engineer. */
+  getAllDistributorsForecast(year: number): Observable<ForecastRowApi[]> {
+    return this.httpService.get<ForecastRowApi[]>(
+      '/distributors/forecast/all',
+      { ...this.withBearer(), params: { year } }
+    ).pipe(
+      map((response: ApiResponse<ForecastRowApi[]>) => response.data ?? []),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
   submitChangeRequest(payload: ChangeRequestPayload): Observable<ChangeRequest> {
     return this.httpService.post<ChangeRequest>(
       '/forecast/change-requests',
