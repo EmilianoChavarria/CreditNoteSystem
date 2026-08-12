@@ -159,8 +159,11 @@
                             <td class="px-3 py-3 text-gray-700">{{ note.requestNumber ?? ('#' + note.requestId) }}</td>
                             <td class="px-3 py-3 text-gray-500">{{ note.requestStatus ?? '—' }}</td>
                             <td class="px-3 py-3 text-gray-700">{{ note.returnPercentage | number:'1.1-2' }}%</td>
-                            <td class="px-3 py-3 text-gray-700">{{ note.salesAmount | currency:'USD':'symbol':'1.2-2' }}</td>
-                            <td class="px-3 py-3 font-semibold text-gray-800">{{ note.totalAmount | currency:'USD':'symbol':'1.2-2' }}</td>
+                            <td class="px-3 py-3 text-gray-700">{{ note.salesAmount | currency:note.currency:'symbol':'1.2-2' }}</td>
+                            <td class="px-3 py-3 font-semibold text-gray-800">
+                                {{ note.totalAmount | currency:note.currency:'symbol':'1.2-2' }}
+                                <span class="ml-1 text-[10px] font-bold uppercase text-gray-400">{{ note.currency }}</span>
+                            </td>
                             <td class="px-3 py-3 text-gray-500">{{ note.createdAt | date:'d MMM y, HH:mm' }}</td>
                             <td class="px-5 py-3 text-right">
                                 <button type="button" (click)="viewNotePdf(note.requestId)"
@@ -182,8 +185,9 @@
                     <tr class="border-b border-gray-200 bg-gray-50 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
                         <th class="px-5 py-3">Cliente / Grupo</th>
                         <th class="px-3 py-3">Mes</th>
-                        <th class="px-3 py-3">Objetivo</th>
-                        <th class="px-3 py-3">Facturado</th>
+                        <th class="px-3 py-3">Objetivo (USD)</th>
+                        <th class="px-3 py-3">Facturado (USD)</th>
+                        <th class="px-3 py-3">Venta ({{ currency() }})</th>
                         <th class="px-3 py-3">Cumplimiento</th>
                         <th class="px-3 py-3">Estado</th>
                         <th class="px-3 py-3">% Retorno</th>
@@ -216,6 +220,14 @@
                         </td>
                         <td class="px-3 py-3 text-gray-700">
                             {{ row.ventaMensual != null ? (row.ventaMensual | currency:'USD':'symbol':'1.2-2') : '—' }}
+                        </td>
+                        <td class="px-3 py-3 font-semibold text-gray-800">
+                            @if (row.ventaMensualMoneda != null) {
+                            {{ row.ventaMensualMoneda | currency:row.moneda:'symbol':'1.2-2' }}
+                            <span class="ml-1 text-[10px] font-bold uppercase text-gray-400">{{ row.moneda }}</span>
+                            } @else {
+                            —
+                            }
                         </td>
                         <td class="px-3 py-3">
                             @if (row.porcentajeCumplimiento != null) {
@@ -308,7 +320,7 @@
                     </tr>
                     @if (selectedEntity()?.tipo === 'grupo' && expandedMes() === row.mes) {
                     <tr class="border-b border-gray-100 last:border-b-0 bg-gray-50/60">
-                        <td colspan="9" class="px-5 py-4">
+                        <td colspan="10" class="px-5 py-4">
                             @if (loadingBreakdown() === row.mes) {
                             <div class="flex items-center gap-2 py-4 text-sm text-gray-400">
                                 <svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -327,7 +339,7 @@
                                         <tr class="border-b border-gray-200 bg-gray-50 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
                                             <th class="px-4 py-2">Cliente</th>
                                             <th class="px-3 py-2">Facturas</th>
-                                            <th class="px-3 py-2">Aportación</th>
+                                            <th class="px-3 py-2">Aportación (moneda del cliente)</th>
                                             <th class="px-3 py-2">Participación</th>
                                             <th class="px-3 py-2">Retorno {{ breakdown.returnPercentage != null ? (breakdown.returnPercentage | number:'1.1-2') + '%' : '' }}</th>
                                             <th class="px-4 py-2">Nota</th>
@@ -341,10 +353,13 @@
                                                 <div class="text-xs text-gray-400">{{ member.clientId }}</div>
                                             </td>
                                             <td class="px-3 py-2 text-gray-700">{{ member.folioCount }}</td>
-                                            <td class="px-3 py-2 text-gray-700">{{ member.salesAmount | currency:'USD':'symbol':'1.2-2' }}</td>
+                                            <td class="px-3 py-2 text-gray-700">
+                                                {{ member.salesAmount | currency:member.currency:'symbol':'1.2-2' }}
+                                                <span class="ml-1 text-[10px] font-bold uppercase text-gray-400">{{ member.currency }}</span>
+                                            </td>
                                             <td class="px-3 py-2 text-gray-700">{{ member.participation != null ? (member.participation | number:'1.1-1') + '%' : '—' }}</td>
                                             <td class="px-3 py-2 font-semibold text-[#E87722]">
-                                                {{ member.folioCount > 0 && member.returnAmount != null ? (member.returnAmount | currency:'USD':'symbol':'1.2-2') : '—' }}
+                                                {{ member.folioCount > 0 && member.returnAmount != null ? (member.returnAmount | currency:member.currency:'symbol':'1.2-2') : '—' }}
                                             </td>
                                             <td class="px-4 py-2">
                                                 @if (member.note; as note) {
@@ -401,7 +416,8 @@
         [entityId]="selectedEntity()?.id ?? null"
         [entityName]="selectedEntity()?.nombre ?? ''"
         [monthLabel]="generateTarget()?.monthLabel ?? ''"
-        [ventaMensual]="generateTarget()?.ventaMensual ?? null"
+        [ventaMensual]="generateTarget()?.ventaMensualMoneda ?? null"
+        [currency]="currency()"
         [porcentajeRetorno]="generateTarget()?.porcentajeRetorno ?? null"
         [generating]="generatingNC()"
         [error]="generateError()"

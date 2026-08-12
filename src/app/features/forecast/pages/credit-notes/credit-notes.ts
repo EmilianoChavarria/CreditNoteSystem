@@ -5,6 +5,7 @@ import { LucideAngularModule } from "lucide-angular";
 import { Observable, finalize, map, of } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
 import {
+  CustomerCurrency,
   ForecastCreditNote,
   ForecastEntityType,
   ForecastGroupMemberBreakdown,
@@ -92,6 +93,8 @@ export class CreditNotes {
   readonly selectedEntity = signal<SelectedEntity | null>(null);
   readonly loadingSummary = signal(false);
   readonly summaryMonths = signal<ForecastSummaryMonth[]>([]);
+  /** Moneda del cliente/grupo seleccionado: en ella se muestran ventas, retorno y NC. */
+  readonly currency = signal<CustomerCurrency>('USD');
 
   readonly invoicesState = signal<InvoicesState | null>(null);
   readonly exportingInvoices = signal(false);
@@ -186,6 +189,7 @@ export class CreditNotes {
       this.entity.set('all');
       this.selectedEntity.set(null);
       this.summaryMonths.set([]);
+      this.currency.set('USD');
       return;
     }
 
@@ -213,10 +217,12 @@ export class CreditNotes {
     this.forecastService.getForecastSummary(entity.tipo, entity.id, this.year()).subscribe({
       next: (summary) => {
         this.summaryMonths.set(summary?.meses ?? []);
+        this.currency.set(summary?.moneda ?? 'USD');
         this.loadingSummary.set(false);
       },
       error: () => {
         this.summaryMonths.set([]);
+        this.currency.set('USD');
         this.loadingSummary.set(false);
       },
     });
