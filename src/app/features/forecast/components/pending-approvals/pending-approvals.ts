@@ -3,6 +3,7 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 import { ToastrService } from 'ngx-toastr';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ChangeRequest, DistributorChangeRequest, ForecastService } from '../../../../core/services/forecast.service';
+import { AuthService } from '../../../../core/services/auth-service';
 
 @Component({
   selector: 'app-pending-approvals',
@@ -15,6 +16,12 @@ export class PendingApprovals {
   private readonly forecastService = inject(ForecastService);
   private readonly toastr = inject(ToastrService);
   private readonly translate = inject(TranslateService);
+  private readonly authService = inject(AuthService);
+
+  /** El admin ve todas las pendientes, no solo las asignadas a él. */
+  readonly isForecastAdmin = signal(
+    this.authService.getCurrentUser()?.roleName?.trim().toUpperCase() === 'FORECAST ADMIN'
+  );
 
   readonly requests = signal<ChangeRequest[]>([]);
   readonly loading = signal(false);

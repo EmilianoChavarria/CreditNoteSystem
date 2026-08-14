@@ -1,7 +1,9 @@
 <div class="bg-white rounded-xl border border-gray-200 shadow-sm">
   <div class="px-5 py-4 border-b border-gray-100">
     <h2 class="text-base font-semibold text-gray-800">{{ 'FORECAST.PENDING_APPROVALS.TITLE' | translate }}</h2>
-    <p class="text-xs text-gray-400 mt-0.5">{{ 'FORECAST.PENDING_APPROVALS.DESCRIPTION' | translate }}</p>
+    <p class="text-xs text-gray-400 mt-0.5">
+      {{ (isForecastAdmin() ? 'FORECAST.PENDING_APPROVALS.DESCRIPTION_ADMIN' : 'FORECAST.PENDING_APPROVALS.DESCRIPTION') | translate }}
+    </p>
   </div>
 
   @if (loading()) {
@@ -23,6 +25,7 @@
             <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.PENDING_APPROVALS.COL_PROPOSED' | translate }}</th>
             <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.PENDING_APPROVALS.COL_SUBMITTED_BY' | translate }}</th>
             <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.PENDING_APPROVALS.COL_STEP' | translate }}</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.PENDING_APPROVALS.COL_APPROVER' | translate }}</th>
             <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.PENDING_APPROVALS.COL_DATE' | translate }}</th>
             <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.PENDING_APPROVALS.COL_ACTIONS' | translate }}</th>
           </tr>
@@ -45,6 +48,9 @@
               </td>
               <td class="px-4 py-2.5 text-xs text-gray-500 whitespace-nowrap">
                 {{ stepLabel(req.currentStep) }}
+              </td>
+              <td class="px-4 py-2.5 text-gray-600 whitespace-nowrap">
+                {{ req.approver?.fullName ?? '—' }}
               </td>
               <td class="px-4 py-2.5 text-xs text-gray-400 whitespace-nowrap">
                 {{ req.submittedAt | date:'dd/MM/yyyy' }}
@@ -80,7 +86,9 @@
     </span>
     <div>
       <h2 class="text-base font-semibold text-gray-800">{{ 'FORECAST.PENDING_APPROVALS.DISTRIBUTOR_TITLE' | translate }}</h2>
-      <p class="text-xs text-gray-400 mt-0.5">{{ 'FORECAST.PENDING_APPROVALS.DISTRIBUTOR_DESCRIPTION' | translate }}</p>
+      <p class="text-xs text-gray-400 mt-0.5">
+        {{ (isForecastAdmin() ? 'FORECAST.PENDING_APPROVALS.DISTRIBUTOR_DESCRIPTION_ADMIN' : 'FORECAST.PENDING_APPROVALS.DISTRIBUTOR_DESCRIPTION') | translate }}
+      </p>
     </div>
   </div>
 
@@ -103,6 +111,7 @@
             <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.PENDING_APPROVALS.COL_PROPOSED' | translate }}</th>
             <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.PENDING_APPROVALS.COL_SUBMITTED_BY' | translate }}</th>
             <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.PENDING_APPROVALS.COL_STEP' | translate }}</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.PENDING_APPROVALS.COL_APPROVER' | translate }}</th>
             <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.PENDING_APPROVALS.COL_DATE' | translate }}</th>
             <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.PENDING_APPROVALS.COL_ACTIONS' | translate }}</th>
           </tr>
@@ -125,6 +134,9 @@
               </td>
               <td class="px-4 py-2.5 text-xs text-gray-500 whitespace-nowrap">
                 {{ stepLabel(req.currentStep) }}
+              </td>
+              <td class="px-4 py-2.5 text-gray-600 whitespace-nowrap">
+                {{ req.approver?.fullName ?? '—' }}
               </td>
               <td class="px-4 py-2.5 text-xs text-gray-400 whitespace-nowrap">
                 {{ req.submittedAt | date:'dd/MM/yyyy' }}
