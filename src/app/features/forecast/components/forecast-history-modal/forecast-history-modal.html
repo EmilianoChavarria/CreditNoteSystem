@@ -33,7 +33,7 @@
                 {{ statusLabel(req.status) }}
               </span>
             </div>
-            <span class="text-xs text-gray-400">{{ req.submittedBy.fullName }}</span>
+            <span class="text-xs text-gray-400">{{ req.submittedBy?.fullName ?? '—' }}</span>
           </div>
 
           <!-- Timeline -->

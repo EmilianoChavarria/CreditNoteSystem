@@ -415,8 +415,8 @@ export interface ChangeRequest {
   proposedAmount: string;
   status: 'pending' | 'approved' | 'rejected';
   currentStep: 'sales_manager' | 'general_manager';
-  submittedBy: ChangeRequestUser;
-  approver: ChangeRequestUser;
+  submittedBy: ChangeRequestUser | null;
+  approver: ChangeRequestUser | null;
   history: ChangeRequestHistory[];
   submittedAt: string;
 }
