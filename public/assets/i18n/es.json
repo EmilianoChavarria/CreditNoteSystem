@@ -1544,6 +1544,7 @@
     "PENDING_APPROVALS": {
       "TITLE": "Pendientes por aprobar",
       "DESCRIPTION": "Solicitudes de cambio de forecast asignadas a ti.",
+      "DESCRIPTION_ADMIN": "Todas las solicitudes de cambio de forecast pendientes, sin importar a quién estén asignadas.",
       "LOADING": "Cargando...",
       "EMPTY": "Sin solicitudes pendientes.",
       "COL_CLIENT": "Cliente",
@@ -1552,6 +1553,7 @@
       "COL_PROPOSED": "Propuesto",
       "COL_SUBMITTED_BY": "Enviado por",
       "COL_STEP": "Paso",
+      "COL_APPROVER": "Debe aprobar",
       "COL_DATE": "Fecha",
       "COL_ACTIONS": "Acciones",
       "BTN_APPROVE": "Aprobar",
@@ -1569,6 +1571,7 @@
       "DISTRIBUTOR_BADGE": "Clientes extranjeros",
       "DISTRIBUTOR_TITLE": "Objetivos de distribuidores",
       "DISTRIBUTOR_DESCRIPTION": "Solicitudes de cambio de objetivo (sales target) de distribuidores extranjeros asignadas a ti.",
+      "DISTRIBUTOR_DESCRIPTION_ADMIN": "Todas las solicitudes de cambio de objetivo (sales target) de distribuidores extranjeros pendientes, sin importar a quién estén asignadas.",
       "DISTRIBUTOR_EMPTY": "Sin solicitudes pendientes de distribuidores.",
       "COL_DISTRIBUTOR": "Distribuidor"
     },

@@ -1545,6 +1545,7 @@
     "PENDING_APPROVALS": {
       "TITLE": "Pending approvals",
       "DESCRIPTION": "Forecast change requests assigned to you.",
+      "DESCRIPTION_ADMIN": "All pending forecast change requests, regardless of who they are assigned to.",
       "LOADING": "Loading...",
       "EMPTY": "No pending requests.",
       "COL_CLIENT": "Client",
@@ -1553,6 +1554,7 @@
       "COL_PROPOSED": "Proposed",
       "COL_SUBMITTED_BY": "Submitted by",
       "COL_STEP": "Step",
+      "COL_APPROVER": "Approver",
       "COL_DATE": "Date",
       "COL_ACTIONS": "Actions",
       "BTN_APPROVE": "Approve",
@@ -1570,6 +1572,7 @@
       "DISTRIBUTOR_BADGE": "Foreign clients",
       "DISTRIBUTOR_TITLE": "Distributor sales targets",
       "DISTRIBUTOR_DESCRIPTION": "Sales target change requests for foreign distributors assigned to you.",
+      "DISTRIBUTOR_DESCRIPTION_ADMIN": "All pending sales target change requests for foreign distributors, regardless of who they are assigned to.",
       "DISTRIBUTOR_EMPTY": "No pending distributor requests.",
       "COL_DISTRIBUTOR": "Distributor"
     },
