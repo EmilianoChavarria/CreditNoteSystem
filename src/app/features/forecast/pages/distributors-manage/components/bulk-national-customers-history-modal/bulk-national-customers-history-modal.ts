@@ -5,8 +5,9 @@ import { Modal } from '../../../../../../shared/components/ui/modal/modal';
 import { BulkHistoryTab } from '../../../../../requests/components/batchs/bulk-history-tab/bulk-history-tab';
 import { BatchRequestsModal } from '../../../../../requests/components/batchs/batch-requests-modal/batch-requests-modal';
 import { RequestErrorModal } from '../../../../../requests/components/batchs/request-error-modal/request-error-modal';
-import { BatchErrorLog, BatchRequestItem, BatchService, BatchSummary } from '../../../../../../core/services/batch-service';
+import { BatchErrorLog, BatchItemStatusFilter, BatchRequestItem, BatchService, BatchSummary } from '../../../../../../core/services/batch-service';
 import { ToastService } from '../../../../../../core/services/toast-service';
+import { ExportService } from '../../../../../../core/services/export-service';
 
 interface BatchHistoryRow {
   idBatch: string;
@@ -39,6 +40,7 @@ interface RequestHistoryRow {
 })
 export class BulkNationalCustomersHistoryModal {
   private readonly batchService = inject(BatchService);
+  private readonly exportService = inject(ExportService);
   private readonly toastService = inject(ToastService);
   private readonly translateService = inject(TranslateService);
   private readonly destroyRef = inject(DestroyRef);
@@ -70,6 +72,8 @@ export class BulkNationalCustomersHistoryModal {
   readonly batchRequestsTotal = signal(0);
   readonly batchRequestsHasNextPage = signal(false);
   readonly batchRequestsHasPrevPage = signal(false);
+  readonly batchRequestsStatusFilter = signal<BatchItemStatusFilter>('all');
+  readonly downloadingErrorsBatchId = signal<number | string | null>(null);
 
   readonly isRequestErrorModalOpen = signal(false);
   readonly selectedRequestError = signal<RequestHistoryRow | null>(null);
@@ -97,9 +101,31 @@ export class BulkNationalCustomersHistoryModal {
   openBatchDetail(batch: BatchHistoryRow): void {
     this.selectedBatch.set(batch);
     this.batchRequestsCurrentPage.set(1);
+    this.batchRequestsStatusFilter.set('all');
     this.loadBatchDetail(batch.rawId);
     this.loadBatchRequests(batch.rawId, 1);
     this.isBatchDetailModalOpen.set(true);
+  }
+
+  onDownloadBatchErrors(batch: BatchHistoryRow): void {
+    if (batch.error <= 0 || this.downloadingErrorsBatchId() !== null) return;
+
+    this.downloadingErrorsBatchId.set(batch.rawId);
+
+    this.batchService.downloadBatchErrorsCsv(batch.rawId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (blob) => {
+          this.downloadingErrorsBatchId.set(null);
+          this.exportService.downloadBlob(blob, `${batch.idBatch}-errores.csv`);
+          this.toastService.success(this.translateService.instant('BULK.HISTORY.DOWNLOAD_ERRORS_SUCCESS'));
+        },
+        error: (error) => {
+          this.downloadingErrorsBatchId.set(null);
+          console.error(`Error downloading batch errors ${String(batch.rawId)}:`, error);
+          this.toastService.error(this.translateService.instant('BULK.HISTORY.DOWNLOAD_ERRORS_ERROR'));
+        }
+      });
   }
 
   closeBatchDetailModal(isOpen: boolean): void {
@@ -113,6 +139,7 @@ export class BulkNationalCustomersHistoryModal {
       this.batchRequestsTotal.set(0);
       this.batchRequestsHasNextPage.set(false);
       this.batchRequestsHasPrevPage.set(false);
+      this.batchRequestsStatusFilter.set('all');
     }
   }
 
@@ -194,6 +221,14 @@ export class BulkNationalCustomersHistoryModal {
     this.loadBatchRequests(selected.rawId, 1);
   }
 
+  onBatchRequestsStatusFilterChange(value: BatchItemStatusFilter): void {
+    const selected = this.selectedBatch();
+    if (!selected || this.batchRequestsStatusFilter() === value) return;
+    this.batchRequestsStatusFilter.set(value);
+    this.batchRequestsCurrentPage.set(1);
+    this.loadBatchRequests(selected.rawId, 1);
+  }
+
   historyFrom(): number {
     const total = this.historyTotal();
     if (total === 0) return 0;
@@ -261,7 +296,7 @@ export class BulkNationalCustomersHistoryModal {
     const safePage = Math.max(1, page ?? this.batchRequestsCurrentPage());
     this.isLoadingBatchRequests.set(true);
 
-    this.batchService.getBatchRequests(batchId, this.batchRequestsPageSize(), safePage)
+    this.batchService.getBatchRequests(batchId, this.batchRequestsPageSize(), safePage, this.batchRequestsStatusFilter())
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response) => {

@@ -3,8 +3,9 @@ import { TabsContainer } from "../../../../shared/components/ui/tab/tab-containe
 import { Tab } from "../../../../shared/components/ui/tab/tab";
 import { AccordeonContainer } from "../../../../shared/components/ui/accordeon/accordeon-container";
 import { forkJoin, Subscription } from 'rxjs';
-import { BatchErrorLog, BatchRequestItem, BatchService, BatchSummary } from '../../../../core/services/batch-service';
+import { BatchErrorLog, BatchItemStatusFilter, BatchRequestItem, BatchService, BatchSummary } from '../../../../core/services/batch-service';
 import { AuthService } from '../../../../core/services/auth-service';
+import { ExportService } from '../../../../core/services/export-service';
 import { BatchFinishedMessage, ReverbSocketService } from '../../../../core/services/reverb-socket-service';
 import { ToastService } from '../../../../core/services/toast-service';
 import { RequestService } from '../../../../core/services/request-service';
@@ -75,6 +76,7 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
     @ViewChild(TabsContainer) private tabsContainer?: TabsContainer;
 
     private readonly batchService = inject(BatchService);
+    private readonly exportService = inject(ExportService);
     private readonly socketService = inject(ReverbSocketService);
     private readonly authService = inject(AuthService);
     private readonly route = inject(ActivatedRoute);
@@ -114,6 +116,8 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
     public batchRequestsTotal = signal(0);
     public batchRequestsHasNextPage = signal(false);
     public batchRequestsHasPrevPage = signal(false);
+    public batchRequestsStatusFilter = signal<BatchItemStatusFilter>('all');
+    public downloadingErrorsBatchId = signal<number | string | null>(null);
 
     public bulkHistoryRows = signal<BatchHistoryRow[]>([]);
     public batchRequestRows = signal<RequestHistoryRow[]>([]);
@@ -178,9 +182,33 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
     public openBatchDetail(batch: BatchHistoryRow): void {
         this.selectedBatch.set(batch);
         this.batchRequestsCurrentPage.set(1);
+        this.batchRequestsStatusFilter.set('all');
         this.loadBatchDetail(batch.rawId);
         this.loadBatchRequests(batch.rawId, 1);
         this.isBatchDetailModalOpen.set(true);
+    }
+
+    public onDownloadBatchErrors(batch: BatchHistoryRow): void {
+        if (batch.error <= 0 || this.downloadingErrorsBatchId() !== null) {
+            return;
+        }
+
+        this.downloadingErrorsBatchId.set(batch.rawId);
+
+        const subscription = this.batchService.downloadBatchErrorsCsv(batch.rawId).subscribe({
+            next: (blob) => {
+                this.downloadingErrorsBatchId.set(null);
+                this.exportService.downloadBlob(blob, `${batch.idBatch}-errores.csv`);
+                this.toastService.success(this.translateService.instant('BULK.HISTORY.DOWNLOAD_ERRORS_SUCCESS'));
+            },
+            error: (error) => {
+                this.downloadingErrorsBatchId.set(null);
+                console.error(`Error downloading batch errors ${String(batch.rawId)}:`, error);
+                this.toastService.error(this.translateService.instant('BULK.HISTORY.DOWNLOAD_ERRORS_ERROR'));
+            }
+        });
+
+        this.subscriptions.push(subscription);
     }
 
     public closeBatchDetailModal(isOpen: boolean): void {
@@ -194,6 +222,7 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
             this.batchRequestsTotal.set(0);
             this.batchRequestsHasNextPage.set(false);
             this.batchRequestsHasPrevPage.set(false);
+            this.batchRequestsStatusFilter.set('all');
         }
     }
 
@@ -315,7 +344,12 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
         const safePage = Math.max(1, page ?? this.batchRequestsCurrentPage());
         this.isLoadingBatchRequests.set(true);
 
-        const subscription = this.batchService.getBatchRequests(batchId, this.batchRequestsPageSize(), safePage).subscribe({
+        const subscription = this.batchService.getBatchRequests(
+            batchId,
+            this.batchRequestsPageSize(),
+            safePage,
+            this.batchRequestsStatusFilter(),
+        ).subscribe({
             next: (response) => {
                 this.batchRequestRows.set(response.items.data.map((item) => this.mapRequestItemToHistoryRow(item)));
                 this.batchRequestsCurrentPage.set(response.items.current_page || safePage);
@@ -534,6 +568,17 @@ export class BulkUpload implements OnInit, AfterViewInit, OnDestroy {
         }
 
         this.batchRequestsPageSize.set(value);
+        this.batchRequestsCurrentPage.set(1);
+        this.loadBatchRequests(selected.rawId, 1);
+    }
+
+    public onBatchRequestsStatusFilterChange(value: BatchItemStatusFilter): void {
+        const selected = this.selectedBatch();
+        if (!selected || this.batchRequestsStatusFilter() === value) {
+            return;
+        }
+
+        this.batchRequestsStatusFilter.set(value);
         this.batchRequestsCurrentPage.set(1);
         this.loadBatchRequests(selected.rawId, 1);
     }

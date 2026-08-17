@@ -59,6 +59,9 @@ export interface BatchRequestsResponse {
   items: PagePagination<BatchRequestItem>;
 }
 
+/** Filtro de estado que el backend aplica sobre los batchItems (`GET /batches/{id}/requests`). */
+export type BatchItemStatusFilter = 'all' | 'success' | 'error';
+
 export type WelcomeEmailMode = 'none' | 'individual' | 'single';
 
 export interface UsersBatchOptions {
@@ -431,8 +434,14 @@ export class BatchService {
     );
   }
 
-  getBatchRequests(batchId: number | string, perPage = 25, page = 1, bearerToken?: string): Observable<BatchRequestsResponse> {
-    const options = this.buildOptions({ perPage, page }, bearerToken);
+  getBatchRequests(
+    batchId: number | string,
+    perPage = 25,
+    page = 1,
+    status: BatchItemStatusFilter = 'all',
+    bearerToken?: string,
+  ): Observable<BatchRequestsResponse> {
+    const options = this.buildOptions({ perPage, page, status: status === 'all' ? undefined : status }, bearerToken);
 
     return this.httpService.get<unknown>(`/batches/${batchId}/requests`, options).pipe(
       map((response: ApiResponse<unknown>) => {
@@ -444,6 +453,25 @@ export class BatchService {
       }),
       catchError((error) => {
         console.error(`Error loading batch requests ${batchId}`, error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /** CSV con los registros del batch que quedaron en error (`GET /batches/{id}/errors/csv`). */
+  downloadBatchErrorsCsv(batchId: number | string, bearerToken?: string): Observable<Blob> {
+    const resolvedBearer = bearerToken ?? this.resolveBearerToken();
+    const headers = resolvedBearer
+      ? new HttpHeaders({ Authorization: `Bearer ${resolvedBearer}` })
+      : undefined;
+
+    return this.httpClient.get(`${this.baseApiUrl}/batches/${batchId}/errors/csv`, {
+      headers,
+      responseType: 'blob',
+      withCredentials: true,
+    }).pipe(
+      catchError((error) => {
+        console.error(`Error downloading batch errors csv ${batchId}`, error);
         return throwError(() => error);
       })
     );

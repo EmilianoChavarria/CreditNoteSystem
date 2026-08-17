@@ -32,8 +32,11 @@ export class BulkHistoryTab {
   historyLastPage = input.required<number>();
   historyHasPrevPage = input.required<boolean>();
   historyHasNextPage = input.required<boolean>();
+  /** rawId del batch cuyo CSV de errores se está descargando, para bloquear ese botón. */
+  downloadingErrorsBatchId = input<number | string | null>(null);
 
   openBatchDetail = output<BatchHistoryRow>();
+  downloadBatchErrors = output<BatchHistoryRow>();
   historyPageSizeChange = output<number>();
   historyFirstPage = output<void>();
   historyPrevPage = output<void>();
@@ -42,6 +45,16 @@ export class BulkHistoryTab {
 
   onOpenBatchDetail(batch: BatchHistoryRow): void {
     this.openBatchDetail.emit(batch);
+  }
+
+  onDownloadBatchErrors(batch: BatchHistoryRow): void {
+    if (batch.error <= 0 || this.isDownloadingErrors(batch)) return;
+    this.downloadBatchErrors.emit(batch);
+  }
+
+  isDownloadingErrors(batch: BatchHistoryRow): boolean {
+    const downloadingId = this.downloadingErrorsBatchId();
+    return downloadingId !== null && String(downloadingId) === String(batch.rawId);
   }
 
   onHistoryPageSizeChange(event: Event): void {

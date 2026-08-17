@@ -4,6 +4,7 @@ import { LucideAngularModule } from 'lucide-angular';
 import { Modal } from '../../../../../shared/components/ui/modal/modal';
 import { Popover } from '../../../../../shared/components/ui/popover/popover';
 import { TranslatePipe } from '@ngx-translate/core';
+import { BatchItemStatusFilter } from '../../../../../core/services/batch-service';
 
 interface BatchSummaryView {
   id?: number | string;
@@ -43,22 +44,15 @@ export class BatchRequestsModal implements OnDestroy {
   batchRequestsLastPage = input.required<number>();
   batchRequestsHasPrevPage = input.required<boolean>();
   batchRequestsHasNextPage = input.required<boolean>();
+  /** El filtro lo resuelve el backend: el padre lo manda como query param al recargar. */
+  batchRequestsStatusFilter = input<BatchItemStatusFilter>('all');
 
-  statusFilter = signal<'all' | 'success' | 'error'>('all');
   refreshIntervalSeconds = signal<number>(30);
   secondsUntilRefresh = signal<number>(30);
   isRefreshPaused = signal<boolean>(false);
   private refreshTimerId: ReturnType<typeof setInterval> | null = null;
 
   shouldShowRefreshControls = computed(() => Number(this.selectedBatchSummary()?.progressPercent ?? 0) < 100);
-
-  filteredRows = computed(() => {
-    const filter = this.statusFilter();
-    const rows = this.batchRequestRows();
-    if (filter === 'all') return rows;
-    if (filter === 'error') return rows.filter(r => r.status === 'error');
-    return rows.filter(r => r.status !== 'error');
-  });
 
   openChange = output<boolean>();
   openRequestError = output<RequestHistoryRow>();
@@ -67,6 +61,7 @@ export class BatchRequestsModal implements OnDestroy {
   batchRequestsPrevPage = output<void>();
   batchRequestsNextPage = output<void>();
   batchRequestsLastPageClick = output<void>();
+  batchRequestsStatusFilterChange = output<BatchItemStatusFilter>();
   refreshRequested = output<void>();
 
   constructor() {
@@ -129,8 +124,8 @@ export class BatchRequestsModal implements OnDestroy {
     this.batchRequestsPageSizeChange.emit(value);
   }
 
-  onStatusFilterChange(value: 'all' | 'success' | 'error'): void {
-    this.statusFilter.set(value);
+  onStatusFilterChange(value: BatchItemStatusFilter): void {
+    this.batchRequestsStatusFilterChange.emit(value);
   }
 
   onRefreshIntervalChange(event: Event): void {
