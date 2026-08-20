@@ -19,6 +19,9 @@ export interface ProductCatalogItem {
 
 export type ProductClasificacion = 'Rodamientos' | 'No Rodamientos';
 
+/** Filtro de clasificacion del catalogo: 'unclassified' = productos sin registro de clasificacion. */
+export type ProductClasificacionFilter = ProductClasificacion | 'unclassified' | 'all';
+
 export interface ProductClassification {
   id: number;
   idProducto: string;
@@ -36,10 +39,13 @@ export class ProductService {
 
   constructor(private readonly _httpService: HttpService) { }
 
-  getProductsCatalog(perPage = 100, page = 1, search?: string): Observable<PagePagination<ProductCatalogItem>> {
-    const params: { per_page: number; page: number; search?: string } = { per_page: perPage, page };
+  getProductsCatalog(perPage = 100, page = 1, search?: string, clasificacion?: ProductClasificacionFilter): Observable<PagePagination<ProductCatalogItem>> {
+    const params: { per_page: number; page: number; search?: string; clasificacion?: string } = { per_page: perPage, page };
     if (search && search.trim().length > 0) {
       params.search = search.trim();
+    }
+    if (clasificacion && clasificacion !== 'all') {
+      params.clasificacion = clasificacion;
     }
 
     return this._httpService.get<PagePagination<ProductCatalogItem>>('/products/catalog', {

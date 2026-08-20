@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { HttpService } from './http-service';
 
-export type ExcelExportModule = 'users' | 'clients' | 'my_approvals' | 'requests';
+export type ExcelExportModule = 'users' | 'clients' | 'my_approvals' | 'requests' | 'products';
 
 export type ExcelExportParams = Record<string, string | number | boolean | null | undefined>;
 

@@ -117,6 +117,12 @@ export class Table<T extends Record<string, any>>
   readonly excelExportModule = input<ExcelExportModule | null>(null);
   readonly excelExportParams = input<ExcelExportParams>({});
   readonly excelExportFileName = input<string>('export.xls');
+  /**
+   * Cambia la segunda opcion del menu de exportacion de "rango de fechas" a
+   * "filtro actual". En este modo "Exportar todo" ignora excelExportParams y
+   * "Exportar filtro actual" los envia tal cual.
+   */
+  readonly excelExportUseCurrentFilter = input<boolean>(false);
 
   readonly paginaSiguiente = output<void>();
   readonly paginaAnterior = output<void>();
@@ -448,6 +454,10 @@ export class Table<T extends Record<string, any>>
   }
 
   onExportAll(): void {
+    this._doExport({}, !this.excelExportUseCurrentFilter());
+  }
+
+  onExportCurrentFilter(): void {
     this._doExport({});
   }
 
@@ -462,14 +472,16 @@ export class Table<T extends Record<string, any>>
     this._doExport({ dateFrom: this.exportDateFrom() || undefined, dateTo: this.exportDateTo() || undefined });
   }
 
-  private _doExport(extraParams: ExcelExportParams): void {
+  private _doExport(extraParams: ExcelExportParams, includeBaseParams = true): void {
     const module = this.excelExportModule();
     if (!module || this.isExportingExcel()) {
       return;
     }
 
     this.isExportingExcel.set(true);
-    this.exportService.exportExcel(module, { ...this.excelExportParams(), ...extraParams }).pipe(
+    const baseParams = includeBaseParams ? this.excelExportParams() : {};
+
+    this.exportService.exportExcel(module, { ...baseParams, ...extraParams }).pipe(
       finalize(() => this.isExportingExcel.set(false))
     ).subscribe({
       next: (blob) => this.exportService.downloadBlob(blob, this.excelExportFileName()),

@@ -24,12 +24,21 @@
                         <lucide-icon name="download" size="16"></lucide-icon>
                         {{ 'TABLE.EXPORT_ALL' | translate }}
                     </button>
+                    @if (excelExportUseCurrentFilter()) {
+                    <button type="button"
+                        (click)="onExportCurrentFilter(); exportPopover.close()"
+                        class="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-gray-100 transition text-left">
+                        <lucide-icon name="filter" size="16"></lucide-icon>
+                        {{ 'TABLE.EXPORT_CURRENT_FILTER' | translate }}
+                    </button>
+                    } @else {
                     <button type="button"
                         (click)="onExportSelectDateRange(); exportPopover.close()"
                         class="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-gray-100 transition text-left">
                         <lucide-icon name="calendar" size="16"></lucide-icon>
                         {{ 'TABLE.EXPORT_DATE_RANGE' | translate }}
                     </button>
+                    }
                 </div>
             </app-popover>
 

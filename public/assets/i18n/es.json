@@ -85,6 +85,7 @@
     "BULK_BUTTON": "Carga Masiva",
     "ADD_BUTTON": "Agregar",
     "EXPORT_ALL": "Toda la información",
+    "EXPORT_CURRENT_FILTER": "Filtro actual",
     "EXPORT_DATE_RANGE": "Rango de fechas",
     "EXPORT_DATE_RANGE_TITLE": "Exportar por rango de fechas",
     "DATE_FROM": "Fecha inicial",

@@ -105,6 +105,7 @@
     "BULK_BUTTON": "Bulk Upload",
     "ADD_BUTTON": "Add",
     "EXPORT_ALL": "All data",
+    "EXPORT_CURRENT_FILTER": "Current filter",
     "EXPORT_DATE_RANGE": "Date range",
     "EXPORT_DATE_RANGE_TITLE": "Export by date range",
     "DATE_FROM": "Start date",

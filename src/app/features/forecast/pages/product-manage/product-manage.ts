@@ -1,11 +1,11 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnInit, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DecimalPipe } from '@angular/common';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LucideAngularModule } from 'lucide-angular';
 import { finalize } from 'rxjs';
 import { Table, type AccionPersonalizada, type Column } from '../../../../shared/components/ui/table/table';
-import { ProductCatalogItem, ProductClassificationResult, ProductService } from '../../../../core/services/product.service';
+import { ProductCatalogItem, ProductClasificacionFilter, ProductClassificationResult, ProductService } from '../../../../core/services/product.service';
 import { ClassifyProductModal } from './components/classify-product-modal/classify-product-modal';
 import { BulkClassifyProductsModal } from './components/bulk-classify-products-modal/bulk-classify-products-modal';
 import { BulkClassifyHistoryModal } from './components/bulk-classify-history-modal/bulk-classify-history-modal';
@@ -47,8 +47,22 @@ export class ProductManage implements OnInit {
   readonly searchTerm = signal('');
   private searchDebounce: ReturnType<typeof setTimeout> | null = null;
 
+  readonly clasificacionFilter = signal<ProductClasificacionFilter>('all');
+
+  readonly excelExportParams = computed(() => {
+    const params: Record<string, string> = {};
+    const search = this.searchTerm();
+    const clasificacion = this.clasificacionFilter();
+
+    if (search.length > 0) params['search'] = search;
+    if (clasificacion !== 'all') params['clasificacion'] = clasificacion;
+
+    return params;
+  });
+
   readonly columns: Column<ProductCatalogItem>[];
   readonly acciones: AccionPersonalizada<ProductCatalogItem>[];
+  readonly clasificacionOptions: { label: string; value: ProductClasificacionFilter }[];
 
   constructor() {
     this.columns = [
@@ -61,6 +75,11 @@ export class ProductManage implements OnInit {
       { key: 'rfc', label: this.translate.instant('FORECAST.PRODUCTS.COL_RFC'), sortable: false, customTemplate: true },
       { key: 'estatus', label: this.translate.instant('FORECAST.PRODUCTS.COL_ESTATUS'), sortable: false, customTemplate: true },
       { key: 'clasificacion', label: this.translate.instant('FORECAST.PRODUCTS.COL_CLASIFICACION'), sortable: false, customTemplate: true },
+    ];
+    this.clasificacionOptions = [
+      { label: 'Rodamientos', value: 'Rodamientos' },
+      { label: 'No Rodamientos', value: 'No Rodamientos' },
+      { label: this.translate.instant('FORECAST.PRODUCTS.CLASIFICACION_PENDIENTE'), value: 'unclassified' },
     ];
     this.acciones = [
       {
@@ -162,7 +181,7 @@ export class ProductManage implements OnInit {
 
   loadData(page = 1): void {
     this.loading.set(true);
-    this.productService.getProductsCatalog(this.pageSize(), page, this.searchTerm())
+    this.productService.getProductsCatalog(this.pageSize(), page, this.searchTerm(), this.clasificacionFilter())
       .pipe(finalize(() => this.loading.set(false)))
       .subscribe({
         next: (res) => {
@@ -197,6 +216,14 @@ export class ProductManage implements OnInit {
 
   onPageSizeChange(size: number): void {
     this.pageSize.set(size);
+    this.loadData(1);
+  }
+
+  onClasificacionFilterChange(value: string): void {
+    const normalized = (value ?? 'all') as ProductClasificacionFilter;
+    if (normalized === this.clasificacionFilter()) return;
+
+    this.clasificacionFilter.set(normalized);
     this.loadData(1);
   }
 
