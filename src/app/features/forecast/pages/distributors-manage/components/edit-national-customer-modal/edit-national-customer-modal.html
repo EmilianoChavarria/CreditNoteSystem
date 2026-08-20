@@ -63,6 +63,18 @@
             <span class="text-xs text-gray-400">{{ 'FORECAST.EDIT_NATIONAL_CUSTOMER.CURRENCY_HINT' | translate }}</span>
         </div>
 
+        <app-select id="national-sales-engineer"
+            [label]="'FORECAST.EDIT_DISTRIBUTOR.LABEL_SALES_ENGINEER' | translate"
+            [placeholder]="'FORECAST.EDIT_DISTRIBUTOR.PLACEHOLDER_SALES_ENGINEER' | translate"
+            [options]="salesEngineerOptions()" [value]="salesEngineerId()"
+            (valueChange)="salesEngineerId.set($event)" [disabled]="loadingSalesUsers()" />
+
+        <app-select id="national-sales-manager"
+            [label]="'FORECAST.EDIT_DISTRIBUTOR.LABEL_SALES_MANAGER' | translate"
+            [placeholder]="'FORECAST.EDIT_DISTRIBUTOR.PLACEHOLDER_SALES_MANAGER' | translate"
+            [options]="salesManagerOptions()" [value]="salesManagerId()"
+            (valueChange)="salesManagerId.set($event)" [disabled]="loadingSalesUsers()" />
+
     </div>
 
 </app-modal>

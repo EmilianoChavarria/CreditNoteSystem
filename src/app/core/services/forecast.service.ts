@@ -507,6 +507,12 @@ export interface UpdateNationalCustomerPayload {
   currency?: CustomerCurrency;
 }
 
+/** Responsables del cliente nacional; viven en la tabla ext de la BD externa. */
+export interface UpdateClientExtPayload {
+  salesEngineerId?: number | null;
+  salesManagerId?: number | null;
+}
+
 function buildMonthEntries(months: ForecastMonthApi[]): MonthEntry[] {
   const monthMap = new Map(months.map(m => [m.month, m]));
   return Array.from({ length: 12 }, (_, i) => {
@@ -1063,6 +1069,18 @@ export class ForecastService {
       this.withBearer()
     ).pipe(
       map((response: ApiResponse<NationalCustomer>) => response.data!),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
+  /** Actualiza los responsables (sales engineer / manager) del cliente nacional. */
+  updateClientExt(idCliente: string, payload: UpdateClientExtPayload): Observable<void> {
+    return this.httpService.put<void>(
+      `/forecast/clients/${encodeURIComponent(idCliente)}/ext`,
+      payload,
+      this.withBearer()
+    ).pipe(
+      map(() => undefined),
       catchError((error) => throwError(() => error))
     );
   }
