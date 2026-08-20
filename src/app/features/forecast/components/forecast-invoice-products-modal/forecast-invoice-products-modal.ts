@@ -6,7 +6,7 @@ import { InvoiceProductsBreakdown, InvoiceProductsEntry } from '../../../../core
 
 const EMPTY_BREAKDOWN: InvoiceProductsBreakdown = {
   totalFacturado: 0,
-  totalNoRodamientos: 0,
+  totalExcluido: 0,
   totalConsiderado: 0,
 };
 
@@ -29,7 +29,7 @@ export class ForecastInvoiceProductsModal {
 
   readonly breakdown = computed<InvoiceProductsBreakdown>(() => this.entry()?.breakdown ?? EMPTY_BREAKDOWN);
 
-  readonly hasExclusions = computed(() => this.breakdown().totalNoRodamientos > 0);
+  readonly hasExclusions = computed(() => this.breakdown().totalExcluido > 0);
 
   /** Moneda en la que vienen los importes convertidos y los totales del desglose. */
   readonly moneda = computed(() => this.entry()?.moneda ?? 'USD');

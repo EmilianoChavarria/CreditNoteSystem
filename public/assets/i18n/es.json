@@ -875,7 +875,6 @@
     "PREFERRED_LANGUAGE_LABEL": "Idioma preferido",
     "ROLE_LABEL": "Rol",
     "NO_ROLE": "Sin rol",
-    "SUPERVISOR": "Supervisor",
     "STATUS": "Estado",
     "CREATED_AT": "Fecha de Creación",
     "RESET_PASSWORD": "Restablecer contraseña",
@@ -1494,10 +1493,11 @@
       "COL_AMOUNT_CONVERTED": "Importe",
       "EXCLUDED_TAG": "Excluido",
       "TOTAL_FACTURADO": "Total facturado",
-      "TOTAL_NO_RODAMIENTOS": "No rodamientos",
+      "TOTAL_EXCLUIDO": "No rodamientos / sin clasificar",
       "TOTAL_CONSIDERADO": "Total considerado",
-      "EXPLANATION": "El total considerado excluye los productos clasificados como \"No Rodamientos\".",
-      "CLOSE": "Cerrar"
+      "EXPLANATION": "El total considerado solo incluye los productos clasificados como \"Rodamientos\"; lo clasificado como \"No Rodamientos\" y lo que aún no tiene clasificación se resta.",
+      "CLOSE": "Cerrar",
+      "SIN_CLASIFICAR": "Sin clasificar"
     },
     "GROUP_FORECAST_MODAL": {
       "TITLE_SUFFIX": "Forecast del grupo",
