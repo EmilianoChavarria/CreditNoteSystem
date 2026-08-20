@@ -87,6 +87,12 @@
                             <span class="text-gray-400">—</span>
                             }
                         }
+                        @case ('salesEngineerName') {
+                        <span class="font-medium text-gray-600">{{ item.salesEngineerName ?? '—' }}</span>
+                        }
+                        @case ('salesManagerName') {
+                        <span class="font-medium text-gray-600">{{ item.salesManagerName ?? '—' }}</span>
+                        }
                         }
                     </div>
                 </ng-template>
