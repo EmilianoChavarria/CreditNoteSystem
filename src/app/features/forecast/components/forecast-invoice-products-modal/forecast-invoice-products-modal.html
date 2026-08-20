@@ -40,9 +40,9 @@
       </div>
       <div class="rounded-lg border border-orange-200 bg-orange-50 px-3 py-2.5">
         <p class="text-[11px] font-semibold text-orange-500 uppercase tracking-wide">
-          − {{ 'FORECAST.INVOICE_PRODUCTS_MODAL.TOTAL_NO_RODAMIENTOS' | translate }}
+          − {{ 'FORECAST.INVOICE_PRODUCTS_MODAL.TOTAL_EXCLUIDO' | translate }}
         </p>
-        <p class="text-base font-bold text-orange-700 mt-0.5">${{ breakdown().totalNoRodamientos | number:'1.2-2' }} {{ moneda() }}</p>
+        <p class="text-base font-bold text-orange-700 mt-0.5">${{ breakdown().totalExcluido | number:'1.2-2' }} {{ moneda() }}</p>
       </div>
       <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5">
         <p class="text-[11px] font-semibold text-emerald-500 uppercase tracking-wide">
@@ -92,7 +92,7 @@
               <td class="px-3 py-2.5 whitespace-nowrap">
                 <span
                   [class]="'inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ' + (p.excluido ? 'bg-orange-100 text-orange-700' : 'bg-blue-50 text-blue-700')">
-                  {{ p.clasificacion }}
+                  {{ p.clasificacion ?? ('FORECAST.INVOICE_PRODUCTS_MODAL.SIN_CLASIFICAR' | translate) }}
                 </span>
                 @if (p.excluido) {
                   <span class="ml-1 text-[10px] text-orange-500">({{ 'FORECAST.INVOICE_PRODUCTS_MODAL.EXCLUDED_TAG' | translate }})</span>

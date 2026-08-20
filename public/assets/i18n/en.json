@@ -71,7 +71,6 @@
     "RE_INVOICING": "Re Invoincing",
     "MATERIAL_RETURN": "Material Return",
     "ALL_TYPES": "All types"
-    
   },
   "DASHBOARD": {
     "TITLE": "Activity Summary",
@@ -876,7 +875,6 @@
     "PREFERRED_LANGUAGE_LABEL": "Preferred language",
     "ROLE_LABEL": "Role",
     "NO_ROLE": "No role",
-    "SUPERVISOR": "Supervisor",
     "STATUS": "Status",
     "CREATED_AT": "Creation date",
     "RESET_PASSWORD": "Reset password",
@@ -1495,10 +1493,11 @@
       "COL_AMOUNT_CONVERTED": "Amount",
       "EXCLUDED_TAG": "Excluded",
       "TOTAL_FACTURADO": "Total invoiced",
-      "TOTAL_NO_RODAMIENTOS": "Non-bearings",
+      "TOTAL_EXCLUIDO": "Non-bearings / unclassified",
       "TOTAL_CONSIDERADO": "Total considered",
-      "EXPLANATION": "The considered total excludes products classified as \"No Rodamientos\" (non-bearings).",
-      "CLOSE": "Close"
+      "EXPLANATION": "The considered total only includes products classified as \"Rodamientos\" (bearings); items classified as \"No Rodamientos\" and items not yet classified are subtracted.",
+      "CLOSE": "Close",
+      "SIN_CLASIFICAR": "Unclassified"
     },
     "GROUP_FORECAST_MODAL": {
       "TITLE_SUFFIX": "Group forecast",

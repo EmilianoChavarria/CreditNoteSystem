@@ -342,13 +342,16 @@ export interface InvoiceProduct {
   importe: number;
   /** Importe en la moneda del cliente (la `moneda` de la factura). */
   importeConvertido: number;
-  clasificacion: string;
+  /** null cuando el producto todavía no tiene clasificación. */
+  clasificacion: string | null;
+  /** true para todo lo que no es Rodamientos, incluido lo que está sin clasificar. */
   excluido: boolean;
 }
 
 export interface InvoiceProductsBreakdown {
   totalFacturado: number;
-  totalNoRodamientos: number;
+  /** No Rodamientos + sin clasificar. */
+  totalExcluido: number;
   totalConsiderado: number;
 }
 
