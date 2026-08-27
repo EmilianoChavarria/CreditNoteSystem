@@ -484,8 +484,7 @@
                                 <td class="px-3 py-2 text-sm text-gray-700">{{ material.valorUnitario | number : '1.2-2'
                                     }}
                                 </td>
-                                <td class="px-3 py-2 text-sm text-gray-700">{{ material.valorUnitario *
-                                    material.requestedQuantity | number : '1.2-2' }}</td>
+                                <td class="px-3 py-2 text-sm text-gray-700">{{ rowSubtotal(material) | number : '1.2-2' }}</td>
                             </tr>
                             }
                             }

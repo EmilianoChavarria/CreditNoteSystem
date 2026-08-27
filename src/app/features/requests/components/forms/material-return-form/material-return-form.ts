@@ -23,6 +23,19 @@ import {
 } from '../../../../../core/services/return-order-request-service';
 import { InvalidInvoicesModal } from '../invalid-invoices-modal/invalid-invoices-modal';
 
+/** Cantidad que realmente se paga: gana lo aceptado por almacén, luego reabastecimiento, y si nadie capturó, lo devuelto. */
+function resolveEffectiveQuantity(
+  item: ReturnOrderListItem,
+  replenishmentMap: Map<number, number>,
+  warehouseMap: Map<number, number>
+): number {
+  const warehouseAccepted = warehouseMap.get(item.id);
+  if (warehouseAccepted != null && Number.isFinite(Number(warehouseAccepted))) return Number(warehouseAccepted);
+  const replenishmentAccepted = replenishmentMap.get(item.id);
+  if (replenishmentAccepted != null && Number.isFinite(Number(replenishmentAccepted))) return Number(replenishmentAccepted);
+  return Number(item.requestedQuantity) || 0;
+}
+
 @Component({
   selector: 'app-material-return-form',
   imports: [TabsContainer, Tab, ReactiveFormsModule, TranslatePipe, Autocomplete, TitleCasePipe, Spinner, DecimalPipe, LucideAngularModule, InvalidInvoicesModal],
@@ -39,13 +52,25 @@ export class MaterialReturnForm extends BaseRequestForm {
   protected readonly materialListSubtotal = computed(() => {
     const rejected = this.rejectedMaterialIds();
     const hidden = this.hiddenMaterialIds();
+    const warehouseMap = this.warehouseAcceptedByMaterialId();
+    const replenishmentMap = this.replenishmentAcceptedByMaterialId();
     return this.materialList().reduce((total, item) => {
       if (rejected.has(item.id) || hidden.has(item.id)) return total;
-      const quantity = Number(item.requestedQuantity) || 0;
+      const quantity = resolveEffectiveQuantity(item, replenishmentMap, warehouseMap);
       const unitPrice = Number(item.valorUnitario) || 0;
       return total + (quantity * unitPrice);
     }, 0);
   });
+  /** Cantidad efectiva de la fila (accepted de almacén > accepted de reabastecimiento > devuelta). */
+  protected effectiveQuantity(item: ReturnOrderListItem): number {
+    return resolveEffectiveQuantity(item, this.replenishmentAcceptedByMaterialId(), this.warehouseAcceptedByMaterialId());
+  }
+
+  /** Subtotal de la fila con la cantidad efectiva. */
+  protected rowSubtotal(item: ReturnOrderListItem): number {
+    return this.effectiveQuantity(item) * (Number(item.valorUnitario) || 0);
+  }
+
   protected readonly hasReturnCharge = signal<boolean>(false);
   protected readonly returnChargePercent = signal<number>(0);
   private readonly chargeTypeId = signal<number | null>(null);
