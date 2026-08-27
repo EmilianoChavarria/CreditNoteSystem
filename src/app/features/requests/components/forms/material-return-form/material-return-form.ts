@@ -432,6 +432,15 @@ export class MaterialReturnForm extends BaseRequestForm {
     this.patchReturnOrderCharge();
   }
 
+  protected onSapIdInput(event: Event, idx: number): void {
+    const input = event.target as HTMLInputElement | null;
+    if (!input) return;
+    const digits = input.value.replace(/[^0-9]/g, '').slice(0, 9);
+    if (digits === input.value) return;
+    input.value = digits;
+    this.materialItemsForm.at(idx).get('sapId')?.setValue(digits, { emitEvent: false });
+  }
+
   protected onReturnChargePercentBlur(event: Event): void {
     const raw = (event.target as HTMLInputElement | null)?.value ?? '';
     const value = parseFloat(raw);
@@ -556,7 +565,7 @@ export class MaterialReturnForm extends BaseRequestForm {
         warehouseReceived: new FormControl<number | null>(this.warehouseReceivedByMaterialId().get(id) ?? null),
         warehouseAccepted: new FormControl<number | null>(this.warehouseAcceptedByMaterialId().get(id) ?? null),
         warehouseReason: new FormControl<string>(this.warehouseReasonByMaterialId().get(id) ?? ''),
-        sapId: new FormControl<string>(this.sapIdByMaterialId().get(id) ?? '', [Validators.required]),
+        sapId: new FormControl<string>(this.sapIdByMaterialId().get(id) ?? '', [Validators.required, Validators.pattern(/^[0-9]{9}$/)]),
       }), { emitEvent: false });
     }
 
