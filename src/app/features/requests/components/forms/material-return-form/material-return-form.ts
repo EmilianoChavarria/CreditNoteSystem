@@ -35,13 +35,17 @@ export class MaterialReturnForm extends BaseRequestForm {
 
   protected readonly orderId = signal<number | null>(null);
   protected readonly materialList = signal<ReturnOrderListItem[]>([]);
-  protected readonly materialListSubtotal = computed(() =>
-    this.materialList().reduce((total, item) => {
+  /** Solo suma las filas no rechazadas: un accepted en 0 sale del total al instante. */
+  protected readonly materialListSubtotal = computed(() => {
+    const rejected = this.rejectedMaterialIds();
+    const hidden = this.hiddenMaterialIds();
+    return this.materialList().reduce((total, item) => {
+      if (rejected.has(item.id) || hidden.has(item.id)) return total;
       const quantity = Number(item.requestedQuantity) || 0;
       const unitPrice = Number(item.valorUnitario) || 0;
       return total + (quantity * unitPrice);
-    }, 0)
-  );
+    }, 0);
+  });
   protected readonly hasReturnCharge = signal<boolean>(false);
   protected readonly returnChargePercent = signal<number>(0);
   private readonly chargeTypeId = signal<number | null>(null);
@@ -64,12 +68,28 @@ export class MaterialReturnForm extends BaseRequestForm {
 
   private readonly currentConstraintCtx = signal<ConstraintContext>({ step: undefined, assignedRoleName: undefined });
 
+  /**
+   * Filas rechazadas (accepted en 0 en cualquier etapa), incluida la que el rol actual
+   * acaba de poner en 0: siguen visibles para quien las edita pero no suman al total.
+   */
+  protected readonly rejectedMaterialIds = computed(() => {
+    const replenishmentMap = this.replenishmentAcceptedByMaterialId();
+    const warehouseMap = this.warehouseAcceptedByMaterialId();
+    const rejected = new Set<number>();
+    for (const item of this.materialList()) {
+      if (replenishmentMap.get(item.id) === 0 || warehouseMap.get(item.id) === 0) rejected.add(item.id);
+    }
+    return rejected;
+  });
+
   protected readonly hiddenMaterialIds = computed(() => {
     const ctx = this.currentConstraintCtx();
     const acceptedMap = this.replenishmentAcceptedByMaterialId();
+    const warehouseMap = this.warehouseAcceptedByMaterialId();
     const hidden = new Set<number>();
-    for (const [id, val] of acceptedMap) {
-      if (shouldHideMaterialRow(ctx, val)) hidden.add(id);
+    for (const item of this.materialList()) {
+      const id = item.id;
+      if (shouldHideMaterialRow(ctx, acceptedMap.get(id) ?? null, warehouseMap.get(id) ?? null)) hidden.add(id);
     }
     return hidden;
   });
