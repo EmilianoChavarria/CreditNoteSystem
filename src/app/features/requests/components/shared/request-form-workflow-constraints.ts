@@ -40,15 +40,27 @@ export const WORKFLOW_FIELD_CONSTRAINTS: WorkflowFieldConstraint[] = [
   },
   {
     // En re-invoicing sin paso (creación) siempre habilitado.
+    // Devolución de material (requestTypeId 6): habilitado además en el paso 5.
     // En otros formularios: deshabilitado si no hay paso, si el rol no es REQUESTER,
     // o si el status de la solicitud ya es "approved".
-    disableWhen: ({ step, assignedRoleName, isReinvoicing, status }) =>
+    disableWhen: ({ step, isReinvoicing, requestTypeId, status }) => {
+      if (isReinvoicing && !step) return false;
+      if (requestTypeId === 6 && step?.stepOrder === 5) return false;
+      return !step || status !== 'approved';
+    },
+    fields: ['orderNumber'],
+  },
+  {
+    // En re-invoicing sin paso (creación) siempre habilitado.
+    // En otros formularios: deshabilitado si no hay paso, si el rol no es REQUESTER,
+    // o si el status de la solicitud ya es "approved".
+    disableWhen: ({ step, isReinvoicing, status }) =>
       isReinvoicing && !step
         ? false
         : !step ||
           // (assignedRoleName !== 'REQUESTER' && assignedRoleName !== 'REQUESTER / PROCESSOR') &&
           status !== 'approved',
-    fields: ['orderNumber', 'deliveryNote'],
+    fields: ['deliveryNote'],
   },
   {
     // Auditor credit/debit (requestTypeId 3/4): habilitado al crear (!step), en el
