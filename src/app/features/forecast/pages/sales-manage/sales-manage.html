@@ -7,6 +7,7 @@
       <p class="text-sm text-gray-400 mt-1">{{ 'FORECAST.SALES_MANAGE.DESCRIPTION' | translate }}</p>
     </div>
     <div class="flex gap-2 mt-1">
+      @if (canSeeMyRequests()) {
       <button
         type="button"
         (click)="showMyRequestsModal.set(true)"
@@ -14,6 +15,8 @@
         <lucide-icon name="file-text" size="14"></lucide-icon>
         {{ 'FORECAST.SALES_MANAGE.MY_REQUESTS_BTN' | translate }}
       </button>
+      }
+      @if (canSeePendingApprovals()) {
       <button
         type="button"
         (click)="showPendingApprovalsModal.set(true)"
@@ -26,6 +29,7 @@
           </span>
         }
       </button>
+      }
     </div>
   </div>
 
