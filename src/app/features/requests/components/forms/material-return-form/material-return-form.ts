@@ -23,6 +23,19 @@ import {
 } from '../../../../../core/services/return-order-request-service';
 import { InvalidInvoicesModal } from '../invalid-invoices-modal/invalid-invoices-modal';
 
+/** Cantidad que realmente se paga: gana lo aceptado por almacén, luego reabastecimiento, y si nadie capturó, lo devuelto. */
+function resolveEffectiveQuantity(
+  item: ReturnOrderListItem,
+  replenishmentMap: Map<number, number>,
+  warehouseMap: Map<number, number>
+): number {
+  const warehouseAccepted = warehouseMap.get(item.id);
+  if (warehouseAccepted != null && Number.isFinite(Number(warehouseAccepted))) return Number(warehouseAccepted);
+  const replenishmentAccepted = replenishmentMap.get(item.id);
+  if (replenishmentAccepted != null && Number.isFinite(Number(replenishmentAccepted))) return Number(replenishmentAccepted);
+  return Number(item.requestedQuantity) || 0;
+}
+
 @Component({
   selector: 'app-material-return-form',
   imports: [TabsContainer, Tab, ReactiveFormsModule, TranslatePipe, Autocomplete, TitleCasePipe, Spinner, DecimalPipe, LucideAngularModule, InvalidInvoicesModal],
@@ -35,13 +48,29 @@ export class MaterialReturnForm extends BaseRequestForm {
 
   protected readonly orderId = signal<number | null>(null);
   protected readonly materialList = signal<ReturnOrderListItem[]>([]);
-  protected readonly materialListSubtotal = computed(() =>
-    this.materialList().reduce((total, item) => {
-      const quantity = Number(item.requestedQuantity) || 0;
+  /** Solo suma las filas no rechazadas: un accepted en 0 sale del total al instante. */
+  protected readonly materialListSubtotal = computed(() => {
+    const rejected = this.rejectedMaterialIds();
+    const hidden = this.hiddenMaterialIds();
+    const warehouseMap = this.warehouseAcceptedByMaterialId();
+    const replenishmentMap = this.replenishmentAcceptedByMaterialId();
+    return this.materialList().reduce((total, item) => {
+      if (rejected.has(item.id) || hidden.has(item.id)) return total;
+      const quantity = resolveEffectiveQuantity(item, replenishmentMap, warehouseMap);
       const unitPrice = Number(item.valorUnitario) || 0;
       return total + (quantity * unitPrice);
-    }, 0)
-  );
+    }, 0);
+  });
+  /** Cantidad efectiva de la fila (accepted de almacén > accepted de reabastecimiento > devuelta). */
+  protected effectiveQuantity(item: ReturnOrderListItem): number {
+    return resolveEffectiveQuantity(item, this.replenishmentAcceptedByMaterialId(), this.warehouseAcceptedByMaterialId());
+  }
+
+  /** Subtotal de la fila con la cantidad efectiva. */
+  protected rowSubtotal(item: ReturnOrderListItem): number {
+    return this.effectiveQuantity(item) * (Number(item.valorUnitario) || 0);
+  }
+
   protected readonly hasReturnCharge = signal<boolean>(false);
   protected readonly returnChargePercent = signal<number>(0);
   private readonly chargeTypeId = signal<number | null>(null);
@@ -64,12 +93,28 @@ export class MaterialReturnForm extends BaseRequestForm {
 
   private readonly currentConstraintCtx = signal<ConstraintContext>({ step: undefined, assignedRoleName: undefined });
 
+  /**
+   * Filas rechazadas (accepted en 0 en cualquier etapa), incluida la que el rol actual
+   * acaba de poner en 0: siguen visibles para quien las edita pero no suman al total.
+   */
+  protected readonly rejectedMaterialIds = computed(() => {
+    const replenishmentMap = this.replenishmentAcceptedByMaterialId();
+    const warehouseMap = this.warehouseAcceptedByMaterialId();
+    const rejected = new Set<number>();
+    for (const item of this.materialList()) {
+      if (replenishmentMap.get(item.id) === 0 || warehouseMap.get(item.id) === 0) rejected.add(item.id);
+    }
+    return rejected;
+  });
+
   protected readonly hiddenMaterialIds = computed(() => {
     const ctx = this.currentConstraintCtx();
     const acceptedMap = this.replenishmentAcceptedByMaterialId();
+    const warehouseMap = this.warehouseAcceptedByMaterialId();
     const hidden = new Set<number>();
-    for (const [id, val] of acceptedMap) {
-      if (shouldHideMaterialRow(ctx, val)) hidden.add(id);
+    for (const item of this.materialList()) {
+      const id = item.id;
+      if (shouldHideMaterialRow(ctx, acceptedMap.get(id) ?? null, warehouseMap.get(id) ?? null)) hidden.add(id);
     }
     return hidden;
   });
@@ -432,6 +477,15 @@ export class MaterialReturnForm extends BaseRequestForm {
     this.patchReturnOrderCharge();
   }
 
+  protected onSapIdInput(event: Event, idx: number): void {
+    const input = event.target as HTMLInputElement | null;
+    if (!input) return;
+    const digits = input.value.replace(/[^0-9]/g, '').slice(0, 9);
+    if (digits === input.value) return;
+    input.value = digits;
+    this.materialItemsForm.at(idx).get('sapId')?.setValue(digits, { emitEvent: false });
+  }
+
   protected onReturnChargePercentBlur(event: Event): void {
     const raw = (event.target as HTMLInputElement | null)?.value ?? '';
     const value = parseFloat(raw);
@@ -556,7 +610,7 @@ export class MaterialReturnForm extends BaseRequestForm {
         warehouseReceived: new FormControl<number | null>(this.warehouseReceivedByMaterialId().get(id) ?? null),
         warehouseAccepted: new FormControl<number | null>(this.warehouseAcceptedByMaterialId().get(id) ?? null),
         warehouseReason: new FormControl<string>(this.warehouseReasonByMaterialId().get(id) ?? ''),
-        sapId: new FormControl<string>(this.sapIdByMaterialId().get(id) ?? '', [Validators.required]),
+        sapId: new FormControl<string>(this.sapIdByMaterialId().get(id) ?? '', [Validators.required, Validators.pattern(/^[0-9]{9}$/)]),
       }), { emitEvent: false });
     }
 

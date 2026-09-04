@@ -28,9 +28,9 @@ const ALL_SCOPE = 'all';
 export class SalesManage {
   private readonly bulkHistoryModal = viewChild(BulkForecastHistoryModal);
 
-  readonly years = [2024, 2025, 2026];
+  readonly years = [2026];
 
-  readonly activeYear = signal(new Date().getFullYear());
+  readonly activeYear = signal(this.years[0]);
   readonly distributors = signal<Distributor[]>([]);
   readonly loading = signal(false);
   readonly foreignDistributors = signal<Distributor[]>([]);
@@ -40,6 +40,10 @@ export class SalesManage {
 
   readonly isSalesManager = signal(false);
   readonly isForecastAdmin = signal(false);
+  /** SALES ENGINEER no aprueba: no ve el boton de pendientes por aprobar. */
+  readonly canSeePendingApprovals = signal(true);
+  /** GENERAL MANAGER no crea solicitudes: no ve el boton de mis solicitudes. */
+  readonly canSeeMyRequests = signal(true);
   readonly engineers = signal<AssignmentUser[]>([]);
   readonly selectedEngineer = signal<AssignmentUser | null>(null);
   readonly loadingEngineers = signal(false);
@@ -91,6 +95,8 @@ export class SalesManage {
     const isAdmin = roleName === 'FORECAST ADMIN';
     this.isSalesManager.set(isMgr);
     this.isForecastAdmin.set(isAdmin);
+    this.canSeePendingApprovals.set(roleName !== 'SALES ENGINEER');
+    this.canSeeMyRequests.set(roleName !== 'GENERAL MANAGER');
 
     if (isMgr || isAdmin) {
       this.loadEngineers(isAdmin ? 'all' : 'my');
@@ -211,6 +217,10 @@ export class SalesManage {
   }
 
   private loadPendingCount(): void {
+    if (!this.canSeePendingApprovals()) {
+      return;
+    }
+
     this.forecastService.getPendingApprovals().subscribe({
       next: (reqs) => this.pendingClientCount.set(reqs.length),
       error: () => {},

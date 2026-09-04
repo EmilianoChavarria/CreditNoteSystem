@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { AuthGuard } from './core/guards/auth.guard';
 import { LoginGuard } from './core/guards/login.guard';
 import { ActionGuard } from './core/guards/action.guard';
+import { LandingGuard } from './core/guards/landing.guard';
 import { unsavedReservationGuard } from './core/guards/unsaved-reservation.guard';
 import { CreditNotes } from './features/forecast/pages/credit-notes/credit-notes';
 
@@ -17,8 +18,17 @@ export const routes: Routes = [
     loadComponent: () => import('./features/main/pages/layout/layout').then(m => m.Layout),
     canActivate: [AuthGuard],
     children: [
-      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-      { path: 'dashboard', loadComponent: () => import('./features/dashboard/pages/dashboard/dashboard').then(m => m.Dashboard) },
+      {
+        path: '',
+        pathMatch: 'full',
+        canActivate: [LandingGuard],
+        loadComponent: () => import('./features/dashboard/pages/dashboard/dashboard').then(m => m.Dashboard)
+      },
+      {
+        path: 'dashboard',
+        canActivate: [LandingGuard],
+        loadComponent: () => import('./features/dashboard/pages/dashboard/dashboard').then(m => m.Dashboard)
+      },
       {
         path: 'request/new-request',
         loadComponent: () => import('./features/requests/pages/new-request/new-request').then(m => m.NewRequest),

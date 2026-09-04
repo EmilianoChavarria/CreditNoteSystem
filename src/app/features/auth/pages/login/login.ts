@@ -101,7 +101,8 @@ export class Login {
       return;
     }
 
-    this.router.navigate(['/app/dashboard']);
+    // '/app' resuelve la landing real del rol via LandingGuard.
+    this.router.navigate(['/app']);
   }
 
   private handleLoginFailure(message: string): void {

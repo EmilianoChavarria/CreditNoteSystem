@@ -72,7 +72,7 @@ export class ChangePassword {
             next: () => {
                 this._toastr.success('Contraseña actualizada correctamente.', 'Éxito');
                 this._auth.clearMustChangePassword();
-                this._router.navigate(['/app/dashboard']);
+                this._router.navigate(['/app']);
             },
             error: (err: any) => {
                 const msg = err?.error?.message ?? 'Error al cambiar la contraseña.';

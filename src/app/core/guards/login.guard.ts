@@ -48,6 +48,7 @@ export class LoginGuard implements CanActivate {
       return this.router.createUrlTree(['/app/my-profile']);
     }
 
-    return this.router.createUrlTree(['/app/dashboard']);
+    // '/app' resuelve la landing real del rol via LandingGuard.
+    return this.router.createUrlTree(['/app']);
   }
 }

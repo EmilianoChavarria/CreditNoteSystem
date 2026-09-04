@@ -235,12 +235,42 @@ export class Sidebar {
     const canAccessCurrentRoute = allowedRoutes.some(route => this.router.url.startsWith(route));
 
     if (!canAccessCurrentRoute) {
+      const landingRoute = this.getLandingRoute(this.sidebarOptions);
+
+      if (!landingRoute) {
+        return;
+      }
+
       // Execute navigation outside Angular zone
       this._ngZone.runOutsideAngular(() => {
-        this.router.navigate([allowedRoutes[0]]);
+        this.router.navigate([landingRoute]);
         this._cdr.detectChanges();
       });
     }
+  }
+
+  /**
+   * Primera ruta navegable del menu. Los items padre son agrupadores
+   * (p. ej. '/app/forecast') y no existen como ruta en el router.
+   */
+  private getLandingRoute(options: SidebarOptions[]): string | null {
+    for (const option of options) {
+      if (option.children?.length) {
+        const child = option.children.find(item => !!item.url);
+
+        if (child?.url) {
+          return child.url;
+        }
+
+        continue;
+      }
+
+      if (option.url) {
+        return option.url;
+      }
+    }
+
+    return null;
   }
 
   private mapSidebarItems(items: SidebarItem[]): SidebarOptions[] {

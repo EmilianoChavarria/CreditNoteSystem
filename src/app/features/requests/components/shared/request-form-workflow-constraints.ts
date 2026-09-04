@@ -23,11 +23,27 @@ export interface WorkflowFieldConstraint {
 }
 
 /**
- * Ocultar fila de material en paso WAREHOUSE si replenishmentAccepted es 0.
- * En paso REPLENISHMENT siempre visible (el usuario puede editarlo).
+ * Ocultar fila de material cuando ya fue rechazada (accepted en 0) por un rol previo.
+ * Cada rol solo ve las filas que siguen vivas: el único accepted que no lo oculta es
+ * el que ese mismo rol captura, para que pueda editarlo antes de mandar la solicitud.
+ * - REPLENISHMENT: edita replenishmentAccepted; se le ocultan las rechazadas por almacén.
+ * - WAREHOUSE: edita warehouseAccepted; se le ocultan las que replenishment no aceptó
+ *   (0 o sin capturar, porque nunca llegaron a almacén).
+ * - Roles posteriores: se ocultan las rechazadas por cualquiera de los dos.
  */
-export function shouldHideMaterialRow(ctx: ConstraintContext, replenishmentAccepted: number | null | undefined): boolean {
-  return ctx.assignedRoleName === 'WAREHOUSE' && (replenishmentAccepted === 0 || replenishmentAccepted == null);
+export function shouldHideMaterialRow(
+  ctx: ConstraintContext,
+  replenishmentAccepted: number | null | undefined,
+  warehouseAccepted?: number | null,
+): boolean {
+  const role = ctx.assignedRoleName;
+  const rejectedByReplenishment = role === 'WAREHOUSE'
+    ? (replenishmentAccepted === 0 || replenishmentAccepted == null)
+    : replenishmentAccepted === 0;
+
+  if (role !== 'REPLENISHMENT' && rejectedByReplenishment) return true;
+  if (role !== 'WAREHOUSE' && warehouseAccepted === 0) return true;
+  return false;
 }
 
 export const WORKFLOW_FIELD_CONSTRAINTS: WorkflowFieldConstraint[] = [
@@ -40,15 +56,27 @@ export const WORKFLOW_FIELD_CONSTRAINTS: WorkflowFieldConstraint[] = [
   },
   {
     // En re-invoicing sin paso (creación) siempre habilitado.
+    // Devolución de material (requestTypeId 6): habilitado además en el paso 5.
     // En otros formularios: deshabilitado si no hay paso, si el rol no es REQUESTER,
     // o si el status de la solicitud ya es "approved".
-    disableWhen: ({ step, assignedRoleName, isReinvoicing, status }) =>
+    disableWhen: ({ step, isReinvoicing, requestTypeId, status }) => {
+      if (isReinvoicing && !step) return false;
+      if (requestTypeId === 6 && step?.stepOrder === 5) return false;
+      return !step || status !== 'approved';
+    },
+    fields: ['orderNumber'],
+  },
+  {
+    // En re-invoicing sin paso (creación) siempre habilitado.
+    // En otros formularios: deshabilitado si no hay paso, si el rol no es REQUESTER,
+    // o si el status de la solicitud ya es "approved".
+    disableWhen: ({ step, isReinvoicing, status }) =>
       isReinvoicing && !step
         ? false
         : !step ||
           // (assignedRoleName !== 'REQUESTER' && assignedRoleName !== 'REQUESTER / PROCESSOR') &&
           status !== 'approved',
-    fields: ['orderNumber', 'deliveryNote'],
+    fields: ['deliveryNote'],
   },
   {
     // Auditor credit/debit (requestTypeId 3/4): habilitado al crear (!step), en el
