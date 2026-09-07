@@ -431,6 +431,21 @@ export interface ChangeRequestPayload {
   amount: number;
 }
 
+/** Error por mes devuelto por los endpoints de envío en lote. */
+export interface ChangeRequestBatchError {
+  idClient?: number;
+  distributorId?: number;
+  clientName: string | null;
+  year: number;
+  month: number;
+  message: string;
+}
+
+export interface ChangeRequestBatchResult<T> {
+  created: T[];
+  errors: ChangeRequestBatchError[];
+}
+
 export interface DistributorChangeRequestHistory {
   action: 'submitted' | 'approved' | 'rejected' | 'auto_approved';
   step: 'sales_manager' | 'general_manager' | 'auto_approved';
@@ -636,6 +651,18 @@ export class ForecastService {
     );
   }
 
+  /** Envía varios cambios de forecast de una sola vez (un correo por cliente). */
+  submitChangeRequestBatch(items: ChangeRequestPayload[]): Observable<ChangeRequestBatchResult<ChangeRequest>> {
+    return this.httpService.post<ChangeRequestBatchResult<ChangeRequest>>(
+      '/forecast/change-requests/batch',
+      { items },
+      this.withBearer()
+    ).pipe(
+      map((response: ApiResponse<ChangeRequestBatchResult<ChangeRequest>>) => response.data ?? { created: [], errors: [] }),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
   getMyRequests(): Observable<ChangeRequest[]> {
     return this.httpService.get<ChangeRequest[]>(
       '/forecast/change-requests/mine',
@@ -705,6 +732,18 @@ export class ForecastService {
       this.withBearer()
     ).pipe(
       map((response: ApiResponse<DistributorChangeRequest>) => response.data!),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
+  /** Envía varios cambios de forecast de distribuidor de una sola vez (un correo por distribuidor). */
+  submitDistributorChangeRequestBatch(items: DistributorChangeRequestPayload[]): Observable<ChangeRequestBatchResult<DistributorChangeRequest>> {
+    return this.httpService.post<ChangeRequestBatchResult<DistributorChangeRequest>>(
+      '/distributors/forecast/change-requests/batch',
+      { items },
+      this.withBearer()
+    ).pipe(
+      map((response: ApiResponse<ChangeRequestBatchResult<DistributorChangeRequest>>) => response.data ?? { created: [], errors: [] }),
       catchError((error) => throwError(() => error))
     );
   }
