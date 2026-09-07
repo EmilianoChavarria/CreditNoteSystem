@@ -800,10 +800,15 @@ export class ForecastService {
     );
   }
 
-  getInvoices(idClient: number, year: number, month: number): Observable<InvoiceSection[]> {
+  /**
+   * Facturas del mes. Sin `currency`, cada cliente viene en la moneda que tiene
+   * asignada (lo que necesita la vista de notas de crédito); pasando 'USD' se
+   * fuerza la conversión, como espera la vista de objetivos de venta.
+   */
+  getInvoices(idClient: number, year: number, month: number, currency?: 'USD' | 'MXN'): Observable<InvoiceSection[]> {
     return this.httpService.get<Invoice[] | GroupInvoicesApi>(
       `/forecast/${idClient}/${year}/${month}/invoices`,
-      this.withBearer()
+      { ...this.withBearer(), ...(currency ? { params: { currency } } : {}) }
     ).pipe(
       map((response: ApiResponse<Invoice[] | GroupInvoicesApi>) => {
         const data = response.data;
@@ -817,10 +822,10 @@ export class ForecastService {
     );
   }
 
-  getInvoiceProducts(idClient: number, year: number, month: number): Observable<InvoiceProductsEntry[]> {
+  getInvoiceProducts(idClient: number, year: number, month: number, currency?: 'USD' | 'MXN'): Observable<InvoiceProductsEntry[]> {
     return this.httpService.get<InvoiceProductsEntry[]>(
       `/forecast/${idClient}/${year}/${month}/invoices/products`,
-      this.withBearer()
+      { ...this.withBearer(), ...(currency ? { params: { currency } } : {}) }
     ).pipe(
       map((response: ApiResponse<InvoiceProductsEntry[]>) => response.data ?? []),
       catchError((error) => throwError(() => error))
@@ -848,8 +853,11 @@ export class ForecastService {
     );
   }
 
-  exportInvoicesExcel(idClient: number, year: number, month: number): Observable<Blob> {
-    return this.httpService.getBlob(`/forecast/${idClient}/${year}/${month}/invoices/export`);
+  exportInvoicesExcel(idClient: number, year: number, month: number, currency?: 'USD' | 'MXN'): Observable<Blob> {
+    return this.httpService.getBlob(
+      `/forecast/${idClient}/${year}/${month}/invoices/export`,
+      currency ? { currency } : undefined
+    );
   }
 
   exportTemplate(salesEngineerId?: number): Observable<Blob> {
