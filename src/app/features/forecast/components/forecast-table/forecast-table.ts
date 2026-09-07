@@ -220,7 +220,7 @@ export class ForecastTable {
   openInvoices(dist: { id: number; name: string }, monthIdx: number): void {
     if (this.mode() === 'distributor') return;
     this.invoicesState.set({ clientId: dist.id, clientName: dist.name, monthIdx, sections: [], loading: true });
-    this.forecastService.getInvoices(dist.id, this.year(), monthIdx + 1).subscribe({
+    this.forecastService.getInvoices(dist.id, this.year(), monthIdx + 1, 'USD').subscribe({
       next: (sections) => this.invoicesState.update(s => s ? { ...s, sections, loading: false } : null),
       error: () => this.invoicesState.update(s => s ? { ...s, loading: false } : null),
     });
@@ -241,7 +241,7 @@ export class ForecastTable {
     this.invoiceProductsState.set({ clientName: event.clientName, folio: event.folio, entry: null, loading: true });
     const year = this.year();
     const month = state.monthIdx + 1;
-    this.forecastService.getInvoiceProducts(event.clientId, year, month).subscribe({
+    this.forecastService.getInvoiceProducts(event.clientId, year, month, 'USD').subscribe({
       next: (entries) => {
         const entry = entries.find(e => e.folio === event.folio) ?? null;
         this.invoiceProductsState.update(s => s ? { ...s, entry, loading: false } : null);
@@ -263,7 +263,7 @@ export class ForecastTable {
     const year = this.year();
     const month = state.monthIdx + 1;
     this.exportingInvoices.set(true);
-    this.forecastService.exportInvoicesExcel(state.clientId, year, month).pipe(
+    this.forecastService.exportInvoicesExcel(state.clientId, year, month, 'USD').pipe(
       finalize(() => this.exportingInvoices.set(false))
     ).subscribe({
       next: (blob) => {
