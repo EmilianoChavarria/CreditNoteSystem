@@ -1439,7 +1439,13 @@
       "AWAIT_GENERAL_MANAGER": "Esperando aprobación de General Manager",
       "SUBMIT_ERROR": "No se pudo enviar la solicitud.",
       "EXPORT_ERROR": "No se pudo exportar el archivo de Excel.",
-      "GROUP_BADGE": "Grupo"
+      "GROUP_BADGE": "Grupo",
+      "SAVE_CHANGES": "Guardar cambios",
+      "SAVING": "Guardando...",
+      "DISCARD_ALL": "Descartar",
+      "DISCARD_ONE": "Descartar este cambio",
+      "PENDING_DRAFTS": "{{months}} mes(es) modificado(s) en {{clients}} cliente(s) sin guardar",
+      "BATCH_SAVED": "{{count}} solicitud(es) de cambio enviada(s)"
     },
     "CLIENT_MODAL": {
       "LOADING": "Cargando forecast...",
