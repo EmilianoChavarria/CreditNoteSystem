@@ -95,7 +95,9 @@ export class SalesManage {
     const isAdmin = roleName === 'FORECAST ADMIN';
     this.isSalesManager.set(isMgr);
     this.isForecastAdmin.set(isAdmin);
-    this.canSeePendingApprovals.set(roleName !== 'SALES ENGINEER');
+    // El flujo termina en el SALES ENGINEER / MANAGER: el GENERAL MANAGER ya no
+    // aprueba forecast, así que tampoco ve las pendientes.
+    this.canSeePendingApprovals.set(roleName !== 'SALES ENGINEER' && roleName !== 'GENERAL MANAGER');
     this.canSeeMyRequests.set(roleName !== 'GENERAL MANAGER');
 
     if (isMgr || isAdmin) {
