@@ -8,6 +8,8 @@ import { catchError, map, Observable, throwError } from 'rxjs';
 export interface ForecastClient {
   idCliente: string;
   razonSocial: string;
+  /** Nombre SAP del padrón: en forecast se muestra en lugar de la razón social. */
+  sapName?: string | null;
   direccion: string;
   rfc: string;
   correosForecast: string | null;
@@ -279,6 +281,8 @@ export interface ForecastClientApi {
   isGroup?: false;
   idCliente: string;
   razonSocial: string;
+  /** Solo en clientes extranjeros: ARG = Argentina, el resto Centroamérica. */
+  countrycode?: string | null;
   year: number;
   months: ForecastMonthApi[];
 }
@@ -393,6 +397,8 @@ export interface Distributor {
   months: MonthEntry[];
   isGroup?: boolean;
   members?: GroupMemberSales[];
+  /** Solo en clientes extranjeros: ARG = Argentina, el resto Centroamérica. */
+  countrycode?: string | null;
 }
 
 export interface ChangeRequestUser {
@@ -485,6 +491,8 @@ export const CUSTOMER_CURRENCIES: readonly CustomerCurrency[] = ['USD', 'MXN'];
 
 export interface NationalCustomer {
   customerNumber: string;
+  /** Nombre SAP: en forecast se muestra en lugar de la razón social. */
+  sapName?: string | null;
   emails: string | null;
   returnPercentage: number | null;
   currency: CustomerCurrency | null;
@@ -504,6 +512,7 @@ export interface NationalCustomerCandidate {
 
 export interface CreateNationalCustomerPayload {
   customerNumber: string;
+  sapName?: string;
   emails?: string;
   returnPercentage?: number;
   currency?: CustomerCurrency;
@@ -520,6 +529,7 @@ export interface NationalCustomerPage {
 }
 
 export interface UpdateNationalCustomerPayload {
+  sapName?: string | null;
   emails?: string;
   returnPercentage?: number;
   currency?: CustomerCurrency;
@@ -548,6 +558,7 @@ function mapClientToDistributor(client: ForecastClientApi): Distributor {
     id: parseInt(client.idCliente),
     name: client.razonSocial,
     months: buildMonthEntries(client.months),
+    countrycode: client.countrycode ?? null,
   };
 }
 
@@ -865,6 +876,21 @@ export class ForecastService {
       `/forecast/${idClient}/${year}/${month}/invoices/export`,
       currency ? { currency } : undefined
     );
+  }
+
+  /**
+   * Excel de la vista de forecast: por cliente/distribuidor un renglón de
+   * forecast y otro de ventas. Sin salesEngineerId el backend exporta todo lo
+   * que el rol permita (sus ingenieros, o el padrón completo para el admin).
+   */
+  exportForecastExcel(year: number, salesEngineerId?: number): Observable<Blob> {
+    const params: Record<string, string> = { year: String(year) };
+
+    if (salesEngineerId) {
+      params['salesEngineerId'] = String(salesEngineerId);
+    }
+
+    return this.httpService.getBlob('/forecast/export/excel', params);
   }
 
   exportTemplate(salesEngineerId?: number): Observable<Blob> {
