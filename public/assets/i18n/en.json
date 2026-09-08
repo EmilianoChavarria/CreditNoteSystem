@@ -1420,7 +1420,14 @@
       "BULK_HISTORY_CLOSE": "Close",
       "BULK_HISTORY_LOAD_ERROR": "Could not load the upload history.",
       "BULK_HISTORY_LOAD_DETAIL_ERROR": "Could not load the batch detail.",
-      "BULK_HISTORY_LOAD_REQUESTS_ERROR": "Could not load the batch records."
+      "BULK_HISTORY_LOAD_REQUESTS_ERROR": "Could not load the batch records.",
+      "EXPORT_EXCEL": "Export to Excel",
+      "EXPORT_EXCEL_ENGINEER": "Selected engineer",
+      "EXPORT_EXCEL_MY_ENGINEERS": "All my engineers",
+      "EXPORT_EXCEL_ALL": "All clients",
+      "EXPORT_EXCEL_ERROR": "Could not generate the Excel file",
+      "ZONE_LABEL": "Zone",
+      "ZONE_ALL": "All zones"
     },
     "TABLE": {
       "LOADING": "Loading forecast...",
@@ -1674,7 +1681,8 @@
       "NATIONAL_BULK_HISTORY_CLOSE": "Close",
       "NATIONAL_BULK_HISTORY_LOAD_ERROR": "Could not load upload history.",
       "NATIONAL_BULK_HISTORY_LOAD_DETAIL_ERROR": "Could not load batch detail.",
-      "NATIONAL_BULK_HISTORY_LOAD_REQUESTS_ERROR": "Could not load batch records."
+      "NATIONAL_BULK_HISTORY_LOAD_REQUESTS_ERROR": "Could not load batch records.",
+      "COL_SAP_NAME": "Hierarchy Account"
     },
     "PRODUCTS": {
       "TITLE": "Product Catalog",
@@ -1830,7 +1838,10 @@
       "CURRENCY_HINT": "USD or MXN",
       "INVALID_PERCENTAGE": "Return percentage must be between 0 and 100.",
       "SAVE_SUCCESS": "Client updated successfully.",
-      "SAVE_ERROR": "Could not update the client."
+      "SAVE_ERROR": "Could not update the client.",
+      "LABEL_SAP_NAME": "Hierarchy Account",
+      "SAP_NAME_PLACEHOLDER": "Customer hierarchy account",
+      "SAP_NAME_HINT": "Shown in forecast instead of the legal name. Empty = the legal name is used."
     },
     "DISTRIBUTOR_FORECAST_MODAL": {
       "TITLE_SUFFIX": "Distributor forecast",

@@ -1420,7 +1420,14 @@
       "BULK_HISTORY_CLOSE": "Cerrar",
       "BULK_HISTORY_LOAD_ERROR": "No se pudo cargar el historial de cargas.",
       "BULK_HISTORY_LOAD_DETAIL_ERROR": "No se pudo cargar el detalle del batch.",
-      "BULK_HISTORY_LOAD_REQUESTS_ERROR": "No se pudieron cargar los registros del batch."
+      "BULK_HISTORY_LOAD_REQUESTS_ERROR": "No se pudieron cargar los registros del batch.",
+      "EXPORT_EXCEL": "Exportar a Excel",
+      "EXPORT_EXCEL_ENGINEER": "Del ingeniero seleccionado",
+      "EXPORT_EXCEL_MY_ENGINEERS": "De todos mis ingenieros",
+      "EXPORT_EXCEL_ALL": "De todos los clientes",
+      "EXPORT_EXCEL_ERROR": "No se pudo generar el Excel",
+      "ZONE_LABEL": "Zona",
+      "ZONE_ALL": "Todas las zonas"
     },
     "TABLE": {
       "LOADING": "Cargando forecast...",
@@ -1674,7 +1681,8 @@
       "NATIONAL_BULK_HISTORY_CLOSE": "Cerrar",
       "NATIONAL_BULK_HISTORY_LOAD_ERROR": "No se pudo cargar el historial de cargas.",
       "NATIONAL_BULK_HISTORY_LOAD_DETAIL_ERROR": "No se pudo cargar el detalle del batch.",
-      "NATIONAL_BULK_HISTORY_LOAD_REQUESTS_ERROR": "No se pudieron cargar los registros del batch."
+      "NATIONAL_BULK_HISTORY_LOAD_REQUESTS_ERROR": "No se pudieron cargar los registros del batch.",
+      "COL_SAP_NAME": "Hierarchy Account"
     },
     "PRODUCTS": {
       "TITLE": "Catálogo de Productos",
@@ -1830,7 +1838,10 @@
       "CURRENCY_HINT": "USD o MXN",
       "INVALID_PERCENTAGE": "El porcentaje de retorno debe estar entre 0 y 100.",
       "SAVE_SUCCESS": "Cliente actualizado correctamente.",
-      "SAVE_ERROR": "No se pudo actualizar el cliente."
+      "SAVE_ERROR": "No se pudo actualizar el cliente.",
+      "LABEL_SAP_NAME": "Hierarchy Account",
+      "SAP_NAME_PLACEHOLDER": "Hierarchy Account del cliente",
+      "SAP_NAME_HINT": "Se muestra en forecast en lugar de la razón social. Vacío = se usa la razón social."
     },
     "DISTRIBUTOR_FORECAST_MODAL": {
       "TITLE_SUFFIX": "Forecast del distribuidor",
