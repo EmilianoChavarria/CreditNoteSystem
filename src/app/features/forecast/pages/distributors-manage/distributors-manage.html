@@ -46,8 +46,11 @@
                         @case ('idCliente') {
                         <span class="font-medium text-gray-600">{{ item.idCliente }}</span>
                         }
+                        @case ('sapName') {
+                        <span class="font-medium text-gray-800">{{ item.sapName || '—' }}</span>
+                        }
                         @case ('razonSocial') {
-                        <span class="font-medium text-gray-800">{{ item.razonSocial }}</span>
+                        <span class="font-medium text-gray-500">{{ item.razonSocial }}</span>
                         }
                         @case ('rfc') {
                         <span class="font-medium tracking-wide text-gray-700">{{ item.rfc }}</span>
