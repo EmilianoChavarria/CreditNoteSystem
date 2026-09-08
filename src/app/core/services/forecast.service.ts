@@ -185,6 +185,10 @@ export interface ForecastCreditNote {
   entityType: ForecastEntityType;
   entityId: number;
   customerNumber: string;
+  /** Resueltos por el historial global; null en el historial por entidad. */
+  clientName?: string | null;
+  groupId?: number | null;
+  groupName?: string | null;
   year: number;
   month: number;
   returnPercentage: number;
@@ -956,6 +960,37 @@ export class ForecastService {
       this.withBearer()
     ).pipe(
       map((response: ApiResponse<ForecastGroupMonthBreakdown>) => response.data ?? null),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
+  /**
+   * Historial global de notas de crédito de forecast. El backend acota por rol:
+   * el sales engineer solo ve su cartera, el manager la de sus ingenieros y el
+   * FORECAST ADMIN todas.
+   */
+  getForecastCreditNotesHistory(filters: {
+    year?: number;
+    month?: number;
+    salesEngineerId?: number;
+    tipo?: 'cliente' | 'grupo';
+    id?: number;
+  } = {}): Observable<ForecastCreditNote[]> {
+    const params: Record<string, string> = {};
+
+    if (filters.year) params['year'] = String(filters.year);
+    if (filters.month) params['month'] = String(filters.month);
+    if (filters.salesEngineerId) params['salesEngineerId'] = String(filters.salesEngineerId);
+    if (filters.tipo && filters.id) {
+      params['tipo'] = filters.tipo;
+      params['id'] = String(filters.id);
+    }
+
+    return this.httpService.get<ForecastCreditNote[]>(
+      '/forecast/credit-notes/history',
+      { ...this.withBearer(), params }
+    ).pipe(
+      map((response: ApiResponse<ForecastCreditNote[]>) => response.data ?? []),
       catchError((error) => throwError(() => error))
     );
   }
