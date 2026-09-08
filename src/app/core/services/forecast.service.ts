@@ -693,9 +693,13 @@ export class ForecastService {
     );
   }
 
-  approveRequest(id: number): Observable<void> {
+  /**
+   * Aprueba TODAS las solicitudes pendientes del cliente. La aprobación de
+   * forecast es todo o nada: no existe resolución mes por mes.
+   */
+  approveClientRequests(idClient: number): Observable<void> {
     return this.httpService.post<unknown>(
-      `/forecast/change-requests/${id}/approve`,
+      `/forecast/change-requests/client/${idClient}/approve`,
       {},
       this.withBearer()
     ).pipe(
@@ -704,9 +708,10 @@ export class ForecastService {
     );
   }
 
-  rejectRequest(id: number): Observable<void> {
+  /** @see approveClientRequests */
+  rejectClientRequests(idClient: number): Observable<void> {
     return this.httpService.post<unknown>(
-      `/forecast/change-requests/${id}/reject`,
+      `/forecast/change-requests/client/${idClient}/reject`,
       {},
       this.withBearer()
     ).pipe(
@@ -778,9 +783,10 @@ export class ForecastService {
     );
   }
 
-  approveDistributorRequest(id: number): Observable<void> {
+  /** Aprueba TODAS las solicitudes pendientes del distribuidor (todo o nada). */
+  approveDistributorRequests(distributorId: number): Observable<void> {
     return this.httpService.post<unknown>(
-      `/distributors/forecast/change-requests/${id}/approve`,
+      `/distributors/forecast/change-requests/distributor/${distributorId}/approve`,
       {},
       this.withBearer()
     ).pipe(
@@ -789,9 +795,10 @@ export class ForecastService {
     );
   }
 
-  rejectDistributorRequest(id: number): Observable<void> {
+  /** @see approveDistributorRequests */
+  rejectDistributorRequests(distributorId: number): Observable<void> {
     return this.httpService.post<unknown>(
-      `/distributors/forecast/change-requests/${id}/reject`,
+      `/distributors/forecast/change-requests/distributor/${distributorId}/reject`,
       {},
       this.withBearer()
     ).pipe(
