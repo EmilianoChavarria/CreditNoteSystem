@@ -36,6 +36,7 @@ export class SalesManage {
   readonly foreignDistributors = signal<Distributor[]>([]);
   readonly foreignLoading = signal(false);
   readonly downloadingTemplate = signal(false);
+  readonly exportingExcel = signal(false);
   readonly refreshTrigger = signal(0);
 
   readonly isSalesManager = signal(false);
@@ -73,6 +74,33 @@ export class SalesManage {
   readonly activeClientsCount = computed(() =>
     this.distributors().reduce((s, d) => s + (d.isGroup ? d.members?.length ?? 0 : 1), 0)
   );
+
+  /** Zona de los clientes extranjeros: 'all' | 'centroamerica' | 'argentina'. */
+  readonly foreignZone = signal<'all' | 'centroamerica' | 'argentina'>('all');
+
+  readonly foreignZoneOptions = [
+    { value: 'all', label: 'FORECAST.SALES_MANAGE.ZONE_ALL' },
+    { value: 'centroamerica', label: 'FORECAST.DISTRIBUTORS.ZONE_CENTROAMERICA' },
+    { value: 'argentina', label: 'FORECAST.DISTRIBUTORS.ZONE_ARGENTINA' },
+  ] as const;
+
+  /** Argentina es countrycode ARG; Centroamérica, todo lo demás. */
+  readonly filteredForeignDistributors = computed(() => {
+    const zone = this.foreignZone();
+
+    if (zone === 'all') {
+      return this.foreignDistributors();
+    }
+
+    return this.foreignDistributors().filter(d => {
+      const isArgentina = (d.countrycode ?? '').trim().toUpperCase() === 'ARG';
+
+      return zone === 'argentina' ? isArgentina : !isArgentina;
+    });
+  });
+
+  /** Manager y admin eligen el alcance; el ingeniero solo exporta su cartera. */
+  readonly canChooseExportScope = computed(() => this.isSalesManager() || this.isForecastAdmin());
 
   readonly currentEngineerId = computed(() =>
     (this.isSalesManager() || this.isForecastAdmin())
@@ -156,6 +184,12 @@ export class SalesManage {
     }
   }
 
+  onForeignZoneSelected(event: Event): void {
+    const value = (event.target as HTMLSelectElement).value;
+
+    this.foreignZone.set(value === 'argentina' || value === 'centroamerica' ? value : 'all');
+  }
+
   onRefreshNeeded(): void {
     this.reload(this.activeYear());
     this.refreshTrigger.update(v => v + 1);
@@ -210,6 +244,26 @@ export class SalesManage {
       error: (err) => {
         this.downloadingTemplate.set(false);
         this.toastr.error(err?.error?.message ?? this.translate.instant('FORECAST.SALES_MANAGE.DOWNLOAD_TEMPLATE_ERROR'), this.translate.instant('FORECAST.SALES_MANAGE.TOAST_ERROR'));
+      },
+    });
+  }
+
+  /** 'engineer' exporta el ingeniero elegido; 'all' todo lo que permita el rol. */
+  exportExcel(scope: 'engineer' | 'all'): void {
+    if (this.exportingExcel()) return;
+
+    const engineerId = scope === 'engineer' ? this.currentEngineerId() ?? undefined : undefined;
+    const year = this.activeYear();
+
+    this.exportingExcel.set(true);
+    this.forecastService.exportForecastExcel(year, engineerId).subscribe({
+      next: (blob) => {
+        this.exportingExcel.set(false);
+        this.exportService.downloadBlob(blob, `Forecast ${year}.xls`);
+      },
+      error: (err) => {
+        this.exportingExcel.set(false);
+        this.toastr.error(err?.error?.message ?? this.translate.instant('FORECAST.SALES_MANAGE.EXPORT_EXCEL_ERROR'), this.translate.instant('FORECAST.SALES_MANAGE.TOAST_ERROR'));
       },
     });
   }

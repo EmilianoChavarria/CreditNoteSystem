@@ -112,6 +112,49 @@
 
     <!-- Template buttons -->
     <div class="mt-1 flex gap-x-2">
+      <!-- Exportar a Excel: forecast y ventas por cliente / distribuidor -->
+      @if (canChooseExportScope()) {
+      <app-popover position="bottom-right" width="260px">
+        <button trigger type="button" [disabled]="exportingExcel()"
+          class="w-full sm:w-auto inline-flex items-center gap-2 rounded-md border border-emerald-300 bg-white px-3 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-50 transition disabled:opacity-50 disabled:cursor-not-allowed">
+          @if (exportingExcel()) {
+          <svg class="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          </svg>
+          } @else {
+          <lucide-icon name="file-spreadsheet" class="my-auto" size="14"></lucide-icon>
+          }
+          {{ 'FORECAST.SALES_MANAGE.EXPORT_EXCEL' | translate }}
+        </button>
+        <div content class="p-2 space-y-1">
+          <button type="button" [disabled]="!currentEngineerId()" (click)="exportExcel('engineer')"
+            class="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-gray-100 transition text-left text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed">
+            <lucide-icon name="user" size="16"></lucide-icon>
+            {{ 'FORECAST.SALES_MANAGE.EXPORT_EXCEL_ENGINEER' | translate }}
+          </button>
+          <button type="button" (click)="exportExcel('all')"
+            class="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-gray-100 transition text-left text-gray-700">
+            <lucide-icon name="users" size="16"></lucide-icon>
+            {{ (isForecastAdmin() ? 'FORECAST.SALES_MANAGE.EXPORT_EXCEL_ALL' : 'FORECAST.SALES_MANAGE.EXPORT_EXCEL_MY_ENGINEERS') | translate }}
+          </button>
+        </div>
+      </app-popover>
+      } @else {
+      <button type="button" [disabled]="exportingExcel()" (click)="exportExcel('engineer')"
+        class="inline-flex items-center gap-2 rounded-md border border-emerald-300 bg-white px-3 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-50 transition disabled:opacity-50 disabled:cursor-not-allowed">
+        @if (exportingExcel()) {
+        <svg class="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+        </svg>
+        } @else {
+        <lucide-icon name="file-spreadsheet" class="my-auto" size="14"></lucide-icon>
+        }
+        {{ 'FORECAST.SALES_MANAGE.EXPORT_EXCEL' | translate }}
+      </button>
+      }
+
       @if (isForecastAdmin()) {
       <app-popover position="bottom-right" width="240px">
         <button trigger type="button" [disabled]="downloadingTemplate()"
@@ -164,14 +207,22 @@
   </div>
 
   <!-- Distributors (foreign clients) table -->
-  <div class="flex items-center gap-2 mb-3">
+  <div class="flex flex-wrap items-center gap-2 mb-3">
     <span class="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-blue-600">
       {{ 'FORECAST.SALES_MANAGE.DISTRIBUTORS_BADGE' | translate }}
     </span>
     <h2 class="text-base font-semibold text-gray-800">{{ 'FORECAST.SALES_MANAGE.DISTRIBUTORS_TITLE' | translate }}</h2>
+
+    <label for="foreign-zone" class="ml-3 text-xs font-medium text-gray-500">{{ 'FORECAST.SALES_MANAGE.ZONE_LABEL' | translate }}</label>
+    <select id="foreign-zone" [value]="foreignZone()" (change)="onForeignZoneSelected($event)"
+      class="text-sm px-3 py-1.5 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-orange-400 transition">
+      @for (option of foreignZoneOptions; track option.value) {
+      <option [value]="option.value">{{ option.label | translate }}</option>
+      }
+    </select>
   </div>
   <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden mb-6">
-    <app-forecast-table [distributors]="foreignDistributors()" [year]="activeYear()" [loading]="foreignLoading()"
+    <app-forecast-table [distributors]="filteredForeignDistributors()" [year]="activeYear()" [loading]="foreignLoading()"
       mode="distributor" (refreshNeeded)="onRefreshNeeded()" />
   </div>
 
