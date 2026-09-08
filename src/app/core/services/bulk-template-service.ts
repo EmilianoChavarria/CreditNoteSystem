@@ -31,13 +31,13 @@ export class BulkTemplateService {
     },
     nationalCustomers: {
       fileName: 'Layout Clientes Nacionales.csv',
-      headers: ['Customer Number', 'Emails', 'Return Percentage', 'Currency'],
+      headers: ['Customer Number', 'SAP Name', 'Emails', 'Return Percentage', 'Currency'],
       // Solo Customer Number es obligatorio: cada columna que se deje vacía conserva
       // el valor que el cliente ya tenía guardado.
       sampleRows: [
-        ['100001', 'contacto@ejemplo.com,ventas@ejemplo.com', '2.5', 'MXN'],
-        ['100002', '', '', 'USD'],
-        ['100003', 'compras@ejemplo.com', '', ''],
+        ['100001', 'ACME MONTERREY', 'contacto@ejemplo.com,ventas@ejemplo.com', '2.5', 'MXN'],
+        ['100002', '', '', '', 'USD'],
+        ['100003', 'ACME QUERETARO', 'compras@ejemplo.com', '', ''],
       ],
     },
     productClassification: {
