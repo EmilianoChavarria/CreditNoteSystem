@@ -34,6 +34,7 @@ export class EditNationalCustomerModal {
 
   readonly loadingCurrent = signal(false);
   readonly saving = signal(false);
+  readonly sapName = signal('');
   readonly emails = signal('');
   readonly returnPercentage = signal('');
   readonly currency = signal<CustomerCurrency | ''>('');
@@ -68,6 +69,7 @@ export class EditNationalCustomerModal {
       if (this.wasOpen) return;
       this.wasOpen = true;
 
+      this.sapName.set(c?.sapName ?? '');
       this.emails.set(c?.correosForecast?.replace(/;/g, ',') ?? '');
       this.returnPercentage.set('');
       this.currency.set(c?.currency ?? '');
@@ -119,6 +121,7 @@ export class EditNationalCustomerModal {
         next: (page) => {
           const match = page.data.find(nc => nc.customerNumber === customerNumber) ?? page.data[0] ?? null;
           if (!match) return;
+          this.sapName.set(match.sapName ?? '');
           this.emails.set(match.emails ?? '');
           this.returnPercentage.set(match.returnPercentage != null ? String(match.returnPercentage) : '');
           this.currency.set(match.currency ?? '');
@@ -134,6 +137,8 @@ export class EditNationalCustomerModal {
     const customerNumber = client?.idCliente;
     if (!client || !customerNumber) return;
 
+    // Vacío = se limpia el nombre SAP y vuelve a mostrarse la razón social.
+    const sapName = this.sapName().trim() || null;
     const emails = this.emails().trim();
     const rawPercentage = this.returnPercentage().trim();
     const returnPercentage = rawPercentage === '' ? undefined : parseFloat(rawPercentage);
@@ -147,7 +152,7 @@ export class EditNationalCustomerModal {
 
     const extPayload = this.buildExtPayload(client);
     const requests: Observable<unknown>[] = [
-      this.forecastService.updateNationalCustomer(customerNumber, { emails, returnPercentage, currency }),
+      this.forecastService.updateNationalCustomer(customerNumber, { sapName, emails, returnPercentage, currency }),
     ];
     if (Object.keys(extPayload).length > 0) {
       requests.push(this.forecastService.updateClientExt(customerNumber, extPayload));

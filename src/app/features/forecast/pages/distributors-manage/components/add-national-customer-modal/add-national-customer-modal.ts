@@ -34,6 +34,7 @@ export class AddNationalCustomerModal {
   readonly candidates = signal<NationalCustomerCandidate[]>([]);
   readonly selected = signal<NationalCustomerCandidate | null>(null);
 
+  readonly sapName = signal('');
   readonly emails = signal('');
   readonly returnPercentage = signal('');
   readonly currency = signal<CustomerCurrency | ''>('');
@@ -105,6 +106,7 @@ export class AddNationalCustomerModal {
     this.forecastService
       .createNationalCustomer({
         customerNumber: candidate.customerNumber,
+        sapName: this.sapName().trim() || undefined,
         emails: emails || undefined,
         returnPercentage,
         currency: this.currency() || undefined,
@@ -126,6 +128,7 @@ export class AddNationalCustomerModal {
     this.term.set('');
     this.candidates.set([]);
     this.selected.set(null);
+    this.sapName.set('');
     this.emails.set('');
     this.returnPercentage.set('');
     this.currency.set('');
