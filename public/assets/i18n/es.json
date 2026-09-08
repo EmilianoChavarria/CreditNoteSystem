@@ -1585,7 +1585,19 @@
       "DISTRIBUTOR_DESCRIPTION": "Solicitudes de cambio de objetivo (sales target) de distribuidores extranjeros asignadas a ti.",
       "DISTRIBUTOR_DESCRIPTION_ADMIN": "Todas las solicitudes de cambio de objetivo (sales target) de distribuidores extranjeros pendientes, sin importar a quién estén asignadas.",
       "DISTRIBUTOR_EMPTY": "Sin solicitudes pendientes de distribuidores.",
-      "COL_DISTRIBUTOR": "Distribuidor"
+      "COL_DISTRIBUTOR": "Distribuidor",
+      "ALL_OR_NOTHING": "La aprobación es en conjunto: se aprueban o se rechazan todos los meses del cliente a la vez.",
+      "MONTHS_BADGE": "meses",
+      "BTN_APPROVE_ALL": "Aprobar todo",
+      "BTN_REJECT_ALL": "Rechazar todo",
+      "COL_TOTAL": "Total",
+      "CONFIRM_APPROVE_TITLE": "Confirmar aprobación",
+      "CONFIRM_REJECT_TITLE": "Confirmar rechazo",
+      "CONFIRM_APPROVE_TEXT": "Vas a aprobar los {{count}} meses pendientes de {{name}}. Los nuevos objetivos se aplicarán al forecast y se notificará al Sales Engineer.",
+      "CONFIRM_REJECT_TEXT": "Vas a rechazar los {{count}} meses pendientes de {{name}}. El objetivo actual se mantiene y se notificará al Sales Engineer.",
+      "CONFIRM_APPROVE_BTN": "Sí, aprobar todo",
+      "CONFIRM_REJECT_BTN": "Sí, rechazar todo",
+      "CONFIRM_CANCEL": "Cancelar"
     },
     "DISTRIBUTORS": {
       "TITLE": "Clientes Forecast",

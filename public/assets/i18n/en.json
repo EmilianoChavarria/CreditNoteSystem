@@ -1585,7 +1585,19 @@
       "DISTRIBUTOR_DESCRIPTION": "Sales target change requests for foreign distributors assigned to you.",
       "DISTRIBUTOR_DESCRIPTION_ADMIN": "All pending sales target change requests for foreign distributors, regardless of who they are assigned to.",
       "DISTRIBUTOR_EMPTY": "No pending distributor requests.",
-      "COL_DISTRIBUTOR": "Distributor"
+      "COL_DISTRIBUTOR": "Distributor",
+      "ALL_OR_NOTHING": "Approval is all or nothing: every month of the client is approved or rejected together.",
+      "MONTHS_BADGE": "months",
+      "BTN_APPROVE_ALL": "Approve all",
+      "BTN_REJECT_ALL": "Reject all",
+      "COL_TOTAL": "Total",
+      "CONFIRM_APPROVE_TITLE": "Confirm approval",
+      "CONFIRM_REJECT_TITLE": "Confirm rejection",
+      "CONFIRM_APPROVE_TEXT": "You are about to approve the {{count}} pending months of {{name}}. The new targets will be applied to the forecast and the Sales Engineer will be notified.",
+      "CONFIRM_REJECT_TEXT": "You are about to reject the {{count}} pending months of {{name}}. The current target stays and the Sales Engineer will be notified.",
+      "CONFIRM_APPROVE_BTN": "Yes, approve all",
+      "CONFIRM_REJECT_BTN": "Yes, reject all",
+      "CONFIRM_CANCEL": "Cancel"
     },
     "DISTRIBUTORS": {
       "TITLE": "Forecast Clients",
