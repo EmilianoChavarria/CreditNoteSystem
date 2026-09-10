@@ -10,6 +10,7 @@ import { UserService } from '../../../../../../core/services/user-service';
 
 type EditExtForm = FormGroup<{
   area: FormControl<string>;
+  csLeaderId: FormControl<string>;
   salesEngineerId: FormControl<string>;
   salesManagerId: FormControl<string>;
   processorId: FormControl<string>;
@@ -44,9 +45,11 @@ export class EditCustomerExtModal {
 
   readonly managerOptions = signal<SelectOption[]>([]);
   readonly requesterOptions = signal<SelectOption[]>([]);
+  readonly csLeaderOptions = signal<SelectOption[]>([]);
 
   readonly form: EditExtForm = new FormGroup({
     area: new FormControl('', { nonNullable: true }),
+    csLeaderId: new FormControl('', { nonNullable: true }),
     salesEngineerId: new FormControl('', { nonNullable: true }),
     salesManagerId: new FormControl('', { nonNullable: true }),
     processorId: new FormControl('', { nonNullable: true }),
@@ -58,6 +61,7 @@ export class EditCustomerExtModal {
   constructor() {
     this.loadManagers();
     this.loadRequesters();
+    this.loadCsLeaders();
 
     effect(() => {
       const c = this.customer();
@@ -65,6 +69,7 @@ export class EditCustomerExtModal {
       const ext = c.clienteExt;
       this.form.patchValue({
         area: ext?.area ?? '',
+        csLeaderId: String(ext?.csLeaderId?.id ?? ''),
         salesEngineerId: String(ext?.salesEngineerId?.id ?? ''),
         salesManagerId: String(ext?.salesManagerId?.id ?? ''),
         processorId: String(ext?.processorId?.id ?? ''),
@@ -84,6 +89,7 @@ export class EditCustomerExtModal {
     this.saving.set(true);
     this.customerService.updateClientExt(c.idCliente, {
       area: v.area || null,
+      csLeaderId: toNum(v.csLeaderId),
       salesEngineerId: toNum(v.salesEngineerId),
       salesManagerId: toNum(v.salesManagerId),
       processorId: toNum(v.processorId),
@@ -108,6 +114,15 @@ export class EditCustomerExtModal {
     this.userService.getManagers().subscribe({
       next: (users) => {
         this.managerOptions.set(users.map(u => ({ value: u.id, label: u.fullName })));
+      },
+      error: () => {},
+    });
+  }
+
+  private loadCsLeaders(): void {
+    this.userService.getCsLeaders().subscribe({
+      next: (users) => {
+        this.csLeaderOptions.set(users.map(u => ({ value: u.id, label: u.fullName })));
       },
       error: () => {},
     });
