@@ -203,7 +203,7 @@
   @if ((!isSalesManager() && !isForecastAdmin()) || selectedEngineer() || showAll()) {
   <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden mb-6">
     <app-forecast-table [distributors]="distributors()" [year]="activeYear()" [loading]="loading()"
-      (refreshNeeded)="onRefreshNeeded()" />
+      [canEditAnnualTarget]="canEditAnnualTarget()" (refreshNeeded)="onRefreshNeeded()" />
   </div>
 
   <!-- Distributors (foreign clients) table -->
@@ -223,7 +223,7 @@
   </div>
   <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden mb-6">
     <app-forecast-table [distributors]="filteredForeignDistributors()" [year]="activeYear()" [loading]="foreignLoading()"
-      mode="distributor" (refreshNeeded)="onRefreshNeeded()" />
+      mode="distributor" [canEditAnnualTarget]="canEditAnnualTarget()" (refreshNeeded)="onRefreshNeeded()" />
   </div>
 
   <!-- Summary cards -->

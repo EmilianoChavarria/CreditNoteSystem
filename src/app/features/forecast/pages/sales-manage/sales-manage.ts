@@ -102,6 +102,9 @@ export class SalesManage {
   /** Manager y admin eligen el alcance; el ingeniero solo exporta su cartera. */
   readonly canChooseExportScope = computed(() => this.isSalesManager() || this.isForecastAdmin());
 
+  /** El objetivo anual (techo del forecast) solo lo fija SALES MANAGER o FORECAST ADMIN. */
+  readonly canEditAnnualTarget = computed(() => this.isSalesManager() || this.isForecastAdmin());
+
   readonly currentEngineerId = computed(() =>
     (this.isSalesManager() || this.isForecastAdmin())
       ? this.selectedEngineer()?.id ?? null
