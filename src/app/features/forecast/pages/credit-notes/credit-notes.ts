@@ -4,6 +4,7 @@ import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { LucideAngularModule } from "lucide-angular";
 import { Observable, finalize, map, of } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
   CustomerCurrency,
   ForecastCreditNote,
@@ -17,6 +18,9 @@ import {
 } from '../../../../core/services/forecast.service';
 import { ExportService } from '../../../../core/services/export-service';
 import { RequestService } from '../../../../core/services/request-service';
+import { AuthService } from '../../../../core/services/auth-service';
+import { SalesEngineerAssignmentService } from '../../../../core/services/sales-engineer-assignment.service';
+import { AssignmentUser } from '../../../../core/services/user-assignment-service';
 import { AutocompleteOption } from '../../../../shared/components/ui/autocomplete/autocomplete';
 import { GroupedAutocomplete, AutocompleteOptionGroup } from '../../../../shared/components/ui/grouped-autocomplete/grouped-autocomplete';
 import { ForecastInvoicesModal } from '../../components/forecast-invoices-modal/forecast-invoices-modal';
@@ -58,6 +62,7 @@ interface InvoiceProductsState {
 @Component({
   selector: 'app-credit-notes',
   imports: [
+    TranslatePipe,
     LucideAngularModule,
     GroupedAutocomplete,
     CurrencyPipe,
@@ -103,6 +108,14 @@ export class CreditNotes {
   readonly creditNotesHistory = signal<ForecastCreditNote[]>([]);
   readonly loadingHistory = signal(false);
 
+  /** Solo el FORECAST ADMIN calcula cumplimiento y genera notas. */
+  readonly isForecastAdmin = signal(false);
+  readonly isSalesManager = signal(false);
+  /** Solo el admin acota por ingeniero; SE y SM comparten año, mes y cliente. */
+  readonly canFilterByEngineer = computed(() => this.isForecastAdmin());
+  readonly engineers = signal<AssignmentUser[]>([]);
+  readonly historyEngineerId = signal<number | null>(null);
+
   readonly expandedMes = signal<number | null>(null);
   readonly loadingBreakdown = signal<number | null>(null);
   private readonly breakdownCache = signal<Map<number, ForecastGroupMonthBreakdown>>(new Map());
@@ -128,7 +141,80 @@ export class CreditNotes {
     private readonly exportService: ExportService,
     private readonly toastr: ToastrService,
     private readonly requestService: RequestService,
-  ) {}
+    private readonly authService: AuthService,
+    private readonly seAssignmentService: SalesEngineerAssignmentService,
+    private readonly translate: TranslateService,
+  ) {
+    const roleName = this.authService.getCurrentUser()?.roleName?.trim().toUpperCase();
+    const isAdmin = roleName === 'FORECAST ADMIN';
+    const isManager = roleName === 'SALES ENGINEER / MANAGER';
+
+    this.isForecastAdmin.set(isAdmin);
+    this.isSalesManager.set(isManager);
+
+    // Sales engineer y manager entran directo al historial: no ven cumplimiento.
+    if (!isAdmin) {
+      this.tab.set('history');
+    }
+
+    if (isAdmin || isManager) {
+      this.loadEngineers(isAdmin ? 'all' : 'my');
+    }
+
+    this.loadScopedHistory();
+  }
+
+  /** Historial global acotado por el backend según el rol. */
+  loadScopedHistory(): void {
+    const entity = this.selectedEntity();
+
+    const month = this.month() === 'all' ? undefined : Number(this.month()) + 1;
+
+    this.loadingHistory.set(true);
+    this.forecastService.getForecastCreditNotesHistory({
+      year: this.year(),
+      month,
+      salesEngineerId: this.historyEngineerId() ?? undefined,
+      tipo: entity && entity.tipo !== 'clienteExtranjero' ? entity.tipo : undefined,
+      id: entity && entity.tipo !== 'clienteExtranjero' ? entity.id : undefined,
+    }).pipe(finalize(() => this.loadingHistory.set(false)))
+      .subscribe({
+        next: (history) => this.creditNotesHistory.set(history),
+        error: (err) => {
+          this.creditNotesHistory.set([]);
+          this.toastr.error(err?.error?.message ?? this.translate.instant('FORECAST.CREDIT_NOTES.HISTORY_ERROR'));
+        },
+      });
+  }
+
+  onHistoryEngineerChange(event: Event): void {
+    const value = (event.target as HTMLSelectElement).value;
+
+    this.historyEngineerId.set(value ? Number(value) : null);
+    this.loadScopedHistory();
+  }
+
+  onHistoryYearChange(event: Event): void {
+    this.year.set(Number((event.target as HTMLSelectElement).value));
+
+    const entity = this.selectedEntity();
+    if (entity) {
+      this.loadSummary(entity);
+    } else {
+      this.loadScopedHistory();
+    }
+  }
+
+  private loadEngineers(scope: 'my' | 'all'): void {
+    const request$ = scope === 'all'
+      ? this.seAssignmentService.getAllEngineers()
+      : this.seAssignmentService.getMyEngineers();
+
+    request$.subscribe({
+      next: (engineers) => this.engineers.set(engineers),
+      error: () => this.engineers.set([]),
+    });
+  }
 
   viewNotePdf(requestId: number): void {
     this.requestService.getRequestPdf(requestId).subscribe({
@@ -137,7 +223,7 @@ export class CreditNotes {
         window.open(url, '_blank');
         setTimeout(() => URL.revokeObjectURL(url), 10000);
       },
-      error: () => this.toastr.error('No se pudo abrir el PDF de la solicitud.'),
+      error: () => this.toastr.error(this.translate.instant('FORECAST.CREDIT_NOTES.PDF_ERROR')),
     });
   }
 
@@ -157,7 +243,7 @@ export class CreditNotes {
     return this.forecastService.searchForecastEntities(term.trim()).pipe(
       map((results) => [
         {
-          groupLabel: 'Agrupaciones',
+          groupLabel: this.translate.instant('FORECAST.CREDIT_NOTES.GROUP_SECTION_GROUPS'),
           options: results.grupos.map((g) => ({
             id: `group:${g.id}`,
             label: g.nombre,
@@ -165,7 +251,7 @@ export class CreditNotes {
           })),
         },
         {
-          groupLabel: 'Clientes',
+          groupLabel: this.translate.instant('FORECAST.CREDIT_NOTES.GROUP_SECTION_CLIENTS'),
           options: results.clientes.map((c) => ({
             id: `client:${c.id}`,
             label: `${c.numeroCliente} — ${c.nombre}`,
@@ -173,7 +259,7 @@ export class CreditNotes {
           })),
         },
         {
-          groupLabel: 'Clientes extranjeros',
+          groupLabel: this.translate.instant('FORECAST.CREDIT_NOTES.GROUP_SECTION_FOREIGN'),
           options: results.clientesExtranjeros.map((c) => ({
             id: `clientExt:${c.id}`,
             label: `${c.numeroCliente} — ${c.nombre}`,
@@ -190,6 +276,7 @@ export class CreditNotes {
       this.selectedEntity.set(null);
       this.summaryMonths.set([]);
       this.currency.set('USD');
+      this.loadScopedHistory();
       return;
     }
 
@@ -206,6 +293,7 @@ export class CreditNotes {
 
   onMonthChange(event: Event): void {
     this.month.set((event.target as HTMLSelectElement).value);
+    this.loadScopedHistory();
   }
 
   onStatusChange(event: Event): void {
@@ -229,23 +317,9 @@ export class CreditNotes {
     this.loadHistory(entity);
   }
 
-  private loadHistory(entity: SelectedEntity): void {
-    if (entity.tipo === 'clienteExtranjero') {
-      this.creditNotesHistory.set([]);
-      return;
-    }
-
-    this.loadingHistory.set(true);
-    this.forecastService.getForecastCreditNoteHistory(entity.tipo, entity.id).subscribe({
-      next: (history) => {
-        this.creditNotesHistory.set(history);
-        this.loadingHistory.set(false);
-      },
-      error: () => {
-        this.creditNotesHistory.set([]);
-        this.loadingHistory.set(false);
-      },
-    });
+  /** El historial siempre sale del endpoint global: respeta la cartera del rol. */
+  private loadHistory(_entity: SelectedEntity): void {
+    this.loadScopedHistory();
   }
 
   /** NC ya generadas para ese mes del año seleccionado (puede ser >1 si la entidad es un grupo). */
@@ -299,11 +373,11 @@ export class CreditNotes {
           const count = result.created.length;
           this.toastr.success(
             count === 1
-              ? 'Nota de crédito generada correctamente.'
-              : `${count} notas de crédito generadas correctamente.`
+              ? this.translate.instant('FORECAST.CREDIT_NOTES.GENERATE_SUCCESS')
+              : this.translate.instant('FORECAST.CREDIT_NOTES.GENERATE_SUCCESS_MANY', { count })
           );
           if (result.skipped.length > 0) {
-            this.toastr.info(`${result.skipped.length} cliente(s) del grupo no aplicaron (ya tenían NC, sin ventas consideradas o sin adjunto).`);
+            this.toastr.info(this.translate.instant('FORECAST.CREDIT_NOTES.GENERATE_SKIPPED', { count: result.skipped.length }));
           }
 
           const map = new Map(this.breakdownCache());
@@ -317,7 +391,7 @@ export class CreditNotes {
           this.loadHistory(entity);
         },
         error: (err) => {
-          const message = err?.error?.message ?? err?.error?.errors ?? 'No se pudo generar la nota de crédito.';
+          const message = err?.error?.message ?? err?.error?.errors ?? this.translate.instant('FORECAST.CREDIT_NOTES.GENERATE_ERROR');
           this.generateError.set(typeof message === 'string' ? message : Object.values(message).flat().join(' '));
         },
       });
@@ -417,7 +491,7 @@ export class CreditNotes {
         const fileName = `facturas_${state.clientName.trim().replace(/\s+/g, '_')}_${state.year}_${state.month}.xlsx`;
         this.exportService.downloadBlob(blob, fileName);
       },
-      error: () => this.toastr.error('No se pudo exportar el archivo.'),
+      error: () => this.toastr.error(this.translate.instant('FORECAST.CREDIT_NOTES.EXPORT_ERROR')),
     });
   }
 }

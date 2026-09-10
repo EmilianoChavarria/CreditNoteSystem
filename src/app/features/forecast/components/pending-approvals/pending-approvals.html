@@ -4,79 +4,81 @@
     <p class="text-xs text-gray-400 mt-0.5">
       {{ (isForecastAdmin() ? 'FORECAST.PENDING_APPROVALS.DESCRIPTION_ADMIN' : 'FORECAST.PENDING_APPROVALS.DESCRIPTION') | translate }}
     </p>
+    <p class="text-xs text-amber-600 mt-2">
+      {{ 'FORECAST.PENDING_APPROVALS.ALL_OR_NOTHING' | translate }}
+    </p>
   </div>
 
   @if (loading()) {
     <div class="flex items-center justify-center py-12 text-sm text-gray-400">
       {{ 'FORECAST.PENDING_APPROVALS.LOADING' | translate }}
     </div>
-  } @else if (requests().length === 0) {
+  } @else if (groups().length === 0) {
     <div class="flex items-center justify-center py-12 text-sm text-gray-400">
       {{ 'FORECAST.PENDING_APPROVALS.EMPTY' | translate }}
     </div>
   } @else {
-    <div class="overflow-x-auto">
-      <table class="w-full text-sm">
-        <thead>
-          <tr class="border-b border-gray-100 bg-gray-50">
-            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.PENDING_APPROVALS.COL_CLIENT' | translate }}</th>
-            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.PENDING_APPROVALS.COL_PERIOD' | translate }}</th>
-            <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.PENDING_APPROVALS.COL_PREVIOUS' | translate }}</th>
-            <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.PENDING_APPROVALS.COL_PROPOSED' | translate }}</th>
-            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.PENDING_APPROVALS.COL_SUBMITTED_BY' | translate }}</th>
-            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.PENDING_APPROVALS.COL_STEP' | translate }}</th>
-            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.PENDING_APPROVALS.COL_APPROVER' | translate }}</th>
-            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.PENDING_APPROVALS.COL_DATE' | translate }}</th>
-            <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.PENDING_APPROVALS.COL_ACTIONS' | translate }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (req of requests(); track req.id) {
-            <tr class="border-t border-gray-100 hover:bg-gray-50 transition-colors">
-              <td class="px-4 py-2.5 text-gray-700 font-medium">#{{ req.idClient }} - {{req.clientName}}</td>
-              <td class="px-4 py-2.5 text-gray-600 whitespace-nowrap">
-                {{ monthName(req.month) }} {{ req.year }}
-              </td>
-              <td class="px-4 py-2.5 text-right text-gray-500 whitespace-nowrap">
-                $ {{ req.previousAmount | number:'1.0-0' }}
-              </td>
-              <td class="px-4 py-2.5 text-right font-semibold text-gray-700 whitespace-nowrap">
-                $ {{ req.proposedAmount | number:'1.0-0' }}
-              </td>
-              <td class="px-4 py-2.5 text-gray-600 whitespace-nowrap">
-                {{ req.submittedBy?.fullName ?? '—' }}
-              </td>
-              <td class="px-4 py-2.5 text-xs text-gray-500 whitespace-nowrap">
-                {{ stepLabel(req.currentStep) }}
-              </td>
-              <td class="px-4 py-2.5 text-gray-600 whitespace-nowrap">
-                {{ req.approver?.fullName ?? '—' }}
-              </td>
-              <td class="px-4 py-2.5 text-xs text-gray-400 whitespace-nowrap">
-                {{ req.submittedAt | date:'dd/MM/yyyy' }}
-              </td>
-              <td class="px-4 py-2.5">
-                <div class="flex items-center justify-center gap-2">
-                  <button
-                    type="button"
-                    class="inline-flex items-center rounded-lg bg-green-600 px-3 py-1 text-xs font-semibold text-white hover:bg-green-700 disabled:opacity-50 transition"
-                    [disabled]="processingId() === req.id"
-                    (click)="approve(req.id)">
-                    {{ 'FORECAST.PENDING_APPROVALS.BTN_APPROVE' | translate }}
-                  </button>
-                  <button
-                    type="button"
-                    class="inline-flex items-center rounded-lg border border-red-300 px-3 py-1 text-xs font-semibold text-red-600 hover:bg-red-50 disabled:opacity-50 transition"
-                    [disabled]="processingId() === req.id"
-                    (click)="reject(req.id)">
-                    {{ 'FORECAST.PENDING_APPROVALS.BTN_REJECT' | translate }}
-                  </button>
-                </div>
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
+    <div class="p-5 space-y-4">
+      @for (group of groups(); track group.entityId) {
+        <div class="rounded-xl border border-gray-200 overflow-hidden">
+          <div class="flex flex-wrap items-start justify-between gap-3 bg-gray-50 px-4 py-3 border-b border-gray-200">
+            <div>
+              <p class="text-sm font-semibold text-gray-800">#{{ group.entityId }} - {{ group.entityName }}</p>
+              <p class="text-xs text-gray-500 mt-0.5">
+                {{ 'FORECAST.PENDING_APPROVALS.COL_SUBMITTED_BY' | translate }}: {{ group.submittedByName }}
+                · {{ 'FORECAST.PENDING_APPROVALS.COL_APPROVER' | translate }}: {{ group.approverName }}
+                · {{ stepLabel(group.step) }}
+                · {{ group.submittedAt | date:'dd/MM/yyyy' }}
+              </p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="inline-flex items-center rounded-full bg-gray-200 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-gray-600">
+                {{ group.rows.length }} {{ 'FORECAST.PENDING_APPROVALS.MONTHS_BADGE' | translate }}
+              </span>
+              <button
+                type="button"
+                class="inline-flex items-center rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700 disabled:opacity-50 transition"
+                [disabled]="processingClientId() === group.entityId"
+                (click)="approveGroup(group)">
+                {{ 'FORECAST.PENDING_APPROVALS.BTN_APPROVE_ALL' | translate }}
+              </button>
+              <button
+                type="button"
+                class="inline-flex items-center rounded-lg border border-red-300 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 disabled:opacity-50 transition"
+                [disabled]="processingClientId() === group.entityId"
+                (click)="rejectGroup(group)">
+                {{ 'FORECAST.PENDING_APPROVALS.BTN_REJECT_ALL' | translate }}
+              </button>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="border-b border-gray-100 bg-white">
+                  <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.PENDING_APPROVALS.COL_PERIOD' | translate }}</th>
+                  <th class="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.PENDING_APPROVALS.COL_PREVIOUS' | translate }}</th>
+                  <th class="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.PENDING_APPROVALS.COL_PROPOSED' | translate }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (req of group.rows; track req.id) {
+                  <tr class="border-t border-gray-100">
+                    <td class="px-4 py-2 text-gray-600 whitespace-nowrap">{{ monthName(req.month) }} {{ req.year }}</td>
+                    <td class="px-4 py-2 text-right text-gray-500 whitespace-nowrap">$ {{ req.previousAmount | number:'1.0-0' }}</td>
+                    <td class="px-4 py-2 text-right font-semibold text-gray-700 whitespace-nowrap">$ {{ req.proposedAmount | number:'1.0-0' }}</td>
+                  </tr>
+                }
+                <tr class="border-t border-gray-200 bg-gray-50">
+                  <td class="px-4 py-2 text-xs font-semibold uppercase tracking-wider text-gray-500">{{ 'FORECAST.PENDING_APPROVALS.COL_TOTAL' | translate }}</td>
+                  <td class="px-4 py-2 text-right font-semibold text-gray-600 whitespace-nowrap">$ {{ group.totalPrevious | number:'1.0-0' }}</td>
+                  <td class="px-4 py-2 text-right font-semibold text-gray-800 whitespace-nowrap">$ {{ group.totalProposed | number:'1.0-0' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
     </div>
   }
 
@@ -96,73 +98,93 @@
     <div class="flex items-center justify-center py-12 text-sm text-gray-400">
       {{ 'FORECAST.PENDING_APPROVALS.LOADING' | translate }}
     </div>
-  } @else if (distributorRequests().length === 0) {
+  } @else if (distributorGroups().length === 0) {
     <div class="flex items-center justify-center py-12 text-sm text-gray-400">
       {{ 'FORECAST.PENDING_APPROVALS.DISTRIBUTOR_EMPTY' | translate }}
     </div>
   } @else {
-    <div class="overflow-x-auto">
-      <table class="w-full text-sm">
-        <thead>
-          <tr class="border-b border-gray-100 bg-gray-50">
-            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.PENDING_APPROVALS.COL_DISTRIBUTOR' | translate }}</th>
-            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.PENDING_APPROVALS.COL_PERIOD' | translate }}</th>
-            <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.PENDING_APPROVALS.COL_PREVIOUS' | translate }}</th>
-            <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.PENDING_APPROVALS.COL_PROPOSED' | translate }}</th>
-            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.PENDING_APPROVALS.COL_SUBMITTED_BY' | translate }}</th>
-            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.PENDING_APPROVALS.COL_STEP' | translate }}</th>
-            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.PENDING_APPROVALS.COL_APPROVER' | translate }}</th>
-            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.PENDING_APPROVALS.COL_DATE' | translate }}</th>
-            <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.PENDING_APPROVALS.COL_ACTIONS' | translate }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (req of distributorRequests(); track req.id) {
-            <tr class="border-t border-gray-100 hover:bg-gray-50 transition-colors">
-              <td class="px-4 py-2.5 text-gray-700 font-medium">{{ req.distributor?.businessName ?? '#' + `${req.distributorId} - ${req.distributorName}` }}</td>
-              <td class="px-4 py-2.5 text-gray-600 whitespace-nowrap">
-                {{ monthName(req.month) }} {{ req.year }}
-              </td>
-              <td class="px-4 py-2.5 text-right text-gray-500 whitespace-nowrap">
-                $ {{ req.previousForecast | number:'1.0-0' }}
-              </td>
-              <td class="px-4 py-2.5 text-right font-semibold text-gray-700 whitespace-nowrap">
-                $ {{ req.proposedForecast | number:'1.0-0' }}
-              </td>
-              <td class="px-4 py-2.5 text-gray-600 whitespace-nowrap">
-                {{ req.submittedBy?.fullName ?? '—' }}
-              </td>
-              <td class="px-4 py-2.5 text-xs text-gray-500 whitespace-nowrap">
-                {{ stepLabel(req.currentStep) }}
-              </td>
-              <td class="px-4 py-2.5 text-gray-600 whitespace-nowrap">
-                {{ req.approver?.fullName ?? '—' }}
-              </td>
-              <td class="px-4 py-2.5 text-xs text-gray-400 whitespace-nowrap">
-                {{ req.submittedAt | date:'dd/MM/yyyy' }}
-              </td>
-              <td class="px-4 py-2.5">
-                <div class="flex items-center justify-center gap-2">
-                  <button
-                    type="button"
-                    class="inline-flex items-center rounded-lg bg-green-600 px-3 py-1 text-xs font-semibold text-white hover:bg-green-700 disabled:opacity-50 transition"
-                    [disabled]="distributorProcessingId() === req.id"
-                    (click)="approveDistributor(req.id)">
-                    {{ 'FORECAST.PENDING_APPROVALS.BTN_APPROVE' | translate }}
-                  </button>
-                  <button
-                    type="button"
-                    class="inline-flex items-center rounded-lg border border-red-300 px-3 py-1 text-xs font-semibold text-red-600 hover:bg-red-50 disabled:opacity-50 transition"
-                    [disabled]="distributorProcessingId() === req.id"
-                    (click)="rejectDistributor(req.id)">
-                    {{ 'FORECAST.PENDING_APPROVALS.BTN_REJECT' | translate }}
-                  </button>
-                </div>
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
+    <div class="p-5 pt-0 space-y-4">
+      @for (group of distributorGroups(); track group.entityId) {
+        <div class="rounded-xl border border-gray-200 overflow-hidden">
+          <div class="flex flex-wrap items-start justify-between gap-3 bg-gray-50 px-4 py-3 border-b border-gray-200">
+            <div>
+              <p class="text-sm font-semibold text-gray-800">#{{ group.entityId }} - {{ group.entityName }}</p>
+              <p class="text-xs text-gray-500 mt-0.5">
+                {{ 'FORECAST.PENDING_APPROVALS.COL_SUBMITTED_BY' | translate }}: {{ group.submittedByName }}
+                · {{ 'FORECAST.PENDING_APPROVALS.COL_APPROVER' | translate }}: {{ group.approverName }}
+                · {{ stepLabel(group.step) }}
+                · {{ group.submittedAt | date:'dd/MM/yyyy' }}
+              </p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="inline-flex items-center rounded-full bg-gray-200 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-gray-600">
+                {{ group.rows.length }} {{ 'FORECAST.PENDING_APPROVALS.MONTHS_BADGE' | translate }}
+              </span>
+              <button
+                type="button"
+                class="inline-flex items-center rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700 disabled:opacity-50 transition"
+                [disabled]="distributorProcessingId() === group.entityId"
+                (click)="approveDistributorGroup(group)">
+                {{ 'FORECAST.PENDING_APPROVALS.BTN_APPROVE_ALL' | translate }}
+              </button>
+              <button
+                type="button"
+                class="inline-flex items-center rounded-lg border border-red-300 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 disabled:opacity-50 transition"
+                [disabled]="distributorProcessingId() === group.entityId"
+                (click)="rejectDistributorGroup(group)">
+                {{ 'FORECAST.PENDING_APPROVALS.BTN_REJECT_ALL' | translate }}
+              </button>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="border-b border-gray-100 bg-white">
+                  <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.PENDING_APPROVALS.COL_PERIOD' | translate }}</th>
+                  <th class="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.PENDING_APPROVALS.COL_PREVIOUS' | translate }}</th>
+                  <th class="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-gray-400">{{ 'FORECAST.PENDING_APPROVALS.COL_PROPOSED' | translate }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (req of group.rows; track req.id) {
+                  <tr class="border-t border-gray-100">
+                    <td class="px-4 py-2 text-gray-600 whitespace-nowrap">{{ monthName(req.month) }} {{ req.year }}</td>
+                    <td class="px-4 py-2 text-right text-gray-500 whitespace-nowrap">$ {{ req.previousForecast | number:'1.0-0' }}</td>
+                    <td class="px-4 py-2 text-right font-semibold text-gray-700 whitespace-nowrap">$ {{ req.proposedForecast | number:'1.0-0' }}</td>
+                  </tr>
+                }
+                <tr class="border-t border-gray-200 bg-gray-50">
+                  <td class="px-4 py-2 text-xs font-semibold uppercase tracking-wider text-gray-500">{{ 'FORECAST.PENDING_APPROVALS.COL_TOTAL' | translate }}</td>
+                  <td class="px-4 py-2 text-right font-semibold text-gray-600 whitespace-nowrap">$ {{ group.totalPrevious | number:'1.0-0' }}</td>
+                  <td class="px-4 py-2 text-right font-semibold text-gray-800 whitespace-nowrap">$ {{ group.totalProposed | number:'1.0-0' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
     </div>
   }
 </div>
+
+@if (confirmTarget(); as target) {
+  <app-modal
+    size="sm"
+    [open]="true"
+    [closeOnBackdrop]="!confirmProcessing()"
+    [titleM]="(target.approved ? 'FORECAST.PENDING_APPROVALS.CONFIRM_APPROVE_TITLE' : 'FORECAST.PENDING_APPROVALS.CONFIRM_REJECT_TITLE') | translate"
+    [closeText]="'FORECAST.PENDING_APPROVALS.CONFIRM_CANCEL' | translate"
+    [primaryText]="(target.approved ? 'FORECAST.PENDING_APPROVALS.CONFIRM_APPROVE_BTN' : 'FORECAST.PENDING_APPROVALS.CONFIRM_REJECT_BTN') | translate"
+    [primaryLoading]="confirmProcessing()"
+    (closed)="cancelConfirm()"
+    (primaryAction)="confirmResolve()">
+    <p class="text-sm text-gray-600">
+      {{ (target.approved ? 'FORECAST.PENDING_APPROVALS.CONFIRM_APPROVE_TEXT' : 'FORECAST.PENDING_APPROVALS.CONFIRM_REJECT_TEXT')
+          | translate:{ count: target.monthCount, name: target.entityName } }}
+    </p>
+    <p class="mt-3 text-xs text-amber-600">
+      {{ 'FORECAST.PENDING_APPROVALS.ALL_OR_NOTHING' | translate }}
+    </p>
+  </app-modal>
+}

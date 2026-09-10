@@ -106,6 +106,7 @@ export class DistributorsManage implements OnInit {
   ) {
     this.columns = [
       { key: 'idCliente', label: this.translate.instant('FORECAST.DISTRIBUTORS.COL_ID'), sortable: true, customTemplate: true },
+      { key: 'sapName', label: this.translate.instant('FORECAST.DISTRIBUTORS.COL_SAP_NAME'), sortable: true, customTemplate: true },
       { key: 'razonSocial', label: this.translate.instant('FORECAST.DISTRIBUTORS.COL_RAZON_SOCIAL'), sortable: true, customTemplate: true },
       { key: 'rfc', label: this.translate.instant('FORECAST.DISTRIBUTORS.COL_RFC'), sortable: true, customTemplate: true },
       { key: 'direccion', label: this.translate.instant('FORECAST.DISTRIBUTORS.COL_ADDRESS'), sortable: true, customTemplate: true },

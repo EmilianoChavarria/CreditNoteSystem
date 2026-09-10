@@ -8,6 +8,8 @@ import { catchError, map, Observable, throwError } from 'rxjs';
 export interface ForecastClient {
   idCliente: string;
   razonSocial: string;
+  /** Nombre SAP del padrón: en forecast se muestra en lugar de la razón social. */
+  sapName?: string | null;
   direccion: string;
   rfc: string;
   correosForecast: string | null;
@@ -183,6 +185,10 @@ export interface ForecastCreditNote {
   entityType: ForecastEntityType;
   entityId: number;
   customerNumber: string;
+  /** Resueltos por el historial global; null en el historial por entidad. */
+  clientName?: string | null;
+  groupId?: number | null;
+  groupName?: string | null;
   year: number;
   month: number;
   returnPercentage: number;
@@ -279,6 +285,8 @@ export interface ForecastClientApi {
   isGroup?: false;
   idCliente: string;
   razonSocial: string;
+  /** Solo en clientes extranjeros: ARG = Argentina, el resto Centroamérica. */
+  countrycode?: string | null;
   year: number;
   months: ForecastMonthApi[];
 }
@@ -393,6 +401,8 @@ export interface Distributor {
   months: MonthEntry[];
   isGroup?: boolean;
   members?: GroupMemberSales[];
+  /** Solo en clientes extranjeros: ARG = Argentina, el resto Centroamérica. */
+  countrycode?: string | null;
 }
 
 export interface ChangeRequestUser {
@@ -429,6 +439,21 @@ export interface ChangeRequestPayload {
   year: number;
   month: number;
   amount: number;
+}
+
+/** Error por mes devuelto por los endpoints de envío en lote. */
+export interface ChangeRequestBatchError {
+  idClient?: number;
+  distributorId?: number;
+  clientName: string | null;
+  year: number;
+  month: number;
+  message: string;
+}
+
+export interface ChangeRequestBatchResult<T> {
+  created: T[];
+  errors: ChangeRequestBatchError[];
 }
 
 export interface DistributorChangeRequestHistory {
@@ -470,6 +495,8 @@ export const CUSTOMER_CURRENCIES: readonly CustomerCurrency[] = ['USD', 'MXN'];
 
 export interface NationalCustomer {
   customerNumber: string;
+  /** Nombre SAP: en forecast se muestra en lugar de la razón social. */
+  sapName?: string | null;
   emails: string | null;
   returnPercentage: number | null;
   currency: CustomerCurrency | null;
@@ -489,6 +516,7 @@ export interface NationalCustomerCandidate {
 
 export interface CreateNationalCustomerPayload {
   customerNumber: string;
+  sapName?: string;
   emails?: string;
   returnPercentage?: number;
   currency?: CustomerCurrency;
@@ -505,6 +533,7 @@ export interface NationalCustomerPage {
 }
 
 export interface UpdateNationalCustomerPayload {
+  sapName?: string | null;
   emails?: string;
   returnPercentage?: number;
   currency?: CustomerCurrency;
@@ -533,6 +562,7 @@ function mapClientToDistributor(client: ForecastClientApi): Distributor {
     id: parseInt(client.idCliente),
     name: client.razonSocial,
     months: buildMonthEntries(client.months),
+    countrycode: client.countrycode ?? null,
   };
 }
 
@@ -636,6 +666,18 @@ export class ForecastService {
     );
   }
 
+  /** Envía varios cambios de forecast de una sola vez (un correo por cliente). */
+  submitChangeRequestBatch(items: ChangeRequestPayload[]): Observable<ChangeRequestBatchResult<ChangeRequest>> {
+    return this.httpService.post<ChangeRequestBatchResult<ChangeRequest>>(
+      '/forecast/change-requests/batch',
+      { items },
+      this.withBearer()
+    ).pipe(
+      map((response: ApiResponse<ChangeRequestBatchResult<ChangeRequest>>) => response.data ?? { created: [], errors: [] }),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
   getMyRequests(): Observable<ChangeRequest[]> {
     return this.httpService.get<ChangeRequest[]>(
       '/forecast/change-requests/mine',
@@ -666,9 +708,13 @@ export class ForecastService {
     );
   }
 
-  approveRequest(id: number): Observable<void> {
+  /**
+   * Aprueba TODAS las solicitudes pendientes del cliente. La aprobación de
+   * forecast es todo o nada: no existe resolución mes por mes.
+   */
+  approveClientRequests(idClient: number): Observable<void> {
     return this.httpService.post<unknown>(
-      `/forecast/change-requests/${id}/approve`,
+      `/forecast/change-requests/client/${idClient}/approve`,
       {},
       this.withBearer()
     ).pipe(
@@ -677,9 +723,10 @@ export class ForecastService {
     );
   }
 
-  rejectRequest(id: number): Observable<void> {
+  /** @see approveClientRequests */
+  rejectClientRequests(idClient: number): Observable<void> {
     return this.httpService.post<unknown>(
-      `/forecast/change-requests/${id}/reject`,
+      `/forecast/change-requests/client/${idClient}/reject`,
       {},
       this.withBearer()
     ).pipe(
@@ -705,6 +752,18 @@ export class ForecastService {
       this.withBearer()
     ).pipe(
       map((response: ApiResponse<DistributorChangeRequest>) => response.data!),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
+  /** Envía varios cambios de forecast de distribuidor de una sola vez (un correo por distribuidor). */
+  submitDistributorChangeRequestBatch(items: DistributorChangeRequestPayload[]): Observable<ChangeRequestBatchResult<DistributorChangeRequest>> {
+    return this.httpService.post<ChangeRequestBatchResult<DistributorChangeRequest>>(
+      '/distributors/forecast/change-requests/batch',
+      { items },
+      this.withBearer()
+    ).pipe(
+      map((response: ApiResponse<ChangeRequestBatchResult<DistributorChangeRequest>>) => response.data ?? { created: [], errors: [] }),
       catchError((error) => throwError(() => error))
     );
   }
@@ -739,9 +798,10 @@ export class ForecastService {
     );
   }
 
-  approveDistributorRequest(id: number): Observable<void> {
+  /** Aprueba TODAS las solicitudes pendientes del distribuidor (todo o nada). */
+  approveDistributorRequests(distributorId: number): Observable<void> {
     return this.httpService.post<unknown>(
-      `/distributors/forecast/change-requests/${id}/approve`,
+      `/distributors/forecast/change-requests/distributor/${distributorId}/approve`,
       {},
       this.withBearer()
     ).pipe(
@@ -750,9 +810,10 @@ export class ForecastService {
     );
   }
 
-  rejectDistributorRequest(id: number): Observable<void> {
+  /** @see approveDistributorRequests */
+  rejectDistributorRequests(distributorId: number): Observable<void> {
     return this.httpService.post<unknown>(
-      `/distributors/forecast/change-requests/${id}/reject`,
+      `/distributors/forecast/change-requests/distributor/${distributorId}/reject`,
       {},
       this.withBearer()
     ).pipe(
@@ -761,10 +822,15 @@ export class ForecastService {
     );
   }
 
-  getInvoices(idClient: number, year: number, month: number): Observable<InvoiceSection[]> {
+  /**
+   * Facturas del mes. Sin `currency`, cada cliente viene en la moneda que tiene
+   * asignada (lo que necesita la vista de notas de crédito); pasando 'USD' se
+   * fuerza la conversión, como espera la vista de objetivos de venta.
+   */
+  getInvoices(idClient: number, year: number, month: number, currency?: 'USD' | 'MXN'): Observable<InvoiceSection[]> {
     return this.httpService.get<Invoice[] | GroupInvoicesApi>(
       `/forecast/${idClient}/${year}/${month}/invoices`,
-      this.withBearer()
+      { ...this.withBearer(), ...(currency ? { params: { currency } } : {}) }
     ).pipe(
       map((response: ApiResponse<Invoice[] | GroupInvoicesApi>) => {
         const data = response.data;
@@ -778,10 +844,10 @@ export class ForecastService {
     );
   }
 
-  getInvoiceProducts(idClient: number, year: number, month: number): Observable<InvoiceProductsEntry[]> {
+  getInvoiceProducts(idClient: number, year: number, month: number, currency?: 'USD' | 'MXN'): Observable<InvoiceProductsEntry[]> {
     return this.httpService.get<InvoiceProductsEntry[]>(
       `/forecast/${idClient}/${year}/${month}/invoices/products`,
-      this.withBearer()
+      { ...this.withBearer(), ...(currency ? { params: { currency } } : {}) }
     ).pipe(
       map((response: ApiResponse<InvoiceProductsEntry[]>) => response.data ?? []),
       catchError((error) => throwError(() => error))
@@ -809,8 +875,26 @@ export class ForecastService {
     );
   }
 
-  exportInvoicesExcel(idClient: number, year: number, month: number): Observable<Blob> {
-    return this.httpService.getBlob(`/forecast/${idClient}/${year}/${month}/invoices/export`);
+  exportInvoicesExcel(idClient: number, year: number, month: number, currency?: 'USD' | 'MXN'): Observable<Blob> {
+    return this.httpService.getBlob(
+      `/forecast/${idClient}/${year}/${month}/invoices/export`,
+      currency ? { currency } : undefined
+    );
+  }
+
+  /**
+   * Excel de la vista de forecast: por cliente/distribuidor un renglón de
+   * forecast y otro de ventas. Sin salesEngineerId el backend exporta todo lo
+   * que el rol permita (sus ingenieros, o el padrón completo para el admin).
+   */
+  exportForecastExcel(year: number, salesEngineerId?: number): Observable<Blob> {
+    const params: Record<string, string> = { year: String(year) };
+
+    if (salesEngineerId) {
+      params['salesEngineerId'] = String(salesEngineerId);
+    }
+
+    return this.httpService.getBlob('/forecast/export/excel', params);
   }
 
   exportTemplate(salesEngineerId?: number): Observable<Blob> {
@@ -876,6 +960,37 @@ export class ForecastService {
       this.withBearer()
     ).pipe(
       map((response: ApiResponse<ForecastGroupMonthBreakdown>) => response.data ?? null),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
+  /**
+   * Historial global de notas de crédito de forecast. El backend acota por rol:
+   * el sales engineer solo ve su cartera, el manager la de sus ingenieros y el
+   * FORECAST ADMIN todas.
+   */
+  getForecastCreditNotesHistory(filters: {
+    year?: number;
+    month?: number;
+    salesEngineerId?: number;
+    tipo?: 'cliente' | 'grupo';
+    id?: number;
+  } = {}): Observable<ForecastCreditNote[]> {
+    const params: Record<string, string> = {};
+
+    if (filters.year) params['year'] = String(filters.year);
+    if (filters.month) params['month'] = String(filters.month);
+    if (filters.salesEngineerId) params['salesEngineerId'] = String(filters.salesEngineerId);
+    if (filters.tipo && filters.id) {
+      params['tipo'] = filters.tipo;
+      params['id'] = String(filters.id);
+    }
+
+    return this.httpService.get<ForecastCreditNote[]>(
+      '/forecast/credit-notes/history',
+      { ...this.withBearer(), params }
+    ).pipe(
+      map((response: ApiResponse<ForecastCreditNote[]>) => response.data ?? []),
       catchError((error) => throwError(() => error))
     );
   }

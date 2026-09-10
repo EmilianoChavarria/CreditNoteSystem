@@ -4,9 +4,10 @@ import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
 import { ToastrService } from 'ngx-toastr';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { finalize, map } from 'rxjs';
+import { finalize, map, Observable } from 'rxjs';
 import {
   ChangeRequest,
+  ChangeRequestBatchResult,
   Distributor,
   ForecastService,
   GroupMemberSales,
@@ -24,6 +25,15 @@ import { ForecastClientModal } from '../forecast-client-modal/forecast-client-mo
 interface EditingCell {
   clientId: number;
   monthIdx: number;
+}
+
+/** Cambio capturado en la tabla que todavía no se ha enviado al backend. */
+interface DraftChange {
+  clientId: number;
+  clientName: string;
+  monthIdx: number;
+  previous: number;
+  proposed: number;
 }
 
 interface HistoryState {
@@ -79,6 +89,11 @@ export class ForecastTable {
   readonly editingValue = signal('');
   private originalValue = 0;
   readonly submittingCell = signal<EditingCell | null>(null);
+
+  /** Cambios capturados aún no enviados, indexados por `clientId:monthIdx`. */
+  readonly drafts = signal<Map<string, DraftChange>>(new Map());
+  readonly savingDrafts = signal(false);
+
   readonly historyState = signal<HistoryState | null>(null);
   readonly invoicesState = signal<InvoicesState | null>(null);
   readonly exportingInvoices = signal(false);
@@ -179,7 +194,9 @@ export class ForecastTable {
     }
     const m = dist.months[monthIdx];
     if (this.isEditableMonth(monthIdx) && m.pendingRequest?.status !== 'pending' && !this.isSubmitting(dist.id, monthIdx)) {
-      this.startEdit(dist.id, monthIdx, m.forecast);
+      // El input arranca con el valor en borrador si ya se editó esta celda,
+      // pero el original sigue siendo el forecast vigente.
+      this.startEdit(dist.id, monthIdx, this.draftValue(dist.id, monthIdx) ?? m.forecast, m.forecast);
     }
   }
 
@@ -203,7 +220,7 @@ export class ForecastTable {
   openInvoices(dist: { id: number; name: string }, monthIdx: number): void {
     if (this.mode() === 'distributor') return;
     this.invoicesState.set({ clientId: dist.id, clientName: dist.name, monthIdx, sections: [], loading: true });
-    this.forecastService.getInvoices(dist.id, this.year(), monthIdx + 1).subscribe({
+    this.forecastService.getInvoices(dist.id, this.year(), monthIdx + 1, 'USD').subscribe({
       next: (sections) => this.invoicesState.update(s => s ? { ...s, sections, loading: false } : null),
       error: () => this.invoicesState.update(s => s ? { ...s, loading: false } : null),
     });
@@ -224,7 +241,7 @@ export class ForecastTable {
     this.invoiceProductsState.set({ clientName: event.clientName, folio: event.folio, entry: null, loading: true });
     const year = this.year();
     const month = state.monthIdx + 1;
-    this.forecastService.getInvoiceProducts(event.clientId, year, month).subscribe({
+    this.forecastService.getInvoiceProducts(event.clientId, year, month, 'USD').subscribe({
       next: (entries) => {
         const entry = entries.find(e => e.folio === event.folio) ?? null;
         this.invoiceProductsState.update(s => s ? { ...s, entry, loading: false } : null);
@@ -246,7 +263,7 @@ export class ForecastTable {
     const year = this.year();
     const month = state.monthIdx + 1;
     this.exportingInvoices.set(true);
-    this.forecastService.exportInvoicesExcel(state.clientId, year, month).pipe(
+    this.forecastService.exportInvoicesExcel(state.clientId, year, month, 'USD').pipe(
       finalize(() => this.exportingInvoices.set(false))
     ).subscribe({
       next: (blob) => {
@@ -266,10 +283,10 @@ export class ForecastTable {
     this.clientModalState.set(null);
   }
 
-  startEdit(clientId: number, monthIdx: number, current: number): void {
+  startEdit(clientId: number, monthIdx: number, current: number, original: number = current): void {
     this.editingCell.set({ clientId, monthIdx });
     this.editingValue.set(String(current));
-    this.originalValue = current;
+    this.originalValue = original;
     setTimeout(() => {
       document.querySelector<HTMLInputElement>('input.fc-edit-input')?.select();
     });
@@ -279,28 +296,109 @@ export class ForecastTable {
     this.editingCell.set(null);
   }
 
-  submitChangeRequest(clientId: number, monthIdx: number): void {
+  // -------------------------------------------------------------------------
+  // Cambios en borrador (se envían todos juntos con "Guardar cambios")
+  // -------------------------------------------------------------------------
+
+  private draftKey(clientId: number, monthIdx: number): string {
+    return `${clientId}:${monthIdx}`;
+  }
+
+  readonly draftList = computed(() =>
+    [...this.drafts().values()].sort((a, b) =>
+      a.clientName.localeCompare(b.clientName) || a.monthIdx - b.monthIdx
+    )
+  );
+
+  readonly draftCount = computed(() => this.drafts().size);
+
+  readonly draftClientCount = computed(() => new Set(this.draftList().map(d => d.clientId)).size);
+
+  hasDrafts(): boolean {
+    return this.drafts().size > 0;
+  }
+
+  isDraft(clientId: number, monthIdx: number): boolean {
+    return this.drafts().has(this.draftKey(clientId, monthIdx));
+  }
+
+  draftValue(clientId: number, monthIdx: number): number | null {
+    return this.drafts().get(this.draftKey(clientId, monthIdx))?.proposed ?? null;
+  }
+
+  /** Guarda el valor capturado en el borrador. No envía nada al backend. */
+  commitEdit(dist: Distributor, monthIdx: number): void {
     const raw = parseFloat(this.editingValue().replace(/[^0-9.]/g, ''));
     this.editingCell.set(null);
     if (isNaN(raw) || raw < 0) return;
-    if (Math.round(raw) === this.originalValue) return;
 
-    this.submittingCell.set({ clientId, monthIdx });
+    const proposed = Math.round(raw);
+    const key = this.draftKey(dist.id, monthIdx);
+
+    this.drafts.update(current => {
+      const next = new Map(current);
+      // Volver al valor original equivale a descartar el cambio.
+      if (proposed === this.originalValue) {
+        next.delete(key);
+      } else {
+        next.set(key, {
+          clientId: dist.id,
+          clientName: dist.name,
+          monthIdx,
+          previous: this.originalValue,
+          proposed,
+        });
+      }
+      return next;
+    });
+  }
+
+  discardDraft(clientId: number, monthIdx: number): void {
+    this.drafts.update(current => {
+      const next = new Map(current);
+      next.delete(this.draftKey(clientId, monthIdx));
+      return next;
+    });
+  }
+
+  discardAllDrafts(): void {
+    this.drafts.set(new Map());
+    this.editingCell.set(null);
+  }
+
+  /** Envía todos los cambios capturados en una sola petición. */
+  saveDrafts(): void {
+    const drafts = this.draftList();
+    if (drafts.length === 0 || this.savingDrafts()) return;
+
+    this.savingDrafts.set(true);
     const year = this.year();
-    const month = monthIdx + 1;
-    const amount = Math.round(raw);
-    const request$ = this.mode() === 'distributor'
-      ? this.forecastService.submitDistributorChangeRequest({ distributorId: clientId, year, month, forecast: amount }).pipe(map(() => void 0))
-      : this.forecastService.submitChangeRequest({ idClient: clientId, year, month, amount }).pipe(map(() => void 0));
-    request$.subscribe({
-      next: () => {
-        this.submittingCell.set(null);
+
+    const request$: Observable<ChangeRequestBatchResult<unknown>> = this.mode() === 'distributor'
+      ? this.forecastService.submitDistributorChangeRequestBatch(
+          drafts.map(d => ({ distributorId: d.clientId, year, month: d.monthIdx + 1, forecast: d.proposed }))
+        )
+      : this.forecastService.submitChangeRequestBatch(
+          drafts.map(d => ({ idClient: d.clientId, year, month: d.monthIdx + 1, amount: d.proposed }))
+        );
+
+    request$.pipe(finalize(() => this.savingDrafts.set(false))).subscribe({
+      next: (result) => {
+        this.drafts.set(new Map());
+        this.toastr.success(
+          this.translate.instant('FORECAST.TABLE.BATCH_SAVED', { count: result.created.length })
+        );
+        for (const err of result.errors ?? []) {
+          this.toastr.warning(`${err.clientName ?? ''} · ${this.MONTHS[err.month - 1]}: ${err.message}`);
+        }
         this.refreshNeeded.emit();
       },
       error: (err: unknown) => {
-        this.submittingCell.set(null);
         const message = (err as { error?: { message?: string } })?.error?.message;
-        this.toastr.error(message ?? this.translate.instant('FORECAST.TABLE.SUBMIT_ERROR'), this.translate.instant('FORECAST.SALES_MANAGE.TOAST_ERROR'));
+        this.toastr.error(
+          message ?? this.translate.instant('FORECAST.TABLE.SUBMIT_ERROR'),
+          this.translate.instant('FORECAST.SALES_MANAGE.TOAST_ERROR')
+        );
       },
     });
   }
