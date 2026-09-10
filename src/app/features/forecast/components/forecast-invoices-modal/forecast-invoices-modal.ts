@@ -74,17 +74,17 @@ export class ForecastInvoicesModal {
     return this.selectedInvoices().reduce((s, inv) => s + Number(inv.iva) * inv.signo, 0);
   }
 
-  /** Suma de facturas (signo +1). */
+  /** Suma de subtotales de facturas (signo +1). La venta mensual no considera el IVA. */
   totalFacturas(): number {
     return this.selectedInvoices()
       .filter(inv => inv.signo > 0)
-      .reduce((s, inv) => s + Number(inv.total), 0);
+      .reduce((s, inv) => s + Number(inv.subTotal), 0);
   }
 
-  /** Suma de notas de crédito de devolución (signo -1) — se muestra en positivo y se resta del total. */
+  /** Subtotal de las notas de crédito de devolución (signo -1) — se muestra en positivo y se resta. */
   totalDevoluciones(): number {
     return this.selectedInvoices()
       .filter(inv => inv.signo < 0)
-      .reduce((s, inv) => s + Number(inv.total), 0);
+      .reduce((s, inv) => s + Number(inv.subTotal), 0);
   }
 }

@@ -85,8 +85,17 @@
               <p class="text-[11px] font-semibold text-emerald-500 uppercase tracking-wide">
                 = {{ 'FORECAST.INVOICES_MODAL.TOTAL_CONSIDERADO' | translate }}
               </p>
-              <p class="text-base font-bold text-emerald-700 mt-0.5">${{ grandTotal() | number:'1.2-2' }} {{ moneda() }}</p>
+              <p class="text-base font-bold text-emerald-700 mt-0.5">${{ grandSubTotal() | number:'1.2-2' }} {{ moneda() }}</p>
             </div>
+          </div>
+
+          <div class="mb-3 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
+            <svg class="h-4 w-4 shrink-0 text-amber-500 mt-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+            </svg>
+            <p class="text-xs text-amber-800">
+              {{ 'FORECAST.INVOICES_MODAL.IVA_NOTICE' | translate }}
+            </p>
           </div>
 
           <p class="text-xs text-gray-400 mb-3">
