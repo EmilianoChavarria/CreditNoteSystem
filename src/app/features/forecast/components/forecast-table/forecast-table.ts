@@ -200,15 +200,47 @@ export class ForecastTable {
     return target - this.projectedTotal(dist);
   }
 
+  /** Toda fila cuyo total del año rebasa su objetivo anual, tenga o no cambios capturados. */
+  readonly overTargetRows = computed(() =>
+    this.distributors().filter(d => this.exceedsTarget(d))
+  );
+
+  readonly hasOverTargetRows = computed(() => this.overTargetRows().length > 0);
+
   /** Filas con cambios en borrador que rebasarían el objetivo anual: no se pueden enviar. */
   readonly blockedRows = computed(() => {
     const draftedIds = new Set(this.draftList().map(d => d.clientId));
-    return this.distributors().filter(d => draftedIds.has(d.id) && this.exceedsTarget(d));
+    return this.overTargetRows().filter(d => draftedIds.has(d.id));
   });
 
   readonly hasBlockedRows = computed(() => this.blockedRows().length > 0);
 
   readonly blockedRowNames = computed(() => this.blockedRows().map(d => d.name).join(', '));
+
+  /** El panel de avisos arranca abierto; el usuario puede colapsarlo. */
+  readonly alertsCollapsed = signal(false);
+
+  toggleAlerts(): void {
+    this.alertsCollapsed.update(v => !v);
+  }
+
+  /** id del <tr> de una fila, para poder saltar a ella desde el panel de avisos. */
+  rowDomId(dist: Distributor): string {
+    return `fc-row-${dist.isGroup ? 'g' : 'c'}-${dist.id}`;
+  }
+
+  /** Lleva la vista a la fila y la resalta un instante. */
+  scrollToRow(dist: Distributor): void {
+    const row = document.getElementById(this.rowDomId(dist));
+    if (!row) return;
+
+    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    row.classList.remove('fc-row-flash');
+    // Reinicia la animación si se pulsa dos veces seguidas sobre la misma fila.
+    void row.offsetWidth;
+    row.classList.add('fc-row-flash');
+    setTimeout(() => row.classList.remove('fc-row-flash'), 1600);
+  }
 
   /** Fila con cambios capturados que no se pueden enviar por rebasar el objetivo anual. */
   isBlocked(dist: Distributor): boolean {
@@ -253,8 +285,24 @@ export class ForecastTable {
     this.forecastService.setAnnualTarget(this.annualTargetType(), dist.id, this.year(), amount).pipe(
       finalize(() => this.savingTargetId.set(null))
     ).subscribe({
-      next: () => {
-        this.toastr.success(this.translate.instant('FORECAST.TABLE.ANNUAL_TARGET_SAVED'));
+      next: (result) => {
+        // El objetivo se acepta siempre; si los meses ya cargados lo rebasan,
+        // se avisa que hay que reajustarlos (la fila queda marcada y bloqueada).
+        if (result?.needsAdjustment) {
+          this.toastr.warning(
+            this.translate.instant('FORECAST.TABLE.ANNUAL_TARGET_NEEDS_ADJUSTMENT', {
+              client: dist.name,
+              total: Math.round(result.currentTotal).toLocaleString(),
+              target: Math.round(result.annualTarget ?? 0).toLocaleString(),
+              over: Math.round(result.excess).toLocaleString(),
+            }),
+            this.translate.instant('FORECAST.TABLE.ANNUAL_TARGET_SAVED'),
+            { timeOut: 8000 }
+          );
+        } else {
+          this.toastr.success(this.translate.instant('FORECAST.TABLE.ANNUAL_TARGET_SAVED'));
+        }
+
         this.refreshNeeded.emit();
       },
       error: (err: unknown) => {
