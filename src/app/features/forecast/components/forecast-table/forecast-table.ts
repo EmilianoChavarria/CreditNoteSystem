@@ -80,6 +80,8 @@ export class ForecastTable {
   readonly year = input.required<number>();
   readonly loading = input<boolean>(false);
   readonly mode = input<'client' | 'distributor'>('client');
+  /** Solo FORECAST ADMIN / SALES MANAGER pueden fijar el objetivo anual. */
+  readonly canEditAnnualTarget = input<boolean>(false);
 
   readonly refreshNeeded = output<void>();
 
@@ -99,6 +101,9 @@ export class ForecastTable {
   readonly exportingInvoices = signal(false);
   readonly invoiceProductsState = signal<InvoiceProductsState | null>(null);
   readonly clientModalState = signal<ClientModalState | null>(null);
+  readonly editingTargetId = signal<number | null>(null);
+  readonly editingTargetValue = signal('');
+  readonly savingTargetId = signal<number | null>(null);
   readonly expandedGroups = signal<Set<number>>(new Set());
   readonly closingGroups = signal<Set<number>>(new Set());
 
@@ -161,6 +166,107 @@ export class ForecastTable {
 
   rowSalesTotal(dist: Distributor): number {
     return dist.months.reduce((s, m) => s + m.sales, 0);
+  }
+
+  // -------------------------------------------------------------------------
+  // Objetivo anual (techo): la suma de los 12 meses no puede rebasarlo
+  // -------------------------------------------------------------------------
+
+  /** Total del año contando los cambios en borrador aún sin enviar. */
+  projectedTotal(dist: Distributor): number {
+    return dist.months.reduce(
+      (s, m, i) => s + (this.draftValue(dist.id, i) ?? m.forecast),
+      0
+    );
+  }
+
+  /** true si el total proyectado rebasa el objetivo anual del distribuidor. */
+  exceedsTarget(dist: Distributor): boolean {
+    const target = dist.annualTarget;
+    if (target === null || target === undefined) return false;
+    return this.projectedTotal(dist) > target + 0.01;
+  }
+
+  /** Cuánto sobra (positivo) respecto al objetivo anual. */
+  overTargetBy(dist: Distributor): number {
+    const target = dist.annualTarget ?? 0;
+    return Math.max(0, this.projectedTotal(dist) - target);
+  }
+
+  /** Lo que aún cabe en el año sin rebasar el objetivo. */
+  remainingTarget(dist: Distributor): number {
+    const target = dist.annualTarget;
+    if (target === null || target === undefined) return 0;
+    return target - this.projectedTotal(dist);
+  }
+
+  /** Filas con cambios en borrador que rebasarían el objetivo anual: no se pueden enviar. */
+  readonly blockedRows = computed(() => {
+    const draftedIds = new Set(this.draftList().map(d => d.clientId));
+    return this.distributors().filter(d => draftedIds.has(d.id) && this.exceedsTarget(d));
+  });
+
+  readonly hasBlockedRows = computed(() => this.blockedRows().length > 0);
+
+  readonly blockedRowNames = computed(() => this.blockedRows().map(d => d.name).join(', '));
+
+  /** Fila con cambios capturados que no se pueden enviar por rebasar el objetivo anual. */
+  isBlocked(dist: Distributor): boolean {
+    return this.exceedsTarget(dist) && this.hasDraftsFor(dist.id);
+  }
+
+  hasDraftsFor(clientId: number): boolean {
+    return [...this.drafts().values()].some(d => d.clientId === clientId);
+  }
+
+  private annualTargetType(): 'cliente' | 'clienteExtranjero' {
+    return this.mode() === 'distributor' ? 'clienteExtranjero' : 'cliente';
+  }
+
+  isEditingTarget(clientId: number): boolean {
+    return this.editingTargetId() === clientId;
+  }
+
+  startEditTarget(dist: Distributor): void {
+    if (!this.canEditAnnualTarget() || this.savingTargetId() !== null) return;
+    this.editingTargetId.set(dist.id);
+    this.editingTargetValue.set(dist.annualTarget !== null ? String(dist.annualTarget) : '');
+    setTimeout(() => {
+      document.querySelector<HTMLInputElement>('input.fc-target-input')?.select();
+    });
+  }
+
+  cancelEditTarget(): void {
+    this.editingTargetId.set(null);
+  }
+
+  /** Guarda el objetivo anual. Vacío = se elimina el techo del distribuidor. */
+  commitTargetEdit(dist: Distributor): void {
+    const raw = this.editingTargetValue().replace(/[^0-9.]/g, '');
+    this.editingTargetId.set(null);
+
+    const amount = raw === '' ? null : parseFloat(raw);
+    if (amount !== null && (isNaN(amount) || amount < 0)) return;
+    if (amount === dist.annualTarget) return;
+
+    this.savingTargetId.set(dist.id);
+    this.forecastService.setAnnualTarget(this.annualTargetType(), dist.id, this.year(), amount).pipe(
+      finalize(() => this.savingTargetId.set(null))
+    ).subscribe({
+      next: () => {
+        this.toastr.success(this.translate.instant('FORECAST.TABLE.ANNUAL_TARGET_SAVED'));
+        this.refreshNeeded.emit();
+      },
+      error: (err: unknown) => {
+        const message = (err as { error?: { message?: string } })?.error?.message;
+        this.toastr.error(message ?? this.translate.instant('FORECAST.TABLE.ANNUAL_TARGET_ERROR'));
+      },
+    });
+  }
+
+  handleTargetKeydown(e: KeyboardEvent): void {
+    if (e.key === 'Enter') { e.preventDefault(); (e.target as HTMLElement).blur(); }
+    if (e.key === 'Escape') { e.preventDefault(); this.cancelEditTarget(); }
   }
 
   isEditing(clientId: number, monthIdx: number): boolean {
@@ -351,6 +457,16 @@ export class ForecastTable {
       }
       return next;
     });
+
+    // Aviso inmediato: la fila queda marcada y no se podrá enviar así.
+    if (this.exceedsTarget(dist)) {
+      this.toastr.warning(
+        this.translate.instant('FORECAST.TABLE.ANNUAL_TARGET_EXCEEDED_TOAST', {
+          client: dist.name,
+          over: Math.round(this.overTargetBy(dist)).toLocaleString(),
+        })
+      );
+    }
   }
 
   discardDraft(clientId: number, monthIdx: number): void {
@@ -370,6 +486,14 @@ export class ForecastTable {
   saveDrafts(): void {
     const drafts = this.draftList();
     if (drafts.length === 0 || this.savingDrafts()) return;
+
+    // Bloqueo duro: mientras una fila rebase su objetivo anual no se envía nada.
+    if (this.hasBlockedRows()) {
+      this.toastr.error(
+        this.translate.instant('FORECAST.TABLE.ANNUAL_TARGET_BLOCKED_TOAST', { clients: this.blockedRowNames() })
+      );
+      return;
+    }
 
     this.savingDrafts.set(true);
     const year = this.year();
