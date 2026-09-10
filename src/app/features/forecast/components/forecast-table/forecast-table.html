@@ -10,6 +10,68 @@
       {{ 'FORECAST.TABLE.EMPTY' | translate }}
     </div>
   } @else {
+    @if (hasOverTargetRows()) {
+      <div class="mb-2 overflow-hidden rounded-lg border border-red-200 bg-red-50">
+        <button
+          type="button"
+          class="flex w-full items-center gap-2 px-4 py-2.5 text-left transition-colors hover:bg-red-100/60 hover:cursor-pointer"
+          (click)="toggleAlerts()">
+          <lucide-icon name="triangle-alert" size="15" class="shrink-0 text-red-500"></lucide-icon>
+          <span class="min-w-0 flex-1 text-xs font-semibold text-red-800">
+            {{ 'FORECAST.TABLE.ANNUAL_TARGET_PANEL_TITLE' | translate:{ count: overTargetRows().length } }}
+          </span>
+          @if (hasBlockedRows()) {
+            <span class="shrink-0 inline-flex items-center rounded-full bg-red-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+              {{ 'FORECAST.TABLE.ANNUAL_TARGET_PANEL_BLOCKS' | translate:{ count: blockedRows().length } }}
+            </span>
+          }
+          <lucide-icon
+            name="chevron-right"
+            size="14"
+            class="shrink-0 text-red-400 transition-transform duration-200"
+            [class.rotate-90]="!alertsCollapsed()"></lucide-icon>
+        </button>
+
+        @if (!alertsCollapsed()) {
+          <div class="border-t border-red-200">
+            <p class="px-4 pt-2 text-[11px] text-red-700">
+              {{ 'FORECAST.TABLE.ANNUAL_TARGET_PANEL_HINT' | translate }}
+            </p>
+            <ul class="divide-y divide-red-100 px-2 py-2">
+              @for (row of overTargetRows(); track (row.isGroup ? 'g-' : 'c-') + row.id) {
+                <li class="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-2 py-1.5">
+                  <div class="flex min-w-0 flex-1 flex-col">
+                    <div class="flex min-w-0 items-center gap-1.5">
+                      <span class="truncate text-xs font-semibold text-red-900">{{ row.name }}</span>
+                      @if (isBlocked(row)) {
+                        <span class="shrink-0 inline-flex items-center rounded-full bg-red-600 px-1.5 py-0.5 text-[9px] font-bold uppercase text-white">
+                          {{ 'FORECAST.TABLE.ANNUAL_TARGET_PANEL_ROW_BLOCKED' | translate }}
+                        </span>
+                      }
+                    </div>
+                    <span class="text-[11px] text-red-700">
+                      {{ 'FORECAST.TABLE.ANNUAL_TARGET_PANEL_ROW' | translate:{
+                        total: (projectedTotal(row) | number:'1.0-0'),
+                        target: (row.annualTarget | number:'1.0-0'),
+                        over: (overTargetBy(row) | number:'1.0-0')
+                      } }}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    class="shrink-0 inline-flex items-center gap-1 rounded-md border border-red-300 bg-white px-2 py-1 text-[11px] font-semibold text-red-700 transition-colors hover:bg-red-100 hover:cursor-pointer"
+                    (click)="scrollToRow(row)">
+                    <lucide-icon name="eye" size="11"></lucide-icon>
+                    {{ 'FORECAST.TABLE.ANNUAL_TARGET_PANEL_GOTO' | translate }}
+                  </button>
+                </li>
+              }
+            </ul>
+          </div>
+        }
+      </div>
+    }
+
     @if (hasDrafts()) {
       <div class="sticky top-0 z-30 mb-2 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2.5">
         <div class="flex items-center gap-2 text-xs text-blue-900">
@@ -31,7 +93,8 @@
           <button
             type="button"
             class="inline-flex items-center gap-1.5 rounded-md bg-[#ff8200] px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-[#e57400] hover:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-            [disabled]="savingDrafts()"
+            [disabled]="savingDrafts() || hasBlockedRows()"
+            [title]="hasBlockedRows() ? ('FORECAST.TABLE.ANNUAL_TARGET_BLOCKED_TOOLTIP' | translate) : ''"
             (click)="saveDrafts()">
             <lucide-icon name="save" size="13"></lucide-icon>
             {{ (savingDrafts() ? 'FORECAST.TABLE.SAVING' : 'FORECAST.TABLE.SAVE_CHANGES') | translate }}
@@ -80,7 +143,7 @@
 <ng-template #clientRows let-dist>
 
   <!-- Forecast row -->
-  <tr class="border-t-2 border-gray-200 bg-gray-50/40">
+  <tr class="border-t-2 border-gray-200 bg-gray-50/40" [id]="rowDomId(dist)">
     <td rowspan="3"
       class="sticky left-0 z-10 py-2 pr-2 pl-2 sm:pr-4 sm:pl-4 font-semibold text-sm align-middle bg-white whitespace-nowrap w-36 min-w-36 max-w-36 sm:w-72 sm:min-w-72 sm:max-w-72">
       <div class="flex min-w-0 items-center gap-2">
@@ -110,6 +173,14 @@
             {{ 'FORECAST.TABLE.GROUP_BADGE' | translate }} · {{ dist.members?.length ?? 0 }} 
           </span>
         }
+        @if (exceedsTarget(dist)) {
+          <span
+            class="shrink-0 inline-flex items-center gap-1 rounded-full bg-red-100 px-1.5 py-0.5 text-[9px] font-bold text-red-700 uppercase"
+            [title]="'FORECAST.TABLE.ANNUAL_TARGET_EXCEEDED_TOOLTIP' | translate:{ target: dist.annualTarget, total: projectedTotal(dist), over: overTargetBy(dist) }">
+            <lucide-icon name="triangle-alert" size="10"></lucide-icon>
+            {{ 'FORECAST.TABLE.ANNUAL_TARGET_BADGE' | translate }}
+          </span>
+        }
       </div>
     </td>
     <td class="sticky left-36 sm:left-72 z-10 px-1.5 sm:px-3 py-1.5 whitespace-nowrap bg-white border-r border-gray-200 w-20 min-w-20 max-w-20 sm:w-48 sm:min-w-48 sm:max-w-48">
@@ -118,11 +189,11 @@
     @for (m of dist.months; track $index; let i = $index) {
       <td
         class="px-2 py-1.5 text-right text-xs text-gray-600 whitespace-nowrap transition-colors select-none"
-        [class.cursor-pointer]="isEditableMonth(i) && m.pendingRequest?.status !== 'pending'"
-        [class.hover:bg-gray-100]="isEditableMonth(i) && m.pendingRequest?.status !== 'pending'"
-        [class.opacity-60]="m.pendingRequest?.status === 'pending' || !isEditableMonth(i)"
+        [class.cursor-pointer]="m.pendingRequest?.status !== 'pending'"
+        [class.hover:bg-gray-100]="m.pendingRequest?.status !== 'pending'"
+        [class.opacity-60]="m.pendingRequest?.status === 'pending'"
         [class.bg-blue-50]="isDraft(dist.id, i)"
-        [title]="!isEditableMonth(i) ? ('FORECAST.TABLE.MONTH_NOT_EDITABLE' | translate) : (m.pendingRequest?.status === 'pending' ? ('FORECAST.TABLE.PENDING_CHANGE' | translate) : ('FORECAST.TABLE.DBL_CLICK_EDIT' | translate))"
+        [title]="m.pendingRequest?.status === 'pending' ? ('FORECAST.TABLE.PENDING_CHANGE' | translate) : ('FORECAST.TABLE.DBL_CLICK_EDIT' | translate)"
         (dblclick)="onCellDblClick(dist, i)">
         @if (isEditing(dist.id, i)) {
           <input
@@ -152,8 +223,37 @@
         }
       </td>
     }
-    <td class="px-3 py-1.5 text-right text-xs font-semibold text-gray-600 whitespace-nowrap border-l border-gray-100">
-      $ {{ rowTotal(dist) | number:'1.0-0' }}
+    <td
+      [class]="'px-3 py-1.5 text-right text-xs font-semibold whitespace-nowrap border-l border-gray-100 ' + (exceedsTarget(dist) ? 'bg-red-50 text-red-700' : 'text-gray-600')"
+      [class.cursor-pointer]="canEditAnnualTarget() && !isEditingTarget(dist.id)"
+      [title]="canEditAnnualTarget() ? ('FORECAST.TABLE.ANNUAL_TARGET_DBL_CLICK' | translate) : ''"
+      (dblclick)="startEditTarget(dist)">
+      @if (isEditingTarget(dist.id)) {
+        <input
+          type="text"
+          inputmode="numeric"
+          class="fc-target-input w-24 border border-gray-400 rounded px-1.5 py-0.5 text-right text-xs focus:outline-none focus:ring-2 focus:ring-gray-300"
+          [value]="editingTargetValue()"
+          [placeholder]="'FORECAST.TABLE.ANNUAL_TARGET_PLACEHOLDER' | translate"
+          (input)="editingTargetValue.set($any($event.target).value)"
+          (blur)="commitTargetEdit(dist)"
+          (keydown)="handleTargetKeydown($event)">
+      } @else if (savingTargetId() === dist.id) {
+        <span class="italic text-gray-400">{{ 'FORECAST.TABLE.SENDING' | translate }}</span>
+      } @else {
+        <div class="flex flex-col items-end leading-tight">
+          <span>$ {{ projectedTotal(dist) | number:'1.0-0' }}</span>
+          @if (dist.annualTarget !== null) {
+            <span [class]="exceedsTarget(dist) ? 'text-[10px] font-semibold text-red-600' : 'text-[10px] font-normal text-gray-400'">
+              {{ 'FORECAST.TABLE.ANNUAL_TARGET_SHORT' | translate }} $ {{ dist.annualTarget | number:'1.0-0' }}
+            </span>
+          } @else {
+            <span class="text-[10px] font-normal text-gray-300">
+              {{ 'FORECAST.TABLE.ANNUAL_TARGET_NONE' | translate }}
+            </span>
+          }
+        </div>
+      }
     </td>
   </tr>
 

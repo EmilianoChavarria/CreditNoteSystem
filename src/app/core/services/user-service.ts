@@ -73,6 +73,17 @@ export class UserService {
     );
   }
 
+  /** Usuarios con rol CS LEADER, para asignarlos como líder de un cliente. */
+  getCsLeaders(): Observable<User[]> {
+    return this._httpService.get<User[]>('users/cs-leaders').pipe(
+      map((response: ApiResponse<User[]>) => response.data ?? []),
+      catchError((error) => {
+        console.log(error);
+        throw error;
+      })
+    );
+  }
+
   getRequesters(): Observable<User[]> {
     return this._httpService.get<User[]>('users/by-role/requesters').pipe(
       map((response: ApiResponse<User[]>) => response.data ?? []),

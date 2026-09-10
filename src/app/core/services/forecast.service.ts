@@ -288,6 +288,8 @@ export interface ForecastClientApi {
   /** Solo en clientes extranjeros: ARG = Argentina, el resto Centroamérica. */
   countrycode?: string | null;
   year: number;
+  /** Techo anual: la suma de los 12 meses no puede rebasarlo. null = sin objetivo cargado. */
+  annualTarget?: string | number | null;
   months: ForecastMonthApi[];
 }
 
@@ -308,6 +310,8 @@ export interface ForecastGroupApi {
   id: number;
   razonSocial: string;
   year: number;
+  /** Techo anual del grupo. */
+  annualTarget?: string | number | null;
   months: ForecastMonthApi[];
   clients: ForecastGroupMemberApi[];
 }
@@ -399,10 +403,25 @@ export interface Distributor {
   id: number;
   name: string;
   months: MonthEntry[];
+  /** Techo anual del forecast; null cuando no tiene objetivo cargado. */
+  annualTarget: number | null;
   isGroup?: boolean;
   members?: GroupMemberSales[];
   /** Solo en clientes extranjeros: ARG = Argentina, el resto Centroamérica. */
   countrycode?: string | null;
+}
+
+export interface AnnualTargetResult {
+  tipo: 'cliente' | 'clienteExtranjero';
+  id: number;
+  year: number;
+  annualTarget: number | null;
+  /** Suma de los 12 meses ya cargados. */
+  currentTotal: number;
+  /** true si esa suma rebasa el objetivo recién guardado: hay que reajustar los meses. */
+  needsAdjustment: boolean;
+  /** Cuánto sobra respecto al nuevo objetivo. */
+  excess: number;
 }
 
 export interface ChangeRequestUser {
@@ -557,11 +576,18 @@ function buildMonthEntries(months: ForecastMonthApi[]): MonthEntry[] {
   });
 }
 
+function parseAnnualTarget(value: string | number | null | undefined): number | null {
+  if (value === null || value === undefined || value === '') return null;
+  const parsed = parseFloat(String(value));
+  return isNaN(parsed) ? null : parsed;
+}
+
 function mapClientToDistributor(client: ForecastClientApi): Distributor {
   return {
     id: parseInt(client.idCliente),
     name: client.razonSocial,
     months: buildMonthEntries(client.months),
+    annualTarget: parseAnnualTarget(client.annualTarget),
     countrycode: client.countrycode ?? null,
   };
 }
@@ -584,6 +610,7 @@ function mapGroupToDistributor(group: ForecastGroupApi): Distributor {
     name: group.razonSocial,
     isGroup: true,
     months: buildMonthEntries(group.months),
+    annualTarget: parseAnnualTarget(group.annualTarget),
     members: group.clients.map(mapGroupMemberSales),
   };
 }
@@ -651,6 +678,28 @@ export class ForecastService {
       { ...this.withBearer(), params: { year } }
     ).pipe(
       map((response: ApiResponse<ForecastRowApi[]>) => response.data ?? []),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
+  /**
+   * Fija el objetivo anual (techo) de un cliente/grupo o cliente extranjero.
+   * Con `amount` null se elimina el objetivo y la fila deja de tener techo.
+   * Siempre se acepta: si el forecast ya cargado lo rebasa, la respuesta viene
+   * con `needsAdjustment` para avisar que hay que reajustar los meses.
+   */
+  setAnnualTarget(
+    tipo: 'cliente' | 'clienteExtranjero',
+    id: number,
+    year: number,
+    amount: number | null
+  ): Observable<AnnualTargetResult | null> {
+    return this.httpService.put<AnnualTargetResult>(
+      `/forecast/annual-target/${tipo}/${id}/${year}`,
+      { amount },
+      this.withBearer()
+    ).pipe(
+      map((response: ApiResponse<AnnualTargetResult>) => response.data),
       catchError((error) => throwError(() => error))
     );
   }
@@ -887,11 +936,20 @@ export class ForecastService {
    * forecast y otro de ventas. Sin salesEngineerId el backend exporta todo lo
    * que el rol permita (sus ingenieros, o el padrón completo para el admin).
    */
-  exportForecastExcel(year: number, salesEngineerId?: number): Observable<Blob> {
+  /** `tipo` acota la exportación a una sola hoja; sin él vienen las dos. */
+  exportForecastExcel(
+    year: number,
+    salesEngineerId?: number,
+    tipo?: 'nacionales' | 'extranjeros'
+  ): Observable<Blob> {
     const params: Record<string, string> = { year: String(year) };
 
     if (salesEngineerId) {
       params['salesEngineerId'] = String(salesEngineerId);
+    }
+
+    if (tipo) {
+      params['tipo'] = tipo;
     }
 
     return this.httpService.getBlob('/forecast/export/excel', params);

@@ -72,7 +72,7 @@
       </div>
     </div>
 
-    <!-- CS Manager -->
+    <!-- CS Manager + CS Leader -->
     <div class="w-full gap-x-4 flex flex-row pb-1">
       <div class="w-1/2">
         <app-select
@@ -82,6 +82,15 @@
           [options]="managerOptions()"
           [value]="form.controls.csManagerId.value"
           (valueChange)="form.controls.csManagerId.setValue($event)" />
+      </div>
+      <div class="w-1/2">
+        <app-select
+          id="ext-cs-leader"
+          label="CS Leader"
+          placeholder="Selecciona"
+          [options]="csLeaderOptions()"
+          [value]="form.controls.csLeaderId.value"
+          (valueChange)="form.controls.csLeaderId.setValue($event)" />
       </div>
     </div>
 

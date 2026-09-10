@@ -80,6 +80,8 @@ export class ForecastTable {
   readonly year = input.required<number>();
   readonly loading = input<boolean>(false);
   readonly mode = input<'client' | 'distributor'>('client');
+  /** Solo FORECAST ADMIN / SALES MANAGER pueden fijar el objetivo anual. */
+  readonly canEditAnnualTarget = input<boolean>(false);
 
   readonly refreshNeeded = output<void>();
 
@@ -99,6 +101,9 @@ export class ForecastTable {
   readonly exportingInvoices = signal(false);
   readonly invoiceProductsState = signal<InvoiceProductsState | null>(null);
   readonly clientModalState = signal<ClientModalState | null>(null);
+  readonly editingTargetId = signal<number | null>(null);
+  readonly editingTargetValue = signal('');
+  readonly savingTargetId = signal<number | null>(null);
   readonly expandedGroups = signal<Set<number>>(new Set());
   readonly closingGroups = signal<Set<number>>(new Set());
 
@@ -163,6 +168,155 @@ export class ForecastTable {
     return dist.months.reduce((s, m) => s + m.sales, 0);
   }
 
+  // -------------------------------------------------------------------------
+  // Objetivo anual (techo): la suma de los 12 meses no puede rebasarlo
+  // -------------------------------------------------------------------------
+
+  /** Total del año contando los cambios en borrador aún sin enviar. */
+  projectedTotal(dist: Distributor): number {
+    return dist.months.reduce(
+      (s, m, i) => s + (this.draftValue(dist.id, i) ?? m.forecast),
+      0
+    );
+  }
+
+  /** true si el total proyectado rebasa el objetivo anual del distribuidor. */
+  exceedsTarget(dist: Distributor): boolean {
+    const target = dist.annualTarget;
+    if (target === null || target === undefined) return false;
+    return this.projectedTotal(dist) > target + 0.01;
+  }
+
+  /** Cuánto sobra (positivo) respecto al objetivo anual. */
+  overTargetBy(dist: Distributor): number {
+    const target = dist.annualTarget ?? 0;
+    return Math.max(0, this.projectedTotal(dist) - target);
+  }
+
+  /** Lo que aún cabe en el año sin rebasar el objetivo. */
+  remainingTarget(dist: Distributor): number {
+    const target = dist.annualTarget;
+    if (target === null || target === undefined) return 0;
+    return target - this.projectedTotal(dist);
+  }
+
+  /** Toda fila cuyo total del año rebasa su objetivo anual, tenga o no cambios capturados. */
+  readonly overTargetRows = computed(() =>
+    this.distributors().filter(d => this.exceedsTarget(d))
+  );
+
+  readonly hasOverTargetRows = computed(() => this.overTargetRows().length > 0);
+
+  /** Filas con cambios en borrador que rebasarían el objetivo anual: no se pueden enviar. */
+  readonly blockedRows = computed(() => {
+    const draftedIds = new Set(this.draftList().map(d => d.clientId));
+    return this.overTargetRows().filter(d => draftedIds.has(d.id));
+  });
+
+  readonly hasBlockedRows = computed(() => this.blockedRows().length > 0);
+
+  readonly blockedRowNames = computed(() => this.blockedRows().map(d => d.name).join(', '));
+
+  /** El panel de avisos arranca abierto; el usuario puede colapsarlo. */
+  readonly alertsCollapsed = signal(false);
+
+  toggleAlerts(): void {
+    this.alertsCollapsed.update(v => !v);
+  }
+
+  /** id del <tr> de una fila, para poder saltar a ella desde el panel de avisos. */
+  rowDomId(dist: Distributor): string {
+    return `fc-row-${dist.isGroup ? 'g' : 'c'}-${dist.id}`;
+  }
+
+  /** Lleva la vista a la fila y la resalta un instante. */
+  scrollToRow(dist: Distributor): void {
+    const row = document.getElementById(this.rowDomId(dist));
+    if (!row) return;
+
+    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    row.classList.remove('fc-row-flash');
+    // Reinicia la animación si se pulsa dos veces seguidas sobre la misma fila.
+    void row.offsetWidth;
+    row.classList.add('fc-row-flash');
+    setTimeout(() => row.classList.remove('fc-row-flash'), 1600);
+  }
+
+  /** Fila con cambios capturados que no se pueden enviar por rebasar el objetivo anual. */
+  isBlocked(dist: Distributor): boolean {
+    return this.exceedsTarget(dist) && this.hasDraftsFor(dist.id);
+  }
+
+  hasDraftsFor(clientId: number): boolean {
+    return [...this.drafts().values()].some(d => d.clientId === clientId);
+  }
+
+  private annualTargetType(): 'cliente' | 'clienteExtranjero' {
+    return this.mode() === 'distributor' ? 'clienteExtranjero' : 'cliente';
+  }
+
+  isEditingTarget(clientId: number): boolean {
+    return this.editingTargetId() === clientId;
+  }
+
+  startEditTarget(dist: Distributor): void {
+    if (!this.canEditAnnualTarget() || this.savingTargetId() !== null) return;
+    this.editingTargetId.set(dist.id);
+    this.editingTargetValue.set(dist.annualTarget !== null ? String(dist.annualTarget) : '');
+    setTimeout(() => {
+      document.querySelector<HTMLInputElement>('input.fc-target-input')?.select();
+    });
+  }
+
+  cancelEditTarget(): void {
+    this.editingTargetId.set(null);
+  }
+
+  /** Guarda el objetivo anual. Vacío = se elimina el techo del distribuidor. */
+  commitTargetEdit(dist: Distributor): void {
+    const raw = this.editingTargetValue().replace(/[^0-9.]/g, '');
+    this.editingTargetId.set(null);
+
+    const amount = raw === '' ? null : parseFloat(raw);
+    if (amount !== null && (isNaN(amount) || amount < 0)) return;
+    if (amount === dist.annualTarget) return;
+
+    this.savingTargetId.set(dist.id);
+    this.forecastService.setAnnualTarget(this.annualTargetType(), dist.id, this.year(), amount).pipe(
+      finalize(() => this.savingTargetId.set(null))
+    ).subscribe({
+      next: (result) => {
+        // El objetivo se acepta siempre; si los meses ya cargados lo rebasan,
+        // se avisa que hay que reajustarlos (la fila queda marcada y bloqueada).
+        if (result?.needsAdjustment) {
+          this.toastr.warning(
+            this.translate.instant('FORECAST.TABLE.ANNUAL_TARGET_NEEDS_ADJUSTMENT', {
+              client: dist.name,
+              total: Math.round(result.currentTotal).toLocaleString(),
+              target: Math.round(result.annualTarget ?? 0).toLocaleString(),
+              over: Math.round(result.excess).toLocaleString(),
+            }),
+            this.translate.instant('FORECAST.TABLE.ANNUAL_TARGET_SAVED'),
+            { timeOut: 8000 }
+          );
+        } else {
+          this.toastr.success(this.translate.instant('FORECAST.TABLE.ANNUAL_TARGET_SAVED'));
+        }
+
+        this.refreshNeeded.emit();
+      },
+      error: (err: unknown) => {
+        const message = (err as { error?: { message?: string } })?.error?.message;
+        this.toastr.error(message ?? this.translate.instant('FORECAST.TABLE.ANNUAL_TARGET_ERROR'));
+      },
+    });
+  }
+
+  handleTargetKeydown(e: KeyboardEvent): void {
+    if (e.key === 'Enter') { e.preventDefault(); (e.target as HTMLElement).blur(); }
+    if (e.key === 'Escape') { e.preventDefault(); this.cancelEditTarget(); }
+  }
+
   isEditing(clientId: number, monthIdx: number): boolean {
     const c = this.editingCell();
     return c?.clientId === clientId && c?.monthIdx === monthIdx;
@@ -171,13 +325,6 @@ export class ForecastTable {
   isSubmitting(clientId: number, monthIdx: number): boolean {
     const c = this.submittingCell();
     return c?.clientId === clientId && c?.monthIdx === monthIdx;
-  }
-
-  isEditableMonth(monthIdx: number): boolean {
-    const now = new Date();
-    if (this.year() < now.getFullYear()) return true;
-    if (this.year() > now.getFullYear()) return false;
-    return monthIdx <= now.getMonth();
   }
 
   onCellClick(dist: Distributor, monthIdx: number): void {
@@ -193,7 +340,7 @@ export class ForecastTable {
       this.clickTimer = null;
     }
     const m = dist.months[monthIdx];
-    if (this.isEditableMonth(monthIdx) && m.pendingRequest?.status !== 'pending' && !this.isSubmitting(dist.id, monthIdx)) {
+    if (m.pendingRequest?.status !== 'pending' && !this.isSubmitting(dist.id, monthIdx)) {
       // El input arranca con el valor en borrador si ya se editó esta celda,
       // pero el original sigue siendo el forecast vigente.
       this.startEdit(dist.id, monthIdx, this.draftValue(dist.id, monthIdx) ?? m.forecast, m.forecast);
@@ -351,6 +498,16 @@ export class ForecastTable {
       }
       return next;
     });
+
+    // Aviso inmediato: la fila queda marcada y no se podrá enviar así.
+    if (this.exceedsTarget(dist)) {
+      this.toastr.warning(
+        this.translate.instant('FORECAST.TABLE.ANNUAL_TARGET_EXCEEDED_TOAST', {
+          client: dist.name,
+          over: Math.round(this.overTargetBy(dist)).toLocaleString(),
+        })
+      );
+    }
   }
 
   discardDraft(clientId: number, monthIdx: number): void {
@@ -370,6 +527,14 @@ export class ForecastTable {
   saveDrafts(): void {
     const drafts = this.draftList();
     if (drafts.length === 0 || this.savingDrafts()) return;
+
+    // Bloqueo duro: mientras una fila rebase su objetivo anual no se envía nada.
+    if (this.hasBlockedRows()) {
+      this.toastr.error(
+        this.translate.instant('FORECAST.TABLE.ANNUAL_TARGET_BLOCKED_TOAST', { clients: this.blockedRowNames() })
+      );
+      return;
+    }
 
     this.savingDrafts.set(true);
     const year = this.year();
