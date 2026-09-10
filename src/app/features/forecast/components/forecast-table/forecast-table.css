@@ -27,3 +27,13 @@
 .fc-row-closing {
   animation: fc-row-out 180ms ease-in forwards;
 }
+
+@keyframes fc-row-flash {
+  0%, 100% { background-color: transparent; }
+  20%, 60% { background-color: rgb(254 226 226); }
+}
+
+/* Resalta la fila a la que se salta desde el panel de avisos. */
+.fc-row-flash > td {
+  animation: fc-row-flash 1.6s ease-in-out;
+}
