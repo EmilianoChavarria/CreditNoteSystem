@@ -939,6 +939,7 @@
     "FINANCE_MANAGER": "Gerente Finanzas",
     "MARKETING_MANAGER": "Gerente Marketing",
     "CS_MANAGER": "Gerente Servicio al Cliente",
+    "CS_LEADER": "CS Leader",
     "STATUS": "Estado",
     "ACTIVE": "Activo",
     "INACTIVE": "Inactivo",
@@ -975,6 +976,7 @@
     "FINANCE_MANAGER": "Gerente Finanzas",
     "MARKETING_MANAGER": "Gerente Marketing",
     "CS_MANAGER": "Gerente Servicio al Cliente",
+    "CS_LEADER": "CS Leader",
     "AREA": "Área"
   },
   "ROLE_FORM": {
@@ -1388,7 +1390,7 @@
       "UPLOADING": "Importando...",
       "BULK_UPLOAD": "Carga masiva de Forecast",
       "BULK_UPLOAD_TITLE": "Carga masiva de Forecast",
-      "BULK_UPLOAD_DESCRIPTION": "Sube un archivo CSV o XLSX con el forecast a registrar o actualizar.",
+      "BULK_UPLOAD_DESCRIPTION": "Sube un archivo CSV o XLSX con el forecast a registrar o actualizar. La columna \"Total Forecast\" fija el objetivo anual: la suma de los 12 meses no puede superarla. Si la dejas vacía se conserva el objetivo ya cargado.",
       "BULK_DROP_HINT": "Arrastra tu archivo aquí o ",
       "BULK_UPLOAD_BTN": "Cargar",
       "BULK_UPLOADING": "Cargando...",
@@ -1452,7 +1454,19 @@
       "DISCARD_ALL": "Descartar",
       "DISCARD_ONE": "Descartar este cambio",
       "PENDING_DRAFTS": "{{months}} mes(es) modificado(s) en {{clients}} cliente(s) sin guardar",
-      "BATCH_SAVED": "{{count}} solicitud(es) de cambio enviada(s)"
+      "BATCH_SAVED": "{{count}} solicitud(es) de cambio enviada(s)",
+      "ANNUAL_TARGET_BADGE": "Excede objetivo",
+      "ANNUAL_TARGET_SHORT": "Objetivo anual",
+      "ANNUAL_TARGET_NONE": "Sin objetivo anual",
+      "ANNUAL_TARGET_PLACEHOLDER": "Sin objetivo",
+      "ANNUAL_TARGET_DBL_CLICK": "Doble clic para fijar el objetivo anual (vacío = sin objetivo)",
+      "ANNUAL_TARGET_SAVED": "Objetivo anual actualizado",
+      "ANNUAL_TARGET_ERROR": "No se pudo guardar el objetivo anual.",
+      "ANNUAL_TARGET_EXCEEDED_TOOLTIP": "La suma de los 12 meses (${{total}}) supera el objetivo anual (${{target}}) por ${{over}}.",
+      "ANNUAL_TARGET_EXCEEDED_TOAST": "{{client}}: la suma de los meses supera el objetivo anual por ${{over}}. No se podrá enviar hasta ajustarlo.",
+      "ANNUAL_TARGET_BLOCKED_TOAST": "No se pueden enviar los cambios: {{clients}} supera(n) su objetivo anual.",
+      "ANNUAL_TARGET_BLOCKED_TOOLTIP": "Hay distribuidores que superan su objetivo anual",
+      "ANNUAL_TARGET_BLOCKED_BANNER": "No se pueden enviar los cambios: {{clients}} supera(n) el objetivo anual del año. Reduce los meses o ajusta el objetivo anual."
     },
     "CLIENT_MODAL": {
       "LOADING": "Cargando forecast...",
