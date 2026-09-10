@@ -1490,6 +1490,7 @@
       "TOTAL_FACTURAS": "Total facturas",
       "TOTAL_DEVOLUCIONES": "Devoluciones (DM)",
       "TOTAL_CONSIDERADO": "Total considerado",
+      "IVA_NOTICE": "Importante: la venta mensual no considera el IVA de las facturas; se calcula solo con el subtotal de cada una. El IVA se muestra abajo únicamente como referencia.",
       "EXPLANATION": "Las notas de crédito con PO de devolución (empieza con \"DM\") restan del total. Las demás notas de crédito no forman parte de la venta y no se listan.",
       "BADGE_FACTURA": "Factura",
       "BADGE_DEVOLUCION": "Devolución (resta)"
@@ -1508,7 +1509,7 @@
       "TOTAL_FACTURADO": "Total facturado",
       "TOTAL_EXCLUIDO": "No rodamientos / sin clasificar",
       "TOTAL_CONSIDERADO": "Total considerado",
-      "EXPLANATION": "El total considerado solo incluye los productos clasificados como \"Rodamientos\"; lo clasificado como \"No Rodamientos\" y lo que aún no tiene clasificación se resta.",
+      "EXPLANATION": "El total considerado solo incluye los productos clasificados como \"Rodamientos\"; lo clasificado como \"No Rodamientos\" y lo que aún no tiene clasificación se resta. Todos los importes van sin IVA.",
       "CLOSE": "Cerrar",
       "SIN_CLASIFICAR": "Sin clasificar"
     },

@@ -1490,6 +1490,7 @@
       "TOTAL_FACTURAS": "Total invoices",
       "TOTAL_DEVOLUCIONES": "Returns (DM)",
       "TOTAL_CONSIDERADO": "Total considered",
+      "IVA_NOTICE": "Important: monthly sales do not include invoice VAT; they are calculated from each invoice subtotal only. VAT is shown below for reference only.",
       "EXPLANATION": "Credit notes with a return PO (starts with \"DM\") subtract from the total. Other credit notes are not part of sales and are not listed.",
       "BADGE_FACTURA": "Invoice",
       "BADGE_DEVOLUCION": "Return (subtracts)"
@@ -1508,7 +1509,7 @@
       "TOTAL_FACTURADO": "Total invoiced",
       "TOTAL_EXCLUIDO": "Non-bearings / unclassified",
       "TOTAL_CONSIDERADO": "Total considered",
-      "EXPLANATION": "The considered total only includes products classified as \"Rodamientos\" (bearings); items classified as \"No Rodamientos\" and items not yet classified are subtracted.",
+      "EXPLANATION": "The considered total only includes products classified as \"Rodamientos\" (bearings); items classified as \"No Rodamientos\" and items not yet classified are subtracted. All amounts exclude VAT.",
       "CLOSE": "Close",
       "SIN_CLASIFICAR": "Unclassified"
     },
