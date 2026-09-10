@@ -411,6 +411,19 @@ export interface Distributor {
   countrycode?: string | null;
 }
 
+export interface AnnualTargetResult {
+  tipo: 'cliente' | 'clienteExtranjero';
+  id: number;
+  year: number;
+  annualTarget: number | null;
+  /** Suma de los 12 meses ya cargados. */
+  currentTotal: number;
+  /** true si esa suma rebasa el objetivo recién guardado: hay que reajustar los meses. */
+  needsAdjustment: boolean;
+  /** Cuánto sobra respecto al nuevo objetivo. */
+  excess: number;
+}
+
 export interface ChangeRequestUser {
   id: number;
   fullName: string;
@@ -672,19 +685,21 @@ export class ForecastService {
   /**
    * Fija el objetivo anual (techo) de un cliente/grupo o cliente extranjero.
    * Con `amount` null se elimina el objetivo y la fila deja de tener techo.
+   * Siempre se acepta: si el forecast ya cargado lo rebasa, la respuesta viene
+   * con `needsAdjustment` para avisar que hay que reajustar los meses.
    */
   setAnnualTarget(
     tipo: 'cliente' | 'clienteExtranjero',
     id: number,
     year: number,
     amount: number | null
-  ): Observable<unknown> {
-    return this.httpService.put<unknown>(
+  ): Observable<AnnualTargetResult | null> {
+    return this.httpService.put<AnnualTargetResult>(
       `/forecast/annual-target/${tipo}/${id}/${year}`,
       { amount },
       this.withBearer()
     ).pipe(
-      map((response: ApiResponse<unknown>) => response.data),
+      map((response: ApiResponse<AnnualTargetResult>) => response.data),
       catchError((error) => throwError(() => error))
     );
   }
