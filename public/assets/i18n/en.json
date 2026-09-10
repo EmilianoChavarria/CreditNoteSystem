@@ -1461,12 +1461,18 @@
       "ANNUAL_TARGET_PLACEHOLDER": "No target",
       "ANNUAL_TARGET_DBL_CLICK": "Double-click to set the annual target (empty = no target)",
       "ANNUAL_TARGET_SAVED": "Annual target updated",
+      "ANNUAL_TARGET_NEEDS_ADJUSTMENT": "{{client}}: the loaded months add up to ${{total}} and the new annual target is ${{target}}. The months must be readjusted: ${{over}} over.",
       "ANNUAL_TARGET_ERROR": "The annual target could not be saved.",
-      "ANNUAL_TARGET_EXCEEDED_TOOLTIP": "The 12-month total (${{total}}) exceeds the annual target (${{target}}) by ${{over}}.",
+      "ANNUAL_TARGET_EXCEEDED_TOOLTIP": "The 12-month total (${{total}}) exceeds the annual target (${{target}}) by ${{over}}. Readjust the months before submitting changes.",
       "ANNUAL_TARGET_EXCEEDED_TOAST": "{{client}}: the monthly total exceeds the annual target by ${{over}}. It cannot be submitted until adjusted.",
       "ANNUAL_TARGET_BLOCKED_TOAST": "Changes cannot be submitted: {{clients}} exceed(s) the annual target.",
       "ANNUAL_TARGET_BLOCKED_TOOLTIP": "Some distributors exceed their annual target",
-      "ANNUAL_TARGET_BLOCKED_BANNER": "Changes cannot be submitted: {{clients}} exceed(s) the annual target for the year. Reduce the months or adjust the annual target."
+      "ANNUAL_TARGET_PANEL_TITLE": "{{count}} distributor(s) exceed their annual target",
+      "ANNUAL_TARGET_PANEL_BLOCKS": "{{count}} blocking submission",
+      "ANNUAL_TARGET_PANEL_HINT": "Readjust the months until the total fits the annual target. While a distributor with captured changes exceeds it, changes cannot be submitted.",
+      "ANNUAL_TARGET_PANEL_ROW": "Total ${{total}} · Target ${{target}} · ${{over}} over",
+      "ANNUAL_TARGET_PANEL_ROW_BLOCKED": "Blocks submission",
+      "ANNUAL_TARGET_PANEL_GOTO": "Go to row"
     },
     "CLIENT_MODAL": {
       "LOADING": "Loading forecast...",
