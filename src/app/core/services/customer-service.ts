@@ -6,6 +6,7 @@ import { ApiResponse } from '../../data/interfaces/ApiResponse-interface';
 
 export interface UpdateClientExtPayload {
   area?: string | null;
+  csLeaderId?: number | null;
   salesEngineerId?: number | null;
   salesManagerId?: number | null;
   processorId?: number | null;

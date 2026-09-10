@@ -27,6 +27,7 @@ export interface CustomerLocal {
   idCustomer?: number;
   idCliente?: string;
   area: string | null;
+  csLeaderId?: Manager | null;
   processorId?: Manager | null;
   salesEngineerId?: Manager | null;
   salesManagerId?: Manager | null;
