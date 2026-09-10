@@ -936,11 +936,20 @@ export class ForecastService {
    * forecast y otro de ventas. Sin salesEngineerId el backend exporta todo lo
    * que el rol permita (sus ingenieros, o el padrón completo para el admin).
    */
-  exportForecastExcel(year: number, salesEngineerId?: number): Observable<Blob> {
+  /** `tipo` acota la exportación a una sola hoja; sin él vienen las dos. */
+  exportForecastExcel(
+    year: number,
+    salesEngineerId?: number,
+    tipo?: 'nacionales' | 'extranjeros'
+  ): Observable<Blob> {
     const params: Record<string, string> = { year: String(year) };
 
     if (salesEngineerId) {
       params['salesEngineerId'] = String(salesEngineerId);
+    }
+
+    if (tipo) {
+      params['tipo'] = tipo;
     }
 
     return this.httpService.getBlob('/forecast/export/excel', params);
