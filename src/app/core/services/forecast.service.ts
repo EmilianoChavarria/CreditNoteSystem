@@ -288,6 +288,8 @@ export interface ForecastClientApi {
   /** Solo en clientes extranjeros: ARG = Argentina, el resto Centroamérica. */
   countrycode?: string | null;
   year: number;
+  /** Techo anual: la suma de los 12 meses no puede rebasarlo. null = sin objetivo cargado. */
+  annualTarget?: string | number | null;
   months: ForecastMonthApi[];
 }
 
@@ -308,6 +310,8 @@ export interface ForecastGroupApi {
   id: number;
   razonSocial: string;
   year: number;
+  /** Techo anual del grupo. */
+  annualTarget?: string | number | null;
   months: ForecastMonthApi[];
   clients: ForecastGroupMemberApi[];
 }
@@ -399,6 +403,8 @@ export interface Distributor {
   id: number;
   name: string;
   months: MonthEntry[];
+  /** Techo anual del forecast; null cuando no tiene objetivo cargado. */
+  annualTarget: number | null;
   isGroup?: boolean;
   members?: GroupMemberSales[];
   /** Solo en clientes extranjeros: ARG = Argentina, el resto Centroamérica. */
@@ -557,11 +563,18 @@ function buildMonthEntries(months: ForecastMonthApi[]): MonthEntry[] {
   });
 }
 
+function parseAnnualTarget(value: string | number | null | undefined): number | null {
+  if (value === null || value === undefined || value === '') return null;
+  const parsed = parseFloat(String(value));
+  return isNaN(parsed) ? null : parsed;
+}
+
 function mapClientToDistributor(client: ForecastClientApi): Distributor {
   return {
     id: parseInt(client.idCliente),
     name: client.razonSocial,
     months: buildMonthEntries(client.months),
+    annualTarget: parseAnnualTarget(client.annualTarget),
     countrycode: client.countrycode ?? null,
   };
 }
@@ -584,6 +597,7 @@ function mapGroupToDistributor(group: ForecastGroupApi): Distributor {
     name: group.razonSocial,
     isGroup: true,
     months: buildMonthEntries(group.months),
+    annualTarget: parseAnnualTarget(group.annualTarget),
     members: group.clients.map(mapGroupMemberSales),
   };
 }
@@ -651,6 +665,26 @@ export class ForecastService {
       { ...this.withBearer(), params: { year } }
     ).pipe(
       map((response: ApiResponse<ForecastRowApi[]>) => response.data ?? []),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
+  /**
+   * Fija el objetivo anual (techo) de un cliente/grupo o cliente extranjero.
+   * Con `amount` null se elimina el objetivo y la fila deja de tener techo.
+   */
+  setAnnualTarget(
+    tipo: 'cliente' | 'clienteExtranjero',
+    id: number,
+    year: number,
+    amount: number | null
+  ): Observable<unknown> {
+    return this.httpService.put<unknown>(
+      `/forecast/annual-target/${tipo}/${id}/${year}`,
+      { amount },
+      this.withBearer()
+    ).pipe(
+      map((response: ApiResponse<unknown>) => response.data),
       catchError((error) => throwError(() => error))
     );
   }
