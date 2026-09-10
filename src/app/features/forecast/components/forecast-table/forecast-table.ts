@@ -327,13 +327,6 @@ export class ForecastTable {
     return c?.clientId === clientId && c?.monthIdx === monthIdx;
   }
 
-  isEditableMonth(monthIdx: number): boolean {
-    const now = new Date();
-    if (this.year() < now.getFullYear()) return true;
-    if (this.year() > now.getFullYear()) return false;
-    return monthIdx <= now.getMonth();
-  }
-
   onCellClick(dist: Distributor, monthIdx: number): void {
     this.clickTimer = setTimeout(() => {
       this.clickTimer = null;
@@ -347,7 +340,7 @@ export class ForecastTable {
       this.clickTimer = null;
     }
     const m = dist.months[monthIdx];
-    if (this.isEditableMonth(monthIdx) && m.pendingRequest?.status !== 'pending' && !this.isSubmitting(dist.id, monthIdx)) {
+    if (m.pendingRequest?.status !== 'pending' && !this.isSubmitting(dist.id, monthIdx)) {
       // El input arranca con el valor en borrador si ya se editó esta celda,
       // pero el original sigue siendo el forecast vigente.
       this.startEdit(dist.id, monthIdx, this.draftValue(dist.id, monthIdx) ?? m.forecast, m.forecast);

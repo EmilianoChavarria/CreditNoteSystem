@@ -189,11 +189,11 @@
     @for (m of dist.months; track $index; let i = $index) {
       <td
         class="px-2 py-1.5 text-right text-xs text-gray-600 whitespace-nowrap transition-colors select-none"
-        [class.cursor-pointer]="isEditableMonth(i) && m.pendingRequest?.status !== 'pending'"
-        [class.hover:bg-gray-100]="isEditableMonth(i) && m.pendingRequest?.status !== 'pending'"
-        [class.opacity-60]="m.pendingRequest?.status === 'pending' || !isEditableMonth(i)"
+        [class.cursor-pointer]="m.pendingRequest?.status !== 'pending'"
+        [class.hover:bg-gray-100]="m.pendingRequest?.status !== 'pending'"
+        [class.opacity-60]="m.pendingRequest?.status === 'pending'"
         [class.bg-blue-50]="isDraft(dist.id, i)"
-        [title]="!isEditableMonth(i) ? ('FORECAST.TABLE.MONTH_NOT_EDITABLE' | translate) : (m.pendingRequest?.status === 'pending' ? ('FORECAST.TABLE.PENDING_CHANGE' | translate) : ('FORECAST.TABLE.DBL_CLICK_EDIT' | translate))"
+        [title]="m.pendingRequest?.status === 'pending' ? ('FORECAST.TABLE.PENDING_CHANGE' | translate) : ('FORECAST.TABLE.DBL_CLICK_EDIT' | translate)"
         (dblclick)="onCellDblClick(dist, i)">
         @if (isEditing(dist.id, i)) {
           <input
