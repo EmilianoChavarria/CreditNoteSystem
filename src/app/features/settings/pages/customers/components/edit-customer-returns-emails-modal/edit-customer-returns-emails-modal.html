@@ -1,0 +1,29 @@
+<app-modal
+  size="md"
+  titleM="Correos de recordatorio de devoluciones"
+  [open]="open()"
+  [closeText]="'USERS_PAGE.CANCEL' | translate"
+  [primaryText]="'USERS_PAGE.SAVE' | translate"
+  [primaryLoading]="saving()"
+  [primaryDisabled]="saving()"
+  [closeOnBackdrop]="true"
+  (openChange)="openChange.emit($event)"
+  (primaryAction)="onSave()">
+
+  <div class="flex flex-col gap-y-2 px-3">
+    <p class="text-sm text-gray-500">
+      Registra uno o varios correos separados por <strong>;</strong>. Se usarán para enviar el recordatorio
+      anual de la política de devoluciones, un mes antes de la fecha de vencimiento del cliente.
+    </p>
+
+    <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Correos</label>
+    <textarea
+      rows="5"
+      [ngModel]="emailsText()"
+      (ngModelChange)="emailsText.set($event)"
+      placeholder="correo1@ejemplo.com;&#10;correo2@ejemplo.com"
+      class="w-full text-sm px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 transition resize-y"></textarea>
+    <span class="text-xs text-gray-400">Si no se registra ningún correo, no se enviará recordatorio a este cliente.</span>
+  </div>
+
+</app-modal>
