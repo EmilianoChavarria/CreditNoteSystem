@@ -32,7 +32,7 @@ export class EditCustomerReturnsEmailsModal {
       const isOpen = this.open();
       if (!isOpen) return;
 
-      this.emailsText.set((c?.clienteExt?.correosDevoluciones ?? '').split(';').filter(Boolean).join(';\n'));
+      this.emailsText.set((c?.clienteExt?.correosForecast ?? '').split(';').filter(Boolean).join(';\n'));
     });
   }
 
