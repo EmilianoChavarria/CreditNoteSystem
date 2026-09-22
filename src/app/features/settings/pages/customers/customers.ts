@@ -8,12 +8,13 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AssignManagersPayload, AssignModal } from "./components/assign-modal/assign-modal";
 import { CustomerInfoModal } from "./components/customer-info-modal/customer-info-modal";
 import { EditCustomerExtModal } from "./components/edit-customer-ext-modal/edit-customer-ext-modal";
+import { EditCustomerReturnsEmailsModal } from "./components/edit-customer-returns-emails-modal/edit-customer-returns-emails-modal";
 
 @Component({
     selector: 'app-customers',
     templateUrl: './customers.html',
     styleUrl: './customers.css',
-    imports: [Table, LucideAngularModule, TranslatePipe, AssignModal, CustomerInfoModal, EditCustomerExtModal],
+    imports: [Table, LucideAngularModule, TranslatePipe, AssignModal, CustomerInfoModal, EditCustomerExtModal, EditCustomerReturnsEmailsModal],
 })
 export class Customers {
     private readonly _translateService = inject(TranslateService);
@@ -32,6 +33,7 @@ export class Customers {
     public isOpenModal = signal<boolean>(false);
     public isOpenInfoModal = signal<boolean>(false);
     public isOpenExtModal = signal<boolean>(false);
+    public isOpenReturnsEmailsModal = signal<boolean>(false);
 
     public columns: Column<Customer>[] = [
         {
@@ -116,6 +118,15 @@ export class Customers {
             accion: (customer) => {
                 this.customer = customer;
                 this.isOpenExtModal.set(true);
+            }
+        },
+        {
+            key: 'returns-emails',
+            icon: 'mail',
+            label: 'CUSTOMERS_PAGE.RETURNS_EMAILS',
+            accion: (customer) => {
+                this.customer = customer;
+                this.isOpenReturnsEmailsModal.set(true);
             }
         }
     ];
