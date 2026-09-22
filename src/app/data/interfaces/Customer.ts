@@ -35,6 +35,7 @@ export interface CustomerLocal {
   marketingManagerId?: Manager | null;
   customerServiceManagerId?: Manager | null;
   distributor?: Manager | null;
+  correosDevoluciones?: string | null;
 }
 
 export interface Manager {

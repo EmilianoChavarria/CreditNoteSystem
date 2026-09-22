@@ -282,6 +282,16 @@ export class CustomerService {
     );
   }
 
+  updateReturnsEmails(idCliente: string, emails: string[]): Observable<void> {
+    return this._httpService.put<void>(`/customers/${encodeURIComponent(idCliente)}/returns-emails`, { emails }).pipe(
+      map(() => undefined),
+      catchError((error) => {
+        console.log(error);
+        return throwError(() => error);
+      })
+    );
+  }
+
   saveExtraData(customer: CustomerLocalPayload) {
     return this._httpService.post('/customers/saveLocal', customer).pipe(
       tap((response) => {
