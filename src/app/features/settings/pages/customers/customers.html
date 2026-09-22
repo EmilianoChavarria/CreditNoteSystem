@@ -30,4 +30,10 @@
         [customer]="customer ?? null"
         (openChange)="isOpenExtModal.set($event)"
         (saved)="getUsers(currentPage())" />
+
+    <app-edit-customer-returns-emails-modal
+        [open]="isOpenReturnsEmailsModal()"
+        [customer]="customer ?? null"
+        (openChange)="isOpenReturnsEmailsModal.set($event)"
+        (saved)="getUsers(currentPage())" />
 </section>

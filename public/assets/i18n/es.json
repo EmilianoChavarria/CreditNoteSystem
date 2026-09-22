@@ -945,7 +945,8 @@
     "INACTIVE": "Inactivo",
     "ASSIGN_MANAGER": "Asignar Manager",
     "SEE_INFO": "Ver información",
-    "EDIT_EXT": "Editar asignaciones"
+    "EDIT_EXT": "Editar asignaciones",
+    "RETURNS_EMAILS": "Correos de devoluciones"
   },
   "CUSTOMER_INFO_MODAL": {
     "TITLE": "Información del Cliente",
