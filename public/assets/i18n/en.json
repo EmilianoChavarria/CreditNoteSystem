@@ -945,7 +945,8 @@
     "INACTIVE": "Inactive",
     "ASSIGN_MANAGER": "Assign Manager",
     "SEE_INFO": "See info",
-    "EDIT_EXT": "Edit assignments"
+    "EDIT_EXT": "Edit assignments",
+    "RETURNS_EMAILS": "Returns reminder emails"
   },
   "CUSTOMER_INFO_MODAL": {
     "TITLE": "Customer Information",
