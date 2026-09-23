@@ -8,13 +8,14 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AssignManagersPayload, AssignModal } from "./components/assign-modal/assign-modal";
 import { CustomerInfoModal } from "./components/customer-info-modal/customer-info-modal";
 import { EditCustomerExtModal } from "./components/edit-customer-ext-modal/edit-customer-ext-modal";
+import { BulkReturnsEmailsModal } from "./components/bulk-returns-emails-modal/bulk-returns-emails-modal";
 import { EditCustomerReturnsEmailsModal } from "./components/edit-customer-returns-emails-modal/edit-customer-returns-emails-modal";
 
 @Component({
     selector: 'app-customers',
     templateUrl: './customers.html',
     styleUrl: './customers.css',
-    imports: [Table, LucideAngularModule, TranslatePipe, AssignModal, CustomerInfoModal, EditCustomerExtModal, EditCustomerReturnsEmailsModal],
+    imports: [Table, LucideAngularModule, TranslatePipe, AssignModal, CustomerInfoModal, EditCustomerExtModal, EditCustomerReturnsEmailsModal, BulkReturnsEmailsModal],
 })
 export class Customers {
     private readonly _translateService = inject(TranslateService);
@@ -34,6 +35,7 @@ export class Customers {
     public isOpenInfoModal = signal<boolean>(false);
     public isOpenExtModal = signal<boolean>(false);
     public isOpenReturnsEmailsModal = signal<boolean>(false);
+    public isOpenBulkReturnsEmailsModal = signal<boolean>(false);
 
     public columns: Column<Customer>[] = [
         {
