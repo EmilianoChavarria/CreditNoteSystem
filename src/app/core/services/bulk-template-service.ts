@@ -4,7 +4,7 @@ import { ExportService } from './export-service';
 /** BOM para que Excel abra el CSV en UTF-8. */
 const BOM = '﻿';
 
-export type BulkTemplateType ='distributors' | 'nationalCustomers' | 'productClassification';
+export type BulkTemplateType ='distributors' | 'nationalCustomers' | 'customerReturnsEmails' | 'productClassification';
 
 interface BulkTemplateDefinition {
   fileName: string;
@@ -38,6 +38,14 @@ export class BulkTemplateService {
         ['100001', 'ACME MONTERREY', 'contacto@ejemplo.com,ventas@ejemplo.com', '2.5', 'MXN'],
         ['100002', '', '', '', 'USD'],
         ['100003', 'ACME QUERETARO', 'compras@ejemplo.com', '', ''],
+      ],
+    },
+    customerReturnsEmails: {
+      fileName: 'Layout Correos Devoluciones.csv',
+      headers: ['Customer Number', 'Emails'],
+      sampleRows: [
+        ['100001', 'contacto@ejemplo.com;ventas@ejemplo.com'],
+        ['100002', 'compras@ejemplo.com'],
       ],
     },
     productClassification: {
