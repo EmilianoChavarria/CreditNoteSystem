@@ -5,6 +5,11 @@
                 translate}}</span>
             <span class="text-sm sm:text-base text-orange-400">{{'CUSTOMER_VIEW.DESCRIPTION' | translate}}</span>
         </div>
+        <button type="button" (click)="isOpenBulkReturnsEmailsModal.set(true)"
+            class="mt-2 inline-flex items-center gap-1.5 rounded-md bg-[#ff8200] px-3 py-1.5 text-sm font-medium text-white hover:cursor-pointer hover:bg-orange-500 transition">
+            <lucide-icon name="upload" size="16"></lucide-icon>
+            {{ 'CUSTOMERS_PAGE.BULK_RETURNS_EMAILS' | translate }}
+        </button>
     </header>
     <app-tabla-dinamica [datos]="customers()" [columnas]="columns" [accionesPersonalizadas]="acciones" actionMode="menu"
         [enableFilter]="true" filterField="area" addLabel="CUSTOMERS_PAGE.CUSTOMER" addRoute="/app/settings/newCustomer"
@@ -36,4 +41,9 @@
         [customer]="customer ?? null"
         (openChange)="isOpenReturnsEmailsModal.set($event)"
         (saved)="getUsers(currentPage())" />
+
+    <app-bulk-returns-emails-modal
+        [open]="isOpenBulkReturnsEmailsModal()"
+        (openChange)="isOpenBulkReturnsEmailsModal.set($event)"
+        (uploaded)="getUsers(currentPage())" />
 </section>

@@ -1,0 +1,86 @@
+<app-modal
+    size="lg"
+    [titleM]="'CUSTOMERS_PAGE.BULK_RETURNS_EMAILS' | translate"
+    [open]="open()"
+    [closeText]="'COMMON.CANCEL' | translate"
+    [primaryText]="isUploading() ? ('CUSTOMERS_PAGE.BULK_UPLOADING' | translate) : ('CUSTOMERS_PAGE.BULK_UPLOAD_BTN' | translate)"
+    [primaryDisabled]="!file() || isUploading()"
+    [primaryLoading]="isUploading()"
+    (openChange)="onOpenChange($event)"
+    (primaryAction)="submitUpload()">
+
+    <div class="flex flex-col gap-4">
+        <div class="flex items-start justify-between gap-3">
+            <p class="text-xs text-gray-500">{{ 'CUSTOMERS_PAGE.BULK_DESCRIPTION' | translate }}</p>
+            <button type="button" (click)="downloadTemplate()"
+                class="shrink-0 inline-flex items-center gap-1.5 rounded-md border border-gray-300 px-2.5 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50 hover:cursor-pointer transition">
+                <lucide-icon name="download" size="14"></lucide-icon>
+                {{ 'BULK.COMMON.DOWNLOAD_TEMPLATE' | translate }}
+            </button>
+        </div>
+
+        <div class="flex items-center justify-center w-full">
+            <label for="bulk-returns-emails-input"
+                class="flex flex-col items-center justify-center w-full min-h-40 bg-blue-50 border border-dashed border-blue-600 rounded-md cursor-pointer px-4 py-6 transition-colors"
+                [class.bg-blue-100]="isDragOver()"
+                [class.border-orange-400]="isDragOver()"
+                (dragover)="onDragOver($event)"
+                (dragleave)="onDragLeave($event)"
+                (drop)="onDrop($event)">
+                <div class="flex flex-col items-center justify-center text-center pt-3 pb-2">
+                    <img src="assets/svg/cloud.svg" alt="" class="w-full max-w-20 h-auto object-contain my-3">
+                    <p class="mb-2 text-sm leading-snug">
+                        {{ 'FORECAST.DISTRIBUTORS.BULK_DROP_HINT' | translate }}
+                        <span class="font-semibold text-[#ff8200]">{{ 'BULK.COMMON.CLICK_UPLOAD' | translate }}</span>
+                    </p>
+                    <span class="text-xs text-gray-400">.csv · .xlsx</span>
+                </div>
+                <input id="bulk-returns-emails-input" type="file" accept=".csv,.xlsx" class="hidden"
+                    (change)="onFileChange($event)" />
+            </label>
+        </div>
+
+        @if (file(); as f) {
+        <div class="flex items-center justify-between gap-3 rounded-md border border-gray-200 px-4 py-2">
+            <div class="flex flex-col min-w-0">
+                <span class="truncate text-sm text-gray-700">{{ f.name }}</span>
+                <span class="text-xs text-gray-400">{{ formatFileSize(f.size) }}</span>
+            </div>
+            <button type="button" (click)="removeFile()"
+                class="p-1 text-[#fb2c36] bg-[#fb2c361a] rounded-md hover:cursor-pointer">
+                <lucide-icon name="trash" size="18"></lucide-icon>
+            </button>
+        </div>
+        }
+
+        @if (result(); as r) {
+        <div class="flex flex-col gap-2 rounded-md border border-gray-200 p-3">
+            <p class="text-sm text-gray-700">
+                {{ 'CUSTOMERS_PAGE.BULK_RESULT_PARTIAL' | translate: { updated: r.updated, failed: r.failed } }}
+            </p>
+            @if (r.errors.length > 0) {
+            <div class="max-h-48 overflow-y-auto">
+                <table class="w-full border-collapse text-xs">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-2 py-1 text-left font-semibold text-gray-600">{{ 'CUSTOMERS_PAGE.BULK_ROW' | translate }}</th>
+                            <th class="px-2 py-1 text-left font-semibold text-gray-600">{{ 'CUSTOMERS_PAGE.CUSTOMER_ID' | translate }}</th>
+                            <th class="px-2 py-1 text-left font-semibold text-gray-600">{{ 'CUSTOMERS_PAGE.BULK_ERROR_COL' | translate }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (e of r.errors; track $index) {
+                        <tr class="border-t border-gray-100">
+                            <td class="px-2 py-1 text-gray-700">{{ e.row }}</td>
+                            <td class="px-2 py-1 text-gray-700">{{ e.customerNumber ?? '-' }}</td>
+                            <td class="px-2 py-1 text-red-600">{{ e.message }}</td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            }
+        </div>
+        }
+    </div>
+</app-modal>
