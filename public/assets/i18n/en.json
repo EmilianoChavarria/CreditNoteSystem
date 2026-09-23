@@ -946,7 +946,16 @@
     "ASSIGN_MANAGER": "Assign Manager",
     "SEE_INFO": "See info",
     "EDIT_EXT": "Edit assignments",
-    "RETURNS_EMAILS": "Returns reminder emails"
+    "RETURNS_EMAILS": "Returns reminder emails",
+    "BULK_RETURNS_EMAILS": "Bulk upload emails",
+    "BULK_DESCRIPTION": "Upload a file with two columns: customer number and emails separated by ; (the customer's saved emails are replaced).",
+    "BULK_UPLOAD_BTN": "Upload",
+    "BULK_UPLOADING": "Uploading...",
+    "BULK_RESULT_OK": "{{count}} customers updated.",
+    "BULK_RESULT_PARTIAL": "Updated: {{updated}} · Failed: {{failed}}",
+    "BULK_ERROR": "Error processing the file.",
+    "BULK_ROW": "Row",
+    "BULK_ERROR_COL": "Error"
   },
   "CUSTOMER_INFO_MODAL": {
     "TITLE": "Customer Information",

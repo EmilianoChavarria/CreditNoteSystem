@@ -946,7 +946,16 @@
     "ASSIGN_MANAGER": "Asignar Manager",
     "SEE_INFO": "Ver información",
     "EDIT_EXT": "Editar asignaciones",
-    "RETURNS_EMAILS": "Correos de devoluciones"
+    "RETURNS_EMAILS": "Correos de devoluciones",
+    "BULK_RETURNS_EMAILS": "Carga masiva de correos",
+    "BULK_DESCRIPTION": "Sube un archivo con dos columnas: número de cliente y correos separados por ; (los correos guardados del cliente se reemplazan).",
+    "BULK_UPLOAD_BTN": "Cargar",
+    "BULK_UPLOADING": "Cargando...",
+    "BULK_RESULT_OK": "{{count}} clientes actualizados.",
+    "BULK_RESULT_PARTIAL": "Actualizados: {{updated}} · Con error: {{failed}}",
+    "BULK_ERROR": "Error al procesar el archivo.",
+    "BULK_ROW": "Fila",
+    "BULK_ERROR_COL": "Error"
   },
   "CUSTOMER_INFO_MODAL": {
     "TITLE": "Información del Cliente",
