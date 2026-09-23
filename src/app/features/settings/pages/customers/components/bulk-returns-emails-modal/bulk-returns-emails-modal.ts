@@ -3,7 +3,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LucideAngularModule } from 'lucide-angular';
 import { ToastrService } from 'ngx-toastr';
 import { finalize } from 'rxjs';
-import { BulkReturnsEmailsResult, CustomerService } from '../../../../../../core/services/customer-service';
+import { BatchService } from '../../../../../../core/services/batch-service';
 import { BulkTemplateService } from '../../../../../../core/services/bulk-template-service';
 import { Modal } from '../../../../../../shared/components/ui/modal/modal';
 
@@ -15,7 +15,7 @@ import { Modal } from '../../../../../../shared/components/ui/modal/modal';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BulkReturnsEmailsModal {
-  private readonly customerService = inject(CustomerService);
+  private readonly batchService = inject(BatchService);
   private readonly bulkTemplateService = inject(BulkTemplateService);
   private readonly toastr = inject(ToastrService);
   private readonly translate = inject(TranslateService);
@@ -27,7 +27,6 @@ export class BulkReturnsEmailsModal {
   readonly isUploading = signal(false);
   readonly file = signal<File | null>(null);
   readonly isDragOver = signal(false);
-  readonly result = signal<BulkReturnsEmailsResult | null>(null);
 
   onOpenChange(isOpen: boolean): void {
     if (this.isUploading()) return;
@@ -63,7 +62,6 @@ export class BulkReturnsEmailsModal {
 
   removeFile(): void {
     this.file.set(null);
-    this.result.set(null);
   }
 
   submitUpload(): void {
@@ -71,28 +69,17 @@ export class BulkReturnsEmailsModal {
     if (!file || this.isUploading()) return;
 
     this.isUploading.set(true);
-    this.customerService.bulkUpdateReturnsEmails(file).pipe(
+    this.batchService.createCustomerReturnsEmailsBatch(file).pipe(
       finalize(() => this.isUploading.set(false))
     ).subscribe({
-      next: (result) => {
-        this.result.set(result);
-        const title = this.translate.instant('CUSTOMERS_PAGE.BULK_RETURNS_EMAILS');
-        if (result.updated > 0) {
-          this.uploaded.emit();
-        }
-        if (result.failed === 0) {
-          this.toastr.success(
-            this.translate.instant('CUSTOMERS_PAGE.BULK_RESULT_OK', { count: result.updated }),
-            title
-          );
-          this.openChange.emit(false);
-          this.reset();
-        } else {
-          this.toastr.warning(
-            this.translate.instant('CUSTOMERS_PAGE.BULK_RESULT_PARTIAL', { updated: result.updated, failed: result.failed }),
-            title
-          );
-        }
+      next: () => {
+        this.toastr.success(
+          this.translate.instant('CUSTOMERS_PAGE.BULK_UPLOAD_SUCCESS'),
+          this.translate.instant('CUSTOMERS_PAGE.BULK_RETURNS_EMAILS')
+        );
+        this.openChange.emit(false);
+        this.uploaded.emit();
+        this.reset();
       },
       error: (err) => {
         this.toastr.error(
@@ -111,12 +98,10 @@ export class BulkReturnsEmailsModal {
 
   private setFile(file: File | null): void {
     this.file.set(file);
-    this.result.set(null);
   }
 
   private reset(): void {
     this.file.set(null);
-    this.result.set(null);
     this.isDragOver.set(false);
   }
 }
