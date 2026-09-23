@@ -9,13 +9,14 @@ import { AssignManagersPayload, AssignModal } from "./components/assign-modal/as
 import { CustomerInfoModal } from "./components/customer-info-modal/customer-info-modal";
 import { EditCustomerExtModal } from "./components/edit-customer-ext-modal/edit-customer-ext-modal";
 import { BulkReturnsEmailsModal } from "./components/bulk-returns-emails-modal/bulk-returns-emails-modal";
+import { BulkReturnsEmailsHistoryModal } from "./components/bulk-returns-emails-history-modal/bulk-returns-emails-history-modal";
 import { EditCustomerReturnsEmailsModal } from "./components/edit-customer-returns-emails-modal/edit-customer-returns-emails-modal";
 
 @Component({
     selector: 'app-customers',
     templateUrl: './customers.html',
     styleUrl: './customers.css',
-    imports: [Table, LucideAngularModule, TranslatePipe, AssignModal, CustomerInfoModal, EditCustomerExtModal, EditCustomerReturnsEmailsModal, BulkReturnsEmailsModal],
+    imports: [Table, LucideAngularModule, TranslatePipe, AssignModal, CustomerInfoModal, EditCustomerExtModal, EditCustomerReturnsEmailsModal, BulkReturnsEmailsModal, BulkReturnsEmailsHistoryModal],
 })
 export class Customers {
     private readonly _translateService = inject(TranslateService);
@@ -36,6 +37,7 @@ export class Customers {
     public isOpenExtModal = signal<boolean>(false);
     public isOpenReturnsEmailsModal = signal<boolean>(false);
     public isOpenBulkReturnsEmailsModal = signal<boolean>(false);
+    public isOpenBulkReturnsEmailsHistoryModal = signal<boolean>(false);
 
     public columns: Column<Customer>[] = [
         {

@@ -1,6 +1,4 @@
-import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { runtimeConfig } from '../config/runtime-config';
+import { Injectable } from '@angular/core';
 import { HttpService } from './http-service';
 import { catchError, map, Observable, of, tap, throwError } from 'rxjs';
 import { Customer, CustomerLocal, CustomerLocalPayload } from '../../data/interfaces/Customer';
@@ -15,13 +13,6 @@ export interface UpdateClientExtPayload {
   financeManagerId?: number | null;
   marketingManagerId?: number | null;
   customerServiceManagerId?: number | null;
-}
-
-export interface BulkReturnsEmailsResult {
-  total: number;
-  updated: number;
-  failed: number;
-  errors: { row: number; customerNumber: string | null; message: string }[];
 }
 
 export interface PagePagination<T> {
@@ -225,8 +216,6 @@ export interface ProductReturnHistoryData {
 })
 export class CustomerService {
 
-  private readonly _httpClient = inject(HttpClient);
-
   constructor(
     private _httpService: HttpService
   ) { }
@@ -300,22 +289,6 @@ export class CustomerService {
         console.log(error);
         return throwError(() => error);
       })
-    );
-  }
-
-  bulkUpdateReturnsEmails(file: File): Observable<BulkReturnsEmailsResult> {
-    const token = localStorage.getItem('token') ?? localStorage.getItem('authToken') ?? localStorage.getItem('access_token');
-    const headers = token ? new HttpHeaders({ Authorization: `Bearer ${token}` }) : undefined;
-    const formData = new FormData();
-    formData.append('file', file);
-
-    return this._httpClient.post<ApiResponse<BulkReturnsEmailsResult>>(
-      `${runtimeConfig.apiBaseUrl}/customers/returns-emails/bulk`,
-      formData,
-      { headers, withCredentials: true }
-    ).pipe(
-      map((response) => response.data as BulkReturnsEmailsResult),
-      catchError((error) => throwError(() => error))
     );
   }
 

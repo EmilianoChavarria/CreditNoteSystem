@@ -951,11 +951,14 @@
     "BULK_DESCRIPTION": "Sube un archivo con dos columnas: número de cliente y correos separados por ; (un cliente puede repetirse en varias filas; los correos guardados se reemplazan por los del archivo).",
     "BULK_UPLOAD_BTN": "Cargar",
     "BULK_UPLOADING": "Cargando...",
-    "BULK_RESULT_OK": "{{count}} filas procesadas.",
-    "BULK_RESULT_PARTIAL": "Filas correctas: {{updated}} · Con error: {{failed}}",
     "BULK_ERROR": "Error al procesar el archivo.",
-    "BULK_ROW": "Fila",
-    "BULK_ERROR_COL": "Error"
+    "BULK_UPLOAD_SUCCESS": "Archivo importado. El batch está siendo procesado.",
+    "BULK_HISTORY_BUTTON": "Historial de cargas",
+    "BULK_HISTORY_TITLE": "Historial de cargas masivas de correos",
+    "BULK_HISTORY_CLOSE": "Cerrar",
+    "BULK_HISTORY_LOAD_ERROR": "No se pudo cargar el historial de cargas.",
+    "BULK_HISTORY_LOAD_DETAIL_ERROR": "No se pudo cargar el detalle del batch.",
+    "BULK_HISTORY_LOAD_REQUESTS_ERROR": "No se pudieron cargar los registros del batch."
   },
   "CUSTOMER_INFO_MODAL": {
     "TITLE": "Información del Cliente",
