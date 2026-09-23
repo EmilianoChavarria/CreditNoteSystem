@@ -951,11 +951,14 @@
     "BULK_DESCRIPTION": "Upload a file with two columns: customer number and emails separated by ; (a customer may repeat across rows; saved emails are replaced by the file's).",
     "BULK_UPLOAD_BTN": "Upload",
     "BULK_UPLOADING": "Uploading...",
-    "BULK_RESULT_OK": "{{count}} rows processed.",
-    "BULK_RESULT_PARTIAL": "Rows OK: {{updated}} · Failed: {{failed}}",
     "BULK_ERROR": "Error processing the file.",
-    "BULK_ROW": "Row",
-    "BULK_ERROR_COL": "Error"
+    "BULK_UPLOAD_SUCCESS": "File imported. The batch is being processed.",
+    "BULK_HISTORY_BUTTON": "Upload history",
+    "BULK_HISTORY_TITLE": "Bulk email upload history",
+    "BULK_HISTORY_CLOSE": "Close",
+    "BULK_HISTORY_LOAD_ERROR": "Could not load the upload history.",
+    "BULK_HISTORY_LOAD_DETAIL_ERROR": "Could not load the batch detail.",
+    "BULK_HISTORY_LOAD_REQUESTS_ERROR": "Could not load the batch records."
   },
   "CUSTOMER_INFO_MODAL": {
     "TITLE": "Customer Information",
