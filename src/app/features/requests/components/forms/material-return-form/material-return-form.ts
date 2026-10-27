@@ -580,6 +580,16 @@ export class MaterialReturnForm extends BaseRequestForm {
 
     const raw = group.getRawValue();
 
+    // Cantidad aceptada obligatoria para el rol que la captura, salvo en filas ya ocultas
+    // (rechazadas o sin llegar a almacén), que ese rol no puede llenar.
+    const isHiddenRow = shouldHideMaterialRow(this.currentConstraintCtx(), raw.replenishmentAccepted, raw.warehouseAccepted);
+    const acceptedValidators = isHiddenRow ? null : [Validators.required];
+    for (const field of ['replenishmentAccepted', 'warehouseAccepted']) {
+      const ctrl = group.get(field);
+      ctrl?.setValidators(acceptedValidators);
+      ctrl?.updateValueAndValidity({ emitEvent: false });
+    }
+
     const repAccepted = raw.replenishmentAccepted;
     const requestedQty = Number(material.requestedQuantity) || 0;
     const repReasonCtrl = group.get('replenishmentReason');
